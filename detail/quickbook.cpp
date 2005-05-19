@@ -35,9 +35,9 @@ namespace quickbook
     ///////////////////////////////////////////////////////////////////////////
     struct actions
     {
-        actions(char const* filein_, char const* fileout_)
+        actions(char const* filein_, std::ostream &out_)
             : filename(filein_)
-            , out(fileout_)
+            , out(out_)
             , table_span(0)
             , table_header()
             , source_mode("c++")
@@ -109,11 +109,8 @@ namespace quickbook
             , begin_section(out, doc_id, section_id)
             , end_section(out, "</section>")
             , xinclude(out)
+            , include(*this)
         {
-            std::cout << "Generating Output File: "
-                << fileout_
-                << std::endl;
-
             // add the predefined macros
             macro.add
                 ("__DATE__", std::string(quickbook_get_date))
@@ -126,13 +123,14 @@ namespace quickbook
         typedef macro_def_action<actions> macro_def_action;
         typedef table_action<actions> table_action;
         typedef variablelist_action<actions> variablelist_action;
+        typedef include_action<actions> include_action;
 
         char const*             filename;
         std::string             directory;
         std::string             macro_id;
         std::string             phrase_save;
         std::string             table_title;
-        std::ofstream           out;
+        std::ostream&           out;
         error_action            error;
 
         typedef std::vector<std::string> copyright_list;
@@ -228,6 +226,7 @@ namespace quickbook
         begin_section_action    begin_section;
         markup_action           end_section;
         xinclude_action         xinclude;
+        include_action          include;
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -275,7 +274,7 @@ namespace quickbook
     //
     ///////////////////////////////////////////////////////////////////////////
     static int
-    parse(char const* filein_, char const* fileout_)
+    parse(char const* filein_, actions& actor, bool ignore_docinfo = false)
     {
         using std::cerr;
         using std::vector;
@@ -290,21 +289,18 @@ namespace quickbook
         iterator_type first(storage.begin(), storage.end(), filein_);
         iterator_type last(storage.end(), storage.end());
 
-        actions actor(filein_, fileout_);
-
         doc_info_grammar<actions> l(actor);
         parse_info<iterator_type> info = parse(first, last, l);
 
-        if (info.hit)
+        if (info.hit || ignore_docinfo)
         {
-            pre(actor.out, actor);
+            pre(actor.out, actor, ignore_docinfo);
 
-            first = info.stop;
             quickbook_grammar<actions> g(actor);
-            info = parse(first, last, g);
+            info = parse(info.hit ? info.stop : first, last, g);
             if (info.full)
             {
-                post(actor.out, actor);
+                post(actor.out, actor, ignore_docinfo);
             }
         }
 
@@ -319,6 +315,20 @@ namespace quickbook
         }
 
         return 0;
+    }
+
+    static int
+    parse(char const* filein_, std::ostream& out, bool ignore_docinfo = false)
+    {
+        actions actor(filein_, out);
+        return parse(filein_, actor);
+    }
+
+    static int
+    parse(char const* filein_, char const* fileout_, bool ignore_docinfo = false)
+    {
+        std::ofstream fileout(fileout_);
+        return parse(filein_, fileout);
     }
 }
 
@@ -372,6 +382,10 @@ main(int argc, char* argv[])
             {
                 fileout = argv[2];
             }
+
+            std::cout << "Generating Output File: "
+                << fileout
+                << std::endl;
     
             return quickbook::parse(argv[1], fileout.c_str());
         }

@@ -96,6 +96,7 @@ namespace quickbook
                         |   table
                         |   variablelist
                         |   xinclude
+                        |   include
                         )
                     >>  (   (']' >> +eol)
                         |   eps_p                       [self.actions.error]
@@ -241,6 +242,13 @@ namespace quickbook
                     >> hard_space
                     >> (*(anychar_p -
                             close_bracket))             [self.actions.xinclude]
+                    ;
+
+                include =
+                       "include"
+                    >> hard_space
+                    >> (*(anychar_p -
+                            close_bracket))             [self.actions.include]
                     ;
 
                 identifier =
@@ -557,7 +565,7 @@ namespace quickbook
                             variablelist, varlistentry, varlistterm, varlistitem,
                             table_cell, preformatted, list_item, common,
                             funcref, classref, memberref, enumref, headerref, anchor, link,
-                            begin_section, end_section, xinclude, hard_space, eol,
+                            begin_section, end_section, xinclude, include, hard_space, eol,
                             inline_code, simple_format, simple_bold, simple_italic,
                             simple_underline, simple_teletype;
 

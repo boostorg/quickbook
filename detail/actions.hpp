@@ -922,6 +922,24 @@ namespace quickbook
         std::ostream& out;
     };
 
+    template<typename Actions>
+    struct include_action
+    {
+        // Handles QBK includes
+
+        include_action(Actions& actions_)
+            : actions(actions_) {}
+
+        template <typename Iterator>
+        void operator()(Iterator first, Iterator last) const
+        {
+            std::string filein(first, last);
+            quickbook::parse(filein.c_str(), actions, true);
+        }
+
+        Actions& actions;
+    };
+
     struct xml_author
     {
         // Handles xml author
@@ -956,10 +974,16 @@ namespace quickbook
     };
 
     template <typename Actions>
-    void pre(std::ostream& out, Actions& actions)
+    void pre(std::ostream& out, Actions& actions, bool ignore_docinfo = false)
     {
         // The quickbook file has been parsed. Now, it's time to
         // generate the output. Here's what we'll do *before* anything else.
+
+        // if we're ignoring the document info, do nothing.
+        if (ignore_docinfo)
+        {
+            return;
+        }
 
         if (actions.doc_id.empty())
             actions.doc_id = detail::make_identifier(
@@ -1057,8 +1081,14 @@ namespace quickbook
     }
 
     template <typename Actions>
-    void post(std::ostream& out, Actions& actions)
+    void post(std::ostream& out, Actions& actions, bool ignore_docinfo = false)
     {
+        // if we're ignoring the document info, do nothing.
+        if (ignore_docinfo)
+        {
+            return;
+        }
+
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
         out << "\n</" << actions.doc_type << ">\n\n";
