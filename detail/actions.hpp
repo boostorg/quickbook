@@ -934,7 +934,20 @@ namespace quickbook
         void operator()(Iterator first, Iterator last) const
         {
             std::string filein(first, last);
+            std::string doc_id, doc_dirname, doc_last_revision;
+
+            // save the doc info strings
+            actions.doc_id.swap(doc_id);
+            actions.doc_dirname.swap(doc_dirname);
+            actions.doc_last_revision.swap(doc_last_revision);
+
+            // parse the file
             quickbook::parse(filein.c_str(), actions, true);
+
+            // restore the values
+            actions.doc_id.swap(doc_id);
+            actions.doc_dirname.swap(doc_dirname);
+            actions.doc_last_revision.swap(doc_last_revision);
         }
 
         Actions& actions;
@@ -979,12 +992,6 @@ namespace quickbook
         // The quickbook file has been parsed. Now, it's time to
         // generate the output. Here's what we'll do *before* anything else.
 
-        // if we're ignoring the document info, do nothing.
-        if (ignore_docinfo)
-        {
-            return;
-        }
-
         if (actions.doc_id.empty())
             actions.doc_id = detail::make_identifier(
                 actions.doc_title.begin(),actions.doc_title.end());
@@ -1005,6 +1012,12 @@ namespace quickbook
             );
 
             actions.doc_last_revision = strdate;
+        }
+
+        // if we're ignoring the document info, we're done.
+        if (ignore_docinfo)
+        {
+            return;
         }
 
         out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
