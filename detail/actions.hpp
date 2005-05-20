@@ -914,8 +914,7 @@ namespace quickbook
         void operator()(Iterator first, Iterator last) const
         {
             out << "\n<xi:include href=\"";
-            while (first != last)
-                detail::print_char(*first++, out);
+            detail::print_string(detail::escape_uri(std::string(first, last)), out);
             out << "\" />\n";
         }
 

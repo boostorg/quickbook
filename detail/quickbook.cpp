@@ -13,6 +13,7 @@
 #include "actions.hpp"
 #include <boost/spirit/iterator/position_iterator.hpp>
 #include <boost/program_options.hpp>
+#include <boost/ref.hpp>
 
 #include <fstream>
 #include <iostream>
