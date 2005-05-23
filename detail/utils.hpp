@@ -129,7 +129,8 @@ namespace quickbook { namespace detail
         for(std::string::size_type n = 0; n < uri.size(); ++n)
         {
             static char const mark[] = "-_.!~*'()?\\/";
-            if((!isalnum(uri[n]) || 127 < uri[n]) && 0 == std::strchr(mark, uri[n]))
+            if((!isalnum(uri[n]) || 127 < static_cast<unsigned char>(uri[n]))
+              && 0 == std::strchr(mark, uri[n]))
             {
                 static char const hex[] = "0123456789abcdef";
                 char escape[] = { hex[uri[n] / 16], hex[uri[n] % 16] };
