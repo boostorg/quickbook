@@ -11,6 +11,7 @@
 #define BOOST_SPIRIT_QUICKBOOK_ACTIONS_HPP
 
 #include <time.h>
+#include <map>
 #include <string>
 #include <vector>
 #include <stack>
@@ -380,13 +381,15 @@ namespace quickbook
         std::ostream& out;
     };
 
+    typedef symbols<std::string> macros_type;
+
     struct code_action
     {
         // Does the actual syntax highlighing of code
 
         code_action(std::ostream& out,
                     std::string const & source_mode,
-                    symbols<std::string> const& macro)
+                    macros_type const& macro)
         : out(out)
         , source_mode(source_mode)
         , cpp_p(out, macro, do_macro_action(out))
@@ -427,7 +430,7 @@ namespace quickbook
         cpp_highlight<
             span
           , space
-          , symbols<std::string>
+          , macros_type
           , do_macro_action
           , unexpected_char
           , std::ostream>
@@ -436,7 +439,7 @@ namespace quickbook
         python_highlight<
             span
           , space
-          , symbols<std::string>
+          , macros_type
           , do_macro_action
           , unexpected_char
           , std::ostream>
@@ -449,7 +452,7 @@ namespace quickbook
 
         inline_code_action(std::ostream& out,
                            std::string const& source_mode,
-                           symbols<std::string> const& macro)
+                           macros_type const& macro)
         : out(out)
         , source_mode(source_mode)
         , cpp_p(out, macro, do_macro_action(out))
@@ -483,7 +486,7 @@ namespace quickbook
         cpp_highlight<
             span
           , space
-          , symbols<std::string>
+          , macros_type
           , do_macro_action
           , unexpected_char
           , std::ostream>
@@ -492,7 +495,7 @@ namespace quickbook
         python_highlight<
             span
           , space
-          , symbols<std::string>
+          , macros_type
           , do_macro_action
           , unexpected_char
           , std::ostream>
@@ -940,6 +943,12 @@ namespace quickbook
             actions.doc_dirname.swap(doc_dirname);
             actions.doc_last_revision.swap(doc_last_revision);
 
+            // scope the macros
+            macros_type macro = actions.macro;
+
+            // update the __FILENAME__ macro
+            *boost::spirit::find(actions.macro, "__FILENAME__") = filein;
+
             // parse the file
             quickbook::parse(filein.c_str(), actions, true);
 
@@ -947,6 +956,8 @@ namespace quickbook
             actions.doc_id.swap(doc_id);
             actions.doc_dirname.swap(doc_dirname);
             actions.doc_last_revision.swap(doc_last_revision);
+
+            actions.macro = macro;
         }
 
         Actions& actions;

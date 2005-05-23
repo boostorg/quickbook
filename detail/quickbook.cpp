@@ -157,7 +157,7 @@ namespace quickbook
         unsigned                table_span;
         std::string             table_header;
 
-        symbols<std::string>    macro;
+        macros_type             macro;
         std::string             source_mode;
         code_action             code;
         inline_code_action      inline_code;
