@@ -936,15 +936,24 @@ namespace quickbook
         void operator()(Iterator first, Iterator last) const
         {
             std::string filein(first, last);
-            std::string doc_id, doc_dirname, doc_last_revision;
+            std::string doc_type, doc_id, doc_dirname, doc_last_revision;
 
             // save the doc info strings
+            actions.doc_type.swap(doc_type);
             actions.doc_id.swap(doc_id);
             actions.doc_dirname.swap(doc_dirname);
             actions.doc_last_revision.swap(doc_last_revision);
 
             // scope the macros
             macros_type macro = actions.macro;
+
+            // if an id is specified in this include (in in [include:id foo.qbk]
+            // then use it as the doc_id.
+            if(!actions.include_doc_id.empty())
+            {
+                actions.doc_id = actions.include_doc_id;
+                actions.include_doc_id.clear();
+            }
 
             // update the __FILENAME__ macro
             *boost::spirit::find(actions.macro, "__FILENAME__") = filein;
@@ -953,6 +962,7 @@ namespace quickbook
             quickbook::parse(filein.c_str(), actions, true);
 
             // restore the values
+            actions.doc_type.swap(doc_type);
             actions.doc_id.swap(doc_id);
             actions.doc_dirname.swap(doc_dirname);
             actions.doc_last_revision.swap(doc_last_revision);

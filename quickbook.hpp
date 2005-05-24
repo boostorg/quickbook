@@ -247,6 +247,12 @@ namespace quickbook
                 include =
                        "include"
                     >> hard_space
+                    >> 
+                   !(
+                        ':'
+                        >> (*((alnum_p | '_') - space_p))[assign_a(self.actions.include_doc_id)]
+                        >> space
+                    )
                     >> (*(anychar_p -
                             close_bracket))             [self.actions.include]
                     ;

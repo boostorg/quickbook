@@ -149,6 +149,7 @@ namespace quickbook
         author_list             doc_authors;
         std::string             doc_license;
         std::string             doc_last_revision;
+        std::string             include_doc_id;
 
         std::string             page_title;
         std::string             section_id;
