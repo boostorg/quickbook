@@ -18,11 +18,14 @@
 #include <algorithm>
 #include <sstream>
 #include <boost/spirit/iterator/position_iterator.hpp>
+#include <boost/filesystem/operations.hpp>
 #include "../syntax_highlight.hpp"
 #include "utils.hpp"
 
 namespace quickbook
 {
+    namespace fs = boost::filesystem;
+
     struct error_action
     {
         // Prints an error message to std::cerr
@@ -935,8 +938,18 @@ namespace quickbook
         template <typename Iterator>
         void operator()(Iterator first, Iterator last) const
         {
-            std::string filein(first, last);
+            fs::path filein(std::string(first, last), fs::native);
             std::string doc_type, doc_id, doc_dirname, doc_last_revision;
+
+            // check to see if the path is complete and if not, make it relative to the current path
+            if(!filein.is_complete())
+            {
+                filein = actions.filename.branch_path() / filein;
+                filein.normalize();
+            }
+
+            // swap the filenames
+            std::swap(actions.filename, filein);
 
             // save the doc info strings
             actions.doc_type.swap(doc_type);
@@ -956,12 +969,14 @@ namespace quickbook
             }
 
             // update the __FILENAME__ macro
-            *boost::spirit::find(actions.macro, "__FILENAME__") = filein;
+            *boost::spirit::find(actions.macro, "__FILENAME__") = actions.filename.native_file_string();
 
             // parse the file
-            quickbook::parse(filein.c_str(), actions, true);
+            quickbook::parse(actions.filename.native_file_string().c_str(), actions, true);
 
             // restore the values
+            std::swap(actions.filename, filein);
+
             actions.doc_type.swap(doc_type);
             actions.doc_id.swap(doc_id);
             actions.doc_dirname.swap(doc_dirname);

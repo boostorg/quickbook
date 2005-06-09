@@ -13,6 +13,7 @@
 #include "actions.hpp"
 #include <boost/spirit/iterator/position_iterator.hpp>
 #include <boost/program_options.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/ref.hpp>
 
 #include <fstream>
@@ -28,6 +29,7 @@
 namespace quickbook
 {
     using namespace boost::spirit;
+    namespace fs = boost::filesystem;
 
     ///////////////////////////////////////////////////////////////////////////
     //
@@ -37,7 +39,7 @@ namespace quickbook
     struct actions
     {
         actions(char const* filein_, std::ostream &out_)
-            : filename(filein_)
+            : filename(fs::complete(fs::path(filein_, fs::native)))
             , out(out_)
             , table_span(0)
             , table_header()
@@ -116,7 +118,7 @@ namespace quickbook
             macro.add
                 ("__DATE__", std::string(quickbook_get_date))
                 ("__TIME__", std::string(quickbook_get_time))
-                ("__FILENAME__", std::string(filein_))
+                ("__FILENAME__", filename.native_file_string())
             ;
         }
 
@@ -126,8 +128,7 @@ namespace quickbook
         typedef variablelist_action<actions> variablelist_action;
         typedef include_action<actions> include_action;
 
-        char const*             filename;
-        std::string             directory;
+        fs::path                filename;
         std::string             macro_id;
         std::string             phrase_save;
         std::string             table_title;
