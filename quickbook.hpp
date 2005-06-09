@@ -258,7 +258,7 @@ namespace quickbook
                     ;
 
                 identifier =
-                    *(anychar_p - (space_p | ']'))
+                    +(anychar_p - (space_p | ']'))
                     ;
 
                 source_mode =
