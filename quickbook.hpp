@@ -447,6 +447,7 @@ namespace quickbook
                         |   italic
                         |   underline
                         |   teletype
+                        |   strikethrough
                         |   str_p("br")                 [self.actions.break_]
                         )
                     >>  ']'
@@ -558,6 +559,11 @@ namespace quickbook
                         ch_p('^')                       [self.actions.teletype_pre]
                     >>  blank >> phrase                 [self.actions.teletype_post]
                     ;
+
+                strikethrough =
+                        ch_p('-')                       [self.actions.strikethrough_pre]
+                    >>  blank >> phrase                 [self.actions.strikethrough_post]
+                    ;
             }
 
             bool is_not_preformatted;
@@ -566,7 +572,7 @@ namespace quickbook
                             code_line, paragraph, space, blank, comment, headings,
                             h1, h2, h3, h4, h5, h6, hr, blurb, blockquote,
                             phrase, phrase_markup, image, list, close_bracket,
-                            ordered_list, bold, italic, underline, teletype,
+                            ordered_list, bold, italic, underline, teletype, strikethrough,
                             escape, def_macro, identifier, url, table, table_row,
                             variablelist, varlistentry, varlistterm, varlistitem,
                             table_cell, preformatted, list_item, common,

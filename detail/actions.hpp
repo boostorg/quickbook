@@ -556,6 +556,8 @@ namespace quickbook
         const char* underline_post_     = "</emphasis>";
         const char* teletype_pre_       = "<literal>";
         const char* teletype_post_      = "</literal>";
+        const char* strikethrough_pre_  = "<emphasis role=\"strikethrough\">";
+        const char* strikethrough_post_ = "</emphasis>";
         const char* break_mark          = "<sbr/>\n";
         const char* url_pre_            = "<ulink url=\"";
         const char* url_post_           = "</ulink>";

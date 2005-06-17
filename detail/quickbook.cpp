@@ -84,6 +84,8 @@ namespace quickbook
             , underline_post(phrase, underline_post_)
             , teletype_pre(phrase, teletype_pre_)
             , teletype_post(phrase, teletype_post_)
+            , strikethrough_pre(phrase, strikethrough_pre_)
+            , strikethrough_post(phrase, strikethrough_post_)
             , simple_bold(phrase, bold_pre_, bold_post_)
             , simple_italic(phrase, italic_pre_, italic_post_)
             , simple_underline(phrase, underline_pre_, underline_post_)
@@ -197,6 +199,8 @@ namespace quickbook
         markup_action           underline_post;
         markup_action           teletype_pre;
         markup_action           teletype_post;
+        markup_action           strikethrough_pre;
+        markup_action           strikethrough_post;
 
         simple_phrase_action    simple_bold;
         simple_phrase_action    simple_italic;
