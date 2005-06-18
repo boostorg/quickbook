@@ -93,12 +93,12 @@ Can be placed anywhere.
 [h3 Font Styles]
 
 [pre'''
-['italic], [*bold], [_underline], [^teletype]
+['italic], [*bold], [_underline], [^teletype], [-strikethrough]
 ''']
 
 will generate:
 
-['italic], [*bold], [_underline], [^teletype]
+['italic], [*bold], [_underline], [^teletype], [-strikethrough]
 
 Like all non-terminal phrase level elements, this can of course be nested:
 
@@ -115,12 +115,12 @@ will generate:
 Simple markup for formatting text, common in many applications, is now supported:
 
 [pre'''
-/italic/, *bold*, _underline_, =teletype=
+/italic/, *bold*, _underline_, =teletype=, -strikethrough-
 ''']
 
 will generate:
 
-/italic/, *bold*, _underline_, =teletype=
+/italic/, *bold*, _underline_, =teletype=, -strikethrough-
 
 Unlike QuickBook's standard formatting scheme, the rules for simpler alternatives
 are much stricter.
@@ -841,6 +841,38 @@ The rules for variable lists are the same as for tables, except that
 only 2 "columns" are allowed. The first column contains the terms, and
 the second column contains the definitions. Those familiar with HTML
 will recognize this as a "definition list".
+
+[h3 Include]
+
+You can include one QuickBook file from another. The syntax is simply:
+
+[pre'''
+[include someother.qbk]
+''']
+
+The included file will be processed as if it had be cut and pasted
+into the current document, with the following exceptions:
+
+* The '''__FILENAME__''' predefined macro will reflect the name of the
+  file currently being processed.
+* Any macros defined in the included file are scoped to that file.
+
+As the number of included QuickBook files grows, so too does the
+likelihood of two sections having the same name. Since QuickBook generates
+an anchor for each section based on the section name, it is possible to
+end up with two identically named anchors, leading to link ambiguities.
+To resolve these ambiguities, the [^\[include\]] directive lets you
+specify a document id to use for the included file. You can use it like
+this:
+
+[pre'''
+[include:someid someother.qbk]
+''']
+
+When using this form, all auto-generated anchors will use someid as
+a unique prefix. So for instance, if there is a section in someother.qbk
+named "Intro", the named anchor for that section will be "someid.intro",
+and you can link to it with [^\[link someid.intro The Intro\]].
 
 [endsect]
 [section:ref Quick Reference]
