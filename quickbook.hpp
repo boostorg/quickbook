@@ -328,6 +328,7 @@ namespace quickbook
                     |   simple_italic
                     |   simple_underline
                     |   simple_teletype
+                    |   simple_strikethrough
                     ;
 
                 simple_bold =
@@ -412,6 +413,27 @@ namespace quickbook
                         )
                     )                                   [self.actions.simple_teletype]
                     >> '='
+                    ;
+
+                simple_strikethrough =
+                    '-' >>
+                    (
+                        (   graph_p >>                  // graph_p must follow '-'
+                            *(anychar_p -
+                                (   eol                 // Make sure that we don't go
+                                |   (graph_p >> '-')    // past a single line
+                                )
+                            ) >> graph_p                // graph_p must precede '-'
+                            >> eps_p('-'
+                                >> (space_p | punct_p)) // space_p or punct_p must
+                        )                               // follow '-'
+                    |   (
+                            graph_p                     // A single char. e.g. =c=
+                            >> eps_p('-'
+                                >> (space_p | punct_p))
+                        )
+                    )                                   [self.actions.simple_strikethrough]
+                    >> '-'
                     ;
 
                 paragraph =
@@ -579,7 +601,7 @@ namespace quickbook
                             funcref, classref, memberref, enumref, headerref, anchor, link,
                             begin_section, end_section, xinclude, include, hard_space, eol,
                             inline_code, simple_format, simple_bold, simple_italic,
-                            simple_underline, simple_teletype;
+                            simple_underline, simple_teletype, simple_strikethrough;
 
             rule<Scanner> const&
             start() const { return library; }

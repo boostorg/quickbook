@@ -90,6 +90,7 @@ namespace quickbook
             , simple_italic(phrase, italic_pre_, italic_post_)
             , simple_underline(phrase, underline_pre_, underline_post_)
             , simple_teletype(phrase, teletype_pre_, teletype_post_)
+            , simple_strikethrough(phrase, strikethrough_pre_, strikethrough_post_)
             , variablelist(*this)
             , start_varlistentry(phrase, start_varlistentry_)
             , end_varlistentry(phrase, end_varlistentry_)
@@ -206,6 +207,7 @@ namespace quickbook
         simple_phrase_action    simple_italic;
         simple_phrase_action    simple_underline;
         simple_phrase_action    simple_teletype;
+        simple_phrase_action    simple_strikethrough;
 
         variablelist_action     variablelist;
         markup_action           start_varlistentry;
