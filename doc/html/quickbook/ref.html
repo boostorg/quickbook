@@ -27,7 +27,7 @@
 <a name="quickbook.ref"></a> Quick Reference</h2></div></div></div>
 <div class="informaltable">
 <h4>
-<a name="id444610"></a><span class="table-title">Syntax Compendium</span>
+<a name="id444607"></a><span class="table-title">Syntax Compendium</span>
 </h4>
 <table class="table">
 <colgroup>
@@ -60,6 +60,10 @@
 <td><tt class="literal">[^teletype] or =teletype=</tt></td>
 </tr>
 <tr>
+<td><span class="strikethrough">strikethrough</span></td>
+<td><tt class="literal">[-strikethrough] or -strikethrough-</tt></td>
+</tr>
+<tr>
 <td>source mode</td>
 <td>
 <tt class="literal">[c++]</tt> or <tt class="literal">[python]</tt>
@@ -71,11 +75,7 @@
 </tr>
 <tr>
 <td>line break</td>
-<td><tt class="literal">[br]</tt></td>
-</tr>
-<tr>
-<td>line break</td>
-<td><tt class="literal">\n</tt></td>
+<td><tt class="literal">[br] or \n</tt></td>
 </tr>
 <tr>
 <td>anchor</td>
@@ -206,6 +206,10 @@
  [[a][b]]<br>
     [[a][b]]<br>
 ]</tt></td>
+</tr>
+<tr>
+<td>include</td>
+<td><tt class="literal">[include someother.qbk]</tt></td>
 </tr>
 </tbody>
 </table>

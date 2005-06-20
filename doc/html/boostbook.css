@@ -262,6 +262,11 @@
         font-style: italic;
     }
 
+    span.underline
+    {
+        text-decoration: underline;
+    }
+
     span.strikethrough
     {
         text-decoration: line-through;

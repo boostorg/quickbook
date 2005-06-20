@@ -869,7 +869,7 @@ this:
 [include:someid someother.qbk]
 ''']
 
-When using this form, all auto-generated anchors will use someid as
+When using this form, all auto-generated anchors will use "someid" as
 a unique prefix. So for instance, if there is a section in someother.qbk
 named "Intro", the named anchor for that section will be "someid.intro",
 and you can link to it with [^\[link someid.intro The Intro\]].
@@ -884,10 +884,10 @@ and you can link to it with [^\[link someid.intro The Intro\]].
     [[[*bold]]              [[^'''[*bold] or *bold*''']]]
     [[[_underline]]         [[^'''[_underline] or _underline_''']]]
     [[[^teletype]]          [[^'''[^teletype] or =teletype=''']]]
+    [[[-strikethrough]]     [[^'''[-strikethrough] or -strikethrough-''']]]
     [[source mode]          [[^\[c++\]] or [^\[python\]]]]
     [[inline code]          [[^'''`int main();`''']]]
-    [[line break]           [[^'''[br]''']]]
-    [[line break]           [[^'''\n''']]]
+    [[line break]           [[^'''[br] or \n''']]]
     [[anchor]               [[^'''[#anchor]''']]]
     [[link]                 [[^'''[@http://www.boost.org Boost]''']]]
     [[anchor link]          [[^'''[link section.anchor Link text]''']]]
@@ -918,6 +918,7 @@ and you can link to it with [^\[link someid.intro The Intro\]].
     [[blurb]                [[^'''[blurb advertisement or note...]''']]]
     [[table]                [[^[table Title\n \[\[a\]\[b\]\[c\]\]\n    \[\[a\]\[b\]\[c\]\]\n\]]]]
     [[variablelist]         [[^[variablelist Title\n \[\[a\]\[b\]\]\n    \[\[a\]\[b\]\]\n\]]]]
+    [[include]              [[^'''[include someother.qbk]''']]]
 ]
 
 [endsect]
@@ -1116,6 +1117,7 @@ and you can link to it with [^\[link someid.intro The Intro\]].
             |   table
             |   variablelist
             |   xinclude
+            |   include
             )
         >>  (   (']' >> +eol)
             |   eps_p
@@ -1263,6 +1265,19 @@ and you can link to it with [^\[link someid.intro The Intro\]].
                 close_bracket))
         ;
 
+    include =
+           "include"
+        >> hard_space
+        >> 
+       !(
+            ':'
+            >> (*((alnum_p | '_') - space_p))
+            >> space
+        )
+        >> (*(anychar_p -
+                close_bracket))
+        ;
+
     identifier =
         *(anychar_p - (space_p | ']'))
         ;
@@ -1334,6 +1349,7 @@ and you can link to it with [^\[link someid.intro The Intro\]].
         |   simple_italic
         |   simple_underline
         |   simple_teletype
+        |   simple_strikethrough
         ;
 
     simple_bold =
@@ -1420,6 +1436,27 @@ and you can link to it with [^\[link someid.intro The Intro\]].
         >> '='
         ;
 
+    simple_strikethrough =
+        '-' >>
+        (
+            (   graph_p >>                  // graph_p must follow '-'
+                *(anychar_p -
+                    (   eol                 // Make sure that we don't go
+                    |   (graph_p >> '-')    // past a single line
+                    )
+                ) >> graph_p                // graph_p must precede '-'
+                >> eps_p('-'
+                    >> (space_p | punct_p)) // space_p or punct_p must
+            )                               // follow '-'
+        |   (
+                graph_p                     // A single char. e.g. =c=
+                >> eps_p('-'
+                    >> (space_p | punct_p))
+            )
+        )
+        >> '-'
+        ;
+
     paragraph =
        *(   common
         |   (anychar_p -                    // Make sure we don't go past
@@ -1453,6 +1490,7 @@ and you can link to it with [^\[link someid.intro The Intro\]].
             |   italic
             |   underline
             |   teletype
+            |   strikethrough
             |   str_p("br")
             )
         >>  ']'
@@ -1562,6 +1600,11 @@ and you can link to it with [^\[link someid.intro The Intro\]].
 
     teletype =
             ch_p('^')
+        >>  blank >> phrase
+        ;
+
+    strikethrough =
+            ch_p('-')
         >>  blank >> phrase
         ;
 
