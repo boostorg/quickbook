@@ -444,7 +444,7 @@ the true business precept.]
                 </literal>, not the single quote: <code><phrase role="string">&quot;'&quot;</phrase></code>.
                 Note too that <literal>
 <!--quickbook-escape-prefix-->`some code`<!--quickbook-escape-postfix-->
-                </literal> is prefered over <literal>
+                </literal> is preferred over <literal>
 <!--quickbook-escape-prefix-->[^some code]<!--quickbook-escape-postfix-->
                 </literal>. </entry>
               </row>
