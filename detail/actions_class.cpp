@@ -18,8 +18,11 @@
 namespace quickbook
 {
     actions::actions(char const* filein_, fs::path const& outdir_, string_stream& out_)
+    // backend, default
+        : backend_file("boostbook.qbk")
+        , backend_tag("boostbook")
     // header info
-        : doc_type()
+        , doc_type()
         , doc_title()
         , doc_version()
         , doc_id()
@@ -91,7 +94,7 @@ namespace quickbook
         , tip(out, temp_para, tip_pre, tip_post)
         , plain_char(phrase)
         , raw_char(phrase)
-        , image(phrase)
+        , image("image",*this)
 
         , list(out, list_buffer, list_indent, list_marks)
         , list_format(list_buffer, list_indent, list_marks)

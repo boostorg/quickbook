@@ -593,6 +593,12 @@ namespace quickbook
         --actions.template_depth;
     }
 
+    void do_template_action::operator()(std::string const & name, iterator first, iterator last) const
+    {
+        actions.template_info.insert(actions.template_info.begin(),name);
+        do_template_action::operator()(first,last);
+    }
+
     void link_action::operator()(iterator first, iterator last) const
     {
         iterator save = first;
@@ -1169,5 +1175,14 @@ namespace quickbook
     void phrase_to_string_action::operator()(iterator first, iterator last) const
     {
         phrase.swap(out);
+    }
+    
+    void backend_action::operator()(iterator first, iterator last) const
+    {
+        do_template_action::operator()(
+            this->actions.backend_tag+"_"+this->action_name,
+            first,
+            last
+            );
     }
 }

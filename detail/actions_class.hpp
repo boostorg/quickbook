@@ -30,6 +30,10 @@ namespace quickbook
         typedef std::vector<std::pair<std::string, std::string> > author_list;
         typedef std::pair<char, int> mark_type;
         static int const max_template_depth = 100;
+    
+    // backend
+        std::string             backend_file;
+        std::string             backend_tag;
 
     // header info
         std::string             doc_type;
@@ -112,7 +116,7 @@ namespace quickbook
         phrase_action           warning, caution, important, note, tip;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
-        image_action            image;
+        backend_action          image;
 
         list_action             list;
         list_format_action      list_format;

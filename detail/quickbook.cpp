@@ -91,6 +91,23 @@ namespace quickbook
     parse(char const* filein_, fs::path const& outdir, string_stream& out, bool ignore_docinfo = false)
     {
         actions actor(filein_, outdir, out);
+        
+        // prevent output from parsing the backend templates from appearing
+        // in the real output
+        actor.out.push();
+        
+        // include the default backend templates
+        typedef position_iterator<std::string::const_iterator> string_pos_iter;
+        string_pos_iter backendFirst(
+                actor.backend_file.begin(),actor.backend_file.end(),
+                filein_);
+        string_pos_iter backendLast(
+                actor.backend_file.end(),actor.backend_file.end());
+        actor.include(backendFirst,backendLast);
+        
+        // and throw the template output away
+        actor.out.pop();
+        
         bool r = parse(filein_, actor);
         if (actor.section_level != 0)
             detail::outwarn(filein_,1)

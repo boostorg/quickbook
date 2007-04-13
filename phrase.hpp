@@ -243,8 +243,7 @@ namespace quickbook
 
                 image =
                         '$' >> blank
-                    >> (*(anychar_p -
-                            close_bracket))             [actions.image]
+                        >> template_args                [actions.image]
                     ;
 
                 url =

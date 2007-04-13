@@ -497,6 +497,7 @@ namespace quickbook
         : actions(actions) {}
 
         void operator()(iterator first, iterator last) const;
+        void operator()(std::string const & name, iterator first, iterator last) const;
 
         quickbook::actions& actions;
     };
@@ -694,6 +695,22 @@ namespace quickbook
 
         std::string& out;
         collector& phrase;
+    };
+    
+    struct backend_action : protected do_template_action
+    {
+        backend_action(
+            std::string const & action_name,
+            quickbook::actions & actions
+            )
+            : do_template_action(actions)
+            , action_name(action_name)
+        {
+        }
+
+        void operator()(iterator first, iterator last) const;
+
+        std::string action_name;
     };
 }
 

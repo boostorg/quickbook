@@ -1,0 +1,8 @@
+[/ Copyright 2007 Rene Rivera ]
+[/ Distributed under the Boost Software License, Version 1.0. ]
+[/ (See accompanying file LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt) ]
+
+[/ Templates for generation of BoostBook format. ]
+[/ $Date$ ]
+
+[template boostbook_image[ref]'''<inlinemediaobject><imageobject><imagedata fileref="'''[ref]'''"></imagedata></imageobject><textobject><phrase role="alt">'''[ref]'''</phrase></textobject></inlinemediaobject>''']
