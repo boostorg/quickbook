@@ -100,6 +100,11 @@ namespace quickbook
     ///////////////////////////////////////////////////////////////////////////
     // actions
     ///////////////////////////////////////////////////////////////////////////
+        backend_action          doc_pre;
+        backend_action          doc_post;
+        backend_action          doc_info_pre;
+        backend_action          doc_info_post;
+        
         error_action            error;
         phrase_to_string_action extract_doc_license;
         phrase_to_string_action extract_doc_purpose;

@@ -16,6 +16,7 @@
 #include <vector>
 #include <stack>
 #include <algorithm>
+#include <list>
 #include <boost/spirit/iterator/position_iterator.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/foreach.hpp>
@@ -497,7 +498,6 @@ namespace quickbook
         : actions(actions) {}
 
         void operator()(iterator first, iterator last) const;
-        void operator()(std::string const & name, iterator first, iterator last) const;
 
         quickbook::actions& actions;
     };
@@ -709,6 +709,8 @@ namespace quickbook
         }
 
         void operator()(iterator first, iterator last) const;
+        
+        void operator()(std::list<std::string> const & args) const;
 
         std::string action_name;
     };

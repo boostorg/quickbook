@@ -13,6 +13,7 @@
 #include <boost/bind.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/assign/list_of.hpp>
 #include "./actions.hpp"
 #include "./utils.hpp"
 #include "./markups.hpp"
@@ -593,12 +594,6 @@ namespace quickbook
         --actions.template_depth;
     }
 
-    void do_template_action::operator()(std::string const & name, iterator first, iterator last) const
-    {
-        actions.template_info.insert(actions.template_info.begin(),name);
-        do_template_action::operator()(first,last);
-    }
-
     void link_action::operator()(iterator first, iterator last) const
     {
         iterator save = first;
@@ -1079,16 +1074,16 @@ namespace quickbook
             qbk_version_n = (qbk_major_version * 100) + qbk_minor_version;
         }
 
-        out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            << "<!DOCTYPE library PUBLIC \"-//Boost//DTD BoostBook XML V1.0//EN\"\n"
-            << "     \"http://www.boost.org/tools/boostbook/dtd/boostbook.dtd\">\n"
-            << '<' << actions.doc_type << "\n"
-            << "    id=\"" << actions.doc_id << "\"\n"
-            << "    name=\"" << actions.doc_title << "\"\n"
-            << "    dirname=\"" << actions.doc_dirname << "\"\n"
-            << "    last-revision=\"" << actions.doc_last_revision << "\" \n"
-            << "    xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n"
-            << "  <" << actions.doc_type << "info>\n";
+        actions.doc_pre(boost::assign::list_of
+            (actions.doc_type)
+            );
+        actions.doc_info_pre(boost::assign::list_of
+            (actions.doc_type)
+            (actions.doc_id)
+            (actions.doc_title)
+            (actions.doc_dirname)
+            (actions.doc_last_revision)
+            );
 
         for_each(
             actions.doc_authors.begin()
@@ -1169,7 +1164,13 @@ namespace quickbook
 
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
-        out << "\n</" << actions.doc_type << ">\n\n";
+        actions.doc_info_post(boost::assign::list_of
+            (actions.doc_type)
+            (actions.doc_id)
+            );
+        actions.doc_post(boost::assign::list_of
+            (actions.doc_type)
+            );
     }
 
     void phrase_to_string_action::operator()(iterator first, iterator last) const
@@ -1179,10 +1180,30 @@ namespace quickbook
     
     void backend_action::operator()(iterator first, iterator last) const
     {
-        do_template_action::operator()(
-            this->actions.backend_tag+"_"+this->action_name,
-            first,
-            last
+        actions.template_info.insert(
+            actions.template_info.begin(),
+            this->actions.backend_tag+"_"+this->action_name);
+        do_template_action::operator()(first,last);
+    }
+    
+    void backend_action::operator()(std::list<std::string> const & args) const
+    {
+        actions.template_info.insert(
+            actions.template_info.begin(),
+            args.begin(),
+            args.end()
             );
+        actions.template_info.insert(
+            actions.template_info.begin(),
+            this->actions.backend_tag+"_"+this->action_name
+            );
+        typedef position_iterator<std::string::const_iterator> iterator_type;
+        std::string nothing;
+        iterator_type first(
+            nothing.begin(), nothing.end(),
+            actions.filename.native_file_string().c_str());
+        iterator_type last(
+            nothing.end(), nothing.end());
+        do_template_action::operator()(first,last);
     }
 }

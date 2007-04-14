@@ -5,4 +5,26 @@
 [/ Templates for generation of BoostBook format. ]
 [/ $Date$ ]
 
+[template boostbook_doc_pre[type]'''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN"
+  "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">''']
+
+[template boostbook_doc_info_pre[type id title dirname lastrev]'''
+<'''[type]'''
+  id="'''[id]'''"
+  name="'''[title]'''"
+  dirname="'''[dirname]'''"
+  last-revision="'''[lastrev]'''"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+  <'''[type]'''info>
+''']
+
+[template boostbook_doc_info_post[type id]'''
+  </'''[type]'''info>
+''']
+
+[template boostbook_doc_post[type]'''
+</'''[type]'''>
+''']
+
 [template boostbook_image[ref]'''<inlinemediaobject><imageobject><imagedata fileref="'''[ref]'''"></imagedata></imageobject><textobject><phrase role="alt">'''[ref]'''</phrase></textobject></inlinemediaobject>''']

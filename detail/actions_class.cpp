@@ -67,6 +67,10 @@ namespace quickbook
         , templates()
 
     // actions
+        , doc_pre("doc_pre",*this)
+        , doc_post("doc_post",*this)
+        , doc_info_pre("doc_info_pre",*this)
+        , doc_info_post("doc_info_post",*this)
         , error()
         , extract_doc_license(doc_license, phrase)
         , extract_doc_purpose(doc_purpose, phrase)
