@@ -13,7 +13,6 @@
 #include <boost/bind.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/assign/list_of.hpp>
 #include "./actions.hpp"
 #include "./utils.hpp"
 #include "./markups.hpp"
@@ -1088,21 +1087,18 @@ namespace quickbook
         for_each(
             actions.doc_authors.begin()
           , actions.doc_authors.end()
-          , xml_author(out));
+          , backend_action("doc_info_author",actions));
 
         if (!actions.doc_copyright_holder.empty())
         {
-            out << "\n" << "    <copyright>\n";
+            backend_action("doc_info_copyright_pre",actions)(std::list<std::string>());
 
             for_each(
                 actions.doc_copyright_years.begin()
               , actions.doc_copyright_years.end()
-              , xml_year(out));
-
-            out << "      <holder>" << actions.doc_copyright_holder << "</holder>\n"
-                << "    </copyright>\n"
-                << "\n"
-            ;
+              , backend_action("doc_info_copyright_year",actions));
+            
+            backend_action("doc_info_copyright_post",actions)(std::list<std::string>());
         }
 
         if (qbk_version_n < 103)
@@ -1114,44 +1110,45 @@ namespace quickbook
 
         if (!actions.doc_license.empty())
         {
-            out << "    <legalnotice>\n"
-                << "      <para>\n"
-                << "        " << actions.doc_license << "\n"
-                << "      </para>\n"
-                << "    </legalnotice>\n"
-                << "\n"
-            ;
+            backend_action("doc_info_license",actions)(boost::assign::list_of
+                (actions.doc_license)
+                );
         }
 
         if (!actions.doc_purpose.empty())
         {
-            out << "    <" << actions.doc_type << "purpose>\n"
-                << "      " << actions.doc_purpose
-                << "    </" << actions.doc_type << "purpose>\n"
-                << "\n"
-            ;
+            backend_action("doc_info_purpose",actions)(boost::assign::list_of
+                (actions.doc_type)
+                (actions.doc_purpose)
+                );
         }
-
+        
         if (!actions.doc_category.empty())
         {
-            out << "    <" << actions.doc_type << "category name=\"category:"
-                << actions.doc_category
-                << "\"></" << actions.doc_type << "category>\n"
-                << "\n"
-            ;
+            backend_action("doc_info_category",actions)(boost::assign::list_of
+                (actions.doc_type)
+                (actions.doc_category)
+                );
         }
-
-        out << "  </" << actions.doc_type << "info>\n"
-            << "\n"
-        ;
+        
+        actions.doc_info_post(boost::assign::list_of
+            (actions.doc_type)
+            (actions.doc_id)
+            );
 
         if (!actions.doc_title.empty())
         {
-            out << "  <title>" << actions.doc_title;
-            if (!actions.doc_version.empty())
-                out << ' ' << actions.doc_version;
-            out << "</title>\n\n\n";
+            backend_action("doc_title",actions)(boost::assign::list_of
+                (actions.doc_title
+                    + (!actions.doc_version.empty()
+                        ? ( std::string(" ")+actions.doc_version )
+                        : ( std::string("") )
+                        ))
+                );
         }
+        
+        actions.out << actions.phrase.str();
+        actions.phrase.clear();
     }
 
     void post(collector& out, quickbook::actions& actions, bool ignore_docinfo)
@@ -1164,13 +1161,12 @@ namespace quickbook
 
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
-        actions.doc_info_post(boost::assign::list_of
-            (actions.doc_type)
-            (actions.doc_id)
-            );
         actions.doc_post(boost::assign::list_of
             (actions.doc_type)
             );
+        
+        actions.out << actions.phrase.str();
+        actions.phrase.clear();
     }
 
     void phrase_to_string_action::operator()(iterator first, iterator last) const
@@ -1183,27 +1179,6 @@ namespace quickbook
         actions.template_info.insert(
             actions.template_info.begin(),
             this->actions.backend_tag+"_"+this->action_name);
-        do_template_action::operator()(first,last);
-    }
-    
-    void backend_action::operator()(std::list<std::string> const & args) const
-    {
-        actions.template_info.insert(
-            actions.template_info.begin(),
-            args.begin(),
-            args.end()
-            );
-        actions.template_info.insert(
-            actions.template_info.begin(),
-            this->actions.backend_tag+"_"+this->action_name
-            );
-        typedef position_iterator<std::string::const_iterator> iterator_type;
-        std::string nothing;
-        iterator_type first(
-            nothing.begin(), nothing.end(),
-            actions.filename.native_file_string().c_str());
-        iterator_type last(
-            nothing.end(), nothing.end());
         do_template_action::operator()(first,last);
     }
 }

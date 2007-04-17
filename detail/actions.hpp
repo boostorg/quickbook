@@ -21,6 +21,10 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/assign/list_of.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/has_xxx.hpp>
+#include <boost/mpl/logical.hpp>
 #include "../syntax_highlight.hpp"
 #include "./collector.hpp"
 #include "./template_stack.hpp"
@@ -697,6 +701,12 @@ namespace quickbook
         collector& phrase;
     };
     
+    namespace detail
+    {
+        BOOST_MPL_HAS_XXX_TRAIT_DEF(iterator)
+        BOOST_MPL_HAS_XXX_TRAIT_DEF(traits_type)
+    }
+    
     struct backend_action : protected do_template_action
     {
         backend_action(
@@ -710,7 +720,43 @@ namespace quickbook
 
         void operator()(iterator first, iterator last) const;
         
-        void operator()(std::list<std::string> const & args) const;
+        template <typename C>
+        void operator()(C const & args,
+            typename boost::enable_if<
+                boost::mpl::and_<
+                    detail::has_iterator<C>,
+                    boost::mpl::not_< detail::has_traits_type<C> >
+                    >
+                >::type * = 0) const
+        {
+            actions.template_info.insert(
+                actions.template_info.begin(),
+                args.begin(),
+                args.end()
+                );
+            actions.template_info.insert(
+                actions.template_info.begin(),
+                this->actions.backend_tag+"_"+this->action_name
+                );
+            typedef position_iterator<std::string::const_iterator> iterator_type;
+            std::string nothing;
+            iterator_type first(
+                nothing.begin(), nothing.end(),
+                actions.filename.native_file_string().c_str());
+            iterator_type last(
+                nothing.end(), nothing.end());
+            do_template_action::operator()(first,last);
+        }
+        
+        inline void operator()(std::pair<std::string,std::string> const & args) const
+        {
+            (*this)(boost::assign::list_of(args.first)(args.second));
+        }
+        
+        inline void operator()(std::string const & arg) const
+        {
+            (*this)(boost::assign::list_of(arg));
+        }
 
         std::string action_name;
     };

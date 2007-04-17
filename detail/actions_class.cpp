@@ -172,9 +172,6 @@ namespace quickbook
         , xinclude(out, *this)
         , include(*this)
         , import(out, *this)
-
-        , escape_pre(phrase, escape_pre_)
-        , escape_post(phrase, escape_post_)
     {
         // turn off __FILENAME__ macro on debug mode = true
         std::string filename_str = debug_mode ?

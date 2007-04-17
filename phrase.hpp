@@ -235,9 +235,9 @@ namespace quickbook
                     |   "\\ "                           // ignore an escaped char
                     |   '\\' >> punct_p                 [actions.raw_char]
                     |   (
-                            ("'''" >> !eol)             [actions.escape_pre]
+                            ("'''" >> !eol)
                         >>  *(anychar_p - "'''")        [actions.raw_char]
-                        >>  str_p("'''")                [actions.escape_post]
+                        >>  str_p("'''")
                         )
                     ;
 

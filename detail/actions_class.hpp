@@ -195,9 +195,6 @@ namespace quickbook
         xinclude_action         xinclude;
         include_action          include;
         import_action           import;
-
-        markup_action           escape_pre;
-        markup_action           escape_post;
     };
 }
 

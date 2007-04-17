@@ -16,14 +16,61 @@
   dirname="'''[dirname]'''"
   last-revision="'''[lastrev]'''"
   xmlns:xi="http://www.w3.org/2001/XInclude">
+
   <'''[type]'''info>
+''']
+
+[template boostbook_doc_info_author[firstname surname]'''
+    <author>
+      <firstname>'''[firstname]'''</firstname>
+      <surname>'''[surname]'''</surname>
+    </author>
+''']
+
+[template boostbook_doc_info_copyright_pre[]'''
+    <copyright>
+''']
+
+[template boostbook_doc_info_copyright_year[year]'''
+      <year>'''[year]'''</year>
+''']
+
+[template boostbook_doc_info_copyright_holder[holder]'''
+      <holder>'''[holder]'''</holder>
+''']
+
+[template boostbook_doc_info_copyright_post[]'''
+    </copyright>
+''']
+
+[template boostbook_doc_info_license[license]'''
+    <legalnotice>
+      <para>'''[license]'''</para>
+    </legalnotice>
+''']
+
+[template boostbook_doc_info_purpose[type purpose]'''
+    <'''[type]'''purpose>
+      '''[purpose]'''
+    </'''[type]'''purpose>
+''']
+
+[template boostbook_doc_info_category[type category]'''
+    <'''[type]'''category name="category:'''[category]'''" />
 ''']
 
 [template boostbook_doc_info_post[type id]'''
   </'''[type]'''info>
 ''']
 
+[template boostbook_doc_title[title]'''
+
+  <title>'''[title]'''</title>
+
+''']
+
 [template boostbook_doc_post[type]'''
+
 </'''[type]'''>
 ''']
 

@@ -38,6 +38,7 @@ install dist-bin
     :
     release
     ;
+explicit dist-bin ;
 
 install dist-lib
     :
@@ -48,3 +49,7 @@ install dist-lib
     :
     release
     ;
+explicit dist-lib ;
+
+alias dist : dist-bin dist-lib ;
+explicit dist ;
