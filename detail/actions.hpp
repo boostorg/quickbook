@@ -25,6 +25,8 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/has_xxx.hpp>
 #include <boost/mpl/logical.hpp>
+#include <boost/optional.hpp>
+#include <boost/none.hpp>
 #include "../syntax_highlight.hpp"
 #include "./collector.hpp"
 #include "./template_stack.hpp"
@@ -58,88 +60,6 @@ namespace quickbook
         // Prints an error message to std::cerr
 
         void operator()(iterator first, iterator /*last*/) const;
-    };
-
-    struct phrase_action
-    {
-        //  blurb, blockquote, preformatted, list_item,
-        //  unordered_list, ordered_list
-
-        phrase_action(
-            collector& out,
-            collector& phrase,
-            std::string const& pre,
-            std::string const& post)
-        : out(out)
-        , phrase(phrase)
-        , pre(pre)
-        , post(post) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        collector& phrase;
-        std::string pre;
-        std::string post;
-    };
-
-    struct header_action
-    {
-        //  Handles paragraph, h1, h2, h3, h4, h5, h6,
-
-        header_action(
-            collector& out,
-            collector& phrase,
-            std::string const& library_id,
-            std::string const& section_id,
-            std::string const& qualified_section_id,
-            std::string const& pre,
-            std::string const& post)
-        : out(out)
-        , phrase(phrase)
-        , library_id(library_id)
-        , section_id(section_id)
-        , qualified_section_id(qualified_section_id)
-        , pre(pre)
-        , post(post) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        collector& phrase;
-        std::string const& library_id;
-        std::string const& section_id;
-        std::string const& qualified_section_id;
-        std::string pre;
-        std::string post;
-    };
-
-    struct generic_header_action
-    {
-        //  Handles h
-
-        generic_header_action(
-            collector& out,
-            collector& phrase,
-            std::string const& library_id,
-            std::string const& section_id,
-            std::string const& qualified_section_id,
-            int const& section_level)
-        : out(out)
-        , phrase(phrase)
-        , library_id(library_id)
-        , section_id(section_id)
-        , qualified_section_id(qualified_section_id)
-        , section_level(section_level) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        collector& phrase;
-        std::string const& library_id;
-        std::string const& section_id;
-        std::string const& qualified_section_id;
-        int const& section_level;
     };
 
     struct simple_phrase_action
@@ -411,18 +331,6 @@ namespace quickbook
         collector& phrase;
     };
 
-    struct image_action
-    {
-        // Handles inline images
-
-        image_action(collector& phrase)
-        : phrase(phrase) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& phrase;
-    };
-
     struct markup_action
     {
         // A generic markup action
@@ -444,18 +352,6 @@ namespace quickbook
 
         collector& phrase;
         std::string str;
-    };
-
-    struct break_action
-    {
-        // Handles line-breaks (DEPRECATED!!!)
-
-        break_action(collector& phrase)
-        : phrase(phrase) {}
-
-        void operator()(iterator f, iterator) const;
-
-        collector& phrase;
     };
 
     struct macro_identifier_action
@@ -707,6 +603,7 @@ namespace quickbook
         BOOST_MPL_HAS_XXX_TRAIT_DEF(traits_type)
     }
     
+    /// Action which calls a back end template to generate output.
     struct backend_action : protected do_template_action
     {
         backend_action(
@@ -716,6 +613,20 @@ namespace quickbook
             : do_template_action(actions)
             , action_name(action_name)
         {
+        }
+
+        backend_action(
+            std::string const & action_name,
+            quickbook::actions & actions,
+            boost::optional<collector &> const & out,
+            boost::optional<collector &> const & phrase
+            )
+            : do_template_action(actions)
+            , action_name(action_name)
+            , out_(out)
+            , phrase_(phrase)
+        {
+            BOOST_ASSERT( ! (out_ && phrase_) );
         }
 
         void operator()(iterator first, iterator last) const;
@@ -734,10 +645,6 @@ namespace quickbook
                 args.begin(),
                 args.end()
                 );
-            actions.template_info.insert(
-                actions.template_info.begin(),
-                this->actions.backend_tag+"_"+this->action_name
-                );
             typedef position_iterator<std::string::const_iterator> iterator_type;
             std::string nothing;
             iterator_type first(
@@ -745,7 +652,7 @@ namespace quickbook
                 actions.filename.native_file_string().c_str());
             iterator_type last(
                 nothing.end(), nothing.end());
-            do_template_action::operator()(first,last);
+            (*this)(first,last);
         }
         
         inline void operator()(std::pair<std::string,std::string> const & args) const
@@ -757,8 +664,105 @@ namespace quickbook
         {
             (*this)(boost::assign::list_of(arg));
         }
+        
+        inline void operator()() const
+        {
+            (*this)(std::list<std::string>());
+        }
 
         std::string action_name;
+        boost::optional<collector &> out_;
+        boost::optional<collector &> phrase_;
+        
+        collector & out() const;
+        
+        collector & phrase() const;
+        
+        std::string pop_phrase() const;
+        
+        std::string pop_template_arg() const;
+    };
+
+    struct generic_header_action : backend_action
+    {
+        //  Handles h
+
+        generic_header_action(
+            std::string const & action_name,
+            quickbook::actions & actions
+            )
+            : backend_action(action_name,actions)
+        {
+        }
+
+        void operator()(iterator first, iterator last) const;
+    };
+
+    struct header_action : backend_action
+    {
+        //  Handles h1, h2, h3, h4, h5, h6,
+
+        header_action(
+            std::string const & action_name,
+            std::string const & section_level,
+            quickbook::actions & actions
+            )
+            : backend_action(action_name,actions)
+            , section_level(section_level)
+        {
+        }
+
+        void operator()(iterator first, iterator last) const;
+        
+        std::string section_level;
+    };
+
+    struct break_action : backend_action
+    {
+        // Handles line-breaks (DEPRECATED!!!)
+
+        break_action(
+            std::string const & action_name,
+            quickbook::actions & actions
+            )
+            : backend_action(action_name,actions)
+        {
+        }
+
+        void operator()(iterator f, iterator) const;
+    };
+
+    struct image_action : backend_action
+    {
+        // Handles inline images
+
+        image_action(
+            std::string const & action_name,
+            quickbook::actions & actions
+            )
+            : backend_action(action_name,actions)
+        {
+        }
+
+        void operator()(iterator first, iterator last) const;
+    };
+
+    struct phrase_action : backend_action
+    {
+        //  blurb, blockquote, preformatted, list_item,
+        //  unordered_list, ordered_list
+
+        phrase_action(
+            std::string const & action_name,
+            quickbook::actions & actions,
+            boost::optional<collector &> const & out,
+            boost::optional<collector &> const & phrase
+            )
+            : backend_action(action_name,actions,out,phrase)
+        {
+        }
+
+        void operator()(iterator first, iterator last) const;
     };
 }
 

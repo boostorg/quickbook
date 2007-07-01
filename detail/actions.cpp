@@ -23,13 +23,48 @@
 
 namespace quickbook
 {
+        
+    inline collector & backend_action::out() const
+    {
+        return out_ ? *out_ : actions.out;
+    }
+    
+    inline collector & backend_action::phrase() const
+    {
+        return phrase_ ? *phrase_ : actions.phrase;
+    }
+    
+    inline std::string backend_action::pop_phrase() const
+    {
+        std::string str;
+        phrase().swap(str);
+        return str;
+    }
+    
+    inline std::string backend_action::pop_template_arg() const
+    {
+        std::string str = actions.template_info.front();
+        actions.template_info.erase(actions.template_info.begin());
+        return str;
+    }
+    
+    void backend_action::operator()(iterator first, iterator last) const
+    {
+        actions.template_info.insert(
+            actions.template_info.begin(),
+            this->actions.backend_tag+"_"+this->action_name);
+        do_template_action::operator()(first,last);
+        if (out_) { *out_ << actions.phrase.str(); actions.phrase.clear(); }
+        if (phrase_) { *phrase_ << actions.phrase.str(); actions.phrase.clear(); }
+    }
+    
     // Handles line-breaks (DEPRECATED!!!)
     void break_action::operator()(iterator first, iterator) const
     {
         boost::spirit::file_position const pos = first.get_position();
         detail::outwarn(pos.file,pos.line) << "in column:" << pos.column << ", "
             << "[br] and \\n are deprecated" << ".\n";
-        phrase << break_mark;
+        backend_action::operator()();
     }
 
     void error_action::operator()(iterator first, iterator /*last*/) const
@@ -41,63 +76,75 @@ namespace quickbook
 
     void phrase_action::operator()(iterator first, iterator last) const
     {
-        std::string str;
-        phrase.swap(str);
-        out << pre << str << post;
+        std::string str = pop_phrase();
+        
+        backend_action::operator()(boost::assign::list_of
+            ("'''"+str+"'''")
+            //~ (str)
+            );
+        
+        out() << actions.phrase.str();
+        actions.phrase.clear();
     }
 
     void header_action::operator()(iterator first, iterator last) const
     {
-        std::string str;
-        phrase.swap(str);
+        std::string str = pop_phrase();
 
         if (qbk_version_n < 103) // version 1.2 and below
         {
-            out << "<anchor id=\""
-                << section_id << '.'
-                << detail::make_identifier(str.begin(), str.end())
-                << "\" />"
-                << pre << str << post
-                ;
+            std::string anchor =
+                actions.section_id + '.' +
+                detail::make_identifier(str.begin(), str.end());
+
+            backend_action(this->action_name+"_1_0",actions)(boost::assign::list_of
+                (str)
+                (anchor)
+                (section_level)
+                );
         }
         else // version 1.3 and above
         {
             std::string anchor =
-                library_id + '.' + qualified_section_id + '.' +
+                actions.doc_id + '.' + actions.qualified_section_id + '.' +
                 detail::make_identifier(str.begin(), str.end());
 
-            out << "<anchor id=\"" << anchor << "\"/>"
-                << pre
-                << "<link linkend=\"" << anchor << "\">"
-                << str
-                << "</link>"
-                << post
-                ;
+            backend_action::operator()(boost::assign::list_of
+                (str)
+                (anchor)
+                (section_level)
+                );
         }
+        
+        out() << phrase().str();
+        phrase().clear();
     }
 
     void generic_header_action::operator()(iterator first, iterator last) const
     {
-        int level_ = section_level + 2;     // section_level is zero-based. We need to use a
-                                            // 0ne-based heading which is one greater
-                                            // than the current. Thus: section_level + 2.
-        if (level_ > 6)                     // The max is h6, clip it if it goes
-            level_ = 6;                     // further than that
-        std::string str;
-        phrase.swap(str);
-
+        // section_level is zero-based. We need to use a
+        // 0ne-based heading which is one greater
+        // than the current. Thus: section_level + 2.
+        int level_ = actions.section_level + 2;
+        
+        // The max is h6, clip it if it goes
+        // further than that
+        if (level_ > 6) { level_ = 6; }
+        
+        std::string str = pop_phrase();
+        
         std::string anchor =
-            library_id + '.' + qualified_section_id + '.' +
+            actions.doc_id + '.' + actions.qualified_section_id + '.' +
             detail::make_identifier(str.begin(), str.end());
-
-        out
-            << "<anchor id=\"" << anchor << "\"/>"
-            << "<bridgehead renderas=\"sect" << level_ << "\">"
-            << "<link linkend=\"" << anchor << "\">"
-            << str
-            << "</link>"
-            << "</bridgehead>"
-            ;
+        
+        backend_action::operator()(boost::assign::list_of
+            (str)
+            (anchor)
+            (boost::lexical_cast<std::string>(level_))
+            );
+        
+        out() << phrase().str();
+        phrase().clear();
     }
 
     void simple_phrase_action::operator()(iterator first, iterator last) const
@@ -173,7 +220,7 @@ namespace quickbook
 
                 std::string str;
                 out.swap(str);
-                std::string::size_type pos = str.rfind("\n</listitem>");
+                std::string::size_type pos = str.rfind("</listitem>");
                 BOOST_ASSERT(pos <= str.size());
                 str.erase(str.begin()+pos, str.end());
                 out << str;
@@ -347,22 +394,13 @@ namespace quickbook
 
     void image_action::operator()(iterator first, iterator last) const
     {
-        fs::path const img_path(std::string(first, last));
-
-        phrase << "<inlinemediaobject>";
-
-        phrase << "<imageobject><imagedata fileref=\"";
-        while (first != last)
-            detail::print_char(*first++, phrase.get());
-        phrase << "\"></imagedata></imageobject>";
-
-        // Also add a textobject -- use the basename of the image file.
-        // This will mean we get "alt" attributes of the HTML img.
-        phrase << "<textobject><phrase>";
-        detail::print_string(fs::basename(img_path), phrase.get());
-        phrase << "</phrase></textobject>";
-
-        phrase << "</inlinemediaobject>";
+        std::string str(pop_template_arg());
+        std::string alt(fs::basename(str));
+        
+        backend_action::operator()(boost::assign::list_of
+            (str)
+            (alt)
+            );
     }
 
     void macro_identifier_action::operator()(iterator first, iterator last) const
@@ -434,9 +472,21 @@ namespace quickbook
                         << template_info.size()-1
                         << " argument(s) instead."
                         << std::endl;
+                    for (std::size_t i = 0; i < template_info.size(); ++i)
+                    {
+                        detail::outerr(pos.file,pos.line)
+                            << "arg #" << i
+                            << " == '" << template_info[i] << "'" << std::endl;
+                    }
                     return false;
                 }
             }
+            //~ for (std::size_t i = 0; i < template_info.size(); ++i)
+            //~ {
+                //~ detail::outwarn(pos.file,pos.line)
+                    //~ << "arg #" << i
+                    //~ << " == '" << template_info[i] << "'" << std::endl;
+            //~ }
             return true;
         }
 
@@ -1014,10 +1064,10 @@ namespace quickbook
 
     void xml_author::operator()(std::pair<std::string, std::string> const& author) const
     {
-        out << "    <author>\n"
-            << "      <firstname>" << author.first << "</firstname>\n"
-            << "      <surname>" << author.second << "</surname>\n"
-            << "    </author>\n";
+        out << "      <author>\n"
+            << "        <firstname>" << author.first << "</firstname>\n"
+            << "        <surname>" << author.second << "</surname>\n"
+            << "      </author>\n";
     }
 
     void xml_year::operator()(std::string const &year) const
@@ -1084,21 +1134,23 @@ namespace quickbook
             (actions.doc_last_revision)
             );
 
+        backend_action("doc_info_author_pre",actions)();
         for_each(
             actions.doc_authors.begin()
           , actions.doc_authors.end()
           , backend_action("doc_info_author",actions));
+        backend_action("doc_info_author_post",actions)();
 
         if (!actions.doc_copyright_holder.empty())
         {
-            backend_action("doc_info_copyright_pre",actions)(std::list<std::string>());
+            backend_action("doc_info_copyright_pre",actions)();
 
             for_each(
                 actions.doc_copyright_years.begin()
               , actions.doc_copyright_years.end()
               , backend_action("doc_info_copyright_year",actions));
             
-            backend_action("doc_info_copyright_post",actions)(std::list<std::string>());
+            backend_action("doc_info_copyright_post",actions)();
         }
 
         if (qbk_version_n < 103)
@@ -1172,13 +1224,5 @@ namespace quickbook
     void phrase_to_string_action::operator()(iterator first, iterator last) const
     {
         phrase.swap(out);
-    }
-    
-    void backend_action::operator()(iterator first, iterator last) const
-    {
-        actions.template_info.insert(
-            actions.template_info.begin(),
-            this->actions.backend_tag+"_"+this->action_name);
-        do_template_action::operator()(first,last);
     }
 }

@@ -121,7 +121,7 @@ namespace quickbook
         phrase_action           warning, caution, important, note, tip;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
-        backend_action          image;
+        image_action            image;
 
         list_action             list;
         list_format_action      list_format;

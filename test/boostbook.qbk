@@ -20,11 +20,19 @@
   <'''[type]'''info>
 ''']
 
+[template boostbook_doc_info_author_pre[]'''
+    <authorgroup>
+''']
+
 [template boostbook_doc_info_author[firstname surname]'''
-    <author>
-      <firstname>'''[firstname]'''</firstname>
-      <surname>'''[surname]'''</surname>
-    </author>
+      <author>
+        <firstname>'''[firstname]'''</firstname>
+        <surname>'''[surname]'''</surname>
+      </author>
+''']
+
+[template boostbook_doc_info_author_post[]'''
+    </authorgroup>
 ''']
 
 [template boostbook_doc_info_copyright_pre[]'''
@@ -74,4 +82,55 @@
 </'''[type]'''>
 ''']
 
-[template boostbook_image[ref]'''<inlinemediaobject><imageobject><imagedata fileref="'''[ref]'''"></imagedata></imageobject><textobject><phrase role="alt">'''[ref]'''</phrase></textobject></inlinemediaobject>''']
+[template boostbook_image[ref alt]'''<inlinemediaobject><imageobject><imagedata fileref="'''[ref]'''"></imagedata></imageobject><textobject><phrase role="alt">'''[alt]'''</phrase></textobject></inlinemediaobject>''']
+
+[template boostbook_heading[str anchor section_level]'''
+<anchor id="'''[anchor]'''"/><bridgehead renderas="sect'''[section_level]'''"><link linkend="'''[anchor]'''">'''[str]'''</link></bridgehead>
+''']
+
+[template boostbook_heading_1_0[str anchor section_level]'''
+<anchor id="'''[anchor]'''"/><bridgehead renderas="sect'''[section_level]'''">'''[str]'''</bridgehead>
+''']
+
+[template boostbook_break[]'''<sbr/>
+''']
+
+[template boostbook_paragraph[str]'''
+<para>'''[str]'''</para>
+''']
+
+[template boostbook_blurb[str]'''
+<sidebar role="blurb">'''[str]'''</sidebar>
+''']
+
+[template boostbook_blockquote[str]'''
+<blockquote><para>'''[str]'''</para></blockquote>
+''']
+
+[template boostbook_preformatted[str]'''
+<programlisting>'''[str]'''</programlisting>
+''']
+
+[template boostbook_warning[str]'''
+<warning><para>'''[str]'''</para></warning>
+''']
+
+[template boostbook_caution[str]'''
+<caution><para>'''[str]'''</para></caution>
+''']
+
+[template boostbook_important[str]'''
+<important><para>'''[str]'''</para></important>
+''']
+
+[template boostbook_note[str]'''
+<note><para>'''[str]'''</para></note>
+''']
+
+[template boostbook_tip[str]'''
+<tip><para>'''[str]'''</para></tip>
+''']
+
+[template boostbook_list_item[str]'''
+<listitem>'''[str]'''</listitem>
+''']
