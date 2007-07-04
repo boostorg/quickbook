@@ -7,7 +7,8 @@
 
 [template boostbook_doc_pre[type]'''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN"
-  "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">''']
+  "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
+''']
 
 [template boostbook_doc_info_pre[type id title dirname lastrev]'''
 <'''[type]'''
