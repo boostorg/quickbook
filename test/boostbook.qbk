@@ -11,14 +11,14 @@
 ''']
 
 [template boostbook_doc_info_pre[type id title dirname lastrev]'''
-<'''[type]'''
-  id="'''[id]'''"
-  name="'''[title]'''"
-  dirname="'''[dirname]'''"
-  last-revision="'''[lastrev]'''"
+<'''[`type]'''
+  id="'''[`id]'''"
+  name="'''[`title]'''"
+  dirname="'''[`dirname]'''"
+  last-revision="'''[`lastrev]'''"
   xmlns:xi="http://www.w3.org/2001/XInclude">
 
-  <'''[type]'''info>
+  <'''[`type]'''info>
 ''']
 
 [template boostbook_doc_info_author_pre[]'''
@@ -54,22 +54,22 @@
 
 [template boostbook_doc_info_license[license]'''
     <legalnotice>
-      <para>'''[license]'''</para>
+      <para>'''[`license]'''</para>
     </legalnotice>
 ''']
 
 [template boostbook_doc_info_purpose[type purpose]'''
-    <'''[type]'''purpose>
-      '''[purpose]'''
-    </'''[type]'''purpose>
+    <'''[`type]'''purpose>
+      '''[`purpose]'''
+    </'''[`type]'''purpose>
 ''']
 
 [template boostbook_doc_info_category[type category]'''
-    <'''[type]'''category name="category:'''[category]'''" />
+    <'''[`type]'''category name="category:'''[`category]'''" />
 ''']
 
 [template boostbook_doc_info_post[type id]'''
-  </'''[type]'''info>
+  </'''[`type]'''info>
 ''']
 
 [template boostbook_doc_title[title]'''
@@ -80,58 +80,58 @@
 
 [template boostbook_doc_post[type]'''
 
-</'''[type]'''>
+</'''[`type]'''>
 ''']
 
-[template boostbook_image[ref alt]'''<inlinemediaobject><imageobject><imagedata fileref="'''[ref]'''"></imagedata></imageobject><textobject><phrase role="alt">'''[alt]'''</phrase></textobject></inlinemediaobject>''']
+[template boostbook_image[ref alt]'''<inlinemediaobject><imageobject><imagedata fileref="'''[`ref]'''"></imagedata></imageobject><textobject><phrase role="alt">'''[alt]'''</phrase></textobject></inlinemediaobject>''']
 
 [template boostbook_heading[str anchor section_level]'''
-<anchor id="'''[anchor]'''"/><bridgehead renderas="sect'''[section_level]'''"><link linkend="'''[anchor]'''">'''[str]'''</link></bridgehead>
+<anchor id="'''[`anchor]'''"/><bridgehead renderas="sect'''[`section_level]'''"><link linkend="'''[`anchor]'''">'''[str]'''</link></bridgehead>
 ''']
 
 [template boostbook_heading_1_0[str anchor section_level]'''
-<anchor id="'''[anchor]'''"/><bridgehead renderas="sect'''[section_level]'''">'''[str]'''</bridgehead>
+<anchor id="'''[`anchor]'''"/><bridgehead renderas="sect'''[`section_level]'''">'''[str]'''</bridgehead>
 ''']
 
 [template boostbook_break[]'''<sbr/>
 ''']
 
 [template boostbook_paragraph[str]'''
-<para>'''[str]'''</para>
+<para>'''[`str]'''</para>
 ''']
 
 [template boostbook_blurb[str]'''
-<sidebar role="blurb">'''[str]'''</sidebar>
+<sidebar role="blurb">'''[`str]'''</sidebar>
 ''']
 
 [template boostbook_blockquote[str]'''
-<blockquote><para>'''[str]'''</para></blockquote>
+<blockquote><para>'''[`str]'''</para></blockquote>
 ''']
 
 [template boostbook_preformatted[str]'''
-<programlisting>'''[str]'''</programlisting>
+<programlisting>'''[`str]'''</programlisting>
 ''']
 
 [template boostbook_warning[str]'''
-<warning><para>'''[str]'''</para></warning>
+<warning><para>'''[`str]'''</para></warning>
 ''']
 
 [template boostbook_caution[str]'''
-<caution><para>'''[str]'''</para></caution>
+<caution><para>'''[`str]'''</para></caution>
 ''']
 
 [template boostbook_important[str]'''
-<important><para>'''[str]'''</para></important>
+<important><para>'''[`str]'''</para></important>
 ''']
 
 [template boostbook_note[str]'''
-<note><para>'''[str]'''</para></note>
+<note><para>'''[`str]'''</para></note>
 ''']
 
 [template boostbook_tip[str]'''
-<tip><para>'''[str]'''</para></tip>
+<tip><para>'''[`str]'''</para></tip>
 ''']
 
 [template boostbook_list_item[str]'''
-<listitem>'''[str]'''</listitem>
+<listitem>'''[`str]'''</listitem>
 ''']

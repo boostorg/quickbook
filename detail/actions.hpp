@@ -681,6 +681,8 @@ namespace quickbook
         std::string pop_phrase() const;
         
         std::string pop_template_arg() const;
+        
+        void out_phrase() const;
     };
 
     struct generic_header_action : backend_action

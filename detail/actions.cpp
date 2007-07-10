@@ -23,7 +23,6 @@
 
 namespace quickbook
 {
-        
     inline collector & backend_action::out() const
     {
         return out_ ? *out_ : actions.out;
@@ -48,14 +47,18 @@ namespace quickbook
         return str;
     }
     
+    inline void backend_action::out_phrase() const
+    {
+        out() << actions.phrase.str();
+        actions.phrase.clear();
+    }
+    
     void backend_action::operator()(iterator first, iterator last) const
     {
         actions.template_info.insert(
             actions.template_info.begin(),
             this->actions.backend_tag+"_"+this->action_name);
         do_template_action::operator()(first,last);
-        if (out_) { *out_ << actions.phrase.str(); actions.phrase.clear(); }
-        if (phrase_) { *phrase_ << actions.phrase.str(); actions.phrase.clear(); }
     }
     
     // Handles line-breaks (DEPRECATED!!!)
@@ -79,12 +82,10 @@ namespace quickbook
         std::string str = pop_phrase();
         
         backend_action::operator()(boost::assign::list_of
-            ("'''"+str+"'''")
-            //~ (str)
+            (str)
             );
         
-        out() << actions.phrase.str();
-        actions.phrase.clear();
+        out_phrase();
     }
 
     void header_action::operator()(iterator first, iterator last) const
@@ -116,8 +117,7 @@ namespace quickbook
                 );
         }
         
-        out() << phrase().str();
-        phrase().clear();
+        out_phrase();
     }
 
     void generic_header_action::operator()(iterator first, iterator last) const
@@ -143,8 +143,7 @@ namespace quickbook
             (boost::lexical_cast<std::string>(level_))
             );
         
-        out() << phrase().str();
-        phrase().clear();
+        out_phrase();
     }
 
     void simple_phrase_action::operator()(iterator first, iterator last) const
@@ -545,7 +544,14 @@ namespace quickbook
             bool is_block = (iter != body.end()) && ((*iter == '\r') || (*iter == '\n'));
             bool r = false;
 
-            if (!is_block)
+            if (actions.template_escape)
+            {
+                //  escape the body of the template
+                //  we just copy out the literal body
+                result = body;
+                r = true;
+            }
+            else if (!is_block)
             {
                 //  do a phrase level parse
                 iterator first(body.begin(), body.end(), actions.filename.native_file_string().c_str());
@@ -604,6 +610,7 @@ namespace quickbook
             {
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
+                actions.template_escape = false;
                 return;
             }
 
@@ -618,6 +625,7 @@ namespace quickbook
             {
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
+                actions.template_escape = false;
                 return;
             }
 
@@ -634,6 +642,7 @@ namespace quickbook
                     << "Expanding template" << std::endl;
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
+                actions.template_escape = false;
                 return;
             }
         }
@@ -641,6 +650,7 @@ namespace quickbook
         actions.pop(); // restore the actions' states
         actions.phrase << result; // print it!!!
         --actions.template_depth;
+        actions.template_escape = false;
     }
 
     void link_action::operator()(iterator first, iterator last) const

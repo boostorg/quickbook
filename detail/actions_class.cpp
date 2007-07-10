@@ -64,6 +64,7 @@ namespace quickbook
         , list_indent(-1)
         , template_info()
         , template_depth(0)
+        , template_escape(false)
         , templates()
 
     // actions
@@ -79,7 +80,7 @@ namespace quickbook
         , code_block(phrase, phrase, temp, source_mode, macro, *this)
         , inline_code(phrase, temp, source_mode, macro, *this)
         , paragraph("paragraph",*this,boost::none,boost::none)
-        , inside_paragraph("paragraph",*this,boost::none,temp_para)
+        , inside_paragraph("paragraph",*this,temp_para,boost::none)
         , h("heading",*this)
         , h1("heading","1",*this)
         , h2("heading","2",*this)
