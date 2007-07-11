@@ -189,7 +189,7 @@ namespace quickbook
         markup_action           end_row;
         start_col_action        start_cell;
         end_col_action          end_cell;
-        anchor_action           anchor;
+        string_action           anchor;
 
         begin_section_action    begin_section;
         end_section_action      end_section;

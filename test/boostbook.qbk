@@ -86,11 +86,11 @@
 [template boostbook_image[ref alt]'''<inlinemediaobject><imageobject><imagedata fileref="'''[`ref]'''"></imagedata></imageobject><textobject><phrase role="alt">'''[alt]'''</phrase></textobject></inlinemediaobject>''']
 
 [template boostbook_heading[str anchor section_level]'''
-<anchor id="'''[`anchor]'''"/><bridgehead renderas="sect'''[`section_level]'''"><link linkend="'''[`anchor]'''">'''[str]'''</link></bridgehead>
+<anchor id="'''[`anchor]'''" /><bridgehead renderas="sect'''[`section_level]'''"><link linkend="'''[`anchor]'''">'''[str]'''</link></bridgehead>
 ''']
 
 [template boostbook_heading_1_0[str anchor section_level]'''
-<anchor id="'''[`anchor]'''"/><bridgehead renderas="sect'''[`section_level]'''">'''[str]'''</bridgehead>
+<anchor id="'''[`anchor]'''" /><bridgehead renderas="sect'''[`section_level]'''">'''[str]'''</bridgehead>
 ''']
 
 [template boostbook_break[]'''<sbr/>
@@ -135,3 +135,5 @@
 [template boostbook_list_item[str]'''
 <listitem>'''[`str]'''</listitem>
 ''']
+
+[template boostbook_anchor[anchor]'''<anchor id="'''[`anchor]'''" />''']

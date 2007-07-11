@@ -152,18 +152,6 @@ namespace quickbook
         collector& out;
     };
 
-    struct anchor_action
-    {
-        // Handles anchors
-
-        anchor_action(collector& out)
-            : out(out) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-    };
-
     namespace
     {
         char const* quickbook_get_date = "__quickbook_get_date__";
@@ -761,6 +749,21 @@ namespace quickbook
             boost::optional<collector &> const & phrase
             )
             : backend_action(action_name,actions,out,phrase)
+        {
+        }
+
+        void operator()(iterator first, iterator last) const;
+    };
+
+    struct string_action : backend_action
+    {
+        //  anchor, or anything that passes the recoded string to the template
+
+        string_action(
+            std::string const & action_name,
+            quickbook::actions & actions
+            )
+            : backend_action(action_name,actions)
         {
         }
 

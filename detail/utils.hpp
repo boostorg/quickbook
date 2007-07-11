@@ -80,6 +80,29 @@ namespace quickbook { namespace detail
     };
 
     file_type get_file_type(std::string const& extension);
+
+    template <typename Iterator>
+    inline std::string
+    make_string(Iterator const& first, Iterator const& last)
+    {
+        std::string out;
+        for (Iterator i = first; i != last; ++i)
+        {
+            switch (*i)
+            {
+                case '<': out += "&lt;";    break;
+                case '>': out += "&gt;";    break;
+                case '&': out += "&amp;";   break;
+                case '"': out += "&quot;";  break;
+                //~ case '[': out += "&#91;";   break;
+                //~ case ']': out += "&#93;";   break;
+                default:  out += *i;        break;
+                // note &apos; is not included. see the curse of apos:
+                // http://fishbowl.pastiche.org/2003/07/01/the_curse_of_apos
+            }
+        }
+        return out;
+    }
 }}
 
 #endif // BOOST_SPIRIT_QUICKBOOK_UTILS_HPP

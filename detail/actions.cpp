@@ -265,12 +265,16 @@ namespace quickbook
         out << '#'; // print out an unexpected character
     }
 
-    void anchor_action::operator()(iterator first, iterator last) const
+    void string_action::operator()(iterator first, iterator last) const
     {
-        out << "<anchor id=\"";
-        while (first != last)
-            detail::print_char(*first++, out.get());
-        out << "\" />\n";
+        std::string str = pop_phrase();
+        str = detail::make_string(str.begin(),str.end());
+        
+        backend_action::operator()(boost::assign::list_of
+            (str)
+            );
+        
+        out_phrase();
     }
 
     void do_macro_action::operator()(std::string const& str) const

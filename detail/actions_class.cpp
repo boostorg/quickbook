@@ -166,7 +166,7 @@ namespace quickbook
         , end_row(phrase, end_row_)
         , start_cell(phrase, table_span)
         , end_cell(phrase, temp_para)
-        , anchor(out)
+        , anchor("anchor",*this)
 
         , begin_section(out, phrase, doc_id, section_id, section_level, qualified_section_id)
         , end_section(out, section_level, qualified_section_id)
