@@ -382,7 +382,7 @@ namespace quickbook
                     "section", "endsect", "h1", "h2", "h3", "h4", "h5", "h6",
                     "blurb", ":", "pre", "def", "table", "include", "xinclude",
                     "variablelist", "import", "template", "warning", "caution",
-                    "important", "note", "tip"
+                    "important", "note", "tip", ":"
                     ;
 
                 paragraph_end =
