@@ -137,3 +137,5 @@
 ''']
 
 [template boostbook_anchor[anchor]'''<anchor id="'''[`anchor]'''" />''']
+
+[template boostbook_phrase[role str]'''<phrase role="'''[`role]'''">'''[`str]'''</phrase>''']
