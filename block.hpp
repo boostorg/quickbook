@@ -272,8 +272,8 @@ namespace quickbook
                     >>
                     (
                         (
-                            phrase                      [actions.end_varlistitem]
-                            >>  ch_p(']')
+                            inside_paragraph
+                            >>  ch_p(']')               [actions.end_varlistitem]
                             >>  space
                         )
                         | eps_p                         [actions.error]

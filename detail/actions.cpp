@@ -724,6 +724,20 @@ namespace quickbook
         actions.table_title.clear();
     }
 
+    void start_varlistitem_action::operator()(char) const
+    {
+        phrase << start_varlistitem_;
+        phrase.push();
+    }
+
+    void end_varlistitem_action::operator()(char) const
+    {
+        std::string str;
+        temp_para.swap(str);
+        phrase.pop();
+        phrase << str << end_varlistitem_;
+    }
+
     void table_action::operator()(iterator, iterator) const
     {
         std::string::iterator first = actions.table_title.begin();

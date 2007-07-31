@@ -380,6 +380,27 @@ namespace quickbook
         std::string str;
     };
 
+    struct start_varlistitem_action
+    {
+        start_varlistitem_action(collector& phrase)
+        : phrase(phrase) {}
+
+        void operator()(char) const;
+
+        collector& phrase;
+    };
+
+    struct end_varlistitem_action
+    {
+        end_varlistitem_action(collector& phrase, collector& temp_para)
+        : phrase(phrase), temp_para(temp_para) {}
+
+        void operator()(char) const;
+
+        collector& phrase;
+        collector& temp_para;
+    };
+
     struct macro_identifier_action
     {
         // Handles macro identifiers

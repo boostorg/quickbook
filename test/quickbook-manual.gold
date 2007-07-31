@@ -2378,15 +2378,21 @@ for the journey to old age.]]]
         <variablelist>
           <title>A Variable List</title> <varlistentry><term>term 1</term>
           <listitem>
-            The definition of term 1
+            <para>
+              The definition of term 1
+            </para>
           </listitem>
           </varlistentry> <varlistentry><term>term 2</term>
           <listitem>
-            The definition of term 2
+            <para>
+              The definition of term 2
+            </para>
           </listitem>
           </varlistentry> <varlistentry><term>term 3</term>
           <listitem>
-            The definition of term 3
+            <para>
+              The definition of term 3
+            </para>
           </listitem>
           </varlistentry>
         </variablelist>
