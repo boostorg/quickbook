@@ -1572,7 +1572,11 @@ Here's how to have preformatted blocks of code in a table cell:
 [variablelist A Variable List
     [[term 1] [The definition of term 1]]
     [[term 2] [The definition of term 2]]
-    [[term 3] [The definition of term 3]]
+    [[term 3] [
+    The definition of term 3.
+
+    Definitions may contain paragraphs.
+    ]]
 ]
 ''']
 
@@ -1581,7 +1585,11 @@ will generate:
 [variablelist A Variable List
     [[term 1] [The definition of term 1]]
     [[term 2] [The definition of term 2]]
-    [[term 3] [The definition of term 3]]
+    [[term 3] [
+    The definition of term 3.
+
+    Definitions may contain paragraphs.
+    ]]
 ]
 
 The rules for variable lists are the same as for tables, except that

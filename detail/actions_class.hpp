@@ -165,8 +165,8 @@ namespace quickbook
         markup_action           end_varlistentry;
         markup_action           start_varlistterm;
         markup_action           end_varlistterm;
-        markup_action           start_varlistitem;
-        markup_action           end_varlistitem;
+        start_varlistitem_action start_varlistitem;
+        end_varlistitem_action  end_varlistitem;
 
         break_action            break_;
         macro_identifier_action macro_identifier;
