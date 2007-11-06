@@ -27,6 +27,7 @@
 
 #ifdef BOOST_MSVC
 // disable copy/assignment could not be generated, unreferenced formal params
+#pragma warning (push)
 #pragma warning(disable : 4511 4512 4100)
 #endif
 
@@ -43,6 +44,7 @@ namespace quickbook
     extern unsigned qbk_major_version;
     extern unsigned qbk_minor_version;
     extern unsigned qbk_version_n; // qbk_major_version * 100 + qbk_minor_version
+    extern std::vector<std::string> include_path;
 
     // forward declarations
     struct actions;
@@ -755,6 +757,10 @@ namespace quickbook
         collector& phrase;
     };
 }
+
+#ifdef BOOST_MSVC
+#pragma warning (pop)
+#endif
 
 #endif // BOOST_SPIRIT_QUICKBOOK_ACTIONS_HPP
 

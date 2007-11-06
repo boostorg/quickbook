@@ -72,7 +72,10 @@ namespace quickbook
                         *blank_p >> "//<-"
                         >> (*(anychar_p - "//->"))
                         >> "//->" >> *blank_p >> eol_p
-                    |    "/*<-"
+                    |   "/*<-*/"
+                        >> (*(anychar_p - "/*->*/"))
+                        >> "/*->*/"
+                    |   "/*<-"
                         >> (*(anychar_p - "->*/"))
                         >> "->*/"
                     ;
@@ -106,8 +109,8 @@ namespace quickbook
         mutable std::string snippet;
         mutable std::string id;
         mutable std::vector<std::string> callouts;
-        std::string doc_id;
         std::vector<template_symbol>& storage;
+        std::string doc_id;
     };
 }
 
