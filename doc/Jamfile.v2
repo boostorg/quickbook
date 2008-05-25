@@ -15,6 +15,13 @@ boostbook standalone
         <xsl:param>generate.section.toc.level=3
         <xsl:param>chunk.section.depth=2
         <xsl:param>chunk.first.sections=1
+        <xsl:param>header.javascript=javascript/callouts.js
 
         #<xsl:param>callout.graphics.path=../../images/callouts//
+
+        <dependency>callouts
     ;
+
+install callouts : $(BOOST_ROOT)/doc/src/javascript/callouts.js
+    : <location>html/javascript ;
+explicit callouts ;
