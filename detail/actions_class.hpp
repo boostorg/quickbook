@@ -28,6 +28,7 @@ namespace quickbook
 
         typedef std::vector<std::string> string_list;
         typedef std::vector<std::pair<std::string, std::string> > author_list;
+        typedef std::vector<std::pair<string_list, std::string> > copyright_list;
         typedef std::pair<char, int> mark_type;
         static int const max_template_depth = 100;
 
@@ -37,8 +38,7 @@ namespace quickbook
         std::string             doc_version;
         std::string             doc_id;
         std::string             doc_dirname;
-        string_list             doc_copyright_years;
-        std::string             doc_copyright_holder;
+        copyright_list          doc_copyrights;
         std::string             doc_purpose;
         std::string             doc_category;
         author_list             doc_authors;
@@ -136,6 +136,8 @@ namespace quickbook
         markup_action           headerref_post;
         link_action             conceptref_pre;
         markup_action           conceptref_post;
+        link_action             globalref_pre;
+        markup_action           globalref_post;
 
         markup_action           bold_pre;
         markup_action           bold_post;

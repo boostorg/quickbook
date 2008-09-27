@@ -12,6 +12,7 @@
 #include <functional>
 #include <boost/bind.hpp>
 #include <boost/filesystem/convenience.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
 #include "./actions.hpp"
 #include "./utils.hpp"
@@ -324,7 +325,11 @@ namespace quickbook
         temp.swap(str);
         phrase.swap(save);
 
-        out << "<programlisting>\n";
+        //
+        // We must not place a \n after the <programlisting> tag
+        // otherwise PDF output starts code blocks with a blank line:
+        //
+        out << "<programlisting>";
         out << str;
         out << "</programlisting>\n";
     }
@@ -376,9 +381,73 @@ namespace quickbook
     {
         fs::path const img_path(std::string(first, last));
 
+        std::string attr_text;
+        if(fs::extension(img_path) == ".svg")
+        {
+           //
+           // SVG's need special handling:
+           //
+           // 1) We must set the "format" attribute, otherwise
+           //    HTML generation produces code that will not display
+           //    the image at all.
+           // 2) We need to set the "contentwidth" and "contentdepth"
+           //    attributes, otherwise the image will be displayed inside
+           //    a tiny box with scrollbars (Firefox), or else cropped to
+           //    fit in a tiny box (IE7).
+           //
+           attr_text = " format=\"SVG\"";
+           //
+           // Image paths are relative to the html subdirectory:
+           //
+           fs::path img;
+           if(img_path.root_path().empty())
+              img = "html" / img_path;  // relative path
+           else
+              img = img_path;   // absolute path
+           //
+           // Now load the SVG file:
+           //
+           std::string svg_text;
+           fs::ifstream fs(img);
+           char c;
+           while(fs.get(c) && fs.good())
+              svg_text.push_back(c);
+           //
+           // Extract the svg header from the file:
+           //
+           std::string::size_type a, b;
+           a = svg_text.find("<svg");
+           b = svg_text.find('>', a);
+           svg_text = (a == std::string::npos) ? "" : svg_text.substr(a, b - a);
+           //
+           // Now locate the "width" and "height" attributes
+           // and borrow their values:
+           //
+           a = svg_text.find("width");
+           a = svg_text.find('=', a);
+           a = svg_text.find('\"', a);
+           b = svg_text.find('\"', a + 1);
+           if(a != std::string::npos)
+           {
+              attr_text.append(" contentwidth=");
+              attr_text.append(svg_text.begin() + a, svg_text.begin() + b + 1);
+           }
+           a = svg_text.find("height");
+           a = svg_text.find('=', a);
+           a = svg_text.find('\"', a);
+           b = svg_text.find('\"', a + 1);
+           if(a != std::string::npos)
+           {
+              attr_text.append(" contentdepth=");
+              attr_text.append(svg_text.begin() + a, svg_text.begin() + b + 1);
+           }
+        }
+
         phrase << "<inlinemediaobject>";
 
-        phrase << "<imageobject><imagedata fileref=\"";
+        phrase << "<imageobject><imagedata ";
+        phrase << attr_text;
+        phrase << " fileref=\"";
         while (first != last)
             detail::print_char(*first++, phrase.get());
         phrase << "\"></imagedata></imageobject>";
@@ -615,7 +684,11 @@ namespace quickbook
             {
                 boost::spirit::file_position const pos = first.get_position();
                 detail::outerr(pos.file,pos.line)
-                    << "Expanding template" << std::endl;
+                    << "Expanding template:" << template_info[0] << std::endl
+                    << "------------------begin------------------" << std::endl
+                    << body
+                    << "------------------end--------------------" << std::endl
+                    << std::endl;
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
                 return;
@@ -935,21 +1008,24 @@ namespace quickbook
                 snippet += "\n\n```\n" + code + "```\n\n";
             }
 
-            snippet += "'''<calloutlist>'''";
-            for (size_t i = 0; i < callouts.size(); ++i)
+            if(callouts.size() > 0)
             {
-                snippet += "'''<callout arearefs=\"";
-                snippet += doc_id + boost::lexical_cast<std::string>(callout_id + i) + "co\" ";
-                snippet += "id=\"";
-                snippet += doc_id + boost::lexical_cast<std::string>(callout_id + i) + "\">";
-                snippet += "'''";
+              snippet += "'''<calloutlist>'''";
+              for (size_t i = 0; i < callouts.size(); ++i)
+              {
+                  snippet += "'''<callout arearefs=\"";
+                  snippet += doc_id + boost::lexical_cast<std::string>(callout_id + i) + "co\" ";
+                  snippet += "id=\"";
+                  snippet += doc_id + boost::lexical_cast<std::string>(callout_id + i) + "\">";
+                  snippet += "'''";
 
-                snippet += "'''<para>'''";
-                snippet += callouts[i];
-                snippet += "'''</para>'''";
-                snippet += "'''</callout>'''";
+                  snippet += "'''<para>'''";
+                  snippet += callouts[i];
+                  snippet += "'''</para>'''";
+                  snippet += "'''</callout>'''";
+              }
+              snippet += "'''</calloutlist>'''";
             }
-            snippet += "'''</calloutlist>'''";
         }
 
         std::vector<std::string> tinfo;
@@ -984,17 +1060,40 @@ namespace quickbook
         boost::spirit::parse(first, last, g);
     }
 
+    namespace
+    {
+        fs::path include_search(fs::path const & current, std::string const & name)
+        {
+            fs::path path(name,fs::native);
+
+            // If the path is relative, try and resolve it.
+            if (!path.is_complete())
+            {
+                // See if it can be found locally first.
+                if (fs::exists(current / path))
+                {
+                    return current / path;
+                }
+
+                // Search in each of the include path locations.
+                BOOST_FOREACH(std::string const & p, include_path)
+                {
+                    fs::path full(p,fs::native);
+                    full /= path;
+                    if (fs::exists(full))
+                    {
+                        return full;
+                    }
+                }
+            }
+
+            return path;
+        }
+    }
+
     void import_action::operator()(iterator first, iterator last) const
     {
-        fs::path path(std::string(first, last), fs::native);
-
-        // check to see if the path is complete and if not, make it relative to the current path
-        if (!path.is_complete())
-        {
-            path = actions.filename.branch_path() / path;
-            path.normalize();
-        }
-
+        fs::path path = include_search(actions.filename.branch_path(), std::string(first,last));
         std::string ext = fs::extension(path);
         std::vector<template_symbol> storage;
         load_snippets(path.string(), storage, ext, actions.doc_id);
@@ -1017,15 +1116,8 @@ namespace quickbook
 
     void include_action::operator()(iterator first, iterator last) const
     {
-        fs::path filein(std::string(first, last), fs::native);
+        fs::path filein = include_search(actions.filename.branch_path(), std::string(first,last));
         std::string doc_type, doc_id, doc_dirname, doc_last_revision;
-
-        // check to see if the path is complete and if not, make it relative to the current path
-        if (!filein.is_complete())
-        {
-            filein = actions.filename.branch_path() / filein;
-            filein.normalize();
-        }
 
         // swap the filenames
         std::swap(actions.filename, filein);
@@ -1075,6 +1167,21 @@ namespace quickbook
             << "        <firstname>" << author.first << "</firstname>\n"
             << "        <surname>" << author.second << "</surname>\n"
             << "      </author>\n";
+    }
+
+    void xml_copyright::operator()(std::pair<std::vector<std::string>, std::string> const& copyright) const
+    {
+        out << "\n" << "    <copyright>\n";
+
+        for_each(
+            copyright.first.begin()
+          , copyright.first.end()
+          , xml_year(out));
+
+        out << "      <holder>" << copyright.second << "</holder>\n"
+            << "    </copyright>\n"
+            << "\n"
+        ;
     }
 
     void xml_year::operator()(std::string const &year) const
@@ -1151,19 +1258,12 @@ namespace quickbook
             out << "    </authorgroup>\n";
         }
 
-        if (!actions.doc_copyright_holder.empty())
+        if (!actions.doc_copyrights.empty())
         {
-            out << "\n" << "    <copyright>\n";
-
             for_each(
-                actions.doc_copyright_years.begin()
-              , actions.doc_copyright_years.end()
-              , xml_year(out));
-
-            out << "      <holder>" << actions.doc_copyright_holder << "</holder>\n"
-                << "    </copyright>\n"
-                << "\n"
-            ;
+                actions.doc_copyrights.begin()
+              , actions.doc_copyrights.end()
+              , xml_copyright(out));
         }
 
         if (qbk_version_n < 103)

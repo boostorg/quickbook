@@ -44,6 +44,7 @@ namespace quickbook
     extern unsigned qbk_major_version;
     extern unsigned qbk_minor_version;
     extern unsigned qbk_version_n; // qbk_major_version * 100 + qbk_minor_version
+    extern std::vector<std::string> include_path;
 
     // forward declarations
     struct actions;
@@ -738,6 +739,18 @@ namespace quickbook
             : out(out) {}
 
         void operator()(std::string const &year) const;
+
+        collector& out;
+    };
+
+    struct xml_copyright
+    {
+        // Handles xml copyright
+
+        xml_copyright(collector& out)
+            : out(out) {}
+
+        void operator()(std::pair<std::vector<std::string>, std::string> const &copyright) const;
 
         collector& out;
     };

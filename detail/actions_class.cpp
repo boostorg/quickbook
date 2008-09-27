@@ -24,8 +24,7 @@ namespace quickbook
         , doc_version()
         , doc_id()
         , doc_dirname()
-        , doc_copyright_years()
-        , doc_copyright_holder()
+        , doc_copyrights()
         , doc_purpose()
         , doc_category()
         , doc_authors()
@@ -114,6 +113,8 @@ namespace quickbook
         , headerref_post(phrase, headerref_post_)
         , conceptref_pre(phrase, conceptref_pre_)
         , conceptref_post(phrase, conceptref_post_)
+        , globalref_pre(phrase, globalref_pre_)
+        , globalref_post(phrase, globalref_post_)
 
         , bold_pre(phrase, bold_pre_)
         , bold_post(phrase, bold_post_)
