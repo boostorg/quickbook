@@ -21,6 +21,7 @@ test-suite quickbook.test :
     [ quickbook-test escape ]
     [ quickbook-test templates ]
     [ quickbook-test templates_1_4 ]
+    [ quickbook-test templates_1_5 ]
     [ quickbook-test xinclude ]
     [ quickbook-test import ]
     [ quickbook-fail-test fail-include ]
@@ -32,6 +33,7 @@ test-suite quickbook.test :
     [ quickbook-fail-test fail-post-process ]
     [ quickbook-fail-test fail-parse-error1 ]
     [ quickbook-fail-test fail-parse-error2 ]
+    [ quickbook-fail-test fail-template-lookup1 ]
     ;
 
 

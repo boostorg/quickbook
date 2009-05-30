@@ -175,6 +175,7 @@ Features include:
 * Improved handling of unexpected characters in code blocks.
 * Improved handling of unmatched escape in code blocks.
 * Support for python snippets.
+* Use static scoping in templates, should be a lot more intuitive.
 
 [endsect]
 
