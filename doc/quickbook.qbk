@@ -176,6 +176,7 @@ Features include:
 * Improved handling of unmatched escape in code blocks.
 * Support for python snippets.
 * Use static scoping in templates, should be a lot more intuitive.
+* `teletype` source mode.
 
 [endsect]
 
@@ -448,6 +449,7 @@ C++ comment `// looks like this` whereas a Python comment [python]
     [[Mode]                 [Source Mode Markup]]
     [[C++]                  [[^\[c++\]]]]
     [[Python]               [[^\[python\]]]]
+    [[Plain Text]           [[^\[teletype\]]]]
 ]
 
 [note The source mode strings are lowercase.]
