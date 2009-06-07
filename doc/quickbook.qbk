@@ -177,6 +177,7 @@ Features include:
 * Support for python snippets.
 * Use static scoping in templates, should be a lot more intuitive.
 * `teletype` source mode.
+* Accept a space between `section:` and the section id.
 
 [endsect]
 
