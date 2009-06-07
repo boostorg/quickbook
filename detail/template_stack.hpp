@@ -23,15 +23,17 @@ namespace quickbook
 {
     struct template_scope;
 
-    //  template symbols are stored as follows:
+    //  template symbols with N arguments are stored as follows:
     //
-    //      template name
-    //      template param name[0]
-    //      template param name[1]
+    //  vector<std::string>
+    //        0: template name
+    //        1: template param name[0]
+    //        2: template param name[1]
     //      ...
-    //      template param name[N]
-    //      template body
-    //      template scope (only used for 1.5+, 1.4- uses the dynamic scope)
+    //        N: template param name[N-1]
+    //      N+1: template body
+    //  file position
+    //  template scope (only used for 1.5+, 1.4- uses the dynamic scope)
 
     typedef boost::tuple<
             std::vector<std::string>
