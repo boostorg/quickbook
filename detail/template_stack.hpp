@@ -70,7 +70,7 @@ namespace quickbook
         {
             template <typename Ctx, typename Itr>
             struct attribute {
-                typedef template_scope type;
+                typedef template_symbol type;
             };
         
             parser(template_stack& ts)
@@ -83,7 +83,7 @@ namespace quickbook
                 boost::spirit::qi::skip_over(first, last, skipper);
             
                 // TODO: Is this right?
-                Attribute result_attr;
+                template_symbol result_attr;
 
                 // search all scopes for the longest matching symbol.
                 Iterator f = first;

@@ -555,12 +555,15 @@ namespace quickbook
 
     struct do_template_action
     {
+        template <typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+        struct result { typedef void type; };
+        
         // Handles template substitutions
 
         do_template_action(quickbook::actions& actions)
         : actions(actions) {}
 
-        void operator()(iterator_range, unused_type, unused_type) const;
+        void operator()(iterator, bool, template_symbol const&, std::vector<std::string>) const;
 
         quickbook::actions& actions;
     };

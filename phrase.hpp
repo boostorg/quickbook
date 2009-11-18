@@ -20,6 +20,9 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
+#include <boost/spirit/include/phoenix_fusion.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/fusion/include/make_fused.hpp>
 
 namespace quickbook
 {
@@ -113,53 +116,34 @@ namespace quickbook
             >> actions.macro                        [actions.do_macro]
             ;
 
-        static const bool true_ = true;
-        static const bool false_ = false;
+        // Template call
 
         template_ =
-            (
-                qi::char_('`')                      [ph::ref(actions.template_escape) = true_]
-                |
-                qi::eps                             [ph::ref(actions.template_escape) = false_]
-            )
-            >>
-            ( (
-                qi::raw[&qi::punct >> actions.templates.scope]
-                                                    [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
-                >> -template_args
-            ) | (
-                qi::raw[actions.templates.scope]    [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
-                >> -(hard_space >> template_args)
-            ) )
-            >> &qi::lit(']')
+            (   qi::raw[qi::eps]                    // For the position of the template
+            >>  -qi::char_('`')                     // Attribute implicitly cast to bool
+            >>  (                                   // Lookup the template name
+                    (&qi::punct >> actions.templates.scope)
+                |   (actions.templates.scope >> hard_space)
+                )
+            >>  template_args
+            >>  &qi::lit(']')
+            ) [ph::bind(actions.do_template, ph::begin(qi::_1), qi::_2, qi::_3, qi::_4)]
             ;
 
         template_args =
-            qi::eps(qbk_before(105u)) >> template_args_1_4
-            |
-            qi::eps(qbk_since(105u)) >> template_args_1_5
-            ;
-
-        template_args_1_4 =
-            qi::raw[template_arg_1_4]               [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
-            % ".."
-            ;
+            qi::eps(qbk_before(105u)) >> -(template_arg_1_4 % "..") |
+            qi::eps(qbk_since(105u)) >> -(template_arg_1_5 % "..");
 
         template_arg_1_4 =
-            +(brackets_1_4 | (qi::char_ - (qi::lit("..") | ']')))
+            qi::raw[+(brackets_1_4 | (qi::char_ - (qi::lit("..") | ']')))]
             ;
 
         brackets_1_4 =
             '[' >> +template_arg_1_4 >> ']'
             ;
 
-        template_args_1_5 =
-            qi::raw[template_arg_1_5]               [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
-            % ".."
-            ;
-
         template_arg_1_5 =
-            +(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit("..") | '[' | ']')))
+            qi::raw[+(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit("..") | '[' | ']')))]
             ;
 
         template_inner_arg_1_5 =
@@ -248,7 +232,7 @@ namespace quickbook
                 |   quote
                 |   replaceable
                 |   footnote
-                |   qi::raw[template_]              [actions.do_template]
+                |   template_
                 |   qi::raw["br"]                   [actions.break_]
                 )
             >>  ']'

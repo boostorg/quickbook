@@ -34,13 +34,12 @@ namespace quickbook
                         simple_bold, simple_italic, simple_underline,
                         simple_teletype, source_mode, template_,
                         quote, code_block, footnote, replaceable, macro,
-                        dummy_block, cond_phrase, macro_identifier, template_args,
-                        template_args_1_4, template_arg_1_4, brackets_1_4,
-                        template_args_1_5, template_arg_1_5,
-                        template_inner_arg_1_5, brackets_1_5
+                        dummy_block, cond_phrase, macro_identifier,
+                        brackets_1_4, template_inner_arg_1_5, brackets_1_5
                         ;
 
-        qi::rule<Iterator, std::string()> image_filename;
+        qi::rule<Iterator, std::string()> image_filename, template_arg_1_4, template_arg_1_5;
+        qi::rule<Iterator, std::vector<std::string>() > template_args;
     };
 
     template <typename Iterator, typename Actions>
