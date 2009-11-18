@@ -25,6 +25,9 @@ namespace quickbook
 {
     char const* quickbook_get_date = "__quickbook_get_date__";
     char const* quickbook_get_time = "__quickbook_get_time__";
+    unsigned qbk_major_version = 0;
+    unsigned qbk_minor_version = 0;
+    unsigned qbk_version_n = 0; // qbk_major_version * 100 + qbk_minor_version
 
     namespace {
         std::string fully_qualified_id(std::string const& library_id,

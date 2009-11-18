@@ -7,7 +7,6 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#include "./quickbook.hpp"
 #include "./actions_class.hpp"
 #include "../grammars.hpp"
 #include "./post_process.hpp"
@@ -37,9 +36,6 @@ namespace quickbook
     tm* current_time; // the current time
     tm* current_gm_time; // the current UTC time
     bool debug_mode; // for quickbook developers only
-    unsigned qbk_major_version = 0;
-    unsigned qbk_minor_version = 0;
-    unsigned qbk_version_n = 0; // qbk_major_version * 100 + qbk_minor_version
     bool ms_errors = false; // output errors/warnings as if for VS
     std::vector<std::string> include_path;
 
