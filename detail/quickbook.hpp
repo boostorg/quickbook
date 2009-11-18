@@ -12,35 +12,35 @@
 #if !defined(BOOST_SPIRIT_QUICKBOOK_QUICKBOOK_HPP)
 #define BOOST_SPIRIT_QUICKBOOK_QUICKBOOK_HPP
 
+#include <boost/spirit/include/phoenix_function.hpp>
+
 namespace quickbook
 {
     extern unsigned qbk_major_version;
     extern unsigned qbk_minor_version;
     extern unsigned qbk_version_n; // qbk_major_version * 100 + qbk_minor_version
 
-    struct quickbook_range {
-        template <typename Arg>
-        struct result
-        {
-            typedef bool type;
-        };
+    struct quickbook_since_impl {
+        template <typename Arg1>
+        struct result { typedef bool type; };
         
-        quickbook_range(unsigned min_, unsigned max_)
-            : min_(min_), max_(max_) {}
-        
-        bool operator()() const {
-            return qbk_version_n >= min_ && qbk_version_n < max_;
+        bool operator()(unsigned min_) const {
+            return qbk_version_n >= min_;
         }
-
-        unsigned min_, max_;
     };
-    
-    inline quickbook_range qbk_since(unsigned min_) {
-        return quickbook_range(min_, 999);
-    }
-    
-    inline quickbook_range qbk_before(unsigned max_) {
-        return quickbook_range(0, max_);
+
+    struct quickbook_before_impl {
+        template <typename Arg1>
+        struct result { typedef bool type; };
+        
+        bool operator()(unsigned max_) const {
+            return qbk_version_n < max_;
+        }
+    };
+
+    namespace {
+        boost::phoenix::function<quickbook_since_impl> qbk_since;
+        boost::phoenix::function<quickbook_before_impl> qbk_before;
     }
 }
 

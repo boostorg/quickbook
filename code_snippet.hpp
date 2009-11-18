@@ -11,13 +11,17 @@
 
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_actor.hpp>
-#include <boost/bind.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
 #include "./grammars.hpp"
 #include "./detail/template_stack.hpp"
 #include "./detail/actions.hpp"
 
 namespace quickbook
 {
+    namespace ph = boost::phoenix;
+    using namespace ph::arg_names;
+
     template <typename Scanner>
     python_code_snippet_grammar::definition<Scanner>::definition(
         python_code_snippet_grammar const& self)
@@ -26,7 +30,7 @@ namespace quickbook
     
         start_ =
             +(
-                    snippet                     [boost::bind(&actions_type::compile, &actions, _1, _2)]
+                    snippet                     [ph::bind(&actions_type::compile, &actions, _1, _2)]
                 |   classic::anychar_p
             )
             ;
@@ -45,7 +49,7 @@ namespace quickbook
         code_elements =
                 escaped_comment
             |   ignore
-            |   (classic::anychar_p - "#]")     [boost::bind(&actions_type::pass_thru, &actions, _1, _2)]
+            |   (classic::anychar_p - "#]")     [ph::bind(&actions_type::pass_thru, &actions, _1, _2)]
             ;
 
         ignore =
@@ -63,10 +67,10 @@ namespace quickbook
         escaped_comment =
                 *classic::space_p >> "#`"
                 >> ((*(classic::anychar_p - classic::eol_p))
-                    >> classic::eol_p)          [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+                    >> classic::eol_p)          [ph::bind(&actions_type::escaped_comment, &actions, _1, _2)]
             |   *classic::space_p >> "\"\"\"`"
                 >> (*(classic::anychar_p - "\"\"\""))
-                                                [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+                                                [ph::bind(&actions_type::escaped_comment, &actions, _1, _2)]
                 >> "\"\"\""
             ;
     }
@@ -79,7 +83,7 @@ namespace quickbook
     
         start_ =
             +(
-                    snippet                     [boost::bind(&actions_type::compile, &actions, _1, _2)]
+                    snippet                     [ph::bind(&actions_type::compile, &actions, _1, _2)]
                 |   classic::anychar_p
             )
             ;
@@ -107,18 +111,18 @@ namespace quickbook
             |   line_callout
             |   inline_callout
             |   (classic::anychar_p - "//]" - "/*]*/")
-                                                [boost::bind(&actions_type::pass_thru, &actions, _1, _2)]
+                                                [ph::bind(&actions_type::pass_thru, &actions, _1, _2)]
             ;
 
         inline_callout =
             "/*<"
-            >> (*(classic::anychar_p - ">*/"))  [boost::bind(&actions_type::inline_callout, &actions, _1, _2)]
+            >> (*(classic::anychar_p - ">*/"))  [ph::bind(&actions_type::inline_callout, &actions, _1, _2)]
             >> ">*/"
             ;
 
         line_callout =
             "/*<<"
-            >> (*(classic::anychar_p - ">>*/")) [boost::bind(&actions_type::line_callout, &actions, _1, _2)]
+            >> (*(classic::anychar_p - ">>*/")) [ph::bind(&actions_type::line_callout, &actions, _1, _2)]
             >> ">>*/"
             >> *classic::space_p
             ;
@@ -138,10 +142,10 @@ namespace quickbook
         escaped_comment =
                 *classic::space_p >> "//`"
                 >> ((*(classic::anychar_p - classic::eol_p))
-                    >> classic::eol_p)          [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+                    >> classic::eol_p)          [ph::bind(&actions_type::escaped_comment, &actions, _1, _2)]
             |   *classic::space_p >> "/*`"
                 >> (*(classic::anychar_p - "*/"))
-                                                [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+                                                [ph::bind(&actions_type::escaped_comment, &actions, _1, _2)]
                 >> "*/"
             ;
     }

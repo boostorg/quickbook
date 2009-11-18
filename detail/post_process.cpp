@@ -9,7 +9,8 @@
 #include "./post_process.hpp"
 #include "./utils.hpp"
 #include <boost/spirit/include/classic_core.hpp>
-#include <boost/bind.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
 #include <set>
 #include <stack>
 #include <cctype>
@@ -17,7 +18,9 @@
 namespace quickbook
 {
     using namespace boost::spirit;
-    using boost::bind;
+    namespace ph = boost::phoenix;
+    using namespace ph::arg_names;
+    using ph::bind;
     typedef std::string::const_iterator iter_type;
 
     struct printer
@@ -264,7 +267,7 @@ namespace quickbook
         {
             definition(tidy_grammar const& self)
             {
-                tag = (classic::lexeme_d[+(classic::alpha_p | '_' | ':')])  [bind(&tidy_grammar::do_tag, &self, _1, _2)];
+                tag = (classic::lexeme_d[+(classic::alpha_p | '_' | ':')])  [ph::bind(&tidy_grammar::do_tag, &self, _1, _2)];
 
                 code =
                         "<programlisting>"
@@ -280,14 +283,14 @@ namespace quickbook
                     classic::str_p("<!--quickbook-escape-prefix-->") >>
                     (*(classic::anychar_p - classic::str_p("<!--quickbook-escape-postfix-->")))
                     [
-                        bind(&tidy_grammar::do_escape, &self, _1, _2)
+                        ph::bind(&tidy_grammar::do_escape, &self, _1, _2)
                     ]
                     >>  classic::lexeme_d
                         [
                             classic::str_p("<!--quickbook-escape-postfix-->") >>
                             (*classic::space_p)
                             [
-                                bind(&tidy_grammar::do_escape_post, &self, _1, _2)
+                                ph::bind(&tidy_grammar::do_escape_post, &self, _1, _2)
                             ]
                         ]
                     ;
@@ -304,11 +307,11 @@ namespace quickbook
 
                 markup =
                         escape
-                    |   code            [bind(&tidy_grammar::do_code, &self, _1, _2)]
-                    |   start_end_tag   [bind(&tidy_grammar::do_start_end_tag, &self, _1, _2)]
-                    |   start_tag       [bind(&tidy_grammar::do_start_tag, &self, _1, _2)]
-                    |   end_tag         [bind(&tidy_grammar::do_end_tag, &self, _1, _2)]
-                    |   content         [bind(&tidy_grammar::do_content, &self, _1, _2)]
+                    |   code            [ph::bind(&tidy_grammar::do_code, &self, _1, _2)]
+                    |   start_end_tag   [ph::bind(&tidy_grammar::do_start_end_tag, &self, _1, _2)]
+                    |   start_tag       [ph::bind(&tidy_grammar::do_start_tag, &self, _1, _2)]
+                    |   end_tag         [ph::bind(&tidy_grammar::do_end_tag, &self, _1, _2)]
+                    |   content         [ph::bind(&tidy_grammar::do_content, &self, _1, _2)]
                     ;
 
                 tidy = +markup;

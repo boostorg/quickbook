@@ -10,7 +10,6 @@
 =============================================================================*/
 #include <numeric>
 #include <functional>
-#include <boost/bind.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
