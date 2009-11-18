@@ -12,7 +12,8 @@ namespace quickbook
       , post_escape_back
       , actions
       , unexpected_char
-      , collector>
+      , collector
+      , iterator>
     cpp_p_type;
 
     typedef python_highlight<
@@ -24,7 +25,8 @@ namespace quickbook
       , post_escape_back
       , actions
       , unexpected_char
-      , collector>
+      , collector
+      , iterator>
     python_p_type;
     
     typedef teletype_highlight<
@@ -34,7 +36,8 @@ namespace quickbook
       , pre_escape_back
       , post_escape_back
       , actions
-      , collector>
+      , collector
+      , iterator>
     teletype_p_type;
     
     std::string syntax_highlight::operator()(iterator first, iterator last) const

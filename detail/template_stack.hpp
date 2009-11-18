@@ -15,8 +15,9 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/assert.hpp>
 #include <boost/spirit/include/classic_position_iterator.hpp>
-#include <boost/spirit/include/classic_functor_parser.hpp>
-#include <boost/spirit/include/classic_symbols.hpp>
+#include <boost/spirit/include/qi_symbols.hpp>
+#include <boost/spirit/include/qi_parse.hpp>
+#include <boost/spirit/include/support_attributes.hpp>
 #include <boost/next_prior.hpp>
 
 namespace quickbook
@@ -41,7 +42,7 @@ namespace quickbook
           , template_scope const*>
     template_symbol;
 
-    typedef boost::spirit::classic::symbols<template_symbol> template_symbols;
+    typedef boost::spirit::qi::symbols<char, template_symbol> template_symbols;
     
     // template scope
     //
@@ -65,38 +66,49 @@ namespace quickbook
     {
         typedef std::deque<template_scope> deque;
 
-        struct parser
+        struct parser : boost::spirit::qi::primitive_parser<parser>
         {
-            typedef boost::spirit::classic::nil_t result_t;
-
+            template <typename Ctx, typename Itr>
+            struct attribute {
+                typedef template_scope type;
+            };
+        
             parser(template_stack& ts)
                 : ts(ts) {}
 
-            template <typename Scanner>
-            std::ptrdiff_t
-            operator()(Scanner const& scan, result_t) const
+            template <typename Iterator, typename Context, typename Skipper, typename Attribute>
+            bool parse(Iterator& first, Iterator const& last
+              , Context& context, Skipper const& skipper, Attribute& attr) const
             {
+                boost::spirit::qi::skip_over(first, last, skipper);
+            
+                // TODO: Is this right?
+                Attribute result_attr;
+
                 // search all scopes for the longest matching symbol.
-                typename Scanner::iterator_t f = scan.first;
+                Iterator f = first;
                 std::ptrdiff_t len = -1;
                 for (template_scope const* i = &*ts.scopes.begin(); i; i = i->parent_scope)
-                {
-                    boost::spirit::classic::match<> m = i->symbols.parse(scan);
-                    if (m.length() > len)
-                        len = m.length();
-                    scan.first = f;
+                {                    
+                    // TODO: Implement this without calling 'base'.
+                    if(i->symbols.parse(first, last, context, skipper, result_attr) && first.base() - f.base() > len)
+                    {
+                        boost::spirit::traits::assign_to(result_attr, attr);
+                        len = first.base() - f.base();
+                    }
+                    first = f;
                 }
                 if (len >= 0)
-                    scan.first = boost::next(f, len);
-                return len;
+                    first = boost::next(f, len);
+                return len > 0;
             }
 
             template_stack& ts;
         };
 
         template_stack();
-        template_symbol* find(std::string const& symbol) const;
-        template_symbol* find_top_scope(std::string const& symbol) const;
+        template_symbol const* find(std::string const& symbol) const;
+        template_symbol const* find_top_scope(std::string const& symbol) const;
         template_symbols const& top() const;
         template_scope const& top_scope() const;
         // Add the given template symbol to the current scope.
@@ -108,7 +120,7 @@ namespace quickbook
         // Set the current scope's parent.
         void set_parent_scope(template_scope const&);
 
-        boost::spirit::classic::functor_parser<parser> scope;
+        parser scope;
 
     private:
 

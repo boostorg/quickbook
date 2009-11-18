@@ -61,25 +61,33 @@ namespace quickbook
         typedef classic::position_iterator<std::string::const_iterator> iterator_type;
         iterator_type first(storage.begin(), storage.end(), filein_);
         iterator_type last(storage.end(), storage.end());
+        iterator_type start = first;
 
-        doc_info_grammar<actions> l(actor);
-        classic::parse_info<iterator_type> info = parse(first, last, l);
+        doc_info_grammar<iterator, actions> l(actor);
+        bool success = parse(first, last, l);
 
-        if (info.hit || ignore_docinfo)
+        if (success || ignore_docinfo)
         {
+            if(!success) first = start;
+
             pre(actor.out, actor, ignore_docinfo);
 
-            block_grammar<actions> g(actor);
-            info = parse(info.hit ? info.stop : first, last, g);
-            if (info.full)
+            block_grammar<iterator, actions> g(actor);
+            success = parse(first, last, g);
+            if (success && first == last)
             {
                 post(actor.out, actor, ignore_docinfo);
             }
         }
+        else {
+            classic::file_position const pos = first.get_position();
+            detail::outerr(pos.file,pos.line)
+                << "Doc Info error near column " << pos.column << ".\n";
+        }
 
-        if (!info.full)
+        if (!success || first != last)
         {
-            classic::file_position const pos = info.stop.get_position();
+            classic::file_position const pos = first.get_position();
             detail::outerr(pos.file,pos.line)
                 << "Syntax Error near column " << pos.column << ".\n";
             ++actor.error_count;

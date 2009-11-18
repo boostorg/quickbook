@@ -3,15 +3,13 @@
 
 namespace quickbook
 {
-    typedef boost::spirit::classic::scanner<iterator> scanner;
-
-    void instantiate_simple_phrase(simple_phrase_grammar<quickbook::actions>& self)
+    void instantiate_simple_phrase(actions& a)
     {
-        simple_phrase_grammar<quickbook::actions>::definition<scanner> spgd(self);
+        simple_phrase_grammar<iterator, actions> spgd(a);
     }
 
-    void instantiate_phrase(phrase_grammar<quickbook::actions>& self)
+    void instantiate_phrase(actions& a, bool& b)
     {
-        phrase_grammar<quickbook::actions>::definition<scanner> pgd(self);
+        phrase_grammar<iterator, actions> pgd(a, b);
     }
 }

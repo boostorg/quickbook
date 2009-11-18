@@ -10,34 +10,33 @@
 #if !defined(BOOST_SPIRIT_QUICKBOOK_BLOCK_HPP)
 #define BOOST_SPIRIT_QUICKBOOK_BLOCK_HPP
 
+#include "./grammars.hpp"
 #include "./detail/quickbook.hpp"
 #include "./detail/utils.hpp"
-#include "./grammars.hpp"
-#include <boost/spirit/include/classic_core.hpp>
-#include <boost/spirit/include/classic_confix.hpp>
-#include <boost/spirit/include/classic_chset.hpp>
-#include <boost/spirit/include/classic_assign_actor.hpp>
-#include <boost/spirit/include/classic_if.hpp>
-#include <boost/spirit/include/classic_symbols.hpp>
+#include "./parse_utils.hpp"
+#include <boost/spirit/include/qi_core.hpp>
+#include <boost/spirit/include/qi_eol.hpp>
+#include <boost/spirit/include/qi_eps.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/phoenix_container.hpp>
 
 namespace quickbook
 {
     using namespace boost::spirit;
+    namespace ph = boost::phoenix;
 
-    template <typename Actions, bool skip_initial_spaces>
-    template <typename Scanner>
-    block_grammar<Actions, skip_initial_spaces>::
-        definition<Scanner>::definition(block_grammar const& self)
-        : no_eols(true)
-        , common(self.actions, no_eols)
+    template <typename Iterator, typename Actions, bool skip_initial_spaces>
+    block_grammar<Iterator, Actions, skip_initial_spaces>::block_grammar(Actions& actions_)
+        : block_grammar::base_type(start_, "block")
+        , actions(actions_)
+        , no_eols(true)
+        , common(actions, no_eols)
     {
-        using detail::var;
-        Actions& actions = self.actions;
-
         if (skip_initial_spaces)
         {
             start_ =
-                *(classic::space_p | comment) >> blocks >> blank
+                *(qi::space | comment) >> blocks >> blank
                 ;
         }
         else
@@ -46,7 +45,7 @@ namespace quickbook
                 blocks >> blank
                 ;
         }
-        
+
         blocks =
            +(   block_markup
             |   code
@@ -59,40 +58,38 @@ namespace quickbook
             ;
 
         space =
-            *(classic::space_p | comment)
+            *(qi::space | comment)
             ;
 
         blank =
-            *(classic::blank_p | comment)
+            *(qi::blank | comment)
             ;
 
-        eol = blank >> classic::eol_p
+        eol = blank >> qi::eol
             ;
 
         phrase_end =
             ']' |
-            classic::if_p(var(no_eols))
-            [
+            qi::eps(ph::ref(no_eols)) >>
                 eol >> eol                      // Make sure that we don't go
-            ]                                   // past a single block, except
+                                                // past a single block, except
             ;                                   // when preformatted.
 
         hard_space =
-            (classic::eps_p - (classic::alnum_p | '_')) >> space
-                                                // must not be preceded by
-            ;                                   // alpha-numeric or underscore
+            (qi::eps - (qi::alnum | '_')) >> space  // must not be preceded by
+            ;                                      // alpha-numeric or underscore
 
         comment =
-            "[/" >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
+            "[/" >> *(dummy_block | (qi::char_ - ']')) >> ']'
             ;
 
         dummy_block =
-            '[' >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
+            '[' >> *(dummy_block | (qi::char_ - ']')) >> ']'
             ;
 
         hr =
-            classic::str_p("----")
-            >> *(classic::anychar_p - eol)
+            qi::lit("----")
+            >> *(qi::char_ - eol)
             >> +eol
             ;
 
@@ -114,7 +111,7 @@ namespace quickbook
                 |   template_
                 )
             >>  (   (space >> ']' >> +eol)
-                |   classic::eps_p              [actions.error]
+                |   qi::raw[qi::eps]            [actions.error]
                 )
             ;
         
@@ -122,46 +119,46 @@ namespace quickbook
                 ':'
             >>
                 (
-                    classic::if_p(qbk_since(105u))
-                                                [space]
-                >>  (+(classic::alnum_p | '_')) [classic::assign_a(actions.element_id)]
-                |   classic::eps_p              [actions.element_id_warning]
-                                                [classic::assign_a(actions.element_id)]
+                    (
+                        qi::eps(ph::ref(qbk_version_n) >= 105u) >> space
+                    |   qi::eps(ph::ref(qbk_version_n) < 105u)
+                    )
+                >>  qi::raw[+(qi::alnum | '_')] [ph::ref(actions.element_id) = as_string(qi::_1)]
+                |   qi::raw[qi::eps]            [actions.element_id_warning]
+                                                [ph::clear(ph::ref(actions.element_id))]
                 )
-            | classic::eps_p                    [classic::assign_a(actions.element_id)]
+            | qi::eps                           [ph::clear(ph::ref(actions.element_id))]
             ;
         
         element_id_1_5 =
-                classic::if_p(qbk_since(105u)) [
-                    element_id
-                ]
-                .else_p [
-                    classic::eps_p              [classic::assign_a(actions.element_id)]
-                ]
+                qi::eps(ph::ref(qbk_version_n) >= 105u) >> element_id
+            |
+                qi::eps(ph::ref(qbk_version_n) < 105u)
+                                                [ph::clear(ph::ref(actions.element_id))]
                 ;
 
         begin_section =
                "section"
             >> hard_space
             >> element_id
-            >> phrase                           [actions.begin_section]
+            >> qi::raw[phrase]                  [actions.begin_section]
             ;
 
         end_section =
-            classic::str_p("endsect")           [actions.end_section]
+            qi::raw["endsect"]                  [actions.end_section]
             ;
 
         headings =
             h1 | h2 | h3 | h4 | h5 | h6 | h
             ;
 
-        h = "heading" >> hard_space >> phrase   [actions.h];
-        h1 = "h1" >> hard_space >> phrase       [actions.h1];
-        h2 = "h2" >> hard_space >> phrase       [actions.h2];
-        h3 = "h3" >> hard_space >> phrase       [actions.h3];
-        h4 = "h4" >> hard_space >> phrase       [actions.h4];
-        h5 = "h5" >> hard_space >> phrase       [actions.h5];
-        h6 = "h6" >> hard_space >> phrase       [actions.h6];
+        h = "heading" >> hard_space >> qi::raw[phrase]   [actions.h];
+        h1 = "h1" >> hard_space >> qi::raw[phrase]       [actions.h1];
+        h2 = "h2" >> hard_space >> qi::raw[phrase]       [actions.h2];
+        h3 = "h3" >> hard_space >> qi::raw[phrase]       [actions.h3];
+        h4 = "h4" >> hard_space >> qi::raw[phrase]       [actions.h4];
+        h5 = "h5" >> hard_space >> qi::raw[phrase]       [actions.h5];
+        h6 = "h6" >> hard_space >> qi::raw[phrase]       [actions.h6];
 
         static const bool true_ = true;
         static const bool false_ = false;
@@ -176,7 +173,7 @@ namespace quickbook
         blurb =
             "blurb" >> hard_space
             >> inside_paragraph                 [actions.blurb]
-            >> classic::eps_p
+            >> qi::eps
             ;
 
         blockquote =
@@ -202,193 +199,197 @@ namespace quickbook
             ;
 
         preformatted =
-            "pre" >> hard_space                 [classic::assign_a(no_eols, false_)]
-            >> !eol >> phrase                   [actions.preformatted]
-            >> classic::eps_p                   [classic::assign_a(no_eols, true_)]
+            "pre" >> hard_space                 [ph::ref(no_eols) = false_]
+            >> -eol >> phrase                   [actions.preformatted]
+            >> qi::eps                          [ph::ref(no_eols) = true_]
             ;
 
         macro_identifier =
-            +(classic::anychar_p - (classic::space_p | ']'))
+            +(qi::char_ - (qi::space | ']'))
             ;
 
         def_macro =
             "def" >> hard_space
-            >> macro_identifier                 [actions.macro_identifier]
+            >> qi::raw[macro_identifier]        [actions.macro_identifier]
             >> blank >> phrase                  [actions.macro_definition]
             ;
 
         identifier =
-            (classic::alpha_p | '_') >> *(classic::alnum_p | '_')
+            (qi::alpha | '_') >> *(qi::alnum | '_')
             ;
 
         template_id =
-            identifier | (classic::punct_p - (classic::ch_p('[') | ']'))
+            identifier | (qi::punct - (qi::char_('[') | ']'))
             ;
 
         template_ =
             "template"
-            >> hard_space >> template_id        [classic::push_back_a(actions.template_info)]
+            >> hard_space >> qi::raw[template_id]
+                                                [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
             >>
-            !(
+            -(
                 space >> '['
                 >> *(
-                        space >> template_id    [classic::push_back_a(actions.template_info)]
+                        space >> qi::raw[template_id]
+                                                [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
                     )
                 >> space >> ']'
             )
-            >> template_body                    [actions.template_body]
+            >> qi::raw[template_body]           [actions.template_body]
             ;
 
         template_body =
-           *(('[' >> template_body >> ']') | (classic::anychar_p - ']'))
-            >> space >> classic::eps_p(']')
+           *(('[' >> template_body >> ']') | (qi::char_ - ']'))
+            >> space >> &qi::lit(']')
             ;
 
         variablelist =
             "variablelist"
-            >>  (classic::eps_p(*classic::blank_p >> classic::eol_p) | hard_space)
-            >>  (*(classic::anychar_p - eol))   [classic::assign_a(actions.table_title)]
+            >>  (&(*qi::blank >> qi::eol) | hard_space)
+            >>  (*(qi::char_ - eol))            [ph::ref(actions.table_title) = as_string(qi::_1)]
             >>  +eol
             >>  *varlistentry
-            >>  classic::eps_p                  [actions.variablelist]
+            >>  qi::eps                         [actions.variablelist]
             ;
 
         varlistentry =
             space
-            >>  classic::ch_p('[')              [actions.start_varlistentry]
+            >>  qi::char_('[')                  [actions.start_varlistentry]
             >>
             (
                 (
                     varlistterm
                     >> +varlistitem
-                    >>  classic::ch_p(']')      [actions.end_varlistentry]
+                    >>  qi::char_(']')          [actions.end_varlistentry]
                     >>  space
                 )
-                | classic::eps_p                [actions.error]
+                | qi::raw[qi::eps]              [actions.error]
             )
             ;
 
         varlistterm =
             space
-            >>  classic::ch_p('[')              [actions.start_varlistterm]
+            >>  qi::char_('[')                  [actions.start_varlistterm]
             >>
             (
                 (
                     phrase
-                    >>  classic::ch_p(']')      [actions.end_varlistterm]
+                    >>  qi::char_(']')          [actions.end_varlistterm]
                     >>  space
                 )
-                | classic::eps_p                [actions.error]
+                | qi::raw[qi::eps]              [actions.error]
             )
             ;
 
         varlistitem =
             space
-            >>  classic::ch_p('[')              [actions.start_varlistitem]
+            >>  qi::char_('[')                  [actions.start_varlistitem]
             >>
             (
                 (
                     inside_paragraph
-                    >>  classic::ch_p(']')      [actions.end_varlistitem]
+                    >>  qi::char_(']')          [actions.end_varlistitem]
                     >>  space
                 )
-                | classic::eps_p                [actions.error]
+                | qi::raw[qi::eps]              [actions.error]
             )
             ;
 
         table =
             "table"
-            >>  (classic::eps_p(*classic::blank_p >> classic::eol_p) | hard_space)
+            >>  (&(*qi::blank >> qi::eol) | hard_space)
             >> element_id_1_5
-            >>  (classic::eps_p(*classic::blank_p >> classic::eol_p) | space)
-            >>  (*(classic::anychar_p - eol))   [classic::assign_a(actions.table_title)]
+            >>  (&(*qi::blank >> qi::eol) | space)
+            >>  (*(qi::char_ - eol))            [ph::ref(actions.table_title) = as_string(qi::_1)]
             >>  +eol
             >>  *table_row
-            >>  classic::eps_p                  [actions.table]
+            >>  qi::eps                         [actions.table]
             ;
 
         table_row =
             space
-            >>  classic::ch_p('[')              [actions.start_row]
+            >>  qi::char_('[')                  [actions.start_row]
             >>
             (
                 (
                     *table_cell
-                    >>  classic::ch_p(']')      [actions.end_row]
+                    >>  qi::char_(']')          [actions.end_row]
                     >>  space
                 )
-                | classic::eps_p                [actions.error]
+                | qi::raw[qi::eps]              [actions.error]
             )
             ;
 
         table_cell =
             space
-            >>  classic::ch_p('[')              [actions.start_cell]
+            >>  qi::char_('[')                  [actions.start_cell]
             >>
             (
                 (
                     inside_paragraph
-                    >>  classic::ch_p(']')      [actions.end_cell]
+                    >>  qi::char_(']')          [actions.end_cell]
                     >>  space
                 )
-                | classic::eps_p                [actions.error]
+                | qi::raw[qi::eps]              [actions.error]
             )
             ;
 
         xinclude =
                "xinclude"
             >> hard_space
-            >> (*(classic::anychar_p -
-                    phrase_end))                [actions.xinclude]
+            >> qi::raw[*(qi::char_ -
+                    phrase_end)]                [actions.xinclude]
             ;
 
         import =
                "import"
             >> hard_space
-            >> (*(classic::anychar_p -
-                    phrase_end))                [actions.import]
+            >> qi::raw[*(qi::char_ -
+                    phrase_end)]                [actions.import]
             ;
 
         include =
                "include"
             >> hard_space
             >>
-           !(
+           -(
                 ':'
-                >> (*((classic::alnum_p | '_') - classic::space_p))[classic::assign_a(actions.include_doc_id)]
+                >> qi::raw[*((qi::alnum | '_') - qi::space)]
+                                                [ph::ref(actions.include_doc_id) = as_string(qi::_1)]
                 >> space
             )
-            >> (*(classic::anychar_p -
-                    phrase_end))                [actions.include]
+            >> qi::raw[*(qi::char_ -
+                    phrase_end)]                [actions.include]
             ;
 
         code =
-            (
+            qi::raw[
                 code_line
                 >> *(*eol >> code_line)
-            )                                   [actions.code]
+            ]                                   [actions.code]
             >> +eol
             ;
 
         code_line =
-            ((classic::ch_p(' ') | '\t'))
-            >> *(classic::anychar_p - eol) >> eol
+            ((qi::char_(' ') | '\t'))
+            >> *(qi::char_ - eol) >> eol
             ;
 
         list =
-            classic::eps_p(classic::ch_p('*') | '#') >>
-           +(
-                (*classic::blank_p
-                >> (classic::ch_p('*') | '#'))  [actions.list_format]
-                >> *classic::blank_p
+            &(qi::char_('*') | '#') >>
+           +qi::raw[
+                qi::raw[*qi::blank
+                >> (qi::char_('*') | '#')]
+                                                [actions.list_format]
+                >> *qi::blank
                 >> list_item
-            )                                   [actions.list_item]
+            ]                                   [actions.list_item]
             ;
 
         list_item =
            *(   common
-            |   (classic::anychar_p -
-                    (   classic::eol_p >> *classic::blank_p >> classic::eps_p(classic::ch_p('*') | '#')
+            |   (qi::char_ -
+                    (   qi::eol >> *qi::blank >> &(qi::char_('*') | '#')
                     |   (eol >> eol)
                     )
                 )                               [actions.plain_char]
@@ -409,17 +410,17 @@ namespace quickbook
 
         paragraph =
            *(   common
-            |   (classic::anychar_p -           // Make sure we don't go past
+            |   (qi::char_ -                    // Make sure we don't go past
                     paragraph_end               // a single block.
                 )                               [actions.plain_char]
             )
-            >> (classic::eps_p('[') | +eol)
+            >> (&qi::lit('[') | +eol)
             ;
 
         phrase =
            *(   common
             |   comment
-            |   (classic::anychar_p -
+            |   (qi::char_ -
                     phrase_end)                 [actions.plain_char]
             )
             ;

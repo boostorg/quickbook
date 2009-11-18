@@ -17,7 +17,6 @@
 #include <stack>
 #include <algorithm>
 #include <boost/spirit/include/classic_iterator.hpp>
-#include <boost/spirit/include/qi_core.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -34,10 +33,14 @@
 namespace quickbook
 {
 	using namespace boost::spirit;
-
     namespace fs = boost::filesystem;
+
+	// TODO: This is defined in two places.    	
+	typedef qi::symbols<char, std::string> string_symbols;    
+
     typedef classic::position_iterator<std::string::const_iterator> iterator;
-    typedef classic::symbols<std::string> string_symbols;
+    typedef boost::iterator_range<iterator> iterator_range;
+    typedef qi::symbols<char, std::string> string_symbols;
     typedef std::map<std::string, std::string> attribute_map;
 
     struct actions;
@@ -58,7 +61,7 @@ namespace quickbook
             int& error_count)
         : error_count(error_count) {}
 
-        void operator()(iterator first, iterator /*last*/) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         int& error_count;
     };
@@ -78,7 +81,7 @@ namespace quickbook
         , pre(pre)
         , post(post) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         collector& out;
         collector& phrase;
@@ -106,7 +109,7 @@ namespace quickbook
         , pre(pre)
         , post(post) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         collector& phrase;
@@ -135,7 +138,7 @@ namespace quickbook
         , qualified_section_id(qualified_section_id)
         , section_level(section_level) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         collector& phrase;
@@ -159,7 +162,7 @@ namespace quickbook
         , post(post)
         , macro(macro) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range const&, unused_type, unused_type) const;
 
         collector& out;
         std::string pre;
@@ -179,7 +182,7 @@ namespace quickbook
         , conditions(conditions)
         , macro(macro) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         std::vector<bool>& conditions;
@@ -198,7 +201,7 @@ namespace quickbook
         , conditions(conditions)
         , macro(macro) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         std::vector<bool>& conditions;
@@ -220,7 +223,7 @@ namespace quickbook
         , list_indent(list_indent)
         , list_marks(list_marks) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         collector& out;
         collector& list_buffer;
@@ -243,7 +246,7 @@ namespace quickbook
         , list_marks(list_marks)
         , error_count(error_count) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         int& list_indent;
@@ -258,7 +261,7 @@ namespace quickbook
         span(char const* name, collector& out)
         : name(name), out(out) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         char const* name;
         collector& out;
@@ -271,7 +274,7 @@ namespace quickbook
         unexpected_char(collector& out)
         : out(out) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
     };
@@ -283,7 +286,7 @@ namespace quickbook
         anchor_action(collector& out)
             : out(out) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
     };
@@ -294,11 +297,11 @@ namespace quickbook
     struct do_macro_action
     {
         // Handles macro substitutions
-
+        
         do_macro_action(collector& phrase)
             : phrase(phrase) {}
 
-        void operator()(std::string const& str) const;
+        void operator()(std::string const& str, unused_type, unused_type) const;
         collector& phrase;
     };
 
@@ -309,8 +312,8 @@ namespace quickbook
         space(collector& out)
             : out(out) {}
 
-        void operator()(iterator first, iterator last) const;
-        void operator()(char ch) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
+        void operator()(char ch, unused_type, unused_type) const;
 
         collector& out;
     };
@@ -322,7 +325,7 @@ namespace quickbook
         pre_escape_back(actions& escape_actions, std::string& save)
             : escape_actions(escape_actions), save(save) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         actions& escape_actions;
         std::string& save;
@@ -335,7 +338,7 @@ namespace quickbook
         post_escape_back(collector& out, actions& escape_actions, std::string& save)
             : out(out), escape_actions(escape_actions), save(save) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         collector& out;
         actions& escape_actions;
@@ -350,8 +353,8 @@ namespace quickbook
         raw_char_action(collector& phrase)
         : phrase(phrase) {}
 
-        void operator()(char ch) const;
-        void operator()(iterator first, iterator /*last*/) const;
+        void operator()(char ch, unused_type, unused_type) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& phrase;
     };
@@ -364,8 +367,8 @@ namespace quickbook
         plain_char_action(collector& phrase)
         : phrase(phrase) {}
 
-        void operator()(char ch) const;
-        void operator()(iterator first, iterator /*last*/) const;
+        void operator()(char ch, unused_type, unused_type) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& phrase;
     };
@@ -380,7 +383,7 @@ namespace quickbook
         : attributes(attributes)
         , attribute_name(attribute_name) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         attribute_map& attributes;
         std::string& attribute_name;
@@ -398,7 +401,7 @@ namespace quickbook
         , attributes(attributes)
         , image_fileref(image_fileref) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         collector& phrase;
         attribute_map& attributes;
@@ -412,14 +415,7 @@ namespace quickbook
         markup_action(collector& phrase, std::string const& str)
         : phrase(phrase), str(str) {}
 
-        template <typename T>
-        void operator()(T const&) const
-        {
-            phrase << str;
-        }
-
-        template <typename T>
-        void operator()(T const&, T const&) const
+        void operator()(unused_type, unused_type, unused_type) const
         {
             phrase << str;
         }
@@ -427,7 +423,7 @@ namespace quickbook
         collector& phrase;
         std::string str;
     };
-    
+
     struct syntax_highlight
     {
         syntax_highlight(
@@ -450,7 +446,6 @@ namespace quickbook
         actions& escape_actions;
     };
 
-
     struct code_action
     {
         // Does the actual syntax highlighing of code
@@ -465,7 +460,7 @@ namespace quickbook
         {
         }
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         collector& phrase;
@@ -483,7 +478,7 @@ namespace quickbook
         , syntax_p(syntax_p)
         {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         syntax_highlight& syntax_p;
@@ -494,7 +489,7 @@ namespace quickbook
         start_varlistitem_action(collector& phrase)
         : phrase(phrase) {}
 
-        void operator()(char) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         collector& phrase;
     };
@@ -504,7 +499,7 @@ namespace quickbook
         end_varlistitem_action(collector& phrase, collector& temp_para)
         : phrase(phrase), temp_para(temp_para) {}
 
-        void operator()(char) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         collector& phrase;
         collector& temp_para;
@@ -517,7 +512,7 @@ namespace quickbook
         break_action(collector& phrase)
         : phrase(phrase) {}
 
-        void operator()(iterator f, iterator) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& phrase;
     };
@@ -529,7 +524,7 @@ namespace quickbook
         macro_identifier_action(quickbook::actions& actions)
         : actions(actions) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         quickbook::actions& actions;
     };
@@ -541,7 +536,7 @@ namespace quickbook
         macro_definition_action(quickbook::actions& actions)
         : actions(actions) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         quickbook::actions& actions;
     };
@@ -553,7 +548,7 @@ namespace quickbook
         template_body_action(quickbook::actions& actions)
         : actions(actions) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         quickbook::actions& actions;
     };
@@ -565,7 +560,7 @@ namespace quickbook
         do_template_action(quickbook::actions& actions)
         : actions(actions) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         quickbook::actions& actions;
     };
@@ -577,7 +572,7 @@ namespace quickbook
         link_action(collector& phrase, char const* tag)
         : phrase(phrase), tag(tag) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& phrase;
         char const* tag;
@@ -590,7 +585,7 @@ namespace quickbook
         variablelist_action(quickbook::actions& actions)
         : actions(actions) {}
 
-        void operator()(iterator, iterator) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         quickbook::actions& actions;
     };
@@ -602,7 +597,7 @@ namespace quickbook
         table_action(quickbook::actions& actions)
         : actions(actions) {}
 
-        void operator()(iterator, iterator) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         quickbook::actions& actions;
     };
@@ -614,8 +609,7 @@ namespace quickbook
         start_row_action(collector& phrase, unsigned& span, std::string& header)
             : phrase(phrase), span(span), header(header) {}
 
-        void operator()(char) const;
-        void operator()(iterator f, iterator) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         collector& phrase;
         unsigned& span;
@@ -629,7 +623,7 @@ namespace quickbook
         start_col_action(collector& phrase, unsigned& span)
         : phrase(phrase), span(span) {}
 
-        void operator()(char) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         collector& phrase;
         unsigned& span;
@@ -640,7 +634,7 @@ namespace quickbook
         end_col_action(collector& phrase, collector& temp_para)
         : phrase(phrase), temp_para(temp_para) {}
 
-        void operator()(char) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         collector& phrase;
         collector& temp_para;
@@ -666,7 +660,7 @@ namespace quickbook
         , qualified_section_id(qualified_section_id)
         , element_id(element_id) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         collector& phrase;
@@ -689,7 +683,7 @@ namespace quickbook
         , qualified_section_id(qualified_section_id)
         , error_count(error_count) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         int& section_level;
@@ -699,7 +693,7 @@ namespace quickbook
    
    struct element_id_warning_action
    {
-       void operator()(iterator first, iterator last) const;
+       void operator()(iterator_range, unused_type, unused_type) const;
    };
 
     struct xinclude_action
@@ -708,7 +702,7 @@ namespace quickbook
         xinclude_action(collector& out_, quickbook::actions& actions_)
             : out(out_), actions(actions_) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         quickbook::actions& actions;
@@ -721,7 +715,7 @@ namespace quickbook
         include_action(quickbook::actions& actions_)
             : actions(actions_) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         quickbook::actions& actions;
     };
@@ -732,7 +726,7 @@ namespace quickbook
         import_action(collector& out_, quickbook::actions& actions_)
             : out(out_), actions(actions_) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(iterator_range, unused_type, unused_type) const;
 
         collector& out;
         quickbook::actions& actions;
@@ -782,7 +776,7 @@ namespace quickbook
         phrase_to_string_action(std::string& out, collector& phrase)
             : out(out) , phrase(phrase) {}
 
-        void operator()(iterator first, iterator last) const;
+        void operator()(unused_type, unused_type, unused_type) const;
 
         std::string& out;
         collector& phrase;

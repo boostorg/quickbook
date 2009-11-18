@@ -13,16 +13,18 @@
 #include "./grammars.hpp"
 #include "./detail/quickbook.hpp"
 #include "./detail/utils.hpp"
-#include <boost/spirit/include/classic_core.hpp>
-#include <boost/spirit/include/classic_confix.hpp>
-#include <boost/spirit/include/classic_chset.hpp>
-#include <boost/spirit/include/classic_assign_actor.hpp>
-#include <boost/spirit/include/classic_clear_actor.hpp>
-#include <boost/spirit/include/classic_if.hpp>
+#include "./parse_utils.hpp"
+#include <boost/spirit/include/qi_core.hpp>
+#include <boost/spirit/include/qi_auxiliary.hpp>
+#include <boost/spirit/repository/include/qi_confix.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/phoenix_container.hpp>
 
 namespace quickbook
 {
     using namespace boost::spirit;
+    namespace ph = boost::phoenix;
 
     template <typename Rule, typename Action>
     inline void
@@ -34,69 +36,65 @@ namespace quickbook
     )
     {
         simple =
-            mark >>
-            (
+            mark >> 
+            qi::raw[
                 (
-                    classic::graph_p             // A single char. e.g. *c*
-                    >> classic::eps_p(mark
-                        >> (classic::space_p | classic::punct_p | classic::end_p))
-                                                // space_p, punct_p or end_p
+                    qi::graph                   // A single char. e.g. *c*
+                    >> &(mark
+                        >> (qi::space | qi::punct | qi::eoi))
+                                                // space, punct or end
                 )                               // must follow mark
             |
-                (   classic::graph_p >>         // graph_p must follow mark
-                    *(classic::anychar_p -
-                        (   (classic::graph_p >> mark) 
-                                                // Make sure that we don't go
+                (   qi::graph >>                // qi::graph must follow mark
+                    *(qi::char_ -
+                        (   (qi::graph >> mark) // Make sure that we don't go
                         |   close               // past a single block
                         )
-                    ) >> classic::graph_p       // graph_p must precede mark
-                    >> classic::eps_p(mark
-                        >> (classic::space_p | classic::punct_p | classic::end_p))
-                                                // space_p, punct_p or end_p
+                    ) >> qi::graph              // qi::graph must precede mark
+                    >> &(mark
+                        >> (qi::space | qi::punct | qi::eoi))
+                                                // space, punct or end
                 )                               // must follow mark
-            )                                   [action]
+            ]                                   [action]
             >> mark
             ;
     }
 
-    template <typename Actions>
-    template <typename Scanner>
-    phrase_grammar<Actions>::definition<Scanner>::definition(
-        phrase_grammar const& self)
+    template <typename Iterator, typename Actions>
+    phrase_grammar<Iterator, Actions>::phrase_grammar(Actions& actions, bool& no_eols)
+        : phrase_grammar::base_type(common, "phrase"),
+        actions(actions),
+        no_eols(no_eols)
     {
-        using detail::var;
-        Actions& actions = self.actions;
-
         space =
-            *(classic::space_p | comment)
+            *(qi::space | comment)
             ;
 
         blank =
-            *(classic::blank_p | comment)
+            *(qi::blank | comment)
             ;
 
-        eol = blank >> classic::eol_p
+        eol = blank >> qi::eol
             ;
 
         phrase_end =
             ']' |
-            classic::if_p(var(self.no_eols))
-            [
+            qi::eps(ph::ref(no_eols)) >>
                 eol >> eol                      // Make sure that we don't go
-            ]                                   // past a single block, except
-            ;                                   // when preformatted.
+            ;                                   // past a single block, except
+                                                // when preformatted.
 
         hard_space =
-            (classic::eps_p - (classic::alnum_p | '_')) >> space
-                                                // must not be preceded by
-            ;                                   // alpha-numeric or underscore
+            (qi::eps - (qi::alnum | '_')) >> space
+            ;                                   // must not be preceded by
+                                                // alpha-numeric or underscore
 
         comment =
-            "[/" >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
+            "[/" >> *(dummy_block | (qi::char_ - ']')) >> ']'
             ;
 
         dummy_block =
-            '[' >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
+            '[' >> *(dummy_block | (qi::char_ - ']')) >> ']'
             ;
 
         common =
@@ -110,10 +108,9 @@ namespace quickbook
             ;
 
         macro =
-            classic::eps_p(actions.macro        // must not be followed by
-                                                // alpha or underscore
-                >> (classic::eps_p - (classic::alpha_p | '_')))
-            >> actions.macro                    [actions.do_macro]
+            &(actions.macro                         // must not be followed by
+                >> (qi::eps - (qi::alpha | '_')))   // alpha or underscore
+            >> actions.macro                        [actions.do_macro]
             ;
 
         static const bool true_ = true;
@@ -121,43 +118,35 @@ namespace quickbook
 
         template_ =
             (
-                classic::ch_p('`')              [classic::assign_a(actions.template_escape,true_)]
+                qi::char_('`')                      [ph::ref(actions.template_escape) = true_]
                 |
-                classic::eps_p                  [classic::assign_a(actions.template_escape,false_)]
+                qi::eps                             [ph::ref(actions.template_escape) = false_]
             )
             >>
             ( (
-                (classic::eps_p(classic::punct_p)
-                    >> actions.templates.scope
-                )                               [classic::push_back_a(actions.template_info)]
-                >> !template_args
+                qi::raw[&qi::punct >> actions.templates.scope]
+                                                    [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
+                >> -template_args
             ) | (
-                (actions.templates.scope
-                    >> classic::eps_p
-                )                               [classic::push_back_a(actions.template_info)]
-                >> !(hard_space
-                    >> template_args)
+                qi::raw[actions.templates.scope]    [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
+                >> -(hard_space >> template_args)
             ) )
-            >> classic::eps_p(']')
+            >> &qi::lit(']')
             ;
 
         template_args =
-            classic::if_p(qbk_since(105u)) [
-                template_args_1_5
-            ].else_p [
-                template_args_1_4
-            ]
+            qi::eps(qbk_before(105u)) >> template_args_1_4
+            |
+            qi::eps(qbk_since(105u)) >> template_args_1_5
             ;
 
         template_args_1_4 =
-            template_arg_1_4                    [classic::push_back_a(actions.template_info)]
-            >> *(
-                    ".." >> template_arg_1_4    [classic::push_back_a(actions.template_info)]
-                )
+            qi::raw[template_arg_1_4]               [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
+            % ".."
             ;
 
         template_arg_1_4 =
-            +(brackets_1_4 | (classic::anychar_p - (classic::str_p("..") | ']')))
+            +(brackets_1_4 | (qi::char_ - (qi::lit("..") | ']')))
             ;
 
         brackets_1_4 =
@@ -165,18 +154,16 @@ namespace quickbook
             ;
 
         template_args_1_5 =
-            template_arg_1_5                    [classic::push_back_a(actions.template_info)]
-            >> *(
-                    ".." >> template_arg_1_5    [classic::push_back_a(actions.template_info)]
-                )
+            qi::raw[template_arg_1_5]               [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
+            % ".."
             ;
 
         template_arg_1_5 =
-            +(brackets_1_5 | ('\\' >> classic::anychar_p) | (classic::anychar_p - (classic::str_p("..") | '[' | ']')))
+            +(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit("..") | '[' | ']')))
             ;
 
         template_inner_arg_1_5 =
-            +(brackets_1_5 | ('\\' >> classic::anychar_p) | (classic::anychar_p - (classic::str_p('[') | ']')))
+            +(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit('[') | ']')))
             ;
 
         brackets_1_5 =
@@ -185,31 +172,31 @@ namespace quickbook
 
         inline_code =
             '`' >>
-            (
-               *(classic::anychar_p -
+            qi::raw[
+               *(qi::char_ -
                     (   '`'
-                    |   (eol >> eol)            // Make sure that we don't go
-                    )                           // past a single block
-                ) >> classic::eps_p('`')
-            )                                   [actions.inline_code]
+                    |   (eol >> eol)                // Make sure that we don't go
+                    )                               // past a single block
+                ) >> &qi::lit('`')
+            ]                                       [actions.inline_code]
             >>  '`'
             ;
 
         code_block =
                 (
                     "```" >>
-                    (
-                       *(classic::anychar_p - "```")
-                            >> classic::eps_p("```")
-                    )                           [actions.code_block]
+                    qi::raw[
+                       *(qi::char_ - "```")
+                            >> &qi::lit("```")
+                    ]                               [actions.code_block]
                     >>  "```"
                 )
             |   (
                     "``" >>
-                    (
-                       *(classic::anychar_p - "``")
-                            >> classic::eps_p("``")
-                    )                           [actions.code_block]
+                    qi::raw[
+                       *(qi::char_ - "``")
+                            >> &qi::lit("``")
+                    ]                               [actions.code_block]
                     >>  "``"
                 )
             ;
@@ -233,8 +220,7 @@ namespace quickbook
         phrase =
            *(   common
             |   comment
-            |   (classic::anychar_p - phrase_end)
-                                                [actions.plain_char]
+            |   (qi::char_ - phrase_end)            [actions.plain_char]
             )
             ;
 
@@ -262,226 +248,228 @@ namespace quickbook
                 |   quote
                 |   replaceable
                 |   footnote
-                |   template_                   [actions.do_template]
-                |   classic::str_p("br")        [actions.break_]
+                |   qi::raw[template_]              [actions.do_template]
+                |   qi::raw["br"]                   [actions.break_]
                 )
             >>  ']'
             ;
 
         escape =
-                classic::str_p("\\n")           [actions.break_]
-            |   "\\ "                           // ignore an escaped char
-            |   '\\' >> classic::punct_p        [actions.raw_char]
+                qi::raw["\\n"]                      [actions.break_]
+            |   "\\ "                               // ignore an escaped char
+            |   '\\' >> qi::punct                   [actions.raw_char]
             |   (
-                    ("'''" >> !eol)             [actions.escape_pre]
-                >>  *(classic::anychar_p - "'''")
-                                                [actions.raw_char]
-                >>  classic::str_p("'''")       [actions.escape_post]
+                    ("'''" >> -eol)                 [actions.escape_pre]
+                >>  *(qi::char_ - "'''")            [actions.raw_char]
+                >>  qi::lit("'''")                  [actions.escape_post]
                 )
             ;
 
         macro_identifier =
-            +(classic::anychar_p - (classic::space_p | ']'))
+            +(qi::char_ - (qi::space | ']'))
             ;
 
         cond_phrase =
                 '?' >> blank
-            >>  macro_identifier                [actions.cond_phrase_pre]
-            >>  (!phrase)                       [actions.cond_phrase_post]
+            >>  qi::raw[macro_identifier]           [actions.cond_phrase_pre]
+            >>  qi::raw[-phrase]                    [actions.cond_phrase_post]
             ;
 
         image =
-                '$' >> blank                    [classic::clear_a(actions.attributes)]
-            >>  classic::if_p(qbk_since(105u)) [
-                        (+(
-                            *classic::space_p
-                        >>  +(classic::anychar_p - (classic::space_p | phrase_end | '['))
-                        ))                       [classic::assign_a(actions.image_fileref)]
+                '$' >> blank                        [ph::clear(ph::ref(actions.attributes))]
+            >> (
+                qi::eps(qbk_since(105u)) >> (
+                        image_filename              [ph::ref(actions.image_fileref) = qi::_1]
                     >>  hard_space
                     >>  *(
                             '['
-                        >>  (*(classic::alnum_p | '_'))  [classic::assign_a(actions.attribute_name)]
+                        >>  qi::raw[*(qi::alnum | '_')]
+                                                    [ph::ref(actions.attribute_name) = as_string(qi::_1)]
                         >>  space
-                        >>  (*(classic::anychar_p - (phrase_end | '[')))
-                                                [actions.attribute]
+                        >>  qi::raw[*(qi::char_ - (phrase_end | '['))]
+                                                    [actions.attribute]
                         >>  ']'
                         >>  space
                         )
-                ].else_p [
-                        (*(classic::anychar_p -
-                            phrase_end))        [classic::assign_a(actions.image_fileref)]
-                ]
-            >>  classic::eps_p(']')             [actions.image]
+                ) |
+                qi::eps(qbk_before(105u)) >> (
+                        (*(qi::char_ -
+                            phrase_end))            [ph::ref(actions.image_fileref) = as_string(qi::_1)]
+                )
+            )
+            >>  &qi::lit(']')                       [actions.image]
             ;
-            
+
+        image_filename = qi::raw[
+            +(
+                *qi::space
+            >>  +(qi::char_ - (qi::space | phrase_end | '['))
+            )];
+
         url =
                 '@'
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.url_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | qi::space))]             [actions.url_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.url_post]
+                )                                   [actions.url_post]
             ;
 
         link =
                 "link" >> hard_space
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.link_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | qi::space))]             [actions.link_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.link_post]
+                )                                   [actions.link_post]
             ;
 
         anchor =
                 '#'
             >>  blank
-            >>  (   *(classic::anychar_p -
-                        phrase_end)
-                )                               [actions.anchor]
+            >>  qi::raw[*(qi::char_ - phrase_end)]  [actions.anchor]
             ;
 
         funcref =
             "funcref" >> hard_space
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.funcref_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | hard_space))]            [actions.funcref_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.funcref_post]
+                )                                   [actions.funcref_post]
             ;
 
         classref =
             "classref" >> hard_space
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.classref_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | hard_space))]            [actions.classref_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.classref_post]
+                )                                   [actions.classref_post]
             ;
 
         memberref =
             "memberref" >> hard_space
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.memberref_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | hard_space))]            [actions.memberref_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.memberref_post]
+                )                                   [actions.memberref_post]
             ;
 
         enumref =
             "enumref" >> hard_space
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.enumref_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | hard_space))]            [actions.enumref_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.enumref_post]
+                )                                   [actions.enumref_post]
             ;
 
         macroref =
             "macroref" >> hard_space
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.macroref_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | hard_space))]            [actions.macroref_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.macroref_post]
+                )                                   [actions.macroref_post]
             ;
 
         headerref =
             "headerref" >> hard_space
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.headerref_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | hard_space))]            [actions.headerref_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.headerref_post]
+                )                                   [actions.headerref_post]
             ;
 
         conceptref =
             "conceptref" >> hard_space
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.conceptref_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | hard_space))]            [actions.conceptref_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.conceptref_post]
+                )                                   [actions.conceptref_post]
             ;
 
         globalref =
             "globalref" >> hard_space
-            >>  (*(classic::anychar_p -
-                    (']' | hard_space)))        [actions.globalref_pre]
-            >>  (   classic::eps_p(']')
+            >>  qi::raw[*(qi::char_ -
+                    (']' | hard_space))]            [actions.globalref_pre]
+            >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                               [actions.globalref_post]
+                )                                   [actions.globalref_post]
             ;
 
         bold =
-                classic::ch_p('*')              [actions.bold_pre]
-            >>  blank >> phrase                 [actions.bold_post]
+                qi::char_('*')                      [actions.bold_pre]
+            >>  blank >> phrase                     [actions.bold_post]
             ;
 
         italic =
-                classic::ch_p('\'')             [actions.italic_pre]
-            >>  blank >> phrase                 [actions.italic_post]
+                qi::char_('\'')                     [actions.italic_pre]
+            >>  blank >> phrase                     [actions.italic_post]
             ;
 
         underline =
-                classic::ch_p('_')              [actions.underline_pre]
-            >>  blank >> phrase                 [actions.underline_post]
+                qi::char_('_')                      [actions.underline_pre]
+            >>  blank >> phrase                     [actions.underline_post]
             ;
 
         teletype =
-                classic::ch_p('^')              [actions.teletype_pre]
-            >>  blank >> phrase                 [actions.teletype_post]
+                qi::char_('^')                      [actions.teletype_pre]
+            >>  blank >> phrase                     [actions.teletype_post]
             ;
 
         strikethrough =
-                classic::ch_p('-')              [actions.strikethrough_pre]
-            >>  blank >> phrase                 [actions.strikethrough_post]
+                qi::char_('-')                      [actions.strikethrough_pre]
+            >>  blank >> phrase                     [actions.strikethrough_post]
             ;
 
         quote =
-                classic::ch_p('"')              [actions.quote_pre]
-            >>  blank >> phrase                 [actions.quote_post]
+                qi::char_('"')                      [actions.quote_pre]
+            >>  blank >> phrase                     [actions.quote_post]
             ;
 
         replaceable =
-                classic::ch_p('~')              [actions.replaceable_pre]
-            >>  blank >> phrase                 [actions.replaceable_post]
+                qi::char_('~')                      [actions.replaceable_pre]
+            >>  blank >> phrase                     [actions.replaceable_post]
             ;
 
         source_mode =
             (
-                classic::str_p("c++")
-            |   "python"
-            |   "teletype"
-            )                                   [classic::assign_a(actions.source_mode)]
+                qi::string("c++")
+            |   qi::string("python")
+            |   qi::string("teletype")
+            )                                       [ph::ref(actions.source_mode) = qi::_1]
             ;
 
         footnote =
-                classic::str_p("footnote")      [actions.footnote_pre]
-            >>  blank >> phrase                 [actions.footnote_post]
+                qi::lit("footnote")                 [actions.footnote_pre]
+            >>  blank >> phrase                     [actions.footnote_post]
             ;
     }
 
-    template <typename Actions>
-    template <typename Scanner>
-    simple_phrase_grammar<Actions>::definition<Scanner>::definition(
-        simple_phrase_grammar const& self)
-        : unused(false), common(self.actions, unused)
+    template <typename Iterator, typename Actions>
+    simple_phrase_grammar<Iterator, Actions>::simple_phrase_grammar(Actions& actions)
+        : simple_phrase_grammar::base_type(phrase, "simple_phrase")
+        , actions(actions), unused(false), common(actions, unused),
+        phrase("phrase"), comment("comment"), dummy_block("dummy_block")
     {
-        Actions& actions = self.actions;
-
         phrase =
            *(   common
             |   comment
-            |   (classic::anychar_p - ']')      [actions.plain_char]
+            |   (qi::char_ - ']')               [actions.plain_char]
             )
             ;
 
         comment =
-            "[/" >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
+            "[/" >> *(dummy_block | (qi::char_ - ']')) >> ']'
             ;
 
         dummy_block =
-            '[' >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
+            '[' >> *(dummy_block | (qi::char_ - ']')) >> ']'
             ;
     }
 }

@@ -21,19 +21,19 @@ namespace quickbook
         scopes.push_front(template_scope());
     }
     
-    template_symbol* template_stack::find(std::string const& symbol) const
+    template_symbol const* template_stack::find(std::string const& symbol) const
     {
         for (template_scope const* i = &*scopes.begin(); i; i = i->parent_scope)
         {
-            if (template_symbol* ts = boost::spirit::classic::find(i->symbols, symbol.c_str()))
+            if (template_symbol const* ts = i->symbols.find(symbol.c_str()))
                 return ts;
         }
         return 0;
     }
 
-    template_symbol* template_stack::find_top_scope(std::string const& symbol) const
+    template_symbol const* template_stack::find_top_scope(std::string const& symbol) const
     {
-        return boost::spirit::classic::find(scopes.front().symbols, symbol.c_str());
+        return scopes.front().symbols.find(symbol.c_str());
     }
 
     template_symbols const& template_stack::top() const
@@ -52,7 +52,7 @@ namespace quickbook
     void template_stack::add(std::string const& symbol, template_symbol const& ts)
     {
         BOOST_ASSERT(!scopes.empty());
-        boost::spirit::classic::add(scopes.front().symbols, symbol.c_str(),
+        scopes.front().symbols.add(symbol.c_str(),
             boost::get<2>(ts) ? ts :
             template_symbol(boost::get<0>(ts), boost::get<1>(ts), &top_scope()));
     }    
