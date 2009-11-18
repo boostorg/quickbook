@@ -14,6 +14,7 @@
 #include <boost/spirit/include/classic_symbols.hpp>
 #include <boost/spirit/include/classic_numerics.hpp>
 #include <boost/spirit/include/classic_iterator.hpp>
+#include <boost/spirit/include/qi_core.hpp>
 
 namespace quickbook
 {
@@ -149,54 +150,36 @@ namespace quickbook
     
     struct code_snippet_actions;
 
+    template <typename Iterator>
     struct python_code_snippet_grammar
-        : classic::grammar<python_code_snippet_grammar>
+        : qi::grammar<Iterator>
     {
         typedef code_snippet_actions actions_type;
   
-        python_code_snippet_grammar(actions_type & actions)
-            : actions(actions)
-        {}
+        python_code_snippet_grammar(actions_type & actions);
 
-        template <typename Scanner>
-        struct definition
-        {
-            typedef code_snippet_actions actions_type;
-            
-            definition(python_code_snippet_grammar const& self);
-
-            classic::rule<Scanner>
-                start_, snippet, identifier, code_elements, escaped_comment,
-                inline_callout, line_callout, ignore;
-
-            classic::rule<Scanner> const&
-            start() const { return start_; }
-        };
+        qi::rule<Iterator>
+            start_, snippet, code_elements, escaped_comment,
+            inline_callout, line_callout, ignore;
+        qi::rule<Iterator, std::string()>
+            identifier;
 
         actions_type& actions;
     };  
 
+    template <typename Iterator>
     struct cpp_code_snippet_grammar
-        : classic::grammar<cpp_code_snippet_grammar>
+        : qi::grammar<Iterator>
     {
         typedef code_snippet_actions actions_type;
   
-        cpp_code_snippet_grammar(actions_type & actions)
-            : actions(actions)
-        {}
+        cpp_code_snippet_grammar(actions_type & actions);
 
-        template <typename Scanner>
-        struct definition
-        {
-            definition(cpp_code_snippet_grammar const& self);
-
-            classic::rule<Scanner>
-                start_, snippet, identifier, code_elements, escaped_comment,
-                inline_callout, line_callout, ignore;
-
-            classic::rule<Scanner> const&
-            start() const { return start_; }
-        };
+        qi::rule<Iterator>
+            start_, snippet, code_elements, escaped_comment,
+            inline_callout, line_callout, ignore;
+        qi::rule<Iterator, std::string()>
+            identifier;
 
         actions_type& actions;
     };

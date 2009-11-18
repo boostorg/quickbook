@@ -9,39 +9,38 @@
 #if !defined(BOOST_SPIRIT_QUICKBOOK_CODE_SNIPPET_HPP)
 #define BOOST_SPIRIT_QUICKBOOK_CODE_SNIPPET_HPP
 
-#include <boost/spirit/include/classic_core.hpp>
-#include <boost/spirit/include/classic_actor.hpp>
+#include <boost/spirit/include/qi_core.hpp>
+#include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
 #include "./grammars.hpp"
-#include "./detail/template_stack.hpp"
+#include "./parse_utils.hpp"
 #include "./detail/actions.hpp"
 
 namespace quickbook
 {
     namespace ph = boost::phoenix;
-    using namespace ph::arg_names;
 
-    template <typename Scanner>
-    python_code_snippet_grammar::definition<Scanner>::definition(
-        python_code_snippet_grammar const& self)
+    template <typename Iterator>
+    python_code_snippet_grammar<Iterator>::python_code_snippet_grammar(actions_type & actions)
+        : python_code_snippet_grammar::base_type(start_)
+        , actions(actions)
     {
-        actions_type& actions = self.actions;
-    
         start_ =
             +(
-                    snippet                     [ph::bind(&actions_type::compile, &actions, _1, _2)]
-                |   classic::anychar_p
+                    qi::raw[snippet]            [ph::bind(&actions_type::compile, &actions, qi::_1)]
+                |   qi::char_
             )
             ;
 
         identifier =
-            (classic::alpha_p | '_') >> *(classic::alnum_p | '_')
+            (qi::alpha | '_') >> *(qi::alnum | '_')
             ;
 
         snippet =
-            "#[" >> *classic::space_p
-            >> identifier                       [classic::assign_a(actions.id)]
+            "#[" >> *qi::space
+            >> identifier                       [ph::ref(actions.id) = qi::_1]
             >> (*(code_elements - "#]"))
             >> "#]"
             ;
@@ -49,58 +48,57 @@ namespace quickbook
         code_elements =
                 escaped_comment
             |   ignore
-            |   (classic::anychar_p - "#]")     [ph::bind(&actions_type::pass_thru, &actions, _1, _2)]
+            |   (qi::char_ - "#]")              [ph::bind(&actions_type::pass_thru, &actions, qi::_1)]
             ;
 
         ignore =
-                *classic::blank_p >> "#<-"
-                >> (*(classic::anychar_p - "#->"))
-                >> "#->" >> *classic::blank_p >> classic::eol_p
+                *qi::blank >> "#<-"
+                >> (*(qi::char_ - "#->"))
+                >> "#->" >> *qi::blank >> qi::eol
             |   "\"\"\"<-\"\"\""
-                >> (*(classic::anychar_p - "\"\"\"->\"\"\""))
+                >> (*(qi::char_ - "\"\"\"->\"\"\""))
                 >> "\"\"\"->\"\"\""
             |   "\"\"\"<-"
-                >> (*(classic::anychar_p - "->\"\"\""))
+                >> (*(qi::char_ - "->\"\"\""))
                 >> "->\"\"\""
             ;
 
         escaped_comment =
-                *classic::space_p >> "#`"
-                >> ((*(classic::anychar_p - classic::eol_p))
-                    >> classic::eol_p)          [ph::bind(&actions_type::escaped_comment, &actions, _1, _2)]
-            |   *classic::space_p >> "\"\"\"`"
-                >> (*(classic::anychar_p - "\"\"\""))
-                                                [ph::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+                *qi::space >> "#`"
+                >> ((*(qi::char_ - qi::eol))
+                    >> qi::eol)                 [ph::bind(&actions_type::escaped_comment, &actions, as_string(qi::_1))]
+            |   *qi::space >> "\"\"\"`"
+                >> (*(qi::char_ - "\"\"\""))
+                                                [ph::bind(&actions_type::escaped_comment, &actions, as_string(qi::_1))]
                 >> "\"\"\""
             ;
     }
 
-    template <typename Scanner>
-    cpp_code_snippet_grammar::definition<Scanner>::definition(
-        cpp_code_snippet_grammar const& self)
+    template <typename Iterator>
+    cpp_code_snippet_grammar<Iterator>::cpp_code_snippet_grammar(actions_type & actions)
+        : cpp_code_snippet_grammar::base_type(start_)
+        , actions(actions)
     {
-        actions_type& actions = self.actions;
-    
         start_ =
             +(
-                    snippet                     [ph::bind(&actions_type::compile, &actions, _1, _2)]
-                |   classic::anychar_p
+                    qi::raw[snippet]            [ph::bind(&actions_type::compile, &actions, qi::_1)]
+                |   qi::char_
             )
             ;
 
         identifier =
-            (classic::alpha_p | '_') >> *(classic::alnum_p | '_')
+            (qi::alpha | '_') >> *(qi::alnum | '_')
             ;
 
         snippet =
-                "//[" >> *classic::space_p
-                >> identifier                   [classic::assign_a(actions.id)]
+                "//[" >> *qi::space
+                >> identifier                   [ph::ref(actions.id) = qi::_1]
                 >> (*(code_elements - "//]"))
                 >> "//]"
             |
-                "/*[" >> *classic::space_p
-                >> identifier                   [classic::assign_a(actions.id)]
-                >> *classic::space_p >> "*/"
+                "/*[" >> *qi::space
+                >> identifier                   [ph::ref(actions.id) = qi::_1]
+                >> *qi::space >> "*/"
                 >> (*(code_elements - "/*]*"))
                 >> "/*]*/"
             ;
@@ -110,42 +108,40 @@ namespace quickbook
             |   ignore
             |   line_callout
             |   inline_callout
-            |   (classic::anychar_p - "//]" - "/*]*/")
-                                                [ph::bind(&actions_type::pass_thru, &actions, _1, _2)]
+            |   (qi::char_ - "//]" - "/*]*/")   [ph::bind(&actions_type::pass_thru, &actions, qi::_1)]
             ;
 
         inline_callout =
             "/*<"
-            >> (*(classic::anychar_p - ">*/"))  [ph::bind(&actions_type::inline_callout, &actions, _1, _2)]
+            >> (*(qi::char_ - ">*/"))           [ph::bind(&actions_type::inline_callout, &actions, as_string(qi::_1))]
             >> ">*/"
             ;
 
         line_callout =
             "/*<<"
-            >> (*(classic::anychar_p - ">>*/")) [ph::bind(&actions_type::line_callout, &actions, _1, _2)]
+            >> (*(qi::char_ - ">>*/"))          [ph::bind(&actions_type::line_callout, &actions, as_string(qi::_1))]
             >> ">>*/"
-            >> *classic::space_p
+            >> *qi::space
             ;
 
         ignore =
-                *classic::blank_p >> "//<-"
-                >> (*(classic::anychar_p - "//->"))
-                >> "//->" >> *classic::blank_p >> classic::eol_p
+                *qi::blank >> "//<-"
+                >> (*(qi::char_ - "//->"))
+                >> "//->" >> *qi::blank >> qi::eol
             |   "/*<-*/"
-                >> (*(classic::anychar_p - "/*->*/"))
+                >> (*(qi::char_ - "/*->*/"))
                 >> "/*->*/"
             |   "/*<-"
-                >> (*(classic::anychar_p - "->*/"))
+                >> (*(qi::char_ - "->*/"))
                 >> "->*/"
             ;
 
         escaped_comment =
-                *classic::space_p >> "//`"
-                >> ((*(classic::anychar_p - classic::eol_p))
-                    >> classic::eol_p)          [ph::bind(&actions_type::escaped_comment, &actions, _1, _2)]
-            |   *classic::space_p >> "/*`"
-                >> (*(classic::anychar_p - "*/"))
-                                                [ph::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+                *qi::space >> "//`"
+                >> ((*(qi::char_ - qi::eol))
+                    >> qi::eol)                 [ph::bind(&actions_type::escaped_comment, &actions, as_string(qi::_1))]
+            |   *qi::space >> "/*`"
+                >> (*(qi::char_ - "*/"))        [ph::bind(&actions_type::escaped_comment, &actions, as_string(qi::_1))]
                 >> "*/"
             ;
     }

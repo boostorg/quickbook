@@ -1105,9 +1105,9 @@ namespace quickbook
         out << "\" />\n";
     }
 
-    void code_snippet_actions::pass_thru(iterator first, iterator last)
+    void code_snippet_actions::pass_thru(char x)
     {
-        code += *first;
+        code += x;
     }
 
     namespace detail
@@ -1115,7 +1115,7 @@ namespace quickbook
         int callout_id = 0;
     }
 
-    void code_snippet_actions::callout(iterator first, iterator last, char const* role)
+    void code_snippet_actions::callout(std::string const& x, char const* role)
     {
         using detail::callout_id;
         code += "``'''";
@@ -1127,20 +1127,20 @@ namespace quickbook
         code += "</phrase>";
         code += "'''``";
 
-        callouts.push_back(std::string(first, last));
+        callouts.push_back(x);
     }
 
-    void code_snippet_actions::inline_callout(iterator first, iterator last)
+    void code_snippet_actions::inline_callout(std::string const& x)
     {
-        callout(first, last, "callout_bug");
+        callout(x, "callout_bug");
     }
 
-    void code_snippet_actions::line_callout(iterator first, iterator last)
+    void code_snippet_actions::line_callout(std::string const& x)
     {
-        callout(first, last, "line_callout_bug");
+        callout(x, "line_callout_bug");
     }
 
-    void code_snippet_actions::escaped_comment(iterator first, iterator last)
+    void code_snippet_actions::escaped_comment(std::string const& x)
     {
         if (!code.empty())
         {
@@ -1153,7 +1153,7 @@ namespace quickbook
                 code.clear();
             }
         }
-        std::string temp(first, last);
+        std::string temp(x);
         detail::unindent(temp); // remove all indents
         if (temp.size() != 0)
         {
@@ -1161,7 +1161,7 @@ namespace quickbook
         }
     }
 
-    void code_snippet_actions::compile(iterator first, iterator last)
+    void code_snippet_actions::compile(boost::iterator_range<iterator> x)
     {
         using detail::callout_id;
         if (!code.empty())
@@ -1197,7 +1197,7 @@ namespace quickbook
         std::vector<std::string> tinfo;
         tinfo.push_back(id);
         tinfo.push_back(snippet);
-        storage.push_back(template_symbol(tinfo, first.get_position()));
+        storage.push_back(template_symbol(tinfo, x.begin().get_position()));
 
         callout_id += callouts.size();
         callouts.clear();
@@ -1228,10 +1228,10 @@ namespace quickbook
         code_snippet_actions a(storage, doc_id, is_python ? "[python]" : "[c++]");
         // TODO: Should I check that parse succeeded?
         if(is_python) {
-            boost::spirit::classic::parse(first, last, python_code_snippet_grammar(a));
+            boost::spirit::qi::parse(first, last, python_code_snippet_grammar<iterator>(a));
         }
         else {
-            boost::spirit::classic::parse(first, last, cpp_code_snippet_grammar(a));
+            boost::spirit::qi::parse(first, last, cpp_code_snippet_grammar<iterator>(a));
         }
 
         return 0;

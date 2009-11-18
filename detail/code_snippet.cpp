@@ -2,13 +2,9 @@
 
 namespace quickbook
 {
-    typedef boost::spirit::classic::scanner<iterator> scanner;
-
-    void instantiate_code_snippet(
-        python_code_snippet_grammar& python,
-        cpp_code_snippet_grammar& cpp)
+    void instantiate_code_snippet(code_snippet_actions& actions)
     {
-        python_code_snippet_grammar::definition<scanner> python_definition(python);
-        cpp_code_snippet_grammar::definition<scanner> cpp_definition(cpp);
+        python_code_snippet_grammar<iterator> python(actions);
+        cpp_code_snippet_grammar<iterator> cpp(actions);
     }
 }

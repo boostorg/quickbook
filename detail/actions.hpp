@@ -17,6 +17,7 @@
 #include <stack>
 #include <algorithm>
 #include <boost/spirit/include/classic_iterator.hpp>
+#include <boost/spirit/include/qi_core.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -797,12 +798,12 @@ namespace quickbook
             , source_type(source_type)
         {}
 
-        void pass_thru(iterator first, iterator last);
-        void escaped_comment(iterator first, iterator last);
-        void compile(iterator first, iterator last);
-        void callout(iterator first, iterator last, char const* role);
-        void inline_callout(iterator first, iterator last);
-        void line_callout(iterator first, iterator last);
+        void pass_thru(char);
+        void escaped_comment(std::string const&);
+        void compile(boost::iterator_range<iterator>);
+        void callout(std::string const&, char const* role);
+        void inline_callout(std::string const&);
+        void line_callout(std::string const&);
 
         std::string code;
         std::string snippet;
