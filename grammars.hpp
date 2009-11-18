@@ -17,10 +17,10 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit::classic;
+    using namespace boost::spirit;
 
     template <typename Actions>
-    struct phrase_grammar : grammar<phrase_grammar<Actions> >
+    struct phrase_grammar : classic::grammar<phrase_grammar<Actions> >
     {
         phrase_grammar(Actions& actions, bool& no_eols)
             : no_eols(no_eols), actions(actions) {}
@@ -30,7 +30,8 @@ namespace quickbook
         {
             definition(phrase_grammar const& self);
 
-            rule<Scanner>   space, blank, comment, phrase, phrase_markup, image,
+            classic::rule<Scanner>
+                            space, blank, comment, phrase, phrase_markup, image,
                             phrase_end, bold, italic, underline, teletype,
                             strikethrough, escape, url, common, funcref, classref,
                             memberref, enumref, macroref, headerref, conceptref, globalref,
@@ -44,7 +45,7 @@ namespace quickbook
                             template_inner_arg_1_5, brackets_1_5
                             ;
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() const { return common; }
         };
 
@@ -54,7 +55,7 @@ namespace quickbook
 
     template <typename Actions>
     struct simple_phrase_grammar
-    : public grammar<simple_phrase_grammar<Actions> >
+    : public classic::grammar<simple_phrase_grammar<Actions> >
     {
         simple_phrase_grammar(Actions& actions)
             : actions(actions) {}
@@ -65,10 +66,10 @@ namespace quickbook
             definition(simple_phrase_grammar const& self);
 
             bool unused;
-            rule<Scanner> phrase, comment, dummy_block;
+            classic::rule<Scanner> phrase, comment, dummy_block;
             phrase_grammar<Actions> common;
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() const { return phrase; }
         };
 
@@ -76,7 +77,7 @@ namespace quickbook
     };
 
     template <typename Actions, bool skip_initial_spaces = false>
-    struct block_grammar : grammar<block_grammar<Actions> >
+    struct block_grammar : classic::grammar<block_grammar<Actions> >
     {
         block_grammar(Actions& actions_)
             : actions(actions_) {}
@@ -88,7 +89,8 @@ namespace quickbook
 
             bool no_eols;
 
-            rule<Scanner>   start_, blocks, block_markup, code, code_line,
+            classic::rule<Scanner>
+                            start_, blocks, block_markup, code, code_line,
                             paragraph, space, blank, comment, headings, h, h1, h2,
                             h3, h4, h5, h6, hr, blurb, blockquote, admonition,
                             phrase, list, phrase_end, ordered_list, def_macro,
@@ -100,11 +102,12 @@ namespace quickbook
                             template_body, identifier, dummy_block, import,
                             inside_paragraph, element_id, element_id_1_5;
 
-            symbols<>       paragraph_end_markups;
+            classic::symbols<>
+                            paragraph_end_markups;
 
             phrase_grammar<Actions> common;
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() const { return start_; }
         };
 
@@ -113,7 +116,7 @@ namespace quickbook
 
     template <typename Actions>
     struct doc_info_grammar
-    : public grammar<doc_info_grammar<Actions> >
+    : public classic::grammar<doc_info_grammar<Actions> >
     {
         doc_info_grammar(Actions& actions)
             : actions(actions) {}
@@ -121,34 +124,33 @@ namespace quickbook
         template <typename Scanner>
         struct definition
         {
-            typedef uint_parser<int, 10, 1, 2>  uint2_t;
+            typedef classic::uint_parser<int, 10, 1, 2>  uint2_t;
 
             definition(doc_info_grammar const& self);
             bool unused;
             std::pair<std::string, std::string> name;
             std::pair<std::vector<std::string>, std::string> copyright;
-            rule<Scanner>   doc_info, doc_title, doc_version, doc_id, doc_dirname,
+            classic::rule<Scanner>
+                            doc_info, doc_title, doc_version, doc_id, doc_dirname,
                             doc_copyright, doc_purpose,doc_category, doc_authors,
                             doc_author, comment, space, hard_space, doc_license,
                             doc_last_revision, doc_source_mode, phrase, quickbook_version;
             phrase_grammar<Actions> common;
-            symbols<> doc_types;
+            classic::symbols<> doc_types;
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() const { return doc_info; }
         };
 
         Actions& actions;
     };
 
-    // TODO: Duplice definition:
+    // TODO: Duplicate definition:
     
-    typedef position_iterator<std::string::const_iterator> iterator;
-
     struct code_snippet_actions;
 
     struct python_code_snippet_grammar
-        : grammar<python_code_snippet_grammar>
+        : classic::grammar<python_code_snippet_grammar>
     {
         typedef code_snippet_actions actions_type;
   
@@ -163,11 +165,11 @@ namespace quickbook
             
             definition(python_code_snippet_grammar const& self);
 
-            rule<Scanner>
+            classic::rule<Scanner>
                 start_, snippet, identifier, code_elements, escaped_comment,
                 inline_callout, line_callout, ignore;
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() const { return start_; }
         };
 
@@ -175,7 +177,7 @@ namespace quickbook
     };  
 
     struct cpp_code_snippet_grammar
-        : grammar<cpp_code_snippet_grammar>
+        : classic::grammar<cpp_code_snippet_grammar>
     {
         typedef code_snippet_actions actions_type;
   
@@ -188,11 +190,11 @@ namespace quickbook
         {
             definition(cpp_code_snippet_grammar const& self);
 
-            rule<Scanner>
+            classic::rule<Scanner>
                 start_, snippet, identifier, code_elements, escaped_comment,
                 inline_callout, line_callout, ignore;
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() const { return start_; }
         };
 

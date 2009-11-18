@@ -1216,7 +1216,7 @@ namespace quickbook
         if (err != 0)
             return err; // return early on error
 
-        typedef position_iterator<std::string::const_iterator> iterator_type;
+        typedef classic::position_iterator<std::string::const_iterator> iterator_type;
         iterator_type first(code.begin(), code.end(), file);
         iterator_type last(code.end(), code.end());
 

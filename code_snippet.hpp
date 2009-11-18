@@ -26,18 +26,18 @@ namespace quickbook
     
         start_ =
             +(
-                    snippet                 [boost::bind(&actions_type::compile, &actions, _1, _2)]
-                |   anychar_p
+                    snippet                     [boost::bind(&actions_type::compile, &actions, _1, _2)]
+                |   classic::anychar_p
             )
             ;
 
         identifier =
-            (alpha_p | '_') >> *(alnum_p | '_')
+            (classic::alpha_p | '_') >> *(classic::alnum_p | '_')
             ;
 
         snippet =
-            "#[" >> *space_p
-            >> identifier                   [assign_a(actions.id)]
+            "#[" >> *classic::space_p
+            >> identifier                       [classic::assign_a(actions.id)]
             >> (*(code_elements - "#]"))
             >> "#]"
             ;
@@ -45,27 +45,28 @@ namespace quickbook
         code_elements =
                 escaped_comment
             |   ignore
-            |   (anychar_p - "#]")         [boost::bind(&actions_type::pass_thru, &actions, _1, _2)]
+            |   (classic::anychar_p - "#]")     [boost::bind(&actions_type::pass_thru, &actions, _1, _2)]
             ;
 
         ignore =
-                *blank_p >> "#<-"
-                >> (*(anychar_p - "#->"))
-                >> "#->" >> *blank_p >> eol_p
+                *classic::blank_p >> "#<-"
+                >> (*(classic::anychar_p - "#->"))
+                >> "#->" >> *classic::blank_p >> classic::eol_p
             |   "\"\"\"<-\"\"\""
-                >> (*(anychar_p - "\"\"\"->\"\"\""))
+                >> (*(classic::anychar_p - "\"\"\"->\"\"\""))
                 >> "\"\"\"->\"\"\""
             |   "\"\"\"<-"
-                >> (*(anychar_p - "->\"\"\""))
+                >> (*(classic::anychar_p - "->\"\"\""))
                 >> "->\"\"\""
             ;
 
         escaped_comment =
-                *space_p >> "#`"
-                >> ((*(anychar_p - eol_p))
-                    >> eol_p)               [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
-            |   *space_p >> "\"\"\"`"
-                >> (*(anychar_p - "\"\"\""))    [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+                *classic::space_p >> "#`"
+                >> ((*(classic::anychar_p - classic::eol_p))
+                    >> classic::eol_p)          [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+            |   *classic::space_p >> "\"\"\"`"
+                >> (*(classic::anychar_p - "\"\"\""))
+                                                [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
                 >> "\"\"\""
             ;
     }
@@ -78,24 +79,24 @@ namespace quickbook
     
         start_ =
             +(
-                    snippet                 [boost::bind(&actions_type::compile, &actions, _1, _2)]
-                |   anychar_p
+                    snippet                     [boost::bind(&actions_type::compile, &actions, _1, _2)]
+                |   classic::anychar_p
             )
             ;
 
         identifier =
-            (alpha_p | '_') >> *(alnum_p | '_')
+            (classic::alpha_p | '_') >> *(classic::alnum_p | '_')
             ;
 
         snippet =
-                "//[" >> *space_p
-                >> identifier                   [assign_a(actions.id)]
+                "//[" >> *classic::space_p
+                >> identifier                   [classic::assign_a(actions.id)]
                 >> (*(code_elements - "//]"))
                 >> "//]"
             |
-                "/*[" >> *space_p
-                >> identifier                   [assign_a(actions.id)]
-                >> *space_p >> "*/"
+                "/*[" >> *classic::space_p
+                >> identifier                   [classic::assign_a(actions.id)]
+                >> *classic::space_p >> "*/"
                 >> (*(code_elements - "/*]*"))
                 >> "/*]*/"
             ;
@@ -105,40 +106,42 @@ namespace quickbook
             |   ignore
             |   line_callout
             |   inline_callout
-            |   (anychar_p - "//]" - "/*]*/")    [boost::bind(&actions_type::pass_thru, &actions, _1, _2)]
+            |   (classic::anychar_p - "//]" - "/*]*/")
+                                                [boost::bind(&actions_type::pass_thru, &actions, _1, _2)]
             ;
 
         inline_callout =
             "/*<"
-            >> (*(anychar_p - ">*/"))       [boost::bind(&actions_type::inline_callout, &actions, _1, _2)]
+            >> (*(classic::anychar_p - ">*/"))  [boost::bind(&actions_type::inline_callout, &actions, _1, _2)]
             >> ">*/"
             ;
 
         line_callout =
             "/*<<"
-            >> (*(anychar_p - ">>*/"))      [boost::bind(&actions_type::line_callout, &actions, _1, _2)]
+            >> (*(classic::anychar_p - ">>*/")) [boost::bind(&actions_type::line_callout, &actions, _1, _2)]
             >> ">>*/"
-            >> *space_p
+            >> *classic::space_p
             ;
 
         ignore =
-                *blank_p >> "//<-"
-                >> (*(anychar_p - "//->"))
-                >> "//->" >> *blank_p >> eol_p
+                *classic::blank_p >> "//<-"
+                >> (*(classic::anychar_p - "//->"))
+                >> "//->" >> *classic::blank_p >> classic::eol_p
             |   "/*<-*/"
-                >> (*(anychar_p - "/*->*/"))
+                >> (*(classic::anychar_p - "/*->*/"))
                 >> "/*->*/"
             |   "/*<-"
-                >> (*(anychar_p - "->*/"))
+                >> (*(classic::anychar_p - "->*/"))
                 >> "->*/"
             ;
 
         escaped_comment =
-                *space_p >> "//`"
-                >> ((*(anychar_p - eol_p))
-                    >> eol_p)               [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
-            |   *space_p >> "/*`"
-                >> (*(anychar_p - "*/"))    [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+                *classic::space_p >> "//`"
+                >> ((*(classic::anychar_p - classic::eol_p))
+                    >> classic::eol_p)          [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
+            |   *classic::space_p >> "/*`"
+                >> (*(classic::anychar_p - "*/"))
+                                                [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
                 >> "*/"
             ;
     }

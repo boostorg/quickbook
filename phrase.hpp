@@ -22,7 +22,7 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit::classic;
+    using namespace boost::spirit;
 
     template <typename Rule, typename Action>
     inline void
@@ -37,20 +37,21 @@ namespace quickbook
             mark >>
             (
                 (
-                    graph_p                     // A single char. e.g. *c*
-                    >> eps_p(mark
-                        >> (space_p | punct_p | end_p))
+                    classic::graph_p             // A single char. e.g. *c*
+                    >> classic::eps_p(mark
+                        >> (classic::space_p | classic::punct_p | classic::end_p))
                                                 // space_p, punct_p or end_p
                 )                               // must follow mark
             |
-                (   graph_p >>                  // graph_p must follow mark
-                    *(anychar_p -
-                        (   (graph_p >> mark)   // Make sure that we don't go
+                (   classic::graph_p >>         // graph_p must follow mark
+                    *(classic::anychar_p -
+                        (   (classic::graph_p >> mark) 
+                                                // Make sure that we don't go
                         |   close               // past a single block
                         )
-                    ) >> graph_p                // graph_p must precede mark
-                    >> eps_p(mark
-                        >> (space_p | punct_p | end_p))
+                    ) >> classic::graph_p       // graph_p must precede mark
+                    >> classic::eps_p(mark
+                        >> (classic::space_p | classic::punct_p | classic::end_p))
                                                 // space_p, punct_p or end_p
                 )                               // must follow mark
             )                                   [action]
@@ -67,34 +68,35 @@ namespace quickbook
         Actions& actions = self.actions;
 
         space =
-            *(space_p | comment)
+            *(classic::space_p | comment)
             ;
 
         blank =
-            *(blank_p | comment)
+            *(classic::blank_p | comment)
             ;
 
-        eol = blank >> eol_p
+        eol = blank >> classic::eol_p
             ;
 
         phrase_end =
             ']' |
-            if_p(var(self.no_eols))
+            classic::if_p(var(self.no_eols))
             [
                 eol >> eol                      // Make sure that we don't go
             ]                                   // past a single block, except
             ;                                   // when preformatted.
 
         hard_space =
-            (eps_p - (alnum_p | '_')) >> space  // must not be preceded by
+            (classic::eps_p - (classic::alnum_p | '_')) >> space
+                                                // must not be preceded by
             ;                                   // alpha-numeric or underscore
 
         comment =
-            "[/" >> *(dummy_block | (anychar_p - ']')) >> ']'
+            "[/" >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
             ;
 
         dummy_block =
-            '[' >> *(dummy_block | (anychar_p - ']')) >> ']'
+            '[' >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
             ;
 
         common =
@@ -108,8 +110,9 @@ namespace quickbook
             ;
 
         macro =
-            eps_p(actions.macro                 // must not be followed by
-                >> (eps_p - (alpha_p | '_')))   // alpha or underscore
+            classic::eps_p(actions.macro        // must not be followed by
+                                                // alpha or underscore
+                >> (classic::eps_p - (classic::alpha_p | '_')))
             >> actions.macro                    [actions.do_macro]
             ;
 
@@ -118,28 +121,28 @@ namespace quickbook
 
         template_ =
             (
-                ch_p('`')                       [assign_a(actions.template_escape,true_)]
+                classic::ch_p('`')              [classic::assign_a(actions.template_escape,true_)]
                 |
-                eps_p                           [assign_a(actions.template_escape,false_)]
+                classic::eps_p                  [classic::assign_a(actions.template_escape,false_)]
             )
             >>
             ( (
-                (eps_p(punct_p)
+                (classic::eps_p(classic::punct_p)
                     >> actions.templates.scope
-                )                               [push_back_a(actions.template_info)]
+                )                               [classic::push_back_a(actions.template_info)]
                 >> !template_args
             ) | (
                 (actions.templates.scope
-                    >> eps_p
-                )                               [push_back_a(actions.template_info)]
+                    >> classic::eps_p
+                )                               [classic::push_back_a(actions.template_info)]
                 >> !(hard_space
                     >> template_args)
             ) )
-            >> eps_p(']')
+            >> classic::eps_p(']')
             ;
 
         template_args =
-            if_p(qbk_since(105u)) [
+            classic::if_p(qbk_since(105u)) [
                 template_args_1_5
             ].else_p [
                 template_args_1_4
@@ -147,14 +150,14 @@ namespace quickbook
             ;
 
         template_args_1_4 =
-            template_arg_1_4                    [push_back_a(actions.template_info)]
+            template_arg_1_4                    [classic::push_back_a(actions.template_info)]
             >> *(
-                    ".." >> template_arg_1_4    [push_back_a(actions.template_info)]
+                    ".." >> template_arg_1_4    [classic::push_back_a(actions.template_info)]
                 )
             ;
 
         template_arg_1_4 =
-            +(brackets_1_4 | (anychar_p - (str_p("..") | ']')))
+            +(brackets_1_4 | (classic::anychar_p - (classic::str_p("..") | ']')))
             ;
 
         brackets_1_4 =
@@ -162,18 +165,18 @@ namespace quickbook
             ;
 
         template_args_1_5 =
-            template_arg_1_5                    [push_back_a(actions.template_info)]
+            template_arg_1_5                    [classic::push_back_a(actions.template_info)]
             >> *(
-                    ".." >> template_arg_1_5    [push_back_a(actions.template_info)]
+                    ".." >> template_arg_1_5    [classic::push_back_a(actions.template_info)]
                 )
             ;
 
         template_arg_1_5 =
-            +(brackets_1_5 | ('\\' >> anychar_p) | (anychar_p - (str_p("..") | '[' | ']')))
+            +(brackets_1_5 | ('\\' >> classic::anychar_p) | (classic::anychar_p - (classic::str_p("..") | '[' | ']')))
             ;
 
         template_inner_arg_1_5 =
-            +(brackets_1_5 | ('\\' >> anychar_p) | (anychar_p - (str_p('[') | ']')))
+            +(brackets_1_5 | ('\\' >> classic::anychar_p) | (classic::anychar_p - (classic::str_p('[') | ']')))
             ;
 
         brackets_1_5 =
@@ -183,11 +186,11 @@ namespace quickbook
         inline_code =
             '`' >>
             (
-               *(anychar_p -
+               *(classic::anychar_p -
                     (   '`'
                     |   (eol >> eol)            // Make sure that we don't go
                     )                           // past a single block
-                ) >> eps_p('`')
+                ) >> classic::eps_p('`')
             )                                   [actions.inline_code]
             >>  '`'
             ;
@@ -196,16 +199,16 @@ namespace quickbook
                 (
                     "```" >>
                     (
-                       *(anychar_p - "```")
-                            >> eps_p("```")
+                       *(classic::anychar_p - "```")
+                            >> classic::eps_p("```")
                     )                           [actions.code_block]
                     >>  "```"
                 )
             |   (
                     "``" >>
                     (
-                       *(anychar_p - "``")
-                            >> eps_p("``")
+                       *(classic::anychar_p - "``")
+                            >> classic::eps_p("``")
                     )                           [actions.code_block]
                     >>  "``"
                 )
@@ -230,7 +233,8 @@ namespace quickbook
         phrase =
            *(   common
             |   comment
-            |   (anychar_p - phrase_end)        [actions.plain_char]
+            |   (classic::anychar_p - phrase_end)
+                                                [actions.plain_char]
             )
             ;
 
@@ -259,24 +263,25 @@ namespace quickbook
                 |   replaceable
                 |   footnote
                 |   template_                   [actions.do_template]
-                |   str_p("br")                 [actions.break_]
+                |   classic::str_p("br")        [actions.break_]
                 )
             >>  ']'
             ;
 
         escape =
-                str_p("\\n")                    [actions.break_]
+                classic::str_p("\\n")           [actions.break_]
             |   "\\ "                           // ignore an escaped char
-            |   '\\' >> punct_p                 [actions.raw_char]
+            |   '\\' >> classic::punct_p        [actions.raw_char]
             |   (
                     ("'''" >> !eol)             [actions.escape_pre]
-                >>  *(anychar_p - "'''")        [actions.raw_char]
-                >>  str_p("'''")                [actions.escape_post]
+                >>  *(classic::anychar_p - "'''")
+                                                [actions.raw_char]
+                >>  classic::str_p("'''")       [actions.escape_post]
                 )
             ;
 
         macro_identifier =
-            +(anychar_p - (space_p | ']'))
+            +(classic::anychar_p - (classic::space_p | ']'))
             ;
 
         cond_phrase =
@@ -286,43 +291,43 @@ namespace quickbook
             ;
 
         image =
-                '$' >> blank                    [clear_a(actions.attributes)]
-            >>  if_p(qbk_since(105u)) [
+                '$' >> blank                    [classic::clear_a(actions.attributes)]
+            >>  classic::if_p(qbk_since(105u)) [
                         (+(
-                            *space_p
-                        >>  +(anychar_p - (space_p | phrase_end | '['))
-                        ))                       [assign_a(actions.image_fileref)]
+                            *classic::space_p
+                        >>  +(classic::anychar_p - (classic::space_p | phrase_end | '['))
+                        ))                       [classic::assign_a(actions.image_fileref)]
                     >>  hard_space
                     >>  *(
                             '['
-                        >>  (*(alnum_p | '_'))  [assign_a(actions.attribute_name)]
+                        >>  (*(classic::alnum_p | '_'))  [classic::assign_a(actions.attribute_name)]
                         >>  space
-                        >>  (*(anychar_p - (phrase_end | '[')))
+                        >>  (*(classic::anychar_p - (phrase_end | '[')))
                                                 [actions.attribute]
                         >>  ']'
                         >>  space
                         )
                 ].else_p [
-                        (*(anychar_p -
-                            phrase_end))        [assign_a(actions.image_fileref)]
+                        (*(classic::anychar_p -
+                            phrase_end))        [classic::assign_a(actions.image_fileref)]
                 ]
-            >>  eps_p(']')                      [actions.image]
+            >>  classic::eps_p(']')             [actions.image]
             ;
             
         url =
                 '@'
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.url_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.url_post]
             ;
 
         link =
                 "link" >> hard_space
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.link_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.link_post]
             ;
@@ -330,128 +335,128 @@ namespace quickbook
         anchor =
                 '#'
             >>  blank
-            >>  (   *(anychar_p -
+            >>  (   *(classic::anychar_p -
                         phrase_end)
                 )                               [actions.anchor]
             ;
 
         funcref =
             "funcref" >> hard_space
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.funcref_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.funcref_post]
             ;
 
         classref =
             "classref" >> hard_space
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.classref_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.classref_post]
             ;
 
         memberref =
             "memberref" >> hard_space
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.memberref_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.memberref_post]
             ;
 
         enumref =
             "enumref" >> hard_space
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.enumref_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.enumref_post]
             ;
 
         macroref =
             "macroref" >> hard_space
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.macroref_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.macroref_post]
             ;
 
         headerref =
             "headerref" >> hard_space
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.headerref_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.headerref_post]
             ;
 
         conceptref =
             "conceptref" >> hard_space
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.conceptref_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.conceptref_post]
             ;
 
         globalref =
             "globalref" >> hard_space
-            >>  (*(anychar_p -
+            >>  (*(classic::anychar_p -
                     (']' | hard_space)))        [actions.globalref_pre]
-            >>  (   eps_p(']')
+            >>  (   classic::eps_p(']')
                 |   (hard_space >> phrase)
                 )                               [actions.globalref_post]
             ;
 
         bold =
-                ch_p('*')                       [actions.bold_pre]
+                classic::ch_p('*')              [actions.bold_pre]
             >>  blank >> phrase                 [actions.bold_post]
             ;
 
         italic =
-                ch_p('\'')                      [actions.italic_pre]
+                classic::ch_p('\'')             [actions.italic_pre]
             >>  blank >> phrase                 [actions.italic_post]
             ;
 
         underline =
-                ch_p('_')                       [actions.underline_pre]
+                classic::ch_p('_')              [actions.underline_pre]
             >>  blank >> phrase                 [actions.underline_post]
             ;
 
         teletype =
-                ch_p('^')                       [actions.teletype_pre]
+                classic::ch_p('^')              [actions.teletype_pre]
             >>  blank >> phrase                 [actions.teletype_post]
             ;
 
         strikethrough =
-                ch_p('-')                       [actions.strikethrough_pre]
+                classic::ch_p('-')              [actions.strikethrough_pre]
             >>  blank >> phrase                 [actions.strikethrough_post]
             ;
 
         quote =
-                ch_p('"')                       [actions.quote_pre]
+                classic::ch_p('"')              [actions.quote_pre]
             >>  blank >> phrase                 [actions.quote_post]
             ;
 
         replaceable =
-                ch_p('~')                       [actions.replaceable_pre]
+                classic::ch_p('~')              [actions.replaceable_pre]
             >>  blank >> phrase                 [actions.replaceable_post]
             ;
 
         source_mode =
             (
-                str_p("c++")
+                classic::str_p("c++")
             |   "python"
             |   "teletype"
-            )                                   [assign_a(actions.source_mode)]
+            )                                   [classic::assign_a(actions.source_mode)]
             ;
 
         footnote =
-                str_p("footnote")               [actions.footnote_pre]
+                classic::str_p("footnote")      [actions.footnote_pre]
             >>  blank >> phrase                 [actions.footnote_post]
             ;
     }
@@ -467,16 +472,16 @@ namespace quickbook
         phrase =
            *(   common
             |   comment
-            |   (anychar_p - ']')           [actions.plain_char]
+            |   (classic::anychar_p - ']')      [actions.plain_char]
             )
             ;
 
         comment =
-            "[/" >> *(dummy_block | (anychar_p - ']')) >> ']'
+            "[/" >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
             ;
 
         dummy_block =
-            '[' >> *(dummy_block | (anychar_p - ']')) >> ']'
+            '[' >> *(dummy_block | (classic::anychar_p - ']')) >> ']'
             ;
     }
 }

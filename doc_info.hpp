@@ -19,7 +19,7 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit::classic;
+    using namespace boost::spirit;
 
     template <typename Actions>
     template <typename Scanner>
@@ -38,12 +38,13 @@ namespace quickbook
         doc_info =
             space
             >> '[' >> space
-            >> (doc_types >> eps_p)         [assign_a(actions.doc_type)]
+            >> (doc_types >> classic::eps_p)
+                                            [classic::assign_a(actions.doc_type)]
             >> hard_space
-            >>  (  *(anychar_p -
-                    (ch_p('[') | ']' | eol_p)
+            >>  (  *(classic::anychar_p -
+                    (classic::ch_p('[') | ']' | classic::eol_p)
                     )
-                )                           [assign_a(actions.doc_title)]
+                )                           [classic::assign_a(actions.doc_title)]
             >>  !(
                     space >> '[' >>
                         quickbook_version
@@ -56,7 +57,7 @@ namespace quickbook
                       doc_version
                     | doc_id
                     | doc_dirname
-                    | doc_copyright         [push_back_a(actions.doc_copyrights, copyright)]
+                    | doc_copyright         [classic::push_back_a(actions.doc_copyrights, copyright)]
                     | doc_purpose           [actions.extract_doc_purpose]
                     | doc_category
                     | doc_authors
@@ -64,105 +65,114 @@ namespace quickbook
                     | doc_last_revision
                     | doc_source_mode
                     )
-                    >> space >> ']' >> +eol_p
+                    >> space >> ']' >> +classic::eol_p
                 )
-            >> space >> ']' >> +eol_p
+            >> space >> ']' >> +classic::eol_p
             ;
 
         quickbook_version =
                 "quickbook" >> hard_space
-            >>  (   uint_p                  [assign_a(qbk_major_version)]
+            >>  (   classic::uint_p         [classic::assign_a(qbk_major_version)]
                     >> '.' 
-                    >>  uint2_t()           [assign_a(qbk_minor_version)]
+                    >>  uint2_t()           [classic::assign_a(qbk_minor_version)]
                 )
             ;
 
         doc_version =
                 "version" >> hard_space
-            >> (*(anychar_p - ']'))         [assign_a(actions.doc_version)]
+            >> (*(classic::anychar_p - ']'))
+                                            [classic::assign_a(actions.doc_version)]
             ;
 
         doc_id =
                 "id" >> hard_space
-            >> (*(anychar_p - ']'))         [assign_a(actions.doc_id)]
+            >> (*(classic::anychar_p - ']'))
+                                            [classic::assign_a(actions.doc_id)]
             ;
 
         doc_dirname =
                 "dirname" >> hard_space
-            >> (*(anychar_p - ']'))         [assign_a(actions.doc_dirname)]
+            >> (*(classic::anychar_p - ']'))
+                                            [classic::assign_a(actions.doc_dirname)]
             ;
 
         doc_copyright =
-                "copyright" >> hard_space   [clear_a(copyright.first)]
-            >> +( repeat_p(4)[digit_p]      [push_back_a(copyright.first)]
+                "copyright" >> hard_space   [classic::clear_a(copyright.first)]
+            >> +( classic::repeat_p(4)[classic::digit_p]
+                                            [classic::push_back_a(copyright.first)]
                   >> space
                 )
             >> space
-            >> (*(anychar_p - ']'))         [assign_a(copyright.second)]
+            >> (*(classic::anychar_p - ']'))
+                                            [classic::assign_a(copyright.second)]
             ;
 
         doc_purpose =
                 "purpose" >> hard_space
-            >> phrase                       [assign_a(actions.doc_purpose_1_1)]
+            >> phrase                       [classic::assign_a(actions.doc_purpose_1_1)]
             ;
 
         doc_category =
                 "category" >> hard_space
-            >> (*(anychar_p - ']'))         [assign_a(actions.doc_category)]
+            >> (*(classic::anychar_p - ']'))
+                                            [classic::assign_a(actions.doc_category)]
             ;
 
         doc_author =
                 space
             >>  '[' >> space
-            >>  (*(anychar_p - ','))        [assign_a(name.second)] // surname
+            >>  (*(classic::anychar_p - ','))
+                                            [classic::assign_a(name.second)] // surname
             >>  ',' >> space
-            >>  (*(anychar_p - ']'))        [assign_a(name.first)] // firstname
+            >>  (*(classic::anychar_p - ']'))
+                                            [classic::assign_a(name.first)] // firstname
             >>  ']'
             ;
 
         doc_authors =
                 "authors" >> hard_space
-            >> doc_author                   [push_back_a(actions.doc_authors, name)]
+            >> doc_author                   [classic::push_back_a(actions.doc_authors, name)]
             >> *(   ','
-                    >>  doc_author          [push_back_a(actions.doc_authors, name)]
+                    >>  doc_author          [classic::push_back_a(actions.doc_authors, name)]
                 )
             ;
 
         doc_license =
                 "license" >> hard_space
-            >> phrase                       [assign_a(actions.doc_license_1_1)]
+            >> phrase                       [classic::assign_a(actions.doc_license_1_1)]
             ;
 
         doc_last_revision =
                 "last-revision" >> hard_space
-            >> (*(anychar_p - ']'))         [assign_a(actions.doc_last_revision)]
+            >> (*(classic::anychar_p - ']'))[classic::assign_a(actions.doc_last_revision)]
             ;
 
         doc_source_mode =
                 "source-mode" >> hard_space
             >>  (
-                   str_p("c++") 
+                   classic::str_p("c++") 
                 |  "python"
                 |  "teletype"
-                )                           [assign_a(actions.source_mode)]
+                )                           [classic::assign_a(actions.source_mode)]
             ;
 
         comment =
-            "[/" >> *(anychar_p - ']') >> ']'
+            "[/" >> *(classic::anychar_p - ']') >> ']'
             ;
 
         space =
-            *(space_p | comment)
+            *(classic::space_p | comment)
             ;
 
         hard_space =
-            (eps_p - (alnum_p | '_')) >> space  // must not be preceded by
+            (classic::eps_p - (classic::alnum_p | '_')) >> space
+                                                // must not be preceded by
             ;                                   // alpha-numeric or underscore
 
         phrase =
            *(   common
             |   comment
-            |   (anychar_p - ']')           [actions.plain_char]
+            |   (classic::anychar_p - ']')  [actions.plain_char]
             )
             ;
     }

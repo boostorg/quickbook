@@ -16,7 +16,7 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit::classic;
+    using namespace boost::spirit;
     using boost::bind;
     typedef std::string::const_iterator iter_type;
 
@@ -254,7 +254,7 @@ namespace quickbook
         std::string current_tag;
     };
 
-    struct tidy_grammar : grammar<tidy_grammar>
+    struct tidy_grammar : classic::grammar<tidy_grammar>
     {
         tidy_grammar(tidy_compiler& state, int indent)
             : state(state), indent(indent) {}
@@ -264,11 +264,11 @@ namespace quickbook
         {
             definition(tidy_grammar const& self)
             {
-                tag = (lexeme_d[+(alpha_p | '_' | ':')])  [bind(&tidy_grammar::do_tag, &self, _1, _2)];
+                tag = (classic::lexeme_d[+(classic::alpha_p | '_' | ':')])  [bind(&tidy_grammar::do_tag, &self, _1, _2)];
 
                 code =
                         "<programlisting>"
-                    >>  *(anychar_p - "</programlisting>")
+                    >>  *(classic::anychar_p - "</programlisting>")
                     >>  "</programlisting>"
                     ;
 
@@ -277,30 +277,30 @@ namespace quickbook
                 // otherwise consumed by the space_p skipper.
 
                 escape =
-                    str_p("<!--quickbook-escape-prefix-->") >>
-                    (*(anychar_p - str_p("<!--quickbook-escape-postfix-->")))
+                    classic::str_p("<!--quickbook-escape-prefix-->") >>
+                    (*(classic::anychar_p - classic::str_p("<!--quickbook-escape-postfix-->")))
                     [
                         bind(&tidy_grammar::do_escape, &self, _1, _2)
                     ]
-                    >>  lexeme_d
+                    >>  classic::lexeme_d
                         [
-                            str_p("<!--quickbook-escape-postfix-->") >>
-                            (*space_p)
+                            classic::str_p("<!--quickbook-escape-postfix-->") >>
+                            (*classic::space_p)
                             [
                                 bind(&tidy_grammar::do_escape_post, &self, _1, _2)
                             ]
                         ]
                     ;
 
-                start_tag = '<' >> tag >> *(anychar_p - '>') >> lexeme_d['>' >> *space_p];
+                start_tag = '<' >> tag >> *(classic::anychar_p - '>') >> classic::lexeme_d['>' >> *classic::space_p];
                 start_end_tag =
-                        '<' >> tag >> *(anychar_p - ("/>" | ch_p('>'))) >> lexeme_d["/>" >> *space_p]
-                    |   "<?" >> tag >> *(anychar_p - '?') >> lexeme_d["?>" >> *space_p]
-                    |   "<!--" >> *(anychar_p - "-->") >> lexeme_d["-->" >> *space_p]
-                    |   "<!" >> tag >> *(anychar_p - '>') >> lexeme_d['>' >> *space_p]
+                        '<' >> tag >> *(classic::anychar_p - ("/>" | classic::ch_p('>'))) >> classic::lexeme_d["/>" >> *classic::space_p]
+                    |   "<?" >> tag >> *(classic::anychar_p - '?') >> classic::lexeme_d["?>" >> *classic::space_p]
+                    |   "<!--" >> *(classic::anychar_p - "-->") >> classic::lexeme_d["-->" >> *classic::space_p]
+                    |   "<!" >> tag >> *(classic::anychar_p - '>') >> classic::lexeme_d['>' >> *classic::space_p]
                     ;
-                content = lexeme_d[ +(anychar_p - '<') ];
-                end_tag = "</" >> +(anychar_p - '>') >> lexeme_d['>' >> *space_p];
+                content = classic::lexeme_d[ +(classic::anychar_p - '<') ];
+                end_tag = "</" >> +(classic::anychar_p - '>') >> classic::lexeme_d['>' >> *classic::space_p];
 
                 markup =
                         escape
@@ -314,10 +314,11 @@ namespace quickbook
                 tidy = +markup;
             }
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() { return tidy; }
 
-            rule<Scanner>   tidy, tag, start_tag, start_end_tag,
+            classic::rule<Scanner>
+                            tidy, tag, start_tag, start_end_tag,
                             content, end_tag, markup, code, escape;
         };
 
@@ -433,7 +434,7 @@ namespace quickbook
             std::string tidy;
             tidy_compiler state(tidy, linewidth);
             tidy_grammar g(state, indent);
-            parse_info<iter_type> r = parse(in.begin(), in.end(), g, space_p);
+            classic::parse_info<iter_type> r = parse(in.begin(), in.end(), g, classic::space_p);
             if (r.full)
             {
                 out << tidy;

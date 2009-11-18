@@ -32,7 +32,7 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit::classic;
+    using namespace boost::spirit;
     namespace fs = boost::filesystem;
     tm* current_time; // the current time
     tm* current_gm_time; // the current UTC time
@@ -62,12 +62,12 @@ namespace quickbook
             return err;
         }
 
-        typedef position_iterator<std::string::const_iterator> iterator_type;
+        typedef classic::position_iterator<std::string::const_iterator> iterator_type;
         iterator_type first(storage.begin(), storage.end(), filein_);
         iterator_type last(storage.end(), storage.end());
 
         doc_info_grammar<actions> l(actor);
-        parse_info<iterator_type> info = parse(first, last, l);
+        classic::parse_info<iterator_type> info = parse(first, last, l);
 
         if (info.hit || ignore_docinfo)
         {
@@ -83,7 +83,7 @@ namespace quickbook
 
         if (!info.full)
         {
-            file_position const pos = info.stop.get_position();
+            classic::file_position const pos = info.stop.get_position();
             detail::outerr(pos.file,pos.line)
                 << "Syntax Error near column " << pos.column << ".\n";
             ++actor.error_count;

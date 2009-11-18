@@ -19,7 +19,7 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit::classic;
+    using namespace boost::spirit;
 
     // Grammar for C++ highlighting
     template <
@@ -33,7 +33,7 @@ namespace quickbook
       , typename Unexpected
       , typename Out>
     struct cpp_highlight
-    : public grammar<cpp_highlight<Process, Space, Macro, DoMacro, PreEscape, PostEscape, EscapeActions, Unexpected, Out> >
+    : public classic::grammar<cpp_highlight<Process, Space, Macro, DoMacro, PreEscape, PostEscape, EscapeActions, Unexpected, Out> >
     {
         cpp_highlight(Out& out, Macro const& macro, DoMacro do_macro, EscapeActions& escape_actions)
         : out(out), macro(macro), do_macro(do_macro), escape_actions(escape_actions) {}
@@ -47,7 +47,7 @@ namespace quickbook
             {
                 program
                     =
-                    *(  (+space_p)      [Space(self.out)]
+                    *(  (+classic::space_p)      [Space(self.out)]
                     |   macro
                     |   escape
                     |   preprocessor    [Process("preprocessor", self.out)]
@@ -58,51 +58,51 @@ namespace quickbook
                     |   string_         [Process("string", self.out)]
                     |   char_           [Process("char", self.out)]
                     |   number          [Process("number", self.out)]
-                    |   repeat_p(1)[anychar_p] [Unexpected(self.out)]
+                    |   classic::repeat_p(1)[classic::anychar_p] [Unexpected(self.out)]
                     )
                     ;
 
                 macro = 
-                    eps_p(self.macro                    // must not be followed by
-                        >> (eps_p - (alpha_p | '_')))   // alpha or underscore
+                    classic::eps_p(self.macro                    // must not be followed by
+                        >> (classic::eps_p - (classic::alpha_p | '_')))   // alpha or underscore
                     >> self.macro                       [self.do_macro]
                     ;
 
                 qbk_phrase =
                    *(   common
-                    |   (anychar_p - str_p("``"))   [self.escape_actions.plain_char]
+                    |   (classic::anychar_p - classic::str_p("``"))   [self.escape_actions.plain_char]
                     )
                     ;
 
                 escape =
-                    str_p("``")         [PreEscape(self.escape_actions, save)]
+                    classic::str_p("``")         [PreEscape(self.escape_actions, save)]
                     >>
                     (
                         (
                             (
-                                (+(anychar_p - "``") >> eps_p("``"))
+                                (+(classic::anychar_p - "``") >> classic::eps_p("``"))
                                 & qbk_phrase
                             )
-                            >>  str_p("``")
+                            >>  classic::str_p("``")
                         )
                         |
                         (
-                            eps_p       [self.escape_actions.error]
-                            >> *anychar_p
+                            classic::eps_p       [self.escape_actions.error]
+                            >> *classic::anychar_p
                         )
                     )                   [PostEscape(self.out, self.escape_actions, save)]
                     ;
 
                 preprocessor
-                    =   '#' >> *space_p >> ((alpha_p | '_') >> *(alnum_p | '_'))
+                    =   '#' >> *classic::space_p >> ((classic::alpha_p | '_') >> *(classic::alnum_p | '_'))
                     ;
 
                 comment
-                    =   comment_p("//") | comment_p("/*", "*/")
+                    =   classic::comment_p("//") | classic::comment_p("/*", "*/")
                     ;
 
                 keyword
-                    =   keyword_ >> (eps_p - (alnum_p | '_'))
+                    =   keyword_ >> (classic::eps_p - (classic::alnum_p | '_'))
                     ;   // make sure we recognize whole words only
 
                 keyword_
@@ -123,43 +123,44 @@ namespace quickbook
                     ;
 
                 special
-                    =   +chset_p("~!%^&*()+={[}]:;,<.>?/|\\-")
+                    =   +classic::chset_p("~!%^&*()+={[}]:;,<.>?/|\\-")
                     ;
 
-                string_char = ('\\' >> anychar_p) | (anychar_p - '\\');
+                string_char = ('\\' >> classic::anychar_p) | (classic::anychar_p - '\\');
 
                 string_
-                    =   !as_lower_d['l'] >> confix_p('"', *string_char, '"')
+                    =   !classic::as_lower_d['l'] >> classic::confix_p('"', *string_char, '"')
                     ;
 
                 char_
-                    =   !as_lower_d['l'] >> confix_p('\'', *string_char, '\'')
+                    =   !classic::as_lower_d['l'] >> classic::confix_p('\'', *string_char, '\'')
                     ;
 
                 number
                     =   (
-                            as_lower_d["0x"] >> hex_p
-                        |   '0' >> oct_p
-                        |   real_p
+                            classic::as_lower_d["0x"] >> classic::hex_p
+                        |   '0' >> classic::oct_p
+                        |   classic::real_p
                         )
-                        >>  *as_lower_d[chset_p("ldfu")]
+                        >>  *classic::as_lower_d[classic::chset_p("ldfu")]
                     ;
 
                 identifier
-                    =   (alpha_p | '_') >> *(alnum_p | '_')
+                    =   (classic::alpha_p | '_') >> *(classic::alnum_p | '_')
                     ;
             }
 
-            rule<Scanner>   program, macro, preprocessor, comment, special, string_, 
+            classic::rule<Scanner>
+                            program, macro, preprocessor, comment, special, string_, 
                             char_, number, identifier, keyword, qbk_phrase, escape,
                             string_char;
 
-            symbols<> keyword_;
+            classic::symbols<> keyword_;
             phrase_grammar<EscapeActions> common;
             std::string save;
             bool unused;
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() const { return program; }
         };
 
@@ -183,7 +184,7 @@ namespace quickbook
       , typename Unexpected
       , typename Out>
     struct python_highlight
-    : public grammar<python_highlight<Process, Space, Macro, DoMacro, PreEscape, PostEscape, EscapeActions, Unexpected, Out> >
+    : public classic::grammar<python_highlight<Process, Space, Macro, DoMacro, PreEscape, PostEscape, EscapeActions, Unexpected, Out> >
     {
         python_highlight(Out& out, Macro const& macro, DoMacro do_macro, EscapeActions& escape_actions)
         : out(out), macro(macro), do_macro(do_macro), escape_actions(escape_actions) {}
@@ -197,7 +198,7 @@ namespace quickbook
             {
                 program
                     =
-                    *(  (+space_p)      [Space(self.out)]
+                    *(  (+classic::space_p)      [Space(self.out)]
                     |   macro
                     |   escape          
                     |   comment         [Process("comment", self.out)]
@@ -206,47 +207,47 @@ namespace quickbook
                     |   special         [Process("special", self.out)]
                     |   string_         [Process("string", self.out)]
                     |   number          [Process("number", self.out)]
-                    |   repeat_p(1)[anychar_p] [Unexpected(self.out)]
+                    |   classic::repeat_p(1)[classic::anychar_p] [Unexpected(self.out)]
                     )
                     ;
 
                 macro = 
-                    eps_p(self.macro                    // must not be followed by
-                        >> (eps_p - (alpha_p | '_')))   // alpha or underscore
+                    classic::eps_p(self.macro                    // must not be followed by
+                        >> (classic::eps_p - (classic::alpha_p | '_')))   // alpha or underscore
                     >> self.macro                       [self.do_macro]
                     ;
 
                 qbk_phrase =
                    *(   common
-                    |   (anychar_p - str_p("``"))   [self.escape_actions.plain_char]
+                    |   (classic::anychar_p - classic::str_p("``"))   [self.escape_actions.plain_char]
                     )
                     ;
 
                 escape =
-                    str_p("``")         [PreEscape(self.escape_actions, save)]
+                    classic::str_p("``")         [PreEscape(self.escape_actions, save)]
                     >>
                     (
                         (
                             (
-                                (+(anychar_p - "``") >> eps_p("``"))
+                                (+(classic::anychar_p - "``") >> classic::eps_p("``"))
                                 & qbk_phrase
                             )
-                            >>  str_p("``")
+                            >>  classic::str_p("``")
                         )
                         |
                         (
-                            eps_p       [self.escape_actions.error]
-                            >> *anychar_p
+                            classic::eps_p       [self.escape_actions.error]
+                            >> *classic::anychar_p
                         )
                     )                   [PostEscape(self.out, self.escape_actions, save)]
                     ;
 
                 comment
-                    =   comment_p("#")
+                    =   classic::comment_p("#")
                     ;
 
                 keyword
-                    =   keyword_ >> (eps_p - (alnum_p | '_'))
+                    =   keyword_ >> (classic::eps_p - (classic::alnum_p | '_'))
                     ;   // make sure we recognize whole words only
 
                 keyword_
@@ -266,55 +267,56 @@ namespace quickbook
                     ;
 
                 special
-                    =   +chset_p("~!%^&*()+={[}]:;,<.>/|\\-")
+                    =   +classic::chset_p("~!%^&*()+={[}]:;,<.>/|\\-")
                     ;
 
                 string_prefix
-                    =    as_lower_d[str_p("u") >> ! str_p("r")]
+                    =    classic::as_lower_d[classic::str_p("u") >> ! classic::str_p("r")]
                     ;
                 
                 string_
                     =   ! string_prefix >> (long_string | short_string)
                     ;
 
-                string_char = ('\\' >> anychar_p) | (anychar_p - '\\');
+                string_char = ('\\' >> classic::anychar_p) | (classic::anychar_p - '\\');
             
                 short_string
-                    =   confix_p('\'', * string_char, '\'') |
-                        confix_p('"', * string_char, '"')
+                    =   classic::confix_p('\'', * string_char, '\'') |
+                        classic::confix_p('"', * string_char, '"')
                     ;
             
                 long_string
                     // Note: the "str_p" on the next two lines work around
                     // an INTERNAL COMPILER ERROR when using VC7.1
-                    =   confix_p(str_p("'''"), * string_char, "'''") |
-                        confix_p(str_p("\"\"\""), * string_char, "\"\"\"")
+                    =   classic::confix_p(classic::str_p("'''"), * string_char, "'''") |
+                        classic::confix_p(classic::str_p("\"\"\""), * string_char, "\"\"\"")
                     ;
                 
                 number
                     =   (
-                            as_lower_d["0x"] >> hex_p
-                        |   '0' >> oct_p
-                        |   real_p
+                            classic::as_lower_d["0x"] >> classic::hex_p
+                        |   '0' >> classic::oct_p
+                        |   classic::real_p
                         )
-                        >>  *as_lower_d[chset_p("lj")]
+                        >>  *classic::as_lower_d[classic::chset_p("lj")]
                     ;
 
                 identifier
-                    =   (alpha_p | '_') >> *(alnum_p | '_')
+                    =   (classic::alpha_p | '_') >> *(classic::alnum_p | '_')
                     ;
             }
 
-            rule<Scanner>   program, macro, comment, special, string_, string_prefix, 
+            classic::rule<Scanner>
+                            program, macro, comment, special, string_, string_prefix, 
                             short_string, long_string, number, identifier, keyword, 
                             qbk_phrase, escape, string_char;
 
-            symbols<> keyword_;
+            classic::symbols<> keyword_;
             phrase_grammar<EscapeActions> common;
             std::string save;
             bool unused;
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() const { return program; }
         };
 
@@ -334,7 +336,7 @@ namespace quickbook
       , typename EscapeActions
       , typename Out>
     struct teletype_highlight
-    : public grammar<teletype_highlight<CharProcess, Macro, DoMacro, PreEscape, PostEscape, EscapeActions, Out> >
+    : public classic::grammar<teletype_highlight<CharProcess, Macro, DoMacro, PreEscape, PostEscape, EscapeActions, Out> >
     {
         teletype_highlight(Out& out, Macro const& macro, DoMacro do_macro, EscapeActions& escape_actions)
         : out(out), macro(macro), do_macro(do_macro), escape_actions(escape_actions) {}
@@ -350,49 +352,49 @@ namespace quickbook
                     =
                     *(  macro
                     |   escape          
-                    |   repeat_p(1)[anychar_p]          [CharProcess(self.out)]
+                    |   classic::repeat_p(1)[classic::anychar_p]          [CharProcess(self.out)]
                     )
                     ;
 
                 macro = 
-                    eps_p(self.macro                    // must not be followed by
-                        >> (eps_p - (alpha_p | '_')))   // alpha or underscore
+                    classic::eps_p(self.macro                    // must not be followed by
+                        >> (classic::eps_p - (classic::alpha_p | '_')))   // alpha or underscore
                     >> self.macro                       [self.do_macro]
                     ;
 
                 qbk_phrase =
                    *(   common
-                    |   (anychar_p - str_p("``"))   [self.escape_actions.plain_char]
+                    |   (classic::anychar_p - classic::str_p("``"))   [self.escape_actions.plain_char]
                     )
                     ;
 
                 escape =
-                    str_p("``")         [PreEscape(self.escape_actions, save)]
+                    classic::str_p("``")         [PreEscape(self.escape_actions, save)]
                     >>
                     (
                         (
                             (
-                                (+(anychar_p - "``") >> eps_p("``"))
+                                (+(classic::anychar_p - "``") >> classic::eps_p("``"))
                                 & qbk_phrase
                             )
-                            >>  str_p("``")
+                            >>  classic::str_p("``")
                         )
                         |
                         (
-                            eps_p       [self.escape_actions.error]
-                            >> *anychar_p
+                            classic::eps_p       [self.escape_actions.error]
+                            >> *classic::anychar_p
                         )
                     )                   [PostEscape(self.out, self.escape_actions, save)]
                     ;
             }
 
-            rule<Scanner> program, macro, qbk_phrase, escape;
+            classic::rule<Scanner> program, macro, qbk_phrase, escape;
 
             phrase_grammar<EscapeActions> common;
             std::string save;
             bool unused;
 
-            rule<Scanner> const&
+            classic::rule<Scanner> const&
             start() const { return program; }
         };
 
