@@ -8,7 +8,10 @@
 =============================================================================*/
 #include "./post_process.hpp"
 #include "./utils.hpp"
-#include <boost/spirit/include/classic_core.hpp>
+#include "../parse_utils.hpp"
+#include <boost/spirit/include/qi_core.hpp>
+#include <boost/spirit/include/qi_lexeme.hpp>
+#include <boost/spirit/include/qi_char_.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <set>
@@ -145,23 +148,28 @@ namespace quickbook
         print(iter_type f, iter_type l)
         {
             for (iter_type i = f; i != l; ++i)
-                print(*i);
+                 print(*i);
         }
 
         void
-        print_tag(iter_type f, iter_type l, bool is_flow_tag)
+        print(std::string const& x)
+        {
+            print(x.begin(), x.end());
+        }
+
+        void
+        print_tag(std::string const& str, bool is_flow_tag)
         {
             if (is_flow_tag)
             {
-                print(f, l);
+                print(str);
             }
             else
             {
                 // This is not a flow tag, so, we're going to do a
                 // carriage return anyway. Let us remove extra right
                 // spaces.
-                std::string str(f, l);
-                BOOST_ASSERT(f != l); // this should not happen
+                BOOST_ASSERT(!str.empty()); // this should not happen
                 iter_type i = str.end();
                 while (i != str.begin() && std::isspace(static_cast<unsigned char>(*(i-1))))
                     --i;
@@ -257,94 +265,87 @@ namespace quickbook
         std::string current_tag;
     };
 
-    struct tidy_grammar : classic::grammar<tidy_grammar>
+    template <typename Iterator>
+    struct tidy_grammar : qi::grammar<Iterator>
     {
         tidy_grammar(tidy_compiler& state, int indent)
-            : state(state), indent(indent) {}
-
-        template <typename Scanner>
-        struct definition
+            : tidy_grammar::base_type(tidy)
+            , state(state), indent(indent)
         {
-            definition(tidy_grammar const& self)
-            {
-                tag = (classic::lexeme_d[+(classic::alpha_p | '_' | ':')])  [ph::bind(&tidy_grammar::do_tag, &self, _1, _2)];
+            tag = (qi::lexeme[+(qi::alpha | qi::char_("_:"))]) 
+                                                [ph::bind(&tidy_grammar::do_tag, this, as_string(qi::_1))];
 
-                code =
-                        "<programlisting>"
-                    >>  *(classic::anychar_p - "</programlisting>")
-                    >>  "</programlisting>"
-                    ;
+            code = qi::raw[
+                    "<programlisting>"
+                >>  *(qi::char_ - "</programlisting>")
+                >>  "</programlisting>"
+                ];
 
-                // What's the business of lexeme_d['>' >> *space_p]; ?
-                // It is there to preserve the space after the tag that is
-                // otherwise consumed by the space_p skipper.
+            // What's the business of lexeme_d['>' >> *space]; ?
+            // It is there to preserve the space after the tag that is
+            // otherwise consumed by the space skipper.
 
-                escape =
-                    classic::str_p("<!--quickbook-escape-prefix-->") >>
-                    (*(classic::anychar_p - classic::str_p("<!--quickbook-escape-postfix-->")))
+            escape =
+                qi::lit("<!--quickbook-escape-prefix-->") >>
+                (*(qi::char_ - (qi::lit("<!--quickbook-escape-postfix-->"))))
+                [
+                    ph::bind(&tidy_grammar::do_escape, this, as_string(qi::_1))
+                ]
+                >>  qi::lexeme
                     [
-                        ph::bind(&tidy_grammar::do_escape, &self, _1, _2)
-                    ]
-                    >>  classic::lexeme_d
+                        qi::lit("<!--quickbook-escape-postfix-->") >>
+                        (*qi::space)
                         [
-                            classic::str_p("<!--quickbook-escape-postfix-->") >>
-                            (*classic::space_p)
-                            [
-                                ph::bind(&tidy_grammar::do_escape_post, &self, _1, _2)
-                            ]
+                            ph::bind(&tidy_grammar::do_escape_post, this, as_string(qi::_1))
                         ]
-                    ;
+                    ]
+                ;
 
-                start_tag = '<' >> tag >> *(classic::anychar_p - '>') >> classic::lexeme_d['>' >> *classic::space_p];
-                start_end_tag =
-                        '<' >> tag >> *(classic::anychar_p - ("/>" | classic::ch_p('>'))) >> classic::lexeme_d["/>" >> *classic::space_p]
-                    |   "<?" >> tag >> *(classic::anychar_p - '?') >> classic::lexeme_d["?>" >> *classic::space_p]
-                    |   "<!--" >> *(classic::anychar_p - "-->") >> classic::lexeme_d["-->" >> *classic::space_p]
-                    |   "<!" >> tag >> *(classic::anychar_p - '>') >> classic::lexeme_d['>' >> *classic::space_p]
-                    ;
-                content = classic::lexeme_d[ +(classic::anychar_p - '<') ];
-                end_tag = "</" >> +(classic::anychar_p - '>') >> classic::lexeme_d['>' >> *classic::space_p];
+            start_tag = qi::raw['<' >> tag >> *(qi::char_ - '>') >> qi::lexeme['>' >> *qi::space]];
+            start_end_tag = qi::raw[
+                    '<' >> tag >> *(qi::char_ - ("/>" | qi::lit('>'))) >> qi::lexeme["/>" >> *qi::space]
+                |   "<?" >> tag >> *(qi::char_ - '?') >> qi::lexeme["?>" >> *qi::space]
+                |   "<!--" >> *(qi::char_ - "-->") >> qi::lexeme["-->" >> *qi::space]
+                |   "<!" >> tag >> *(qi::char_ - '>') >> qi::lexeme['>' >> *qi::space]
+                ];
+            content = qi::lexeme[ +(qi::char_ - '<') ];
+            end_tag = qi::raw["</" >> +(qi::char_ - '>') >> qi::lexeme['>' >> *qi::space]];
 
-                markup =
-                        escape
-                    |   code            [ph::bind(&tidy_grammar::do_code, &self, _1, _2)]
-                    |   start_end_tag   [ph::bind(&tidy_grammar::do_start_end_tag, &self, _1, _2)]
-                    |   start_tag       [ph::bind(&tidy_grammar::do_start_tag, &self, _1, _2)]
-                    |   end_tag         [ph::bind(&tidy_grammar::do_end_tag, &self, _1, _2)]
-                    |   content         [ph::bind(&tidy_grammar::do_content, &self, _1, _2)]
-                    ;
+            markup =
+                    escape
+                |   code            [ph::bind(&tidy_grammar::do_code, this, qi::_1)]
+                |   start_end_tag   [ph::bind(&tidy_grammar::do_start_end_tag, this, qi::_1)]
+                |   start_tag       [ph::bind(&tidy_grammar::do_start_tag, this, qi::_1)]
+                |   end_tag         [ph::bind(&tidy_grammar::do_end_tag, this, qi::_1)]
+                |   content         [ph::bind(&tidy_grammar::do_content, this, qi::_1)]
+                ;
 
-                tidy = +markup;
-            }
+            tidy = +markup;
+        }
 
-            classic::rule<Scanner> const&
-            start() { return tidy; }
-
-            classic::rule<Scanner>
-                            tidy, tag, start_tag, start_end_tag,
-                            content, end_tag, markup, code, escape;
-        };
-
-        void do_escape_post(iter_type f, iter_type l) const
+        void do_escape_post(std::string const& x) const
         {
-            for (iter_type i = f; i != l; ++i)
+            for (std::string::const_iterator i = x.begin(), l = x.end(); i != l; ++i)
                 state.out += *i;
         }
 
-        void do_escape(iter_type f, iter_type l) const
+        void do_escape(std::string const& x) const
         {
+            std::string::const_iterator f = x.begin(), l = x.end();
             while (f != l && std::isspace(*f))
                 ++f;
-            for (iter_type i = f; i != l; ++i)
+            while (f != l && std::isspace(*(l - 1)))
+                --l;
+            for (std::string::const_iterator i = f; i != l; ++i)
                 state.out += *i;
         }
 
-        void do_code(iter_type f, iter_type l) const
+        void do_code(std::string const& x) const
         {
             state.out += '\n';
             // print the string taking care of line
             // ending CR/LF platform issues
-            for (iter_type i = f; i != l; ++i)
+            for (iter_type i = x.begin(), l = x.end(); i != l; ++i)
             {
                 if (*i == '\n')
                 {
@@ -369,28 +370,28 @@ namespace quickbook
             state.printer_.indent();
         }
 
-        void do_tag(iter_type f, iter_type l) const
+        void do_tag(std::string const& x) const
         {
-            state.current_tag = std::string(f, l);
+            state.current_tag = std::string(x.begin(), x.end());
         }
 
-        void do_start_end_tag(iter_type f, iter_type l) const
+        void do_start_end_tag(std::string const& x) const
         {
             bool is_flow_tag = state.is_flow_tag(state.current_tag);
             if (!is_flow_tag)
                 state.printer_.align_indent();
-            state.printer_.print_tag(f, l, is_flow_tag);
+            state.printer_.print_tag(x, is_flow_tag);
             if (!is_flow_tag)
                 state.printer_.break_line();
         }
 
-        void do_start_tag(iter_type f, iter_type l) const
+        void do_start_tag(std::string const& x) const
         {
             state.tags.push(state.current_tag);
             bool is_flow_tag = state.is_flow_tag(state.current_tag);
             if (!is_flow_tag)
                 state.printer_.align_indent();
-            state.printer_.print_tag(f, l, is_flow_tag);
+            state.printer_.print_tag(x, is_flow_tag);
             if (!is_flow_tag)
             {
                 state.current_indent += indent;
@@ -398,12 +399,12 @@ namespace quickbook
             }
         }
 
-        void do_content(iter_type f, iter_type l) const
+        void do_content(std::string const& x) const
         {
-            state.printer_.print(f, l);
+            state.printer_.print(x);
         }
 
-        void do_end_tag(iter_type f, iter_type l) const
+        void do_end_tag(std::string const& x) const
         {
             bool is_flow_tag = state.is_flow_tag(state.tags.top());
             if (!is_flow_tag)
@@ -411,7 +412,7 @@ namespace quickbook
                 state.current_indent -= indent;
                 state.printer_.align_indent();
             }
-            state.printer_.print_tag(f, l, is_flow_tag);
+            state.printer_.print_tag(x, is_flow_tag);
             if (!is_flow_tag)
                 state.printer_.break_line();
             state.tags.pop();
@@ -419,6 +420,12 @@ namespace quickbook
 
         tidy_compiler& state;
         int indent;
+
+        qi::rule<Iterator>  tidy, tag,
+                            markup, escape;
+        qi::rule<Iterator, std::string()>
+                            start_tag, start_end_tag,
+                            content, end_tag, code;
     };
 
     int post_process(
@@ -436,9 +443,10 @@ namespace quickbook
         {
             std::string tidy;
             tidy_compiler state(tidy, linewidth);
-            tidy_grammar g(state, indent);
-            classic::parse_info<iter_type> r = parse(in.begin(), in.end(), g, classic::space_p);
-            if (r.full)
+            tidy_grammar<iter_type> g(state, indent);
+            iter_type first = in.begin(), last = in.end();
+            bool r = parse(first, last, g, qi::space);
+            if (r && first == last)
             {
                 out << tidy;
                 return 0;
