@@ -31,6 +31,7 @@ exe quickbook
     detail/block.cpp
     detail/doc_info.cpp
     detail/code_snippet.cpp
+    detail/syntax_highlight.cpp
     /boost//program_options
     /boost//filesystem
     : #<define>QUICKBOOK_NO_DATES
