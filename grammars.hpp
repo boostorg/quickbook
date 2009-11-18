@@ -74,7 +74,8 @@ namespace quickbook
                         xinclude, include, hard_space, eol, paragraph_end,
                         template_, template_id, template_formal_arg,
                         template_body, identifier, dummy_block, import,
-                        inside_paragraph, element_id, element_id_1_5;
+                        inside_paragraph;
+        qi::rule<Iterator, boost::optional<std::string>()>  element_id, element_id_1_5;
     };
 
     template <typename Iterator, typename Actions>

@@ -858,13 +858,13 @@ namespace quickbook
         }
     }
 
-    void variablelist_action::operator()(unused_type, unused_type, unused_type) const
+    void variablelist_action::operator()(std::string const& title) const
     {
         actions.out << "<variablelist>\n";
 
         actions.out << "<title>";
-        std::string::iterator first = actions.table_title.begin();
-        std::string::iterator last = actions.table_title.end();
+        std::string::const_iterator first = title.begin();
+        std::string::const_iterator last = title.end();
         while (first != last)
             detail::print_char(*first++, actions.out.get());
         actions.out << "</title>\n";
@@ -876,7 +876,6 @@ namespace quickbook
         actions.out << "</variablelist>\n";
         actions.table_span = 0;
         actions.table_header.clear();
-        actions.table_title.clear();
     }
 
     void start_varlistitem_action::operator()(unused_type, unused_type, unused_type) const
@@ -893,17 +892,17 @@ namespace quickbook
         phrase << str << end_varlistitem_;
     }
 
-    void table_action::operator()(unused_type, unused_type, unused_type) const
+    void table_action::operator()(boost::optional<std::string> const& id, std::string const& title) const
     {
-        std::string::iterator first = actions.table_title.begin();
-        std::string::iterator last = actions.table_title.end();
+        std::string::const_iterator first = title.begin();
+        std::string::const_iterator last = title.end();
         bool has_title = first != last;
         
         std::string table_id;
         if(qbk_version_n >= 105) {
-            if(!actions.element_id.empty()) {
+            if(id) {
                 table_id = fully_qualified_id(actions.doc_id,
-                    actions.qualified_section_id, actions.element_id);
+                    actions.qualified_section_id, *id);
             }
             else if(has_title) {
                 table_id = fully_qualified_id(actions.doc_id,
@@ -958,7 +957,6 @@ namespace quickbook
 
         actions.table_span = 0;
         actions.table_header.clear();
-        actions.table_title.clear();
     }
 
     void start_row_action::operator()(unused_type, unused_type, unused_type) const
@@ -988,11 +986,10 @@ namespace quickbook
         phrase << str << end_cell_;
     }
 
-    void begin_section_action::operator()(iterator_range x, unused_type, unused_type) const
+    void begin_section_action::operator()(boost::optional<std::string> const& id, iterator_range x) const
     {
-        section_id = element_id.empty() ?
-            detail::make_identifier(x.begin(), x.end()) :
-            element_id;
+        section_id = id ? *id :
+            detail::make_identifier(x.begin(), x.end());
 
         if (section_level != 0)
             qualified_section_id += '.';

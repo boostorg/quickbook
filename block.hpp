@@ -20,6 +20,7 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
 
 namespace quickbook
 {
@@ -116,32 +117,24 @@ namespace quickbook
             ;
         
         element_id =
+            -(
                 ':'
-            >>
-                (
-                    (
-                        qi::eps(ph::ref(qbk_version_n) >= 105u) >> space
-                    |   qi::eps(ph::ref(qbk_version_n) < 105u)
-                    )
-                >>  qi::raw[+(qi::alnum | '_')] [ph::ref(actions.element_id) = as_string(qi::_1)]
-                |   qi::raw[qi::eps]            [actions.element_id_warning]
-                                                [ph::clear(ph::ref(actions.element_id))]
+            >>  -(qi::eps(qbk_since(105u)) >> space) 
+            >>  (
+                    (+(qi::alnum | qi::char_('_'))) [qi::_val = as_string(qi::_1)]
+                |   qi::raw[qi::eps]                [actions.element_id_warning]
                 )
-            | qi::eps                           [ph::clear(ph::ref(actions.element_id))]
-            ;
+            );
+
         
         element_id_1_5 =
-                qi::eps(ph::ref(qbk_version_n) >= 105u) >> element_id
-            |
-                qi::eps(ph::ref(qbk_version_n) < 105u)
-                                                [ph::clear(ph::ref(actions.element_id))]
-                ;
+            -(qi::eps(qbk_since(105u)) >> element_id [qi::_val = qi::_1]);
 
-        begin_section =
+        begin_section = (
                "section"
             >> hard_space
             >> element_id
-            >> qi::raw[phrase]                  [actions.begin_section]
+            >> qi::raw[phrase])                 [ph::bind(actions.begin_section, qi::_1, qi::_2)]
             ;
 
         end_section =
@@ -243,13 +236,13 @@ namespace quickbook
             >> space >> &qi::lit(']')
             ;
 
-        variablelist =
+        variablelist = (
             "variablelist"
-            >>  (&(*qi::blank >> qi::eol) | hard_space)
-            >>  (*(qi::char_ - eol))            [ph::ref(actions.table_title) = as_string(qi::_1)]
+            >>  qi::omit[&(*qi::blank >> qi::eol) | hard_space]
+            >>  *(qi::char_ - eol)
             >>  +eol
             >>  *varlistentry
-            >>  qi::eps                         [actions.variablelist]
+            )                                   [ph::bind(actions.variablelist, as_string(qi::_1))]
             ;
 
         varlistentry =
@@ -295,15 +288,15 @@ namespace quickbook
             )
             ;
 
-        table =
+        table = (
             "table"
             >>  (&(*qi::blank >> qi::eol) | hard_space)
-            >> element_id_1_5
+            >>  element_id_1_5
             >>  (&(*qi::blank >> qi::eol) | space)
-            >>  (*(qi::char_ - eol))            [ph::ref(actions.table_title) = as_string(qi::_1)]
+            >>  *(qi::char_ - eol)
             >>  +eol
             >>  *table_row
-            >>  qi::eps                         [actions.table]
+            )                                   [ph::bind(actions.table, qi::_1, as_string(qi::_2))]
             ;
 
         table_row =

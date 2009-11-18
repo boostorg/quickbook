@@ -585,7 +585,10 @@ namespace quickbook
         variablelist_action(quickbook::actions& actions)
         : actions(actions) {}
 
-        void operator()(unused_type, unused_type, unused_type) const;
+        template <typename T>
+        struct result { typedef void type; };
+
+        void operator()(std::string const&) const;
 
         quickbook::actions& actions;
     };
@@ -597,7 +600,10 @@ namespace quickbook
         table_action(quickbook::actions& actions)
         : actions(actions) {}
 
-        void operator()(unused_type, unused_type, unused_type) const;
+		template <typename Arg1, typename Arg2>
+		struct result { typedef void type; };
+
+        void operator()(boost::optional<std::string> const&, std::string const&) const;
 
         quickbook::actions& actions;
     };
@@ -641,7 +647,7 @@ namespace quickbook
     };
 
     struct begin_section_action
-    {
+    {    
         // Handles begin page
 
         begin_section_action(
@@ -650,17 +656,18 @@ namespace quickbook
           , std::string& library_id
           , std::string& section_id
           , int& section_level
-          , std::string& qualified_section_id
-          , std::string& element_id)
+          , std::string& qualified_section_id)
         : out(out)
         , phrase(phrase)
         , library_id(library_id)
         , section_id(section_id)
         , section_level(section_level)
-        , qualified_section_id(qualified_section_id)
-        , element_id(element_id) {}
+        , qualified_section_id(qualified_section_id) {}
 
-        void operator()(iterator_range, unused_type, unused_type) const;
+    	template <typename A1, typename A2>
+    	struct result { typedef void type; };
+
+        void operator()(boost::optional<std::string> const&, iterator_range) const;
 
         collector& out;
         collector& phrase;
@@ -668,7 +675,6 @@ namespace quickbook
         std::string& section_id;
         int& section_level;
         std::string& qualified_section_id;
-        std::string& element_id;
     };
 
     struct end_section_action
