@@ -27,6 +27,10 @@ exe quickbook
     detail/collector.cpp
     detail/template_stack.cpp
     detail/markups.cpp
+    detail/phrase.cpp
+    detail/block.cpp
+    detail/doc_info.cpp
+    detail/code_snippet.cpp
     /boost//program_options
     /boost//filesystem
     : #<define>QUICKBOOK_NO_DATES

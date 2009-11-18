@@ -820,6 +820,32 @@ namespace quickbook
         std::string& out;
         collector& phrase;
     };
+
+    struct code_snippet_actions
+    {
+        code_snippet_actions(std::vector<template_symbol>& storage,
+                                 std::string const& doc_id,
+                                 char const* source_type)
+            : storage(storage)
+            , doc_id(doc_id)
+            , source_type(source_type)
+        {}
+
+        void pass_thru(iterator first, iterator last);
+        void escaped_comment(iterator first, iterator last);
+        void compile(iterator first, iterator last);
+        void callout(iterator first, iterator last, char const* role);
+        void inline_callout(iterator first, iterator last);
+        void line_callout(iterator first, iterator last);
+
+        std::string code;
+        std::string snippet;
+        std::string id;
+        std::vector<std::string> callouts;
+        std::vector<template_symbol>& storage;
+        std::string const doc_id;
+        char const* const source_type;
+    };
 }
 
 #ifdef BOOST_MSVC
