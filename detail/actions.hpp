@@ -373,39 +373,23 @@ namespace quickbook
         collector& phrase;
     };
     
-    struct attribute_action
-    {
-        // Handle image attributes
-        
-        attribute_action(
-            attribute_map& attributes
-          , std::string& attribute_name)
-        : attributes(attributes)
-        , attribute_name(attribute_name) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        attribute_map& attributes;
-        std::string& attribute_name;
-    };
-
     struct image_action
     {
+        template <typename Arg1, typename Arg2, typename Arg3 = void>
+        struct result {typedef void type; };
+    
         // Handles inline images
 
-        image_action(
-            collector& phrase
-          , attribute_map& attributes
-          , std::string& image_fileref)
+        image_action(collector& phrase, int& error_count)
         : phrase(phrase)
-        , attributes(attributes)
-        , image_fileref(image_fileref) {}
+        , error_count(error_count) {}
 
-        void operator()(unused_type, unused_type, unused_type) const;
+        void operator()(iterator, std::string,
+            std::multimap<std::string, std::string>
+                = std::multimap<std::string, std::string>()) const;
 
         collector& phrase;
-        attribute_map& attributes;
-        std::string& image_fileref;
+        int& error_count;
     };
 
     struct markup_action

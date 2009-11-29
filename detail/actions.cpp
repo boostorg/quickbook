@@ -10,6 +10,8 @@
 =============================================================================*/
 #include <numeric>
 #include <functional>
+#include <algorithm>
+#include <iterator>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
@@ -395,21 +397,33 @@ namespace quickbook
         detail::print_char(*x.begin(), phrase.get());
     }
 
-    void attribute_action::operator()(iterator_range x, unused_type, unused_type) const
+    void image_action::operator()(iterator position, std::string image_fileref,
+            std::multimap<std::string, std::string> input_attributes) const
     {
-        boost::spirit::classic::file_position const pos = x.begin().get_position();
-
-        if (!attributes.insert(
-                attribute_map::value_type(attribute_name, std::string(x.begin(), x.end()))
-            ).second)
-        {
-            detail::outerr(pos.file,pos.line)
-                << "Repeated attribute: " << attribute_name << ".\n";
+        std::map<std::string, std::string> attributes(
+            input_attributes.begin(), input_attributes.end());
+        
+        if(attributes.size() != input_attributes.size()) {
+            boost::spirit::classic::file_position const pos = position.get_position();
+            
+            std::map<std::string, std::string> duplicates;
+            std::set_difference(
+                input_attributes.begin(), input_attributes.end(),
+                attributes.begin(), attributes.end(),
+                std::inserter(duplicates, duplicates.end()));
+            
+            for(std::map<std::string, std::string>::iterator
+                begin = duplicates.begin(), end = duplicates.end();
+                begin != end; ++begin)
+            {
+                detail::outerr(pos.file,pos.line)
+                    << "Duplicate image attribute: "
+                    << begin->first
+                    << std::endl;
+                ++error_count;
+            }
         }
-    }
-
-    void image_action::operator()(unused_type, unused_type, unused_type) const
-    {
+    
         fs::path const img_path(image_fileref);
         
         attribute_map::iterator it = attributes.find("alt");
@@ -434,6 +448,8 @@ namespace quickbook
            attributes.insert(attribute_map::value_type("format", "SVG"));
            //
            // Image paths are relative to the html subdirectory:
+           // TODO: This only works when you're running in the correct directory.
+           // Support 'boost:' directories? Include paths?
            //
            fs::path img;
            if(img_path.root_path().empty())
@@ -1218,10 +1234,12 @@ namespace quickbook
         code_snippet_actions a(storage, doc_id, is_python ? "[python]" : "[c++]");
         // TODO: Should I check that parse succeeded?
         if(is_python) {
-            boost::spirit::qi::parse(first, last, python_code_snippet_grammar<iterator>(a));
+            python_code_snippet_grammar<iterator> g(a);
+            boost::spirit::qi::parse(first, last, g);
         }
         else {
-            boost::spirit::qi::parse(first, last, cpp_code_snippet_grammar<iterator>(a));
+            cpp_code_snippet_grammar<iterator> g(a);
+            boost::spirit::qi::parse(first, last, g);
         }
 
         return 0;

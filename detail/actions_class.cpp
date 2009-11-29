@@ -62,9 +62,6 @@ namespace quickbook
         , template_escape(false)
         , templates()
         , error_count(0)
-        , image_fileref()
-        , attribute_name()
-        , attributes()
 
     // actions
         , error(error_count)
@@ -95,8 +92,7 @@ namespace quickbook
         , tip(out, temp_para, tip_pre, tip_post)
         , plain_char(phrase)
         , raw_char(phrase)
-        , attribute(attributes, attribute_name)
-        , image(phrase, attributes, image_fileref)
+        , image(phrase, error_count)
         , cond_phrase_pre(phrase, conditions, macro)
         , cond_phrase_post(phrase, conditions, macro)
 

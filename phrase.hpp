@@ -14,6 +14,7 @@
 #include "./detail/quickbook.hpp"
 #include "./detail/utils.hpp"
 #include "./parse_utils.hpp"
+#include <map>
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_auxiliary.hpp>
 #include <boost/spirit/repository/include/qi_confix.hpp>
@@ -22,7 +23,8 @@
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/fusion/include/make_fused.hpp>
+#include <boost/spirit/include/phoenix_function.hpp>
+#include <boost/fusion/include/std_pair.hpp>
 
 namespace quickbook
 {
@@ -72,7 +74,7 @@ namespace quickbook
         bool& no_eols;
 
         qi::rule<Iterator>
-                        space, blank, comment, phrase, phrase_markup, image,
+                        space, blank, comment, phrase, phrase_markup,
                         phrase_end, bold, italic, underline, teletype,
                         strikethrough, escape, url, common, funcref, classref,
                         memberref, enumref, macroref, headerref, conceptref, globalref,
@@ -84,8 +86,13 @@ namespace quickbook
                         brackets_1_4, template_inner_arg_1_5, brackets_1_5
                         ;
 
-        qi::rule<Iterator, std::string()> image_filename, template_arg_1_4, template_arg_1_5;
+        qi::rule<Iterator, std::string()> template_arg_1_4, template_arg_1_5;
         qi::rule<Iterator, std::vector<std::string>() > template_args;
+
+        qi::rule<Iterator> image, image_1_4, image_1_5;
+        qi::rule<Iterator, std::string()> image_filename, image_attribute_key, image_attribute_value;
+        qi::rule<Iterator, std::multimap<std::string, std::string>()> image_attributes;
+        qi::rule<Iterator, std::pair<std::string, std::string>()> image_attribute;
     };
 
     template <typename Iterator, typename Actions>
@@ -294,35 +301,46 @@ namespace quickbook
             ;
 
         image =
-                '$' >> blank                        [ph::clear(ph::ref(actions.attributes))]
-            >> (
-                qi::eps(qbk_since(105u)) >> (
-                        image_filename              [ph::ref(actions.image_fileref) = qi::_1]
-                    >>  hard_space
-                    >>  *(
-                            '['
-                        >>  qi::raw[*(qi::alnum | '_')]
-                                                    [ph::ref(actions.attribute_name) = as_string(qi::_1)]
-                        >>  space
-                        >>  qi::raw[*(qi::char_ - (phrase_end | '['))]
-                                                    [actions.attribute]
-                        >>  ']'
-                        >>  space
-                        )
-                ) |
-                qi::eps(qbk_before(105u)) >> (
-                        (*(qi::char_ -
-                            phrase_end))            [ph::ref(actions.image_fileref) = as_string(qi::_1)]
-                )
-            )
-            >>  &qi::lit(']')                       [actions.image]
+            (qi::eps(qbk_since(105u)) >> image_1_5) |
+            (qi::eps(qbk_before(105u)) >> image_1_4);
+        
+        image_1_4 = (
+                qi::raw['$']
+            >>  blank
+            >>  *(qi::char_ - phrase_end)
+            >>  &qi::lit(']')
+            ) [ph::bind(actions.image, ph::begin(qi::_1), as_string(qi::_2))]
+            ;
+        
+        image_1_5 = (
+                qi::raw['$']
+            >>  blank
+            >>  image_filename
+            >>  hard_space
+            >>  image_attributes
+            >>  &qi::lit(']')
+            ) [ph::bind(actions.image, ph::begin(qi::_1), qi::_2, qi::_3)]
             ;
 
         image_filename = qi::raw[
-            +(
-                *qi::space
-            >>  +(qi::char_ - (qi::space | phrase_end | '['))
-            )];
+                +(qi::char_ - (qi::space | phrase_end | '['))
+            >>  *(
+                    +qi::space
+                >>  +(qi::char_ - (qi::space | phrase_end | '['))
+             )];
+
+        image_attributes = *(image_attribute >> space);
+        
+        image_attribute =
+                '['
+            >>  image_attribute_key
+            >>  space
+            >>  image_attribute_value
+            >>  ']'
+            ;
+            
+        image_attribute_key = *(qi::alnum | '_');
+        image_attribute_value = *(qi::char_ - (phrase_end | '['));
 
         url =
                 '@'
