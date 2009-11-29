@@ -39,7 +39,6 @@ namespace quickbook
 
     // auxilliary streams
         , phrase()
-        , temp()
         , list_buffer()
 
     // state
@@ -68,7 +67,7 @@ namespace quickbook
         , extract_doc_license(doc_license, phrase)
         , extract_doc_purpose(doc_purpose, phrase)
 
-        , syntax_p(temp, source_mode, macro, *this)
+        , syntax_p(source_mode, macro, *this)
         , code(out, phrase, syntax_p)
         , code_block(phrase, phrase, syntax_p)
         , inline_code(phrase, syntax_p)
@@ -203,7 +202,6 @@ namespace quickbook
 
         out.push();
         phrase.push();
-        temp.push();
         temp_para.push();
         list_buffer.push();
         templates.push();
@@ -224,7 +222,6 @@ namespace quickbook
 
         out.pop();
         phrase.pop();
-        temp.pop();
         temp_para.pop();
         list_buffer.pop();
         templates.pop();

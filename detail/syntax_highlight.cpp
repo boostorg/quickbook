@@ -42,6 +42,8 @@ namespace quickbook
     
     std::string syntax_highlight::operator()(iterator first, iterator last) const
     {
+        collector temp;
+
         // print the code with syntax coloring
         if (source_mode == "c++")
         {

@@ -411,12 +411,10 @@ namespace quickbook
     struct syntax_highlight
     {
         syntax_highlight(
-            collector& temp
-          , std::string const& source_mode
+            std::string const& source_mode
           , string_symbols const& macro
           , actions& escape_actions)
-        : temp(temp)
-        , source_mode(source_mode)
+        : source_mode(source_mode)
         , macro(macro)
         , escape_actions(escape_actions)
         {
@@ -424,7 +422,6 @@ namespace quickbook
 
         std::string operator()(iterator begin, iterator end) const;
 
-        collector& temp;
         std::string const& source_mode;
         string_symbols const& macro;
         actions& escape_actions;

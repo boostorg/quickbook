@@ -53,7 +53,6 @@ namespace quickbook
 
     // auxilliary streams
         collector               phrase;
-        collector               temp;
         collector               temp_para;
         collector               list_buffer;
 
