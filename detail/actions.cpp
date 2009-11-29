@@ -692,9 +692,6 @@ namespace quickbook
           , quickbook::actions& actions
         )
         {
-            simple_phrase_grammar<iterator, quickbook::actions> phrase_p(actions);
-            block_grammar<iterator, quickbook::actions, false> block_p(actions);
-
             // How do we know if we are to parse the template as a block or
             // a phrase? We apply a simple heuristic: if the body starts with
             // a newline, then we regard it as a block, otherwise, we parse
@@ -715,6 +712,8 @@ namespace quickbook
             }
             else if (!is_block)
             {
+                simple_phrase_grammar<iterator, quickbook::actions> phrase_p(actions);
+
                 //  do a phrase level parse
                 iterator first(body.begin(), body.end(), actions.filename.native_file_string().c_str());
                 first.set_position(template_pos);
@@ -724,6 +723,8 @@ namespace quickbook
             }
             else
             {
+                block_grammar<iterator, quickbook::actions, false> block_p(actions);
+
                 //  do a block level parse
                 //  ensure that we have enough trailing newlines to eliminate
                 //  the need to check for end of file in the grammar.
@@ -810,6 +811,7 @@ namespace quickbook
             {
                 detail::outerr(pos.file,pos.line)
                     //<< "Expanding template:" << template_info[0] << std::endl
+                    << std::endl
                     << "------------------begin------------------" << std::endl
                     << body
                     << "------------------end--------------------" << std::endl

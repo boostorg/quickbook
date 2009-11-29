@@ -23,9 +23,33 @@ namespace quickbook
     namespace ph = boost::phoenix;
 
     template <typename Iterator>
+    struct python_code_snippet_grammar<Iterator>::rules
+    {
+        typedef code_snippet_actions actions_type;
+  
+        rules(actions_type & actions);
+
+        actions_type& actions;
+
+        qi::rule<Iterator>
+            start_, snippet, code_elements, escaped_comment,
+            inline_callout, line_callout, ignore;
+        qi::rule<Iterator, std::string()>
+            identifier;
+    };  
+
+    template <typename Iterator>
     python_code_snippet_grammar<Iterator>::python_code_snippet_grammar(actions_type & actions)
-        : python_code_snippet_grammar::base_type(start_)
-        , actions(actions)
+        : python_code_snippet_grammar::base_type(start)
+        , rules_pimpl(new rules(actions))
+        , start(rules_pimpl->start_) {}
+
+    template <typename Iterator>
+    python_code_snippet_grammar<Iterator>::~python_code_snippet_grammar() {}
+
+    template <typename Iterator>
+    python_code_snippet_grammar<Iterator>::rules::rules(actions_type& actions)
+        : actions(actions)
     {
         start_ =
             +(
@@ -75,9 +99,33 @@ namespace quickbook
     }
 
     template <typename Iterator>
+    struct cpp_code_snippet_grammar<Iterator>::rules
+    {
+        typedef code_snippet_actions actions_type;
+  
+        rules(actions_type & actions);
+
+        actions_type& actions;
+
+        qi::rule<Iterator>
+            start_, snippet, code_elements, escaped_comment,
+            inline_callout, line_callout, ignore;
+        qi::rule<Iterator, std::string()>
+            identifier;
+    };
+
+    template <typename Iterator>
     cpp_code_snippet_grammar<Iterator>::cpp_code_snippet_grammar(actions_type & actions)
-        : cpp_code_snippet_grammar::base_type(start_)
-        , actions(actions)
+        : cpp_code_snippet_grammar::base_type(start)
+        , rules_pimpl(new rules(actions))
+        , start(rules_pimpl->start_) {}
+
+    template <typename Iterator>
+    cpp_code_snippet_grammar<Iterator>::~cpp_code_snippet_grammar() {}
+
+    template <typename Iterator>
+    cpp_code_snippet_grammar<Iterator>::rules::rules(actions_type & actions)
+        : actions(actions)
     {
         start_ =
             +(

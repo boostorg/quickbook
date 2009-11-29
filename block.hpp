@@ -28,11 +28,41 @@ namespace quickbook
     namespace ph = boost::phoenix;
 
     template <typename Iterator, typename Actions, bool skip_initial_spaces>
+    struct block_grammar<Iterator, Actions, skip_initial_spaces>::rules
+    {
+        rules(Actions& actions_);
+
+        Actions& actions;
+        bool no_eols;
+        phrase_grammar<Iterator, Actions> common;
+        qi::symbols<>   paragraph_end_markups;
+        qi::rule<Iterator>
+                        start_, blocks, block_markup, code, code_line,
+                        paragraph, space, blank, comment, headings, h, h1, h2,
+                        h3, h4, h5, h6, hr, blurb, blockquote, admonition,
+                        phrase, list, phrase_end, ordered_list, def_macro,
+                        macro_identifier, table, table_row, variablelist,
+                        varlistentry, varlistterm, varlistitem, table_cell,
+                        preformatted, list_item, begin_section, end_section,
+                        xinclude, include, hard_space, eol, paragraph_end,
+                        template_, template_id, template_formal_arg,
+                        template_body, identifier, dummy_block, import,
+                        inside_paragraph;
+        qi::rule<Iterator, boost::optional<std::string>()>  element_id, element_id_1_5;
+    };
+
+    template <typename Iterator, typename Actions, bool skip_initial_spaces>
     block_grammar<Iterator, Actions, skip_initial_spaces>::block_grammar(Actions& actions_)
-        : block_grammar::base_type(start_, "block")
-        , actions(actions_)
-        , no_eols(true)
-        , common(actions, no_eols)
+        : block_grammar::base_type(start, "block")
+        , rules_pimpl(new rules(actions_))
+        , start(rules_pimpl->start_) {}
+
+    template <typename Iterator, typename Actions, bool skip_initial_spaces>
+    block_grammar<Iterator, Actions, skip_initial_spaces>::~block_grammar() {}
+
+    template <typename Iterator, typename Actions, bool skip_initial_spaces>
+    block_grammar<Iterator, Actions, skip_initial_spaces>::rules::rules(Actions& actions_)
+        : actions(actions_), no_eols(true), common(actions, no_eols)
     {
         if (skip_initial_spaces)
         {

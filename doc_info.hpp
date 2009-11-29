@@ -27,9 +27,36 @@ namespace quickbook
     namespace ph = boost::phoenix;
 
     template <typename Iterator, typename Actions>
+    struct doc_info_grammar<Iterator, Actions>::rules
+    {
+        rules(Actions& actions);
+
+        Actions& actions;
+        bool unused;
+        std::pair<std::string, std::string> name;
+        std::pair<std::vector<std::string>, std::string> copyright;
+        phrase_grammar<Iterator, Actions> common;
+        qi::symbols<char> doc_types;
+        qi::rule<Iterator>
+                        doc_info, doc_title, doc_version, doc_id, doc_dirname,
+                        doc_copyright, doc_purpose,doc_category, doc_authors,
+                        doc_author, comment, space, hard_space, doc_license,
+                        doc_last_revision, doc_source_mode, phrase, quickbook_version;
+    };
+
+    template <typename Iterator, typename Actions>
     doc_info_grammar<Iterator, Actions>::doc_info_grammar(Actions& actions)
-            : doc_info_grammar::base_type(doc_info), actions(actions)
-            , unused(false), common(actions, unused)
+            : doc_info_grammar::base_type(start)
+            , rules_pimpl(new rules(actions))
+            , start(rules_pimpl->doc_info) {}
+
+    template <typename Iterator, typename Actions>
+    doc_info_grammar<Iterator, Actions>::~doc_info_grammar() {}
+
+
+    template <typename Iterator, typename Actions>
+    doc_info_grammar<Iterator, Actions>::rules::rules(Actions& actions)
+            : actions(actions), unused(false), common(actions, unused)
     {
         typedef qi::uint_parser<int, 10, 1, 2>  uint2_t;
 

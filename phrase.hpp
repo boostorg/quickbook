@@ -64,10 +64,44 @@ namespace quickbook
     }
 
     template <typename Iterator, typename Actions>
+    struct phrase_grammar<Iterator, Actions>::rules
+    {
+        rules(Actions& actions, bool& no_eols);
+    
+        Actions& actions;
+        bool& no_eols;
+
+        qi::rule<Iterator>
+                        space, blank, comment, phrase, phrase_markup, image,
+                        phrase_end, bold, italic, underline, teletype,
+                        strikethrough, escape, url, common, funcref, classref,
+                        memberref, enumref, macroref, headerref, conceptref, globalref,
+                        anchor, link, hard_space, eol, inline_code, simple_format,
+                        simple_bold, simple_italic, simple_underline,
+                        simple_teletype, source_mode, template_,
+                        quote, code_block, footnote, replaceable, macro,
+                        dummy_block, cond_phrase, macro_identifier,
+                        brackets_1_4, template_inner_arg_1_5, brackets_1_5
+                        ;
+
+        qi::rule<Iterator, std::string()> image_filename, template_arg_1_4, template_arg_1_5;
+        qi::rule<Iterator, std::vector<std::string>() > template_args;
+    };
+
+    template <typename Iterator, typename Actions>
     phrase_grammar<Iterator, Actions>::phrase_grammar(Actions& actions, bool& no_eols)
-        : phrase_grammar::base_type(common, "phrase"),
-        actions(actions),
-        no_eols(no_eols)
+        : phrase_grammar::base_type(start, "phrase")
+        , rules_pimpl(new rules(actions, no_eols))
+    {
+        start = rules_pimpl->common;
+    }
+
+    template <typename Iterator, typename Actions>
+    phrase_grammar<Iterator, Actions>::~phrase_grammar() {}
+
+    template <typename Iterator, typename Actions>
+    phrase_grammar<Iterator, Actions>::rules::rules(Actions& actions, bool& no_eols)
+        : actions(actions), no_eols(no_eols)
     {
         space =
             *(qi::space | comment)
@@ -436,10 +470,28 @@ namespace quickbook
     }
 
     template <typename Iterator, typename Actions>
+    struct simple_phrase_grammar<Iterator, Actions>::rules
+    {
+        rules(Actions& actions);
+
+        Actions& actions;
+        bool unused;
+        phrase_grammar<Iterator, Actions> common;
+        qi::rule<Iterator> phrase, comment, dummy_block;
+    };
+
+    template <typename Iterator, typename Actions>
     simple_phrase_grammar<Iterator, Actions>::simple_phrase_grammar(Actions& actions)
-        : simple_phrase_grammar::base_type(phrase, "simple_phrase")
-        , actions(actions), unused(false), common(actions, unused),
-        phrase("phrase"), comment("comment"), dummy_block("dummy_block")
+        : simple_phrase_grammar::base_type(start, "simple_phrase")
+        , rules_pimpl(new rules(actions))
+        , start(rules_pimpl->phrase) {}
+
+    template <typename Iterator, typename Actions>
+    simple_phrase_grammar<Iterator, Actions>::~simple_phrase_grammar() {}
+
+    template <typename Iterator, typename Actions>
+    simple_phrase_grammar<Iterator, Actions>::rules::rules(Actions& actions)
+        : actions(actions), unused(false), common(actions, unused)
     {
         phrase =
            *(   common
