@@ -37,10 +37,25 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, content)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::image,
+    (quickbook::file_position, position)
+    (std::string, image_filename)
+    (quickbook::image::attribute_map, attributes)
+)
+
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
+    
+    struct get_position_impl
+    {
+        template <typename Context>
+        void operator()(iterator_range& it, Context& c, unused_type x) const {
+            qi::_val(it, c, x) = it.begin().get_position();
+        }
+    } get_position;
     
     struct phrase_grammar::rules
     {
@@ -60,14 +75,16 @@ namespace quickbook
                         brackets_1_4, template_inner_arg_1_5, brackets_1_5
                         ;
 
+        qi::rule<iterator, file_position()> position;
+
         qi::rule<iterator, std::string()> template_arg_1_4, template_arg_1_5;
         qi::rule<iterator, std::vector<std::string>() > template_args;
 
         qi::rule<iterator, std::string()> phrase_attr;
 
-        qi::rule<iterator> image, image_1_4, image_1_5;
+        qi::rule<iterator, quickbook::image()> image, image_1_4, image_1_5;
         qi::rule<iterator, std::string()> image_filename, image_attribute_key, image_attribute_value;
-        qi::rule<iterator, std::multimap<std::string, std::string>()> image_attributes;
+        qi::rule<iterator, quickbook::image::attribute_map()> image_attributes;
         qi::rule<iterator, std::pair<std::string, std::string>()> image_attribute;
         
         qi::rule<iterator, boost::iterator_range<iterator>(char)> simple_markup;
@@ -254,7 +271,7 @@ namespace quickbook
         phrase_markup =
                 '['
             >>  (   cond_phrase
-                |   image
+                |   image                           [actions.process]
                 |   url                             [actions.process]
                 |   link                            [actions.process]
                 |   anchor
@@ -298,22 +315,22 @@ namespace quickbook
             (qi::eps(qbk_since(105u)) >> image_1_5) |
             (qi::eps(qbk_before(105u)) >> image_1_4);
         
-        image_1_4 = (
-                qi::raw['$']
+        image_1_4 =
+                position
+            >>  '$'
             >>  blank
             >>  *(qi::char_ - phrase_end)
             >>  &qi::lit(']')
-            ) [ph::bind(actions.image, ph::begin(qi::_1), as_string(qi::_2))]
             ;
         
-        image_1_5 = (
-                qi::raw['$']
+        image_1_5 =
+                position
+            >>  '$'
             >>  blank
             >>  image_filename
             >>  hard_space
             >>  image_attributes
             >>  &qi::lit(']')
-            ) [ph::bind(actions.image, ph::begin(qi::_1), qi::_2, qi::_3)]
             ;
 
         image_filename = qi::raw[
@@ -417,6 +434,8 @@ namespace quickbook
                 qi::lit("footnote")                 [actions.footnote_pre]
             >>  blank >> phrase                     [actions.footnote_post]
             ;
+
+         position = qi::raw[qi::eps] [get_position];
     }
 
     struct simple_phrase_grammar::rules

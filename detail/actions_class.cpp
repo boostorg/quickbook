@@ -94,7 +94,6 @@ namespace quickbook
         , tip(out, temp_para, tip_pre, tip_post)
         , plain_char(phrase)
         , raw_char(phrase)
-        , image(phrase, error_count)
         , cond_phrase_pre(phrase, conditions, macro)
         , cond_phrase_post(phrase, conditions, macro)
 

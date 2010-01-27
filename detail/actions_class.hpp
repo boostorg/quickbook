@@ -117,7 +117,6 @@ namespace quickbook
         phrase_action           warning, caution, important, note, tip;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
-        image_action            image;
         cond_phrase_action_pre  cond_phrase_pre;
         cond_phrase_action_post cond_phrase_post;
 

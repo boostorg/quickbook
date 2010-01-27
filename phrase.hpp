@@ -11,11 +11,14 @@
 #define BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP
 
 #include <string>
+#include <map>
+#include <boost/spirit/include/classic_position_iterator.hpp>
 
 namespace quickbook
 {
     // TODO: Add to a forward header somewhere.
     class actions;
+    typedef boost::spirit::classic::file_position file_position;
 
     struct source_mode {
         source_mode() {}
@@ -39,9 +42,18 @@ namespace quickbook
         std::string destination;
         std::string content;
     };
+    
+    struct image {
+        typedef std::multimap<std::string, std::string> attribute_map;
+    
+        file_position position;
+        std::string image_filename;
+        attribute_map attributes;
+    };
 
     void process(quickbook::actions& actions, source_mode const& s);
     void process(quickbook::actions& actions, link const& x);
+    void process(quickbook::actions& actions, image const& x);
 }
 
 #endif // BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP

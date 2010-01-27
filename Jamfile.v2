@@ -29,6 +29,7 @@ exe quickbook
     detail/markups.cpp
     phrase.cpp
     phrase_actions.cpp
+    phrase_image.cpp
     block.cpp
     doc_info.cpp
     detail/syntax_highlight.cpp

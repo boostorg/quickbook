@@ -376,25 +376,6 @@ namespace quickbook
         collector& phrase;
     };
     
-    struct image_action
-    {
-        template <typename Arg1, typename Arg2, typename Arg3 = void>
-        struct result {typedef void type; };
-    
-        // Handles inline images
-
-        image_action(collector& phrase, int& error_count)
-        : phrase(phrase)
-        , error_count(error_count) {}
-
-        void operator()(iterator, std::string,
-            std::multimap<std::string, std::string>
-                = std::multimap<std::string, std::string>()) const;
-
-        collector& phrase;
-        int& error_count;
-    };
-
     struct markup_action
     {
         template <typename T = void> struct result { typedef void type; };
