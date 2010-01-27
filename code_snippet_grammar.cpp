@@ -11,18 +11,14 @@
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_attr.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
+#include "fwd.hpp"
 #include "code_snippet_types.hpp"
 #include "grammars.hpp"
 #include "parse_utils.hpp"
-#include "actions.hpp"
-#include "actions_class.hpp"
 
 namespace quickbook
 {
-    namespace ph = boost::phoenix;
+    namespace qi = boost::spirit::qi;
 
     namespace
     {

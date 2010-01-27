@@ -8,15 +8,16 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
+#include <numeric>
+#include <boost/assert.hpp>
+#include <boost/filesystem/convenience.hpp>
 #include "block.hpp"
 #include "actions_class.hpp"
 #include "markups.hpp"
 #include "quickbook.hpp"
 #include "grammars.hpp"
 #include "code_snippet_types.hpp"
-#include <numeric>
-#include <boost/assert.hpp>
-#include <boost/filesystem/convenience.hpp>
+#include "utils.hpp"
 
 namespace quickbook
 {
@@ -450,7 +451,7 @@ namespace quickbook
             std::string tname = boost::get<0>(ts)[0];
             if (actions.templates.find_top_scope(tname))
             {
-                boost::spirit::classic::file_position const pos = boost::get<1>(ts);
+                file_position const pos = boost::get<1>(ts);
                 detail::outerr(pos.file, pos.line)
                     << "Template Redefinition: " << tname << std::endl;
                 ++actions.error_count;

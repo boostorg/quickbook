@@ -12,8 +12,8 @@
 
 #include <string>
 #include <map>
+#include "fwd.hpp"
 #include "parse_types.hpp"
-#include "code.hpp"
 #include "template_stack.hpp"
 
 namespace quickbook

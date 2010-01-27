@@ -7,29 +7,24 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#if !defined(BOOST_SPIRIT_QUICKBOOK_CODE_HPP)
-#define BOOST_SPIRIT_QUICKBOOK_CODE_HPP
+#if !defined(BOOST_SPIRIT_FWD_HPP)
+#define BOOST_SPIRIT_FWD_HPP
 
-#include <string>
-#include <boost/fusion/include/adapt_struct.hpp>
-#include "fwd.hpp"
+#include <boost/spirit/include/classic_iterator.hpp>
 
 namespace quickbook
 {
-    struct code {
-        bool block;
-        file_position position;
-        std::string code;
-    };
-    
-    void process(quickbook::actions&, code const&);
-}
+    struct macro;
 
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::code,
-    (quickbook::file_position, position)
-    (std::string, code)
-    (bool, block)
-)
+    struct actions;
+    struct code_snippet_actions;
+
+    struct collector;
+    struct string_stream;
+    
+    typedef boost::spirit::classic::position_iterator<
+        std::string::const_iterator> iterator;
+    typedef boost::spirit::classic::file_position file_position;
+}
 
 #endif

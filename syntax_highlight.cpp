@@ -16,9 +16,9 @@
 #include <boost/spirit/include/qi_directive.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include "actions_class.hpp"
-#include "parse_types.hpp"
 #include "grammars.hpp"
 #include "phrase.hpp"
+#include "utils.hpp"
 
 namespace quickbook
 {

@@ -6,14 +6,20 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#include "collector.hpp"
+
 #include <boost/assert.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include "collector.hpp"
 
 namespace quickbook
 {
+    typedef boost::iostreams::filtering_ostream filtering_ostream;
+
     string_stream::string_stream()
         : buffer_ptr(new std::string())
-        , stream_ptr(new ostream(boost::iostreams::back_inserter(*buffer_ptr.get())))
+        , stream_ptr(new filtering_ostream(
+            boost::iostreams::back_inserter(*buffer_ptr.get())))
     {}
 
     string_stream::string_stream(string_stream const& other)
@@ -28,7 +34,7 @@ namespace quickbook
         stream_ptr = other.stream_ptr;
         return *this;
     }
-        
+
     collector::collector()
         : main(default_)
         , top(default_)

@@ -11,18 +11,14 @@
 
 #include <string>
 #include <stack>
+#include <ostream>
 #include <boost/ref.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/noncopyable.hpp>
-#include <boost/iostreams/device/back_inserter.hpp>
-#include <boost/iostreams/filtering_stream.hpp>
 
 namespace quickbook
 {
     struct string_stream
     {
-        typedef boost::iostreams::filtering_ostream ostream;
-
         string_stream();
         string_stream(string_stream const& other);
         string_stream& operator=(string_stream const& other);
@@ -58,10 +54,10 @@ namespace quickbook
     private:
 
         boost::shared_ptr<std::string> buffer_ptr;
-        boost::shared_ptr<ostream> stream_ptr;
+        boost::shared_ptr<std::ostream> stream_ptr;
     };
 
-    struct collector : boost::noncopyable
+    struct collector
     {
         collector();
         collector(string_stream& out);
@@ -101,6 +97,9 @@ namespace quickbook
         boost::reference_wrapper<string_stream> main;
         boost::reference_wrapper<string_stream> top;
         string_stream default_;
+        
+        collector(collector const&);
+        collector& operator=(collector const&);
     };
     
     template <typename T>

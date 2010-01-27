@@ -10,8 +10,12 @@
 #if !defined(BOOST_SPIRIT_ACTIONS_CLASS_HPP)
 #define BOOST_SPIRIT_ACTIONS_CLASS_HPP
 
-#include "actions.hpp"
 #include <boost/tuple/tuple.hpp>
+#include <boost/filesystem/path.hpp>
+#include "fwd.hpp"
+#include "actions.hpp"
+#include "collector.hpp"
+#include "template_stack.hpp"
 
 namespace quickbook
 {

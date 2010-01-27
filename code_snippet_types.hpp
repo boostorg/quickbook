@@ -15,11 +15,15 @@
 #include <vector>
 #include <string>
 #include <boost/fusion/include/adapt_struct.hpp>
-#include "parse_types.hpp"
-#include "actions.hpp"
+#include <boost/spirit/include/support_unused.hpp>
+#include "fwd.hpp"
+// TODO: Convert template_symbol into a struct so it can be forward declared.
+#include "template_stack.hpp"
 
 namespace quickbook
 {
+    using boost::spirit::unused_type;
+
     struct code_snippet
     {
         file_position position;

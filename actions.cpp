@@ -8,19 +8,13 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#include <numeric>
-#include <functional>
-#include <algorithm>
-#include <iterator>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/filesystem/fstream.hpp>
+
 #include <boost/spirit/include/support_unused.hpp>
-#include "quickbook.hpp"
 #include "actions.hpp"
-#include "utils.hpp"
-#include "markups.hpp"
 #include "actions_class.hpp"
-#include "grammars.hpp"
+#include "grammars.hpp" // TODO: Needed for doc_info
+#include "quickbook.hpp" // TODO: Quickbook version number
+#include "utils.hpp"
 
 namespace quickbook
 {
@@ -46,7 +40,7 @@ namespace quickbook
 
     void error_action::operator()(iterator_range x, unused_type, unused_type) const
     {
-        boost::spirit::classic::file_position const pos = x.begin().get_position();
+        file_position const pos = x.begin().get_position();
         detail::outerr(pos.file,pos.line)
             << "Syntax Error near column " << pos.column << ".\n";
         ++error_count;
@@ -64,7 +58,7 @@ namespace quickbook
 
     void element_id_warning_action::operator()(iterator_range x, unused_type, unused_type) const
     {
-        boost::spirit::classic::file_position const pos = x.begin().get_position();
+        file_position const pos = x.begin().get_position();
         detail::outwarn(pos.file,pos.line) << "Empty id.\n";        
     }
 

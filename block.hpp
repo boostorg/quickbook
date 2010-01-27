@@ -13,15 +13,11 @@
 #include <string>
 #include <vector>
 #include <boost/optional.hpp>
-#include <boost/spirit/include/classic_position_iterator.hpp>
+#include "fwd.hpp"
 #include "parse_types.hpp"
-#include "code.hpp"
 
 namespace quickbook
 {
-    class actions;
-    typedef boost::spirit::classic::file_position file_position;
-
     struct hr
     {
     };

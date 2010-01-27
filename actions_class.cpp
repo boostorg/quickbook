@@ -8,8 +8,9 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
+
+#include <boost/filesystem/operations.hpp>
 #include "actions_class.hpp"
-#include "markups.hpp"
 
 #if (defined(BOOST_MSVC) && (BOOST_MSVC <= 1310))
 #pragma warning(disable:4355)
@@ -17,6 +18,8 @@
 
 namespace quickbook
 {
+    namespace fs = boost::filesystem;
+
     actions::actions(char const* filein_, fs::path const& outdir_, string_stream& out_)
     // header info
         : doc_id()

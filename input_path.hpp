@@ -10,8 +10,8 @@
 #define BOOST_QUICKBOOK_DETAIL_INPUT_PATH_HPP
 
 #include <vector>
-#include <boost/any.hpp>
 #include <string>
+#include <boost/any.hpp>
 
 namespace quickbook { namespace detail
 {

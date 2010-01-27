@@ -14,14 +14,13 @@
 
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_function.hpp>
-#include <boost/spirit/include/support_attributes.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/qi_core.hpp>
+#include <boost/spirit/include/support_attributes.hpp>
 #include <string>
 
 namespace quickbook
 {
-    namespace qi = boost::spirit::qi;
+    namespace spirit = boost::spirit;
     namespace ph = boost::phoenix;
 
     // as_string - converts a char range to a string.
@@ -60,10 +59,7 @@ namespace quickbook
     
         template <typename Context>
         void operator()(Member& attrib, Context& context, bool& pass) const {
-            namespace qi = boost::spirit::qi;
-            namespace ph = boost::phoenix;
-        
-            (ph::bind(mem_ptr_, qi::_val) = attrib)(attrib, context, pass);
+            (ph::bind(mem_ptr_, spirit::_val) = attrib)(attrib, context, pass);
         }
         
         Member Struct::*mem_ptr_;
@@ -75,18 +71,12 @@ namespace quickbook
     
         template <typename Context>
         void operator()(std::string& attrib, Context& context, bool& pass) const {
-            namespace qi = boost::spirit::qi;
-            namespace ph = boost::phoenix;
-        
-            (ph::bind(mem_ptr_, qi::_val) = attrib)(attrib, context, pass);
+            (ph::bind(mem_ptr_, spirit::_val) = attrib)(attrib, context, pass);
         }
 
         template <typename Attrib, typename Context>
         void operator()(Attrib& attrib, Context& context, bool& pass) const {
-            namespace qi = boost::spirit::qi;
-            namespace ph = boost::phoenix;
-        
-            (ph::bind(mem_ptr_, qi::_val) = std::string(attrib.begin(), attrib.end()))(attrib, context, pass);
+            (ph::bind(mem_ptr_, spirit::_val) = std::string(attrib.begin(), attrib.end()))(attrib, context, pass);
         }
         
         std::string Struct::*mem_ptr_;

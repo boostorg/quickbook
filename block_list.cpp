@@ -8,9 +8,10 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
+#include <boost/assert.hpp>
 #include "block.hpp"
 #include "actions_class.hpp"
-#include <boost/assert.hpp>
+#include "utils.hpp"
 
 namespace quickbook
 {
@@ -76,7 +77,7 @@ namespace quickbook
     
             if (it->mark != list_marks.top().first)
             {
-                boost::spirit::classic::file_position const pos = it->position;
+                file_position const pos = it->position;
                 detail::outerr(pos.file,pos.line)
                     << "Illegal change of list style near column " << pos.column << ".\n";
                 detail::outwarn(pos.file,pos.line)

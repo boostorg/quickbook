@@ -16,13 +16,8 @@
 #include <vector>
 #include <stack>
 #include <algorithm>
-#include <boost/spirit/include/classic_iterator.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
-#include "collector.hpp"
-#include "template_stack.hpp"
-#include "utils.hpp"
+#include <boost/spirit/include/qi_symbols.hpp>
+#include "fwd.hpp"
 
 #ifdef BOOST_MSVC
 // disable copy/assignment could not be generated, unreferenced formal params
@@ -33,7 +28,6 @@
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
-    namespace fs = boost::filesystem;
     using boost::spirit::unused_type;
 
     struct macro {
@@ -46,9 +40,6 @@ namespace quickbook
 
     typedef qi::symbols<char, macro> macro_symbols;    
 
-    typedef boost::spirit::classic::position_iterator<
-        std::string::const_iterator> iterator;
-    typedef boost::spirit::classic::file_position file_position;
     typedef boost::iterator_range<iterator> iterator_range;
     typedef std::map<std::string, std::string> attribute_map;
 

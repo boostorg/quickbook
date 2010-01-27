@@ -14,7 +14,6 @@
 #include <iostream>
 #include <cctype>
 #include <boost/ref.hpp>
-#include <boost/assert.hpp>
 
 namespace quickbook { namespace detail
 {

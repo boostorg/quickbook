@@ -13,12 +13,10 @@
 #include <deque>
 #include <vector>
 #include <boost/tuple/tuple.hpp>
-#include <boost/assert.hpp>
-#include <boost/spirit/include/classic_position_iterator.hpp>
 #include <boost/spirit/include/qi_symbols.hpp>
 #include <boost/spirit/include/qi_parse.hpp>
-#include <boost/spirit/include/support_attributes.hpp>
 #include <boost/next_prior.hpp>
+#include "fwd.hpp"
 
 namespace quickbook
 {
@@ -38,7 +36,7 @@ namespace quickbook
 
     typedef boost::tuple<
             std::vector<std::string>
-          , boost::spirit::classic::file_position
+          , file_position
           , template_scope const*>
     template_symbol;
 

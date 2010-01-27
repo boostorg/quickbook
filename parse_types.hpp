@@ -11,15 +11,11 @@
 #define BOOST_SPIRIT_QUICKBOOK_PARSE_TYPES_HPP
 
 #include <string>
-#include <boost/spirit/include/classic_position_iterator.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+#include "fwd.hpp"
 
 namespace quickbook
 {
-    // TODO: Add to a forward header somewhere.
-    class actions;
-    struct macro;
-    typedef boost::spirit::classic::file_position file_position;
 
     struct markup {
         markup()

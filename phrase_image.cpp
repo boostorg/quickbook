@@ -8,10 +8,11 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "phrase.hpp"
-#include "actions_class.hpp"
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include "phrase.hpp"
+#include "actions_class.hpp"
+#include "utils.hpp"
 
 namespace quickbook
 {

@@ -12,6 +12,7 @@
 #include "grammars.hpp"
 #include "actions_class.hpp"
 #include "quickbook.hpp"
+#include "utils.hpp"
 
 namespace quickbook
 {    
@@ -70,7 +71,7 @@ namespace quickbook
         bool break_arguments(
             std::vector<std::string>& params
           , std::vector<std::string> const& template_
-          , boost::spirit::classic::file_position const& pos
+          , file_position const& pos
         )
         {
             // Quickbook 1.4-: If there aren't enough parameters seperated by
@@ -123,7 +124,7 @@ namespace quickbook
             std::vector<std::string>& params
           , std::vector<std::string> const& template_
           , template_scope const& scope
-          , boost::spirit::classic::file_position const& pos
+          , file_position const& pos
           , quickbook::actions& actions
         )
         {
@@ -157,7 +158,7 @@ namespace quickbook
         bool parse_template(
             std::string& body
           , std::string& result
-          , boost::spirit::classic::file_position const& template_pos
+          , file_position const& template_pos
           , bool template_escape
           , quickbook::actions& actions
         )
@@ -242,7 +243,7 @@ namespace quickbook
                 actions.templates.set_parent_scope(*boost::get<2>(x.symbol));
 
             std::vector<std::string> template_ = boost::get<0>(x.symbol);
-            boost::spirit::classic::file_position template_pos = boost::get<1>(x.symbol);
+            file_position template_pos = boost::get<1>(x.symbol);
 
             std::vector<std::string> params = x.params;
     

@@ -8,13 +8,6 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "grammars.hpp"
-#include "block.hpp"
-#include "quickbook.hpp"
-#include "utils.hpp"
-#include "actions_class.hpp"
-#include "parse_utils.hpp"
-#include "markups.hpp"
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
@@ -23,10 +16,16 @@
 #include <boost/spirit/include/qi_repeat.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_container.hpp>
-#include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+#include "grammars.hpp"
+#include "block.hpp"
+#include "quickbook.hpp"
+#include "utils.hpp"
+#include "actions_class.hpp"
+#include "parse_utils.hpp"
+#include "markups.hpp"
+#include "code.hpp"
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::paragraph,
