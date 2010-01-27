@@ -18,7 +18,8 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit;
+    namespace qi = boost::spirit::qi;
+    using boost::spirit::unused_type;
 
     template <class Iterator, class EscapeActions>
     struct parse_escaped_impl

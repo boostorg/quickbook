@@ -20,10 +20,8 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit;
+    namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
-    using namespace ph::arg_names;
-    using ph::bind;
     typedef std::string::const_iterator iter_type;
 
     struct printer

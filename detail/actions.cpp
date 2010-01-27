@@ -1224,9 +1224,8 @@ namespace quickbook
         if (err != 0)
             return err; // return early on error
 
-        typedef classic::position_iterator<std::string::const_iterator> iterator_type;
-        iterator_type first(code.begin(), code.end(), file);
-        iterator_type last(code.end(), code.end());
+        iterator first(code.begin(), code.end(), file);
+        iterator last(code.end(), code.end());
 
         size_t fname_len = file.size();
         bool is_python = fname_len >= 3

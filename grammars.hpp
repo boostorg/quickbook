@@ -16,7 +16,7 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit;
+    namespace qi = boost::spirit::qi;
 
     template <typename Iterator, typename Actions>
     struct phrase_grammar : qi::grammar<Iterator>

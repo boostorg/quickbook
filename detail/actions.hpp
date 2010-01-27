@@ -32,13 +32,16 @@
 
 namespace quickbook
 {
-	using namespace boost::spirit;
+    namespace qi = boost::spirit::qi;
     namespace fs = boost::filesystem;
+    using boost::spirit::unused_type;
 
-	// TODO: This is defined in two places.    	
-	typedef qi::symbols<char, std::string> string_symbols;    
+    // TODO: This is defined in two places.
+    typedef qi::symbols<char, std::string> string_symbols;    
 
-    typedef classic::position_iterator<std::string::const_iterator> iterator;
+    typedef boost::spirit::classic::position_iterator<
+        std::string::const_iterator> iterator;
+    typedef boost::spirit::classic::file_position file_position;
     typedef boost::iterator_range<iterator> iterator_range;
     typedef qi::symbols<char, std::string> string_symbols;
     typedef std::map<std::string, std::string> attribute_map;
@@ -584,8 +587,8 @@ namespace quickbook
         table_action(quickbook::actions& actions)
         : actions(actions) {}
 
-		template <typename Arg1, typename Arg2>
-		struct result { typedef void type; };
+        template <typename Arg1, typename Arg2>
+        struct result { typedef void type; };
 
         void operator()(boost::optional<std::string> const&, std::string const&) const;
 
@@ -648,8 +651,8 @@ namespace quickbook
         , section_level(section_level)
         , qualified_section_id(qualified_section_id) {}
 
-    	template <typename A1, typename A2>
-    	struct result { typedef void type; };
+        template <typename A1, typename A2>
+        struct result { typedef void type; };
 
         void operator()(boost::optional<std::string> const&, iterator_range) const;
 

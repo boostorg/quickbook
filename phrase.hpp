@@ -28,7 +28,7 @@
 
 namespace quickbook
 {
-    using namespace boost::spirit;
+    namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
     template <typename Rule, typename Action>
