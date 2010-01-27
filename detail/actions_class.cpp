@@ -63,6 +63,9 @@ namespace quickbook
         , error_count(0)
 
     // actions
+        , process(*this)
+        , phrase_push(phrase)
+        , phrase_pop(phrase)
         , error(error_count)
         , extract_doc_license(doc_license, phrase)
         , extract_doc_purpose(doc_purpose, phrase)
@@ -136,8 +139,6 @@ namespace quickbook
         , do_macro(phrase)
         , template_body(*this)
         , do_template(*this)
-        , generic_link_pre(phrase)
-        , generic_link_post(phrase)
         , url_pre(url_pre_)
         , url_post(url_post_)
         , link_pre(link_pre_)

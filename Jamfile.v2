@@ -28,6 +28,7 @@ exe quickbook
     detail/template_stack.cpp
     detail/markups.cpp
     phrase.cpp
+    phrase_actions.cpp
     block.cpp
     doc_info.cpp
     detail/syntax_highlight.cpp

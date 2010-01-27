@@ -844,28 +844,6 @@ namespace quickbook
         --actions.template_depth;
     }
 
-    void generic_link_action::operator()(char const* tag, iterator_range x) const
-    {
-        iterator first = x.begin(), last = x.end();
-        iterator save = first;
-        phrase << tag;
-        while (first != last)
-            detail::print_char(*first++, phrase.get());
-        phrase << "\">";
-
-        // Yes, it is safe to dereference last here. When we
-        // reach here, *last is certainly valid. We test if
-        // *last == ']'. In which case, the url is the text.
-        // Example: [@http://spirit.sourceforge.net/]
-
-        if (*last == ']')
-        {
-            first = save;
-            while (first != last)
-                detail::print_char(*first++, phrase.get());
-        }
-    }
-
     void variablelist_action::operator()(std::string const& title) const
     {
         actions.out << "<variablelist>\n";
@@ -1540,6 +1518,19 @@ namespace quickbook
         out << "  </" << actions.doc_type << "info>\n"
             << "\n"
         ;
+    }
+
+    void phrase_push_action::operator()(unused_type, unused_type, unused_type) const
+    {
+        phrase.push();
+    }
+
+    std::string phrase_pop_action::operator()() const
+    {
+        std::string out;
+        phrase.swap(out);
+        phrase.pop();
+        return out;
     }
 
     void phrase_to_string_action::operator()(unused_type, unused_type, unused_type) const

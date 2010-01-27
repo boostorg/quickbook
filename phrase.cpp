@@ -7,9 +7,8 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#if !defined(BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP)
-#define BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP
 
+#include "./phrase.hpp"
 #include "./grammars.hpp"
 #include "./detail/quickbook.hpp"
 #include "./detail/utils.hpp"
@@ -19,6 +18,8 @@
 #include <map>
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_auxiliary.hpp>
+#include <boost/spirit/include/qi_attr.hpp>
+#include <boost/spirit/include/qi_symbols.hpp>
 #include <boost/spirit/repository/include/qi_confix.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
@@ -27,6 +28,14 @@
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_function.hpp>
 #include <boost/fusion/include/std_pair.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::link,
+    (quickbook::link_type, type)
+    (std::string, destination)
+    (std::string, content)
+)
 
 namespace quickbook
 {
@@ -43,10 +52,9 @@ namespace quickbook
         qi::rule<iterator>
                         space, blank, comment, phrase, phrase_markup,
                         phrase_end, bold, italic, underline, teletype,
-                        strikethrough, escape, url, common, funcref, classref,
-                        memberref, enumref, macroref, headerref, conceptref, globalref,
-                        anchor, link, hard_space, eol, inline_code, simple_format,
-                        source_mode, template_,
+                        strikethrough, escape, common,
+                        anchor, hard_space, eol, inline_code, simple_format,
+                        template_,
                         quote, code_block, footnote, replaceable, macro,
                         dummy_block, cond_phrase, macro_identifier,
                         brackets_1_4, template_inner_arg_1_5, brackets_1_5
@@ -55,13 +63,18 @@ namespace quickbook
         qi::rule<iterator, std::string()> template_arg_1_4, template_arg_1_5;
         qi::rule<iterator, std::vector<std::string>() > template_args;
 
+        qi::rule<iterator, std::string()> phrase_attr;
+
         qi::rule<iterator> image, image_1_4, image_1_5;
         qi::rule<iterator, std::string()> image_filename, image_attribute_key, image_attribute_value;
         qi::rule<iterator, std::multimap<std::string, std::string>()> image_attributes;
         qi::rule<iterator, std::pair<std::string, std::string>()> image_attribute;
         
         qi::rule<iterator, boost::iterator_range<iterator>(char)> simple_markup;
-        qi::rule<iterator, void(char const*, char const*, char const*)> generic_link;
+        qi::symbols<char, link_type> link_symbol;
+        qi::rule<iterator, quickbook::link()> link, url;
+        
+        qi::symbols<char, quickbook::source_mode> source_mode;
     };
 
     phrase_grammar::phrase_grammar(quickbook::actions& actions, bool& no_eols)
@@ -231,22 +244,21 @@ namespace quickbook
             )
             ;
 
+        phrase_attr =
+                qi::eps                             [actions.phrase_push]
+            >>  (   phrase
+                |   qi::eps
+                )                                   [actions.phrase_pop]
+            ;
+
         phrase_markup =
                 '['
             >>  (   cond_phrase
                 |   image
-                |   url
-                |   link
+                |   url                             [actions.process]
+                |   link                            [actions.process]
                 |   anchor
-                |   source_mode
-                |   funcref
-                |   classref
-                |   memberref
-                |   enumref
-                |   macroref
-                |   headerref
-                |   conceptref
-                |   globalref
+                |   source_mode                     [actions.process]
                 |   bold
                 |   italic
                 |   underline
@@ -324,40 +336,41 @@ namespace quickbook
         image_attribute_key = *(qi::alnum | '_');
         image_attribute_value = *(qi::char_ - (phrase_end | '['));
 
-        url =
-                '@'
-            >>  qi::raw[*(qi::char_ -
-                    (']' | qi::space))]             [ph::bind(actions.generic_link_pre, actions.url_pre, qi::_1)]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [ph::bind(actions.generic_link_post, actions.url_post)]
-            ;
-
         anchor =
                 '#'
             >>  blank
             >>  qi::raw[*(qi::char_ - phrase_end)]  [actions.anchor]
             ;
 
-        generic_link =
-                qi::string(qi::_r1)
-            >>  hard_space
-            >>  qi::raw[*(qi::char_ -
-                    (']' | qi::space))]             [ph::bind(actions.generic_link_pre, qi::_r2, qi::_1)]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [ph::bind(actions.generic_link_post, qi::_r3)]
+        link_symbol.add
+            ("link", link_type(link_pre_, link_post_))
+            ("funcref", link_type(funcref_pre_, funcref_post_))
+            ("classref", link_type(classref_pre_, classref_post_))
+            ("memberref", link_type(memberref_pre_, memberref_post_))
+            ("enumref", link_type(enumref_pre_, enumref_post_)) 
+            ("macroref", link_type(macroref_pre_, macroref_post_)) 
+            ("headerref", link_type(headerref_pre_, headerref_post_)) 
+            ("conceptref", link_type(conceptref_pre_, conceptref_post_)) 
+            ("globalref", link_type(globalref_pre_, globalref_post_))
             ;
 
-        link    = generic_link((char const*)"link", link_pre_, link_post_);
-        funcref = generic_link((char const*)"funcref", funcref_pre_, funcref_post_);
-        classref = generic_link((char const*)"classref", classref_pre_, classref_post_);
-        memberref = generic_link((char const*)"memberref", memberref_pre_, memberref_post_);
-        enumref = generic_link((char const*)"enumref", enumref_pre_, enumref_post_); 
-        macroref = generic_link((char const*)"macroref", macroref_pre_, macroref_post_); 
-        headerref = generic_link((char const*)"headerref", headerref_pre_, headerref_post_); 
-        conceptref = generic_link((char const*)"conceptref", conceptref_pre_, conceptref_post_); 
-        globalref = generic_link((char const*)"globalref", globalref_pre_, globalref_post_); 
+        link =
+                link_symbol
+            >>  hard_space
+            >>  *(qi::char_ - (']' | qi::space))
+            >>  (   &qi::lit(']')
+                |   (hard_space >> phrase_attr)
+                )
+            ;
+
+        url =
+                '@'
+            >>  qi::attr(link_type(url_pre_, url_post_))
+            >>  *(qi::char_ - (']' | qi::space))
+            >>  (   &qi::lit(']')
+                |   (hard_space >> phrase_attr)
+                )
+            ;
 
         bold =
                 qi::char_('*')                      [actions.bold_pre]
@@ -394,12 +407,10 @@ namespace quickbook
             >>  blank >> phrase                     [actions.replaceable_post]
             ;
 
-        source_mode =
-            (
-                qi::string("c++")
-            |   qi::string("python")
-            |   qi::string("teletype")
-            )                                       [ph::ref(actions.source_mode) = qi::_1]
+        source_mode.add
+            ("c++", quickbook::source_mode("c++"))
+            ("python", quickbook::source_mode("python"))
+            ("teletype", quickbook::source_mode("teletype"))
             ;
 
         footnote =
@@ -444,6 +455,3 @@ namespace quickbook
             ;
     }
 }
-
-#endif // BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP
-

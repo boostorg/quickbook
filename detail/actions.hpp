@@ -395,23 +395,6 @@ namespace quickbook
         int& error_count;
     };
 
-    struct generic_markup_action
-    {
-        template <typename Arg1> struct result { typedef void type; };
-
-        // Handles links (URL, XML refentry, function, class, member)
-
-        generic_markup_action(collector& phrase)
-        : phrase(phrase) {}
-
-        void operator()(char const* str) const
-        {
-            phrase << str;
-        }
-
-        collector& phrase;
-    };
-
     struct markup_action
     {
         template <typename T = void> struct result { typedef void type; };
@@ -579,20 +562,6 @@ namespace quickbook
         void operator()(iterator, bool, template_symbol const&, std::vector<std::string>) const;
 
         quickbook::actions& actions;
-    };
-
-    struct generic_link_action
-    {
-        template <typename Arg1, typename Arg2> struct result { typedef void type; };
-
-        // Handles links (URL, XML refentry, function, class, member)
-
-        generic_link_action(collector& phrase)
-        : phrase(phrase) {}
-
-        void operator()(char const*, iterator_range) const;
-
-        collector& phrase;
     };
 
     struct variablelist_action
@@ -793,6 +762,32 @@ namespace quickbook
 
     void pre(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
     void post(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
+    
+    struct phrase_push_action
+    {
+        phrase_push_action(collector& phrase)
+            : phrase(phrase) {}
+
+        void operator()(unused_type, unused_type, unused_type) const;
+        
+        collector& phrase;
+    };
+
+    struct phrase_pop_action
+    {
+        phrase_pop_action(collector& phrase)
+            : phrase(phrase) {}
+
+        template <typename Context>
+        void operator()(unused_type x1, Context& c, unused_type x2) const
+        {
+            boost::spirit::_val(x1, c, x2) = (*this)();
+        }
+        
+        std::string operator()() const;
+        
+        collector& phrase;
+    };
 
     struct phrase_to_string_action
     {
@@ -829,6 +824,42 @@ namespace quickbook
         std::vector<template_symbol>& storage;
         std::string const doc_id;
         char const* const source_type;
+    };
+    
+    struct process_action
+    {
+        process_action(quickbook::actions& actions)
+            : actions(actions) {}
+        
+        typedef void result_type;
+
+        template <typename Arg1, typename Arg2 = void, typename Arg3 = void>
+        struct result { typedef void type; };
+
+        template <typename Attrib, typename Context>
+        void operator()(Attrib& a, Context& c, bool& pass) const {
+            (*this)(a);
+        }
+        
+        template <typename T>
+        void operator()(boost::optional<T> const& x) const {
+            if(x) (*this)(*x);
+        }
+
+        template <BOOST_VARIANT_ENUM_PARAMS(typename T)>
+        void operator()(boost::variant<BOOST_VARIANT_ENUM_PARAMS(T)> const& x) const {
+            return boost::apply_visitor(*this, x);
+        }
+
+        void operator()(unused_type) const {
+        }
+
+        template <typename T>
+        void operator()(T const& x) const {
+            process(actions, x);
+        }
+        
+        quickbook::actions& actions;
     };
 }
 

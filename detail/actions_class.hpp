@@ -97,6 +97,9 @@ namespace quickbook
     ///////////////////////////////////////////////////////////////////////////
     // actions
     ///////////////////////////////////////////////////////////////////////////
+        process_action          process;
+        phrase_push_action      phrase_push;
+        phrase_pop_action       phrase_pop;
         error_action            error;
         phrase_to_string_action extract_doc_license;
         phrase_to_string_action extract_doc_purpose;
@@ -159,8 +162,6 @@ namespace quickbook
         do_macro_action         do_macro;
         template_body_action    template_body;
         do_template_action      do_template;
-        generic_link_action     generic_link_pre;
-        generic_markup_action   generic_link_post;
         char const*             url_pre;
         char const*             url_post;
         char const*             link_pre;
