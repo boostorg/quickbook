@@ -61,6 +61,17 @@ namespace quickbook
         std::string content;
     };
     
+    struct simple_markup {
+        char symbol;
+        std::string raw_content;
+    };
+    
+    struct code {
+        bool block;
+        file_position position;
+        std::string code;
+    };
+    
     struct cond_phrase {
         std::string macro_id;
         std::string content;
@@ -84,6 +95,8 @@ namespace quickbook
     void process(quickbook::actions&, anchor const&);
     void process(quickbook::actions&, link const&);
     void process(quickbook::actions&, formatted const&);
+    void process(quickbook::actions&, simple_markup const&);
+    void process(quickbook::actions&, code const&);
     void process(quickbook::actions&, cond_phrase const&);
     void process(quickbook::actions&, break_ const&);
     void process(quickbook::actions&, image const&);

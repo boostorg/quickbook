@@ -394,23 +394,6 @@ namespace quickbook
         syntax_highlight& syntax_p;
     };
 
-    struct inline_code_action
-    {
-        // Does the actual syntax highlighing of code inlined in text
-
-        inline_code_action(
-            collector& out
-          , syntax_highlight& syntax_p)
-        : out(out)
-        , syntax_p(syntax_p)
-        {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-        syntax_highlight& syntax_p;
-    };
-
     struct start_varlistitem_action
     {
         start_varlistitem_action(collector& phrase)

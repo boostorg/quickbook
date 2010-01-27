@@ -58,7 +58,6 @@ namespace quickbook
         , list_indent(-1)
         , template_info()
         , template_depth(0)
-        , template_escape(false)
         , templates()
         , error_count(0)
 
@@ -72,8 +71,6 @@ namespace quickbook
 
         , syntax_p(source_mode, macro, *this)
         , code(out, phrase, syntax_p)
-        , code_block(phrase, phrase, syntax_p)
-        , inline_code(phrase, syntax_p)
         , paragraph(out, phrase, paragraph_pre, paragraph_post)
         , inside_paragraph(temp_para, phrase, paragraph_pre, paragraph_post)
         , h(out, phrase, doc_id, section_id, qualified_section_id, section_level)
@@ -98,12 +95,6 @@ namespace quickbook
         , list(out, list_buffer, list_indent, list_marks)
         , list_format(list_buffer, list_indent, list_marks, error_count)
         , list_item(list_buffer, phrase, list_item_pre, list_item_post)
-
-        , simple_bold(phrase, bold_pre_, bold_post_, macro)
-        , simple_italic(phrase, italic_pre_, italic_post_, macro)
-        , simple_underline(phrase, underline_pre_, underline_post_, macro)
-        , simple_teletype(phrase, teletype_pre_, teletype_post_, macro)
-        , simple_strikethrough(phrase, strikethrough_pre_, strikethrough_post_, macro)
 
         , variablelist(*this)
         , start_varlistentry(phrase, start_varlistentry_)
@@ -132,9 +123,6 @@ namespace quickbook
         , xinclude(out, *this)
         , include(*this)
         , import(out, *this)
-
-        , escape_pre(phrase, escape_pre_)
-        , escape_post(phrase, escape_post_)
     {
         // turn off __FILENAME__ macro on debug mode = true
         std::string filename_str = debug_mode ?

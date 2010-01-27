@@ -85,7 +85,6 @@ namespace quickbook
         int                     list_indent;
         string_list             template_info;
         int                     template_depth;
-        bool                    template_escape;
         template_stack          templates;
         int                     error_count;
 
@@ -105,8 +104,6 @@ namespace quickbook
 
         syntax_highlight        syntax_p;
         code_action             code;
-        code_action             code_block;
-        inline_code_action      inline_code;
         phrase_action           paragraph;
         phrase_action           inside_paragraph;
         generic_header_action   h;
@@ -120,12 +117,6 @@ namespace quickbook
         list_action             list;
         list_format_action      list_format;
         phrase_action           list_item;
-
-        simple_phrase_action    simple_bold;
-        simple_phrase_action    simple_italic;
-        simple_phrase_action    simple_underline;
-        simple_phrase_action    simple_teletype;
-        simple_phrase_action    simple_strikethrough;
 
         variablelist_action     variablelist;
         markup_action           start_varlistentry;
@@ -155,9 +146,6 @@ namespace quickbook
         xinclude_action         xinclude;
         include_action          include;
         import_action           import;
-
-        markup_action           escape_pre;
-        markup_action           escape_post;
     };
 }
 

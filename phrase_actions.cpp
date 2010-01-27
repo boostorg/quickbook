@@ -11,6 +11,7 @@
 #include "./phrase.hpp"
 #include "./detail/actions_class.hpp"
 #include "./detail/markups.hpp"
+#include <boost/assert.hpp>
 
 namespace quickbook
 {    
@@ -39,6 +40,20 @@ namespace quickbook
         actions.phrase << x.type.pre << x.content << x.type.post;
     }
 
+    void process(quickbook::actions& actions, simple_markup const& x) {
+        markup type;
+        switch(x.symbol) {
+            case '*': type = markup(bold_pre_, bold_post_); break;
+            case '/': type = markup(italic_pre_, italic_post_); break;
+            case '_': type = markup(underline_pre_, underline_post_); break;
+            case '=': type = markup(teletype_pre_, teletype_post_); break;
+            default: BOOST_ASSERT(false);
+        }
+        actions.phrase << type.pre;
+        detail::print_string(x.raw_content, actions.phrase.get());
+        actions.phrase << type.post;
+    }
+
     void process(quickbook::actions& actions, cond_phrase const& x) {
         bool symbol_found = actions.macro.find(x.macro_id.c_str());
 
@@ -53,5 +68,43 @@ namespace quickbook
             << "[br] and \\n are deprecated" << ".\n";
         actions.phrase << break_mark;
 
+    }
+
+    void process(quickbook::actions& actions, code const& x) {
+         std::string program = x.code;
+    
+        if(x.block) {
+            // preprocess the code section to remove the initial indentation
+            detail::unindent(program);
+            if (program.size() == 0)
+                return; // Nothing left to do here. The program is empty.
+        }
+
+        iterator first_(program.begin(), program.end());
+        iterator last_(program.end(), program.end());
+        first_.set_position(x.position);
+
+        std::string save;
+        actions.phrase.swap(save);
+
+        // print the code with syntax coloring
+        std::string str = actions.syntax_p(first_, last_);
+
+        actions.phrase.swap(save);
+
+        if(x.block) {    
+            //
+            // We must not place a \n after the <programlisting> tag
+            // otherwise PDF output starts code blocks with a blank line:
+            //
+            actions.phrase << "<programlisting>";
+            actions.phrase << str;
+            actions.phrase << "</programlisting>\n";
+        }
+        else {
+            actions.phrase << "<code>";
+            actions.phrase << str;
+            actions.phrase << "</code>";
+        }
     }
 }

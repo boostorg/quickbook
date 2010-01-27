@@ -18,7 +18,6 @@
 #include <map>
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_auxiliary.hpp>
-#include <boost/spirit/include/qi_attr.hpp>
 #include <boost/spirit/include/qi_symbols.hpp>
 #include <boost/spirit/repository/include/qi_confix.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
@@ -47,6 +46,19 @@ BOOST_FUSION_ADAPT_STRUCT(
     quickbook::formatted,
     (quickbook::markup, type)
     (std::string, content)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::simple_markup,
+    (char, symbol)
+    (std::string, raw_content)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::code,
+    (quickbook::file_position, position)
+    (std::string, code)
+    (bool, block)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -101,8 +113,8 @@ namespace quickbook
                         space, blank, comment, phrase_markup,
                         phrase_end,
                         escape, common,
-                        hard_space, eol, inline_code, simple_format,
-                        code_block, replaceable, macro,
+                        hard_space, eol,
+                        replaceable, macro,
                         dummy_block,
                         brackets_1_4, template_inner_arg_1_5, brackets_1_5
                         ;
@@ -115,6 +127,7 @@ namespace quickbook
 
         qi::rule<iterator, std::string()> phrase;
         
+        qi::rule<iterator, quickbook::formatted()> escape_punct, escape_markup;
         qi::rule<iterator, quickbook::break_()> break_, escape_break;
 
         qi::rule<iterator, std::string()> macro_identifier;
@@ -125,7 +138,9 @@ namespace quickbook
         qi::rule<iterator, quickbook::image::attribute_map()> image_attributes;
         qi::rule<iterator, std::pair<std::string, std::string>()> image_attribute;
         
-        qi::rule<iterator, boost::iterator_range<iterator>(char)> simple_markup;
+        qi::rule<iterator, quickbook::code()> inline_code, code_block;
+        
+        qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> > simple_format;
         
         qi::rule<iterator, quickbook::anchor()> anchor;
 
@@ -184,9 +199,9 @@ namespace quickbook
         common =
                 macro
             |   phrase_markup
-            |   code_block
-            |   inline_code
-            |   simple_format
+            |   code_block                          [actions.process]
+            |   inline_code                         [actions.process]
+            |   simple_format                       [actions.process]
             |   escape
             |   comment
             ;
@@ -237,66 +252,60 @@ namespace quickbook
             ;
 
         inline_code =
-            '`' >>
-            qi::raw[
-               *(qi::char_ -
-                    (   '`'
-                    |   (eol >> eol)                // Make sure that we don't go
-                    )                               // past a single block
-                ) >> &qi::lit('`')
-            ]                                       [actions.inline_code]
+                '`'
+            >>  position
+            >>  qi::raw
+                [   *(  qi::char_ -
+                        (   '`'
+                        |   (eol >> eol)            // Make sure that we don't go
+                        )                           // past a single block
+                    )
+                    >>  &qi::lit('`')
+                ]
             >>  '`'
+            >>  qi::attr(false)
             ;
 
         code_block =
                 (
-                    "```" >>
-                    qi::raw[
-                       *(qi::char_ - "```")
-                            >> &qi::lit("```")
-                    ]                               [actions.code_block]
-                    >>  "```"
+                    "```"
+                >>  position
+                >>  qi::raw[*(qi::char_ - "```")]
+                >>  "```"
+                >>  qi::attr(true)
                 )
             |   (
-                    "``" >>
-                    qi::raw[
-                       *(qi::char_ - "``")
-                            >> &qi::lit("``")
-                    ]                               [actions.code_block]
-                    >>  "``"
+                    "``"
+                >>  position
+                >>  qi::raw[*(qi::char_ - "``")]
+                >>  "``"
+                >>  qi::attr(true)
                 )
             ;
 
-        simple_markup =
-            qi::omit[qi::char_(qi::_r1)] >> 
-            qi::raw[
-                (
-                    qi::graph                   // A single char. e.g. *c*
-                    >> &(qi::char_(qi::_r1)
-                        >> (qi::space | qi::punct | qi::eoi))
-                                                // space, punct or end
-                )                               // must follow qi::char_(qi::_r1)
-            |
-                (   qi::graph >>                // qi::graph must follow qi::char_(qi::_r1)
-                    *(qi::char_ -
-                        (   (qi::graph >> qi::char_(qi::_r1)) // Make sure that we don't go
-                        |   phrase_end          // past a single block
+        simple_format %=
+                qi::char_("*/_=")               [qi::_a = qi::_1]
+            >>  qi::raw
+                [   (   (   qi::graph               // A single char. e.g. *c*
+                        >>  &(  qi::char_(qi::_a)
+                            >>  (qi::space | qi::punct | qi::eoi)
+                            )
                         )
-                    ) >> qi::graph              // qi::graph must precede qi::char_(qi::_r1)
-                    >> &(qi::char_(qi::_r1)
-                        >> (qi::space | qi::punct | qi::eoi))
-                                                // space, punct or end
-                )                               // must follow qi::char_(qi::_r1)
-            ]
-            >> qi::omit[qi::char_(qi::_r1)]
-            ;
-
-
-        simple_format =
-                simple_markup('*')              [actions.simple_bold]
-            |   simple_markup('/')              [actions.simple_italic]
-            |   simple_markup('_')              [actions.simple_underline]
-            |   simple_markup('=')              [actions.simple_teletype]
+                    |
+                        (   qi::graph               // qi::graph must follow qi::lit(qi::_r1)
+                        >>  *(  qi::char_ -
+                                (   (qi::graph >> qi::lit(qi::_a))
+                                |   phrase_end      // Make sure that we don't go
+                                )                   // past a single block
+                            )
+                        >>  qi::graph               // qi::graph must precede qi::lit(qi::_r1)
+                        >>  &(  qi::char_(qi::_a)
+                            >>  (qi::space | qi::punct | qi::eoi)
+                            )
+                        )
+                    )
+                ]
+            >> qi::omit[qi::char_(qi::_a)]
             ;
 
         phrase =
@@ -332,20 +341,30 @@ namespace quickbook
             ;
 
         escape =
-                escape_break                        [actions.process]
+            (   escape_break
             |   "\\ "                               // ignore an escaped char
-            |   '\\' >> qi::punct                   [actions.raw_char]
-            |   (
-                    ("'''" >> -eol)                 [actions.escape_pre]
-                >>  *(qi::char_ - "'''")            [actions.raw_char]
-                >>  qi::lit("'''")                  [actions.escape_post]
-                )
+            |   escape_punct
+            |   escape_markup                       
+            )                                       [actions.process]
             ;
         
         escape_break =
                 position
             >>  "\\n"
             >>  qi::attr("dummy")
+            ;
+
+        escape_punct =
+                qi::attr(markup())
+            >>  '\\'
+            >>  qi::repeat(1)[qi::punct]
+            ;
+
+        escape_markup =
+                ("'''" >> -eol)
+            >>  qi::attr(markup(escape_pre_, escape_post_))
+            >>  *(qi::char_ - "'''")
+            >>  "'''"
             ;
 
         macro_identifier =

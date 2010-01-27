@@ -319,21 +319,6 @@ namespace quickbook
         out << "</programlisting>\n";
     }
 
-    void inline_code_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        std::string save;
-        out.swap(save);
-
-        // print the code with syntax coloring
-        std::string str = syntax_p(x.begin(), x.end());
-
-        out.swap(save);
-
-        out << "<code>";
-        out << str;
-        out << "</code>";
-    }
-
     void raw_char_action::operator()(char ch, unused_type, unused_type) const
     {
         phrase << ch;
