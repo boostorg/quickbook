@@ -12,7 +12,8 @@
 #include "./detail/actions_class.hpp"
 #include "./detail/markups.hpp"
 #include "./detail/quickbook.hpp"
-#include "./code_snippet.hpp"
+#include "./grammars.hpp"
+#include "./code_snippet_types.hpp"
 #include <numeric>
 #include <boost/assert.hpp>
 #include <boost/filesystem/convenience.hpp>

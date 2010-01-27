@@ -180,32 +180,6 @@ namespace quickbook
     void pre(collector& out, quickbook::actions& actions, doc_info& info, bool ignore_docinfo = false);
     void post(collector& out, quickbook::actions& actions, doc_info& info, bool ignore_docinfo = false);
 
-    struct code_snippet_actions
-    {
-        code_snippet_actions(std::vector<template_symbol>& storage,
-                                 std::string const& doc_id,
-                                 char const* source_type)
-            : storage(storage)
-            , doc_id(doc_id)
-            , source_type(source_type)
-        {}
-
-        void pass_thru(char);
-        void escaped_comment(std::string const&);
-        void compile(boost::iterator_range<iterator>);
-        void callout(std::string const&, char const* role);
-        void inline_callout(std::string const&);
-        void line_callout(std::string const&);
-
-        std::string code;
-        std::string snippet;
-        std::string id;
-        std::vector<std::string> callouts;
-        std::vector<template_symbol>& storage;
-        std::string const doc_id;
-        char const* const source_type;
-    };
-    
     struct process_action
     {
         process_action(quickbook::actions& actions)

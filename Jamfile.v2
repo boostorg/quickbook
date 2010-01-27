@@ -36,6 +36,7 @@ exe quickbook
     block_actions.cpp
     block_list.cpp
     doc_info.cpp
+    code_snippet.cpp
     detail/syntax_highlight.cpp
     /boost//program_options
     /boost//filesystem
