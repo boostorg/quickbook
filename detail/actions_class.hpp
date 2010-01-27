@@ -76,7 +76,6 @@ namespace quickbook
         std::stack<state_tuple> state_stack;
 
     // temporary or global state
-        std::string             macro_id;
         string_list             template_info;
         int                     template_depth;
         template_stack          templates;
@@ -103,8 +102,6 @@ namespace quickbook
         plain_char_action       plain_char;
         raw_char_action         raw_char;
 
-        macro_identifier_action macro_identifier;
-        macro_definition_action macro_definition;
         template_body_action    template_body;
         char const*             url_pre;
         char const*             url_post;

@@ -50,7 +50,6 @@ namespace quickbook
         , source_mode("c++")
 
     // temporary or global state
-        , macro_id()
         , template_info()
         , template_depth(0)
         , templates()
@@ -71,8 +70,6 @@ namespace quickbook
         , plain_char(phrase)
         , raw_char(phrase)
 
-        , macro_identifier(*this)
-        , macro_definition(*this)
         , template_body(*this)
         , url_pre(url_pre_)
         , url_post(url_post_)

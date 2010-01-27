@@ -63,6 +63,12 @@ namespace quickbook
         title content;
     };
 
+    struct def_macro
+    {
+        std::string macro_identifier;
+        std::string content;
+    };
+
     typedef std::vector<quickbook::formatted> varlistentry;
 
     struct variablelist
@@ -87,6 +93,7 @@ namespace quickbook
     void process(quickbook::actions&, begin_section const&);
     void process(quickbook::actions&, end_section const&);
     void process(quickbook::actions&, heading const&);
+    void process(quickbook::actions&, def_macro const&);
     void process(quickbook::actions&, variablelist const&);
     void process(quickbook::actions&, table const&);
 }

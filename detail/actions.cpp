@@ -216,21 +216,6 @@ namespace quickbook
         detail::print_char(*x.begin(), phrase.get());
     }
 
-    void macro_identifier_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        actions.macro_id.assign(x.begin(), x.end());
-        actions.phrase.push(); // save the phrase
-    }
-
-    void macro_definition_action::operator()(unused_type, unused_type, unused_type) const
-    {
-        actions.macro.add(
-            actions.macro_id.begin()
-          , actions.macro_id.end()
-          , quickbook::macro(actions.phrase.str()));
-        actions.phrase.pop(); // restore the phrase
-    }
-
     void template_body_action::operator()(iterator_range x, unused_type, unused_type) const
     {
         BOOST_ASSERT(actions.template_info.size());

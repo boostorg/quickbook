@@ -166,6 +166,15 @@ namespace quickbook
         }
     }
 
+    void process(quickbook::actions& actions, def_macro const& x)
+    {
+        actions.macro.add(
+            x.macro_identifier.begin()
+          , x.macro_identifier.end()
+          , quickbook::macro(x.content));
+
+    }
+
     void process(quickbook::actions& actions, variablelist const& x)
     {
         actions.phrase << "<variablelist>\n";

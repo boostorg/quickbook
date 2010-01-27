@@ -303,30 +303,6 @@ namespace quickbook
         syntax_highlight& syntax_p;
     };
 
-    struct macro_identifier_action
-    {
-        // Handles macro identifiers
-
-        macro_identifier_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        quickbook::actions& actions;
-    };
-
-    struct macro_definition_action
-    {
-        // Handles macro definitions
-
-        macro_definition_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        quickbook::actions& actions;
-    };
-
     struct template_body_action
     {
         // Handles template definitions

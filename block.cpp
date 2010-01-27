@@ -67,6 +67,12 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::def_macro,
+    (std::string, macro_identifier)
+    (std::string, content)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
     quickbook::variablelist,
     (std::string, title)
     (std::vector<quickbook::varlistentry>, entries)
@@ -94,8 +100,7 @@ namespace quickbook
         qi::rule<iterator>
                         start_, blocks, block_markup, code, code_line,
                         space, blank, comment,
-                        phrase, phrase_end, ordered_list, def_macro,
-                        macro_identifier,
+                        phrase, phrase_end, ordered_list,
                         xinclude, include, hard_space, eol, paragraph_end,
                         template_, template_id, template_formal_arg,
                         template_body, identifier, dummy_block, import;
@@ -124,6 +129,9 @@ namespace quickbook
         
         qi::symbols<char, quickbook::markup> paragraph_blocks;
         qi::rule<iterator, quickbook::formatted()> paragraph_block, blockquote, preformatted;
+
+        qi::rule<iterator, std::string()> macro_identifier;
+        qi::rule<iterator, quickbook::def_macro()> def_macro;
 
         qi::rule<iterator, quickbook::variablelist()> variablelist;
         qi::rule<iterator, quickbook::varlistentry()> varlistentry;
@@ -214,7 +222,7 @@ namespace quickbook
                 |   paragraph_block             [actions.process][actions.output]
                 |   blockquote                  [actions.process][actions.output]
                 |   preformatted                [actions.process][actions.output]
-                |   def_macro
+                |   def_macro                   [actions.process][actions.output]
                 |   table                       [actions.process][actions.output]
                 |   variablelist                [actions.process][actions.output]
                 |   xinclude
@@ -319,9 +327,11 @@ namespace quickbook
             ;
 
         def_macro =
-            "def" >> hard_space
-            >> qi::raw[macro_identifier]        [actions.macro_identifier]
-            >> blank >> phrase                  [actions.macro_definition]
+                "def"
+            >>  hard_space
+            >>  macro_identifier
+            >>  blank
+            >>  phrase_attr
             ;
 
         identifier =
