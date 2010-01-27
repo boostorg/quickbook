@@ -122,23 +122,6 @@ namespace quickbook
         list_format_action      list_format;
         phrase_action           list_item;
 
-        link_action             funcref_pre;
-        markup_action           funcref_post;
-        link_action             classref_pre;
-        markup_action           classref_post;
-        link_action             memberref_pre;
-        markup_action           memberref_post;
-        link_action             enumref_pre;
-        markup_action           enumref_post;
-        link_action             macroref_pre;
-        markup_action           macroref_post;
-        link_action             headerref_pre;
-        markup_action           headerref_post;
-        link_action             conceptref_pre;
-        markup_action           conceptref_post;
-        link_action             globalref_pre;
-        markup_action           globalref_post;
-
         markup_action           bold_pre;
         markup_action           bold_post;
         markup_action           italic_pre;
@@ -176,10 +159,12 @@ namespace quickbook
         do_macro_action         do_macro;
         template_body_action    template_body;
         do_template_action      do_template;
-        link_action             url_pre;
-        markup_action           url_post;
-        link_action             link_pre;
-        markup_action           link_post;
+        generic_link_action     generic_link_pre;
+        generic_markup_action   generic_link_post;
+        char const*             url_pre;
+        char const*             url_post;
+        char const*             link_pre;
+        char const*             link_post;
         table_action            table;
         start_row_action        start_row;
         markup_action           end_row;

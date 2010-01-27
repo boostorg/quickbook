@@ -395,12 +395,41 @@ namespace quickbook
         int& error_count;
     };
 
+    struct generic_markup_action
+    {
+        template <typename Arg1> struct result { typedef void type; };
+
+        // Handles links (URL, XML refentry, function, class, member)
+
+        generic_markup_action(collector& phrase)
+        : phrase(phrase) {}
+
+        void operator()(char const* str) const
+        {
+            phrase << str;
+        }
+
+        collector& phrase;
+    };
+
     struct markup_action
     {
+        template <typename T = void> struct result { typedef void type; };
+
         // A generic markup action
 
         markup_action(collector& phrase, std::string const& str)
         : phrase(phrase), str(str) {}
+
+        void operator()() const
+        {
+            phrase << str;
+        }
+
+        void operator()(unused_type) const
+        {
+            phrase << str;
+        }
 
         void operator()(unused_type, unused_type, unused_type) const
         {
@@ -552,17 +581,18 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct link_action
+    struct generic_link_action
     {
+        template <typename Arg1, typename Arg2> struct result { typedef void type; };
+
         // Handles links (URL, XML refentry, function, class, member)
 
-        link_action(collector& phrase, char const* tag)
-        : phrase(phrase), tag(tag) {}
+        generic_link_action(collector& phrase)
+        : phrase(phrase) {}
 
-        void operator()(iterator_range, unused_type, unused_type) const;
+        void operator()(char const*, iterator_range) const;
 
         collector& phrase;
-        char const* tag;
     };
 
     struct variablelist_action

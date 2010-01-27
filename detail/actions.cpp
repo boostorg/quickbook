@@ -844,7 +844,7 @@ namespace quickbook
         --actions.template_depth;
     }
 
-    void link_action::operator()(iterator_range x, unused_type, unused_type) const
+    void generic_link_action::operator()(char const* tag, iterator_range x) const
     {
         iterator first = x.begin(), last = x.end();
         iterator save = first;

@@ -13,6 +13,7 @@
 #include "./grammars.hpp"
 #include "./detail/quickbook.hpp"
 #include "./detail/utils.hpp"
+#include "./detail/markups.hpp"
 #include "./parse_utils.hpp"
 #include <map>
 #include <boost/spirit/include/qi_core.hpp>
@@ -60,6 +61,7 @@ namespace quickbook
         qi::rule<Iterator, std::pair<std::string, std::string>()> image_attribute;
         
         qi::rule<Iterator, boost::iterator_range<Iterator>(char)> simple_markup;
+        qi::rule<Iterator, void(char const*, char const*, char const*)> generic_link;
     };
 
     template <typename Iterator, typename Actions>
@@ -328,19 +330,10 @@ namespace quickbook
         url =
                 '@'
             >>  qi::raw[*(qi::char_ -
-                    (']' | qi::space))]             [actions.url_pre]
+                    (']' | qi::space))]             [ph::bind(actions.generic_link_pre, actions.url_pre, qi::_1)]
             >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                                   [actions.url_post]
-            ;
-
-        link =
-                "link" >> hard_space
-            >>  qi::raw[*(qi::char_ -
-                    (']' | qi::space))]             [actions.link_pre]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [actions.link_post]
+                )                                   [ph::bind(actions.generic_link_post, actions.url_post)]
             ;
 
         anchor =
@@ -349,77 +342,25 @@ namespace quickbook
             >>  qi::raw[*(qi::char_ - phrase_end)]  [actions.anchor]
             ;
 
-        funcref =
-            "funcref" >> hard_space
+        generic_link =
+                qi::string(qi::_r1)
+            >>  hard_space
             >>  qi::raw[*(qi::char_ -
-                    (']' | hard_space))]            [actions.funcref_pre]
+                    (']' | qi::space))]             [ph::bind(actions.generic_link_pre, qi::_r2, qi::_1)]
             >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
-                )                                   [actions.funcref_post]
+                )                                   [ph::bind(actions.generic_link_post, qi::_r3)]
             ;
 
-        classref =
-            "classref" >> hard_space
-            >>  qi::raw[*(qi::char_ -
-                    (']' | hard_space))]            [actions.classref_pre]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [actions.classref_post]
-            ;
-
-        memberref =
-            "memberref" >> hard_space
-            >>  qi::raw[*(qi::char_ -
-                    (']' | hard_space))]            [actions.memberref_pre]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [actions.memberref_post]
-            ;
-
-        enumref =
-            "enumref" >> hard_space
-            >>  qi::raw[*(qi::char_ -
-                    (']' | hard_space))]            [actions.enumref_pre]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [actions.enumref_post]
-            ;
-
-        macroref =
-            "macroref" >> hard_space
-            >>  qi::raw[*(qi::char_ -
-                    (']' | hard_space))]            [actions.macroref_pre]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [actions.macroref_post]
-            ;
-
-        headerref =
-            "headerref" >> hard_space
-            >>  qi::raw[*(qi::char_ -
-                    (']' | hard_space))]            [actions.headerref_pre]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [actions.headerref_post]
-            ;
-
-        conceptref =
-            "conceptref" >> hard_space
-            >>  qi::raw[*(qi::char_ -
-                    (']' | hard_space))]            [actions.conceptref_pre]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [actions.conceptref_post]
-            ;
-
-        globalref =
-            "globalref" >> hard_space
-            >>  qi::raw[*(qi::char_ -
-                    (']' | hard_space))]            [actions.globalref_pre]
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )                                   [actions.globalref_post]
-            ;
+        link    = generic_link((char const*)"link", link_pre_, link_post_);
+        funcref = generic_link((char const*)"funcref", funcref_pre_, funcref_post_);
+        classref = generic_link((char const*)"classref", classref_pre_, classref_post_);
+        memberref = generic_link((char const*)"memberref", memberref_pre_, memberref_post_);
+        enumref = generic_link((char const*)"enumref", enumref_pre_, enumref_post_); 
+        macroref = generic_link((char const*)"macroref", macroref_pre_, macroref_post_); 
+        headerref = generic_link((char const*)"headerref", headerref_pre_, headerref_post_); 
+        conceptref = generic_link((char const*)"conceptref", conceptref_pre_, conceptref_post_); 
+        globalref = generic_link((char const*)"globalref", globalref_pre_, globalref_post_); 
 
         bold =
                 qi::char_('*')                      [actions.bold_pre]
