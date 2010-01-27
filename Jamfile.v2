@@ -27,9 +27,9 @@ exe quickbook
     detail/collector.cpp
     detail/template_stack.cpp
     detail/markups.cpp
-    detail/phrase.cpp
-    detail/block.cpp
-    detail/doc_info.cpp
+    phrase.cpp
+    block.cpp
+    doc_info.cpp
     detail/syntax_highlight.cpp
     /boost//program_options
     /boost//filesystem
