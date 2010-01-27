@@ -14,8 +14,44 @@
 #include <boost/spirit/include/qi_auxiliary.hpp>
 #include <boost/spirit/include/qi_string.hpp>
 #include <boost/spirit/include/qi_directive.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
+#include "./parse_types.hpp"
 #include "./grammars.hpp"
 #include "./phrase.hpp"
+
+namespace quickbook
+{
+    struct code_token
+    {
+        std::string text;
+        char const* type;
+    };
+    
+    struct space
+    {
+        std::string text;
+        char const* dummy;
+    };
+    
+    void process(quickbook::actions& actions, code_token const& x)
+    {
+        std::string type = x.type;
+        if(type == "space") {
+            actions.phrase << x.text;
+        }
+        else {
+            actions.phrase << "<phrase role=\"" << x.type << "\">";
+            detail::print_string(x.text, actions.phrase.get());
+            actions.phrase << "</phrase>";
+        }
+    }
+}   
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::code_token,
+    (std::string, text)
+    (char const*, type)
+)
 
 namespace quickbook
 {
@@ -24,8 +60,8 @@ namespace quickbook
 
     struct parse_escaped_impl
     {
-        parse_escaped_impl(quickbook::actions& escape_actions)
-            : actions(escape_actions) {}
+        parse_escaped_impl(quickbook::actions& actions)
+            : actions(actions) {}
 
         void operator()(boost::iterator_range<iterator> escaped, unused_type, unused_type) const {
             bool unused;
@@ -43,60 +79,66 @@ namespace quickbook
     };
 
     // Grammar for C++ highlighting
-    template <
-        typename Process
-      , typename Space
-      , typename Unexpected
-      , typename Out>
-    struct cpp_highlight
-    : public qi::grammar<iterator>
+    struct cpp_highlight : public qi::grammar<iterator>
     {
-        cpp_highlight(Out& out, quickbook::actions& escape_actions)
-        : cpp_highlight::base_type(program), out(out), escape_actions(escape_actions)
-        , parse_escaped(escape_actions)
+        cpp_highlight(quickbook::actions& actions)
+        : cpp_highlight::base_type(program), actions(actions)
+        , parse_escaped(actions)
         {
             program
                 =
-                *(  qi::raw[+qi::space]     [Space(out)]
+                *(  space
                 |   macro
                 |   escape
-                |   qi::raw[preprocessor]   [Process("preprocessor", out)]
-                |   qi::raw[comment]        [Process("comment", out)]
-                |   qi::raw[keyword]        [Process("keyword", out)]
-                |   qi::raw[identifier]     [Process("identifier", out)]
-                |   qi::raw[special]        [Process("special", out)]
-                |   qi::raw[string_]        [Process("string", out)]
-                |   qi::raw[char_]          [Process("char", out)]
-                |   qi::raw[number]         [Process("number", out)]
-                |   qi::raw[qi::char_]      [Unexpected(out)]
-                )
+                |   preprocessor
+                |   comment
+                |   keyword
+                |   identifier
+                |   special
+                |   string_
+                |   char_
+                |   number
+                |   unexpected
+                )                           [actions.process]
                 ;
 
             macro =
-                (   escape_actions.macro                // must not be followed by
-                >>  &(qi::eps - (qi::alpha | '_'))      // alpha or underscore
-                )                                       [escape_actions.process]
+                (   actions.macro           // must not be followed by
+                >>  !(qi::alpha | '_')      // alpha or underscore
+                )
                 ;
 
             escape =
                 "``" >> (
                     (qi::raw[+(qi::char_ - "``")] >> "``")
                                                         [parse_escaped]
-                    | qi::raw[*qi::char_]               [escape_actions.error]
+                    | qi::raw[*qi::char_]               [actions.error]
                 )
                 ;
 
+            space
+                =   qi::raw[+qi::space]
+                >>  qi::attr("space");
+
             preprocessor
-                =   '#' >> *qi::space >> ((qi::alpha | '_') >> *(qi::alnum | '_'))
+                =   qi::raw[
+                        '#' >> *qi::space
+                    >>  ((qi::alpha | '_') >> *(qi::alnum | '_'))
+                    ]
+                >>  qi::attr("preprocessor")
                 ;
 
             comment
-                =   qi::lit("//") >> *(qi::char_ - qi::eol) >> -qi::eol
-                |   qi::lit("/*") >> *(qi::char_ - "*/") >> -qi::lit("*/")
+                =   qi::raw[
+                        qi::lit("//") >> *(qi::char_ - qi::eol) >> -qi::eol
+                    |   qi::lit("/*") >> *(qi::char_ - "*/") >> -qi::lit("*/")
+                    ]
+                >>  qi::attr("comment")
                 ;
 
             keyword
-                =   keyword_ >> (qi::eps - (qi::alnum | '_'))
+                =   qi::raw[keyword_ >> !(qi::alnum | '_')]
+                >>  qi::attr("keyword")
                 ;   // make sure we recognize whole words only
 
             keyword_
@@ -118,39 +160,59 @@ namespace quickbook
 
             special
                 =   +qi::char_("~!%^&*()+={[}]:;,<.>?/|\\-")
+                >>  qi::attr("special")
                 ;
 
             string_char = ('\\' >> qi::char_) | (qi::char_ - '\\');
 
             string_
-                =   -qi::no_case['l'] >> '"' >> *(string_char - '"') >> -qi::lit('"');
+                =   qi::raw[
+                        -qi::no_case['l']
+                    >>  '"' >> *(string_char - '"') >> -qi::lit('"')
+                    ]
+                >>  qi::attr("string")
                 ;
 
-            char_
-                =   -qi::no_case['l'] >> '\'' >> *(string_char - '\'') >> -qi::lit('\'');
+            char_ =
+                    qi::raw[
+                        -qi::no_case['l']
+                    >>  '\'' >> *(string_char - '\'') >> -qi::lit('\'')
+                    ]
+                >>  qi::attr("char")
                 ;
 
             number
-                =   (
-                        qi::no_case["0x"] >> qi::hex
-                    |   '0' >> qi::oct
-                    |   qi::long_double
-                    )
+                =   qi::raw
+                    [
+                        (
+                            qi::no_case["0x"] >> qi::hex
+                        |   '0' >> qi::oct
+                        |   qi::long_double
+                        )
                     >>  *qi::no_case[qi::char_("ldfu")]
+                    ]
+                >>  qi::attr("number")
                 ;
 
             identifier
-                =   (qi::alpha | '_') >> *(qi::alnum | '_')
+                =   qi::raw[(qi::alpha | '_') >> *(qi::alnum | '_')]
+                >>  qi::attr("identifier")
+                ;
+            
+            // TODO: warn user?
+            unexpected
+                =   qi::raw[qi::char_]
+                >>  qi::attr("error")
                 ;
         }
 
-        qi::rule<iterator>
-                        program, macro, preprocessor, comment, special, string_, 
-                        char_, number, identifier, keyword, escape,
-                        string_char;
+        qi::rule<iterator> program, escape, string_char;
+        qi::rule<iterator, quickbook::macro()> macro;
+        qi::rule<iterator, code_token()>
+                        space, preprocessor, comment, special, string_, 
+                        char_, number, identifier, keyword, unexpected;
 
-        Out& out;
-        quickbook::actions& escape_actions;
+        quickbook::actions& actions;
 
         qi::symbols<> keyword_;
         parse_escaped_impl parse_escaped;
@@ -160,53 +222,55 @@ namespace quickbook
     // Grammar for Python highlighting
     // See also: The Python Reference Manual
     // http://docs.python.org/ref/ref.html
-    template <
-        typename Process
-      , typename Space
-      , typename Unexpected
-      , typename Out>
-    struct python_highlight
-    : public qi::grammar<iterator>
+    struct python_highlight : public qi::grammar<iterator>
     {
-        python_highlight(Out& out, quickbook::actions& escape_actions)
-        : python_highlight::base_type(program), out(out), escape_actions(escape_actions)
-        , parse_escaped(escape_actions)
+        python_highlight(quickbook::actions& actions)
+        : python_highlight::base_type(program), actions(actions)
+        , parse_escaped(actions)
         {
             program
                 =
-                *(  qi::raw[+qi::space]     [Space(out)]
+                *(  space
                 |   macro
-                |   escape          
-                |   qi::raw[comment]        [Process("comment", out)]
-                |   qi::raw[keyword]        [Process("keyword", out)]
-                |   qi::raw[identifier]     [Process("identifier", out)]
-                |   qi::raw[special]        [Process("special", out)]
-                |   qi::raw[string_]        [Process("string", out)]
-                |   qi::raw[number]         [Process("number", out)]
-                |   qi::raw[qi::char_]      [Unexpected(out)]
-                )
+                |   escape
+                |   comment
+                |   keyword
+                |   identifier
+                |   special
+                |   string_
+                |   number
+                |   unexpected
+                )                           [actions.process]
                 ;
 
             macro =
-                (   escape_actions.macro                // must not be followed by
-                >>  &(qi::eps - (qi::alpha | '_'))      // alpha or underscore
-                )                                       [escape_actions.process]
+                (   actions.macro           // must not be followed by
+                >>  !(qi::alpha | '_')      // alpha or underscore
+                )
                 ;
 
             escape =
                 "``" >> (
                     (qi::raw[+(qi::char_ - "``")] >> "``")
                                                         [parse_escaped]
-                    | qi::raw[*qi::char_]               [escape_actions.error]
+                    | qi::raw[*qi::char_]               [actions.error]
                 )
                 ;
 
+            space
+                =   qi::raw[+qi::space]
+                >>  qi::attr("space");
+
             comment
-                = qi::lit('#') >> *(qi::char_ - qi::eol) >> -qi::eol;
+                =   qi::raw[
+                        '#' >> *(qi::char_ - qi::eol) >> -qi::eol
+                    ]
+                >>  qi::attr("comment")
                 ;
 
             keyword
-                =   keyword_ >> (qi::eps - (qi::alnum | '_'))
+                =   qi::raw[keyword_ >> !(qi::alnum | '_')]
+                >>  qi::attr("keyword")
                 ;   // make sure we recognize whole words only
 
             keyword_
@@ -227,6 +291,7 @@ namespace quickbook
 
             special
                 =   +qi::char_("~!%^&*()+={[}]:;,<.>/|\\-")
+                >>  qi::attr("special")
                 ;
 
             string_prefix
@@ -234,7 +299,11 @@ namespace quickbook
                 ;
             
             string_
-                =   - string_prefix >> (long_string | short_string)
+                =   qi::raw[
+                        -string_prefix
+                    >>  (long_string | short_string)
+                    ]
+                >>  qi::attr("string")
                 ;
 
             string_char = ('\\' >> qi::char_) | (qi::char_ - '\\');
@@ -250,26 +319,38 @@ namespace quickbook
                 ;
             
             number
-                =   (
-                        qi::no_case["0x"] >> qi::hex
-                    |   '0' >> qi::oct
-                    |   qi::long_double
-                    )
-                    >>  *qi::no_case[qi::char_("lj")]
+                =   qi::raw[
+                        (
+                            qi::no_case["0x"] >> qi::hex
+                        |   '0' >> qi::oct
+                        |   qi::long_double
+                        )
+                        >>  *qi::no_case[qi::char_("lj")]
+                    ]
+                >>  qi::attr("number")
                 ;
 
             identifier
-                =   (qi::alpha | '_') >> *(qi::alnum | '_')
+                =   qi::raw[(qi::alpha | '_') >> *(qi::alnum | '_')]
+                >>  qi::attr("identifier")
+                ;
+
+            // TODO: warn user?
+            unexpected
+                =   qi::raw[qi::char_]
+                >>  qi::attr("error")
                 ;
         }
 
         qi::rule<iterator>
-                        program, macro, comment, special, string_, string_prefix, 
-                        short_string, long_string, number, identifier, keyword, 
+                        program, string_prefix, short_string, long_string,
                         escape, string_char;
+        qi::rule<iterator, quickbook::macro()> macro;
+        qi::rule<iterator, code_token()>
+                        space, comment, special, string_, 
+                        number, identifier, keyword, unexpected;
 
-        Out& out;
-        quickbook::actions& escape_actions;
+        quickbook::actions& actions;
 
         qi::symbols<> keyword_;
         parse_escaped_impl parse_escaped;
@@ -277,43 +358,39 @@ namespace quickbook
     };
 
     // Grammar for plain text (no actual highlighting)
-    template <
-        typename CharProcess
-      , typename Out>
-    struct teletype_highlight
-    : public qi::grammar<iterator>
+    struct teletype_highlight : public qi::grammar<iterator>
     {
-        teletype_highlight(Out& out, quickbook::actions& escape_actions)
-        : teletype_highlight::base_type(program), out(out), escape_actions(escape_actions)
-        , parse_escaped(escape_actions)
+        teletype_highlight(quickbook::actions& actions)
+        : teletype_highlight::base_type(program), actions(actions)
+        , parse_escaped(actions)
         {
             program
                 =
-                *(  macro
+                *(  macro                   [actions.process]
                 |   escape          
-                |   qi::char_                           [CharProcess(out)]
+                |   qi::char_               [actions.plain_char]
                 )
                 ;
 
             macro =
-                (   escape_actions.macro                // must not be followed by
-                >>  &(qi::eps - (qi::alpha | '_'))      // alpha or underscore
-                )                                       [escape_actions.process]
+                (   actions.macro           // must not be followed by
+                >>  !(qi::alpha | '_')      // alpha or underscore
+                )
                 ;
 
             escape =
                 "``" >> (
                     (qi::raw[+(qi::char_ - "``")] >> "``")
-                                                        [parse_escaped]
-                    | qi::raw[*qi::char_]               [escape_actions.error]
+                                            [parse_escaped]
+                    | qi::raw[*qi::char_]   [actions.error]
                 )
                 ;
         }
 
-        qi::rule<iterator> program, macro, escape;
+        qi::rule<iterator> program, escape;
+        qi::rule<iterator, quickbook::macro()> macro;
 
-        Out& out;
-        quickbook::actions& escape_actions;
+        quickbook::actions& actions;
 
         parse_escaped_impl parse_escaped;
         std::string save;

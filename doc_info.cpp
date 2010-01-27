@@ -184,8 +184,8 @@ namespace quickbook
             ;
 
         hard_space =
-            (qi::eps - (qi::alnum | '_')) >> space  // must not be preceded by
-            ;                                       // alpha-numeric or underscore
+            !(qi::alnum | '_') >> space     // must not be preceded by
+            ;                               // alpha-numeric or underscore
 
         phrase =
            *(   common

@@ -231,8 +231,8 @@ namespace quickbook
             ;                                   // when preformatted.
 
         hard_space =
-            (qi::eps - (qi::alnum | '_')) >> space  // must not be preceded by
-            ;                                      // alpha-numeric or underscore
+            !(qi::alnum | '_') >> space         // must not be preceded by
+            ;                                   // alpha-numeric or underscore
 
         comment =
             "[/" >> *(dummy_block | (qi::char_ - ']')) >> ']'

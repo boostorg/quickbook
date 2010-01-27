@@ -163,7 +163,7 @@ namespace quickbook
                                                 // when preformatted.
 
         hard_space =
-            (qi::eps - (qi::alnum | '_')) >> space
+            !(qi::alnum | '_') >> space
             ;                                   // must not be preceded by
                                                 // alpha-numeric or underscore
 
@@ -187,7 +187,7 @@ namespace quickbook
 
          macro =
             (   actions.macro                       // must not be followed by
-            >>  &(qi::eps - (qi::alpha | '_'))      // alpha or underscore
+            >>  !(qi::alpha | '_')                  // alpha or underscore
             )                                       [actions.process]
             ;
 

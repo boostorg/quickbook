@@ -53,54 +53,6 @@ namespace quickbook
         ++error_count;
     }
 
-    void span::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        iterator first = x.begin(), last = x.end();
-        out << "<phrase role=\"" << name << "\">";
-        while (first != last)
-            detail::print_char(*first++, out.get());
-        out << "</phrase>";
-    }
-
-    void unexpected_char::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        iterator first = x.begin(), last = x.end();
-        boost::spirit::classic::file_position const pos = first.get_position();
-
-        detail::outwarn(pos.file, pos.line)
-            << "in column:" << pos.column
-            << ", unexpected character: " << std::string(first, last)
-            << "\n";
-
-        // print out an unexpected character
-        out << "<phrase role=\"error\">";
-        while (first != last)
-            detail::print_char(*first++, out.get());
-        out << "</phrase>";
-    }
-
-    void space::operator()(char ch, unused_type, unused_type) const
-    {
-        detail::print_space(ch, out.get());
-    }
-
-    void space::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        iterator first = x.begin(), last = x.end();
-        while (first != last)
-            detail::print_space(*first++, out.get());
-    }
-
-    void raw_char_action::operator()(char ch, unused_type, unused_type) const
-    {
-        phrase << ch;
-    }
-
-    void raw_char_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        phrase << *x.begin();
-    }
-
     void plain_char_action::operator()(char ch, unused_type, unused_type) const
     {
         detail::print_char(ch, phrase.get());

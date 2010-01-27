@@ -75,60 +75,8 @@ namespace quickbook
         int& error_count;
     };
 
-    struct span
-    {
-        // Decorates c++ code fragments
-
-        span(char const* name, collector& out)
-        : name(name), out(out) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        char const* name;
-        collector& out;
-    };
-
-    struct unexpected_char
-    {
-        // Handles unexpected chars in c++ syntax
-
-        unexpected_char(collector& out)
-        : out(out) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-    };
-
     extern char const* quickbook_get_date;
     extern char const* quickbook_get_time;
-
-    struct space
-    {
-        // Prints a space
-
-        space(collector& out)
-            : out(out) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-        void operator()(char ch, unused_type, unused_type) const;
-
-        collector& out;
-    };
-
-    struct raw_char_action
-    {
-        // Prints a single raw (unprocessed) char.
-        // Allows '<', '>'... etc.
-
-        raw_char_action(collector& phrase)
-        : phrase(phrase) {}
-
-        void operator()(char ch, unused_type, unused_type) const;
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& phrase;
-    };
 
     struct plain_char_action
     {
@@ -144,24 +92,6 @@ namespace quickbook
         collector& phrase;
     };
     
-    struct markup_action
-    {
-        template <typename T = void> struct result { typedef void type; };
-
-        // A generic markup action
-
-        markup_action(collector& phrase, std::string const& str)
-        : phrase(phrase), str(str) {}
-
-        void operator()(unused_type, unused_type, unused_type) const
-        {
-            phrase << str;
-        }
-
-        collector& phrase;
-        std::string str;
-    };
-
     struct syntax_highlight
     {
         syntax_highlight(

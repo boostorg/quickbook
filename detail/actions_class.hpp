@@ -93,7 +93,6 @@ namespace quickbook
 
         syntax_highlight        syntax_p;
         plain_char_action       plain_char;
-        raw_char_action         raw_char;
 
         element_id_warning_action element_id_warning;
     };
