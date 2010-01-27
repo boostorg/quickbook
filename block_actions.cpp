@@ -175,6 +175,24 @@ namespace quickbook
 
     }
 
+    void process(quickbook::actions& actions, define_template const& x)
+    {
+        if (actions.templates.find_top_scope(x.id))
+        {
+            detail::outerr(x.position.file, x.position.line)
+                << "Template Redefinition: " << actions.template_info[0] << std::endl;
+            ++actions.error_count;
+        }
+
+        std::vector<std::string> info;
+        info.reserve(x.params.size() + 2);
+        info.push_back(x.id);
+        info.insert(info.end(), x.params.begin(), x.params.end());
+        info.push_back(x.body);
+
+        actions.templates.add(x.id, template_symbol(info, x.position));
+    }
+
     void process(quickbook::actions& actions, variablelist const& x)
     {
         actions.phrase << "<variablelist>\n";

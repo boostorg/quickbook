@@ -35,13 +35,12 @@ namespace quickbook
         }
     }
 
-    void process(quickbook::actions& actions, std::vector<list_item> const& list)
+    void process(quickbook::actions& actions, quickbook::list const& list)
     {
         int list_indent = -1;
         std::stack<mark_type> list_marks;
 
-        for(std::vector<list_item>::const_iterator
-            it = list.begin(), end = list.end(); it != end; ++it)
+        for(list::const_iterator it = list.begin(), end = list.end(); it != end; ++it)
         {
             int new_indent = indent_length(it->indent);
             BOOST_ASSERT(it->mark == '#' || it->mark == '*');

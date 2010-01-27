@@ -73,6 +73,14 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::define_template,
+    (std::string, id)
+    (std::vector<std::string>, params)
+    (quickbook::file_position, position)
+    (std::string, body)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
     quickbook::variablelist,
     (std::string, title)
     (std::vector<quickbook::varlistentry>, entries)
@@ -102,14 +110,13 @@ namespace quickbook
                         space, blank, comment,
                         phrase, phrase_end, ordered_list,
                         xinclude, include, hard_space, eol, paragraph_end,
-                        template_, template_id, template_formal_arg,
-                        template_body, identifier, dummy_block, import;
+                        dummy_block, import;
 
         qi::symbols<> paragraph_end_markups;
         qi::rule<iterator, quickbook::paragraph()> paragraph;
         qi::rule<iterator, std::string()> paragraph_content;
 
-        qi::rule<iterator, std::vector<quickbook::list_item>()> list;
+        qi::rule<iterator, quickbook::list()> list;
         qi::rule<iterator, quickbook::list_item()> list_item;
         qi::rule<iterator, std::string()> list_item_content;
         
@@ -132,6 +139,13 @@ namespace quickbook
 
         qi::rule<iterator, std::string()> macro_identifier;
         qi::rule<iterator, quickbook::def_macro()> def_macro;
+
+        qi::rule<iterator, quickbook::define_template()> define_template;
+        qi::rule<iterator, std::string()> identifier;
+        qi::rule<iterator, std::string()> punctuation_identifier;
+        qi::rule<iterator, std::string()> template_id;
+        qi::rule<iterator, std::string()> template_body;
+        qi::rule<iterator> template_body_recurse;
 
         qi::rule<iterator, quickbook::variablelist()> variablelist;
         qi::rule<iterator, quickbook::varlistentry()> varlistentry;
@@ -228,7 +242,7 @@ namespace quickbook
                 |   xinclude
                 |   include
                 |   import
-                |   template_
+                |   define_template             [actions.process][actions.output]
                 )
             >>  (   (space >> ']' >> +eol)
                 |   error
@@ -337,30 +351,40 @@ namespace quickbook
         identifier =
             (qi::alpha | '_') >> *(qi::alnum | '_')
             ;
-
-        template_id =
-            identifier | (qi::punct - (qi::char_('[') | ']'))
+        
+        punctuation_identifier =
+            qi::repeat(1)[qi::punct - (qi::char_('[') | ']')]
             ;
 
-        template_ =
-            "template"
-            >> hard_space >> qi::raw[template_id]
-                                                [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
-            >>
-            -(
-                space >> '['
-                >> *(
-                        space >> qi::raw[template_id]
-                                                [ph::push_back(ph::ref(actions.template_info), as_string(qi::_1))]
-                    )
-                >> space >> ']'
-            )
-            >> qi::raw[template_body]           [actions.template_body]
+        template_id =
+            identifier | punctuation_identifier
+            ;
+
+        define_template =
+                "template"
+            >>  hard_space
+            >>  template_id
+            >>  -(
+                    space
+                >>  '['
+                >>  *(space >> template_id)
+                >>  space
+                >>  ']'
+                )
+            >>  position
+            >>  template_body
             ;
 
         template_body =
-           *(('[' >> template_body >> ']') | (qi::char_ - ']'))
-            >> space >> &qi::lit(']')
+            qi::raw[template_body_recurse]
+            ;
+
+        template_body_recurse =
+                *(  ('[' >> template_body_recurse >> ']')
+                |   (qi::char_ - ']')
+                )
+            >>  space
+            >>  &qi::lit(']')
             ;
 
         variablelist =

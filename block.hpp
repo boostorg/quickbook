@@ -39,6 +39,8 @@ namespace quickbook
         std::string content;
     };
 
+    typedef std::vector<list_item> list;
+
     struct title
     {
         std::string raw_markup;
@@ -61,6 +63,14 @@ namespace quickbook
     {
         int level;
         title content;
+    };
+
+    struct define_template
+    {
+        std::string id;
+        std::vector<std::string> params;
+        quickbook::file_position position;
+        std::string body;
     };
 
     struct def_macro
@@ -89,11 +99,12 @@ namespace quickbook
     
     void process(quickbook::actions&, hr);
     void process(quickbook::actions&, paragraph const&);
-    void process(quickbook::actions&, std::vector<list_item> const&);
+    void process(quickbook::actions&, list const&);
     void process(quickbook::actions&, begin_section const&);
     void process(quickbook::actions&, end_section const&);
     void process(quickbook::actions&, heading const&);
     void process(quickbook::actions&, def_macro const&);
+    void process(quickbook::actions&, define_template const&);
     void process(quickbook::actions&, variablelist const&);
     void process(quickbook::actions&, table const&);
 }
