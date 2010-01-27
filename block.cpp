@@ -124,11 +124,8 @@ namespace quickbook
         bool no_eols;
         phrase_grammar common;
         qi::rule<iterator>
-                        start_, blocks, block_markup,
-                        space, blank, comment,
-                        phrase, phrase_end, ordered_list,
-                        hard_space, eol, paragraph_end,
-                        dummy_block;
+                        start_, blocks, block_markup, space, blank, comment,
+                        phrase_end, hard_space, eol, paragraph_end, dummy_block;
 
         qi::symbols<> paragraph_end_markups;
         qi::rule<iterator, quickbook::paragraph()> paragraph;
@@ -592,14 +589,6 @@ namespace quickbook
                 |   (qi::char_ - phrase_end)    [actions.plain_char]
                 )
             >>  qi::eps                         [actions.phrase_pop]
-            ;
-
-        phrase =
-           *(   common
-            |   comment
-            |   (qi::char_ -
-                    phrase_end)                 [actions.plain_char]
-            )
             ;
 
         position = qi::raw[qi::eps] [get_position];
