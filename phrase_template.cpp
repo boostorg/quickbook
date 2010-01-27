@@ -206,7 +206,7 @@ namespace quickbook
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
                 r = boost::spirit::qi::parse(first, last, block_p) && first == last;
-                actions.out.swap(result);
+                actions.phrase.swap(result);
             }
             return r;
         }

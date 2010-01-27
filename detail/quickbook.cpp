@@ -69,13 +69,13 @@ namespace quickbook
         {
             if(!success) first = start;
 
-            pre(actor.out, actor, ignore_docinfo);
+            pre(actor.phrase, actor, ignore_docinfo);
 
             block_grammar g(actor);
             success = parse(first, last, g);
             if (success && first == last)
             {
-                post(actor.out, actor, ignore_docinfo);
+                post(actor.phrase, actor, ignore_docinfo);
             }
         }
         else {

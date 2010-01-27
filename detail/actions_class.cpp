@@ -34,10 +34,7 @@ namespace quickbook
         , doc_purpose_1_1()
 
     // main output stream
-        , out(out_)
-
-    // auxilliary streams
-        , phrase()
+        , phrase(out_)
 
     // state
         , filename(fs::complete(fs::path(filein_, fs::native)))
@@ -55,7 +52,6 @@ namespace quickbook
         , error_count(0)
 
     // actions
-        , output(*this)
         , process(*this)
         , phrase_push(phrase)
         , phrase_pop(phrase)
@@ -64,7 +60,6 @@ namespace quickbook
         , extract_doc_purpose(doc_purpose, phrase)
 
         , syntax_p(source_mode, *this)
-        , code(out, phrase, syntax_p)
         , plain_char(phrase)
         , raw_char(phrase)
     {
@@ -95,7 +90,6 @@ namespace quickbook
             )
         );
 
-        out.push();
         phrase.push();
         templates.push();
     }
@@ -113,7 +107,6 @@ namespace quickbook
         ) = state_stack.top();
         state_stack.pop();
 
-        out.pop();
         phrase.pop();
         templates.pop();
     }

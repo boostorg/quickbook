@@ -91,35 +91,6 @@ namespace quickbook
             detail::print_space(*first++, out.get());
     }
 
-    void code_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        // preprocess the code section to remove the initial indentation
-        std::string program(x.begin(), x.end());
-        detail::unindent(program);
-        if (program.size() == 0)
-            return; // Nothing left to do here. The program is empty.
-
-        iterator first_(program.begin(), program.end());
-        iterator last_(program.end(), program.end());
-        first_.set_position(x.begin().get_position());
-
-        std::string save;
-        phrase.swap(save);
-
-        // print the code with syntax coloring
-        std::string str = syntax_p(first_, last_);
-
-        phrase.swap(save);
-
-        //
-        // We must not place a \n after the <programlisting> tag
-        // otherwise PDF output starts code blocks with a blank line:
-        //
-        out << "<programlisting>";
-        out << str;
-        out << "</programlisting>\n";
-    }
-
     void raw_char_action::operator()(char ch, unused_type, unused_type) const
     {
         phrase << ch;
@@ -459,13 +430,5 @@ namespace quickbook
     {
         phrase.swap(out);
     }
-    
-    void output_action::operator()(unused_type, unused_type, unused_type) const
-    {
-        std::string out;
-        actions.phrase.swap(out);
-        actions.out << out;
-    }
-
 }
 

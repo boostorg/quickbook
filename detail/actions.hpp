@@ -178,27 +178,6 @@ namespace quickbook
         actions& escape_actions;
     };
 
-    struct code_action
-    {
-        // Does the actual syntax highlighing of code
-
-        code_action(
-            collector& out
-          , collector& phrase
-          , syntax_highlight& syntax_p)
-        : out(out)
-        , phrase(phrase)
-        , syntax_p(syntax_p)
-        {
-        }
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-        collector& phrase;
-        syntax_highlight& syntax_p;
-    };
-
    struct element_id_warning_action
    {
        void operator()(iterator_range, unused_type, unused_type) const;
@@ -338,16 +317,6 @@ namespace quickbook
         void operator()(T const& x) const {
             process(actions, x);
         }
-        
-        quickbook::actions& actions;
-    };
-    
-    struct output_action
-    {
-        output_action(quickbook::actions& actions)
-            : actions(actions) {}
-        
-        void operator()(unused_type, unused_type, unused_type) const;
         
         quickbook::actions& actions;
     };

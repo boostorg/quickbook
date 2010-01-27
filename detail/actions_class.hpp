@@ -48,9 +48,6 @@ namespace quickbook
         std::string             doc_purpose_1_1;
 
     // main output stream
-        collector               out;
-
-    // auxilliary streams
         collector               phrase;
 
     // state
@@ -87,7 +84,6 @@ namespace quickbook
     ///////////////////////////////////////////////////////////////////////////
     // actions
     ///////////////////////////////////////////////////////////////////////////
-        output_action           output;
         process_action          process;
         phrase_push_action      phrase_push;
         phrase_pop_action       phrase_pop;
@@ -96,7 +92,6 @@ namespace quickbook
         phrase_to_string_action extract_doc_purpose;
 
         syntax_highlight        syntax_p;
-        code_action             code;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
 

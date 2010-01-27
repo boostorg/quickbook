@@ -206,11 +206,11 @@ namespace quickbook
 
         blocks =
            +(   block_markup
-            |   code                            [actions.process][actions.output]
-            |   list                            [actions.process][actions.output]
-            |   hr                              [actions.process][actions.output]
+            |   code                            [actions.process]
+            |   list                            [actions.process]
+            |   hr                              [actions.process]
             |   comment >> *eol
-            |   paragraph                       [actions.process][actions.output]
+            |   paragraph                       [actions.process]
             |   eol
             )
             ;
@@ -255,20 +255,20 @@ namespace quickbook
 
         block_markup =
                 '[' >> space
-            >>  (   begin_section               [actions.process][actions.output]
-                |   end_section                 [actions.process][actions.output]
-                |   heading                     [actions.process][actions.output]
-                |   paragraph_block             [actions.process][actions.output]
-                |   blockquote                  [actions.process][actions.output]
-                |   preformatted                [actions.process][actions.output]
-                |   def_macro                   [actions.process][actions.output]
-                |   table                       [actions.process][actions.output]
-                |   variablelist                [actions.process][actions.output]
-                |   xinclude                    [actions.process][actions.output]
-                |   include                     [actions.process][actions.output]
-                |   import                      [actions.process][actions.output]
-                |   define_template             [actions.process][actions.output]
-                )
+            >>  (   begin_section
+                |   end_section
+                |   heading
+                |   paragraph_block
+                |   blockquote
+                |   preformatted
+                |   def_macro
+                |   table
+                |   variablelist
+                |   xinclude
+                |   include
+                |   import
+                |   define_template
+                )                               [actions.process]
             >>  (   (space >> ']' >> +eol)
                 |   error
                 )
