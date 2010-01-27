@@ -31,6 +31,7 @@ test-suite quickbook.test :
     [ quickbook-test table_1_5 ]
     [ quickbook-test image_1_5 ]
     [ quickbook-test list_test ]
+    [ quickbook-test cond_phrase ]
     [ quickbook-fail-test fail-include ]
     [ quickbook-fail-test fail-import ]
     [ quickbook-fail-test fail-template-arguments1 ]
