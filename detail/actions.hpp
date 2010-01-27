@@ -75,110 +75,6 @@ namespace quickbook
         int& error_count;
     };
 
-    struct phrase_action
-    {
-        //  blurb, blockquote, preformatted, list_item,
-        //  unordered_list, ordered_list
-
-        phrase_action(
-            collector& out,
-            collector& phrase,
-            std::string const& pre,
-            std::string const& post)
-        : out(out)
-        , phrase(phrase)
-        , pre(pre)
-        , post(post) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        collector& out;
-        collector& phrase;
-        std::string pre;
-        std::string post;
-    };
-
-    struct header_action
-    {
-        //  Handles paragraph, h1, h2, h3, h4, h5, h6,
-
-        header_action(
-            collector& out,
-            collector& phrase,
-            std::string const& library_id,
-            std::string const& section_id,
-            std::string const& qualified_section_id,
-            std::string const& pre,
-            std::string const& post)
-        : out(out)
-        , phrase(phrase)
-        , library_id(library_id)
-        , section_id(section_id)
-        , qualified_section_id(qualified_section_id)
-        , pre(pre)
-        , post(post) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-        collector& phrase;
-        std::string const& library_id;
-        std::string const& section_id;
-        std::string const& qualified_section_id;
-        std::string pre;
-        std::string post;
-    };
-
-    struct generic_header_action
-    {
-        //  Handles h
-
-        generic_header_action(
-            collector& out,
-            collector& phrase,
-            std::string const& library_id,
-            std::string const& section_id,
-            std::string const& qualified_section_id,
-            int const& section_level)
-        : out(out)
-        , phrase(phrase)
-        , library_id(library_id)
-        , section_id(section_id)
-        , qualified_section_id(qualified_section_id)
-        , section_level(section_level) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-        collector& phrase;
-        std::string const& library_id;
-        std::string const& section_id;
-        std::string const& qualified_section_id;
-        int const& section_level;
-    };
-
-    struct simple_phrase_action
-    {
-        //  Handles simple text formats
-
-        simple_phrase_action(
-            collector& out
-          , std::string const& pre
-          , std::string const& post
-          , macro_symbols const& macro)
-        : out(out)
-        , pre(pre)
-        , post(post)
-        , macro(macro) {}
-
-        void operator()(iterator_range const&, unused_type, unused_type) const;
-
-        collector& out;
-        std::string pre;
-        std::string post;
-        macro_symbols const& macro;
-    };
-
     struct span
     {
         // Decorates c++ code fragments
@@ -301,18 +197,6 @@ namespace quickbook
         collector& out;
         collector& phrase;
         syntax_highlight& syntax_p;
-    };
-
-    struct template_body_action
-    {
-        // Handles template definitions
-
-        template_body_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        quickbook::actions& actions;
     };
 
    struct element_id_warning_action

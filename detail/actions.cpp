@@ -54,81 +54,6 @@ namespace quickbook
         ++error_count;
     }
 
-    void phrase_action::operator()(unused_type, unused_type, unused_type) const
-    {
-        std::string str;
-        phrase.swap(str);
-        out << pre << str << post;
-    }
-
-    void header_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        std::string str;
-        phrase.swap(str);
-
-        if (qbk_version_n < 103) // version 1.2 and below
-        {
-            out << "<anchor id=\""
-                << section_id << '.'
-                << detail::make_identifier(str.begin(), str.end())
-                << "\" />"
-                << pre << str << post
-                ;
-        }
-        else // version 1.3 and above
-        {
-            std::string anchor = fully_qualified_id(library_id, qualified_section_id,
-                detail::make_identifier(str.begin(), str.end()));
-
-            out << "<anchor id=\"" << anchor << "\"/>"
-                << pre
-                << "<link linkend=\"" << anchor << "\">"
-                << str
-                << "</link>"
-                << post
-                ;
-        }
-    }
-
-    void generic_header_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        int level_ = section_level + 2;     // section_level is zero-based. We need to use a
-                                            // 0ne-based heading which is one greater
-                                            // than the current. Thus: section_level + 2.
-        if (level_ > 6)                     // The max is h6, clip it if it goes
-            level_ = 6;                     // further than that
-        std::string str;
-        phrase.swap(str);
-
-        std::string anchor = fully_qualified_id(library_id, qualified_section_id,
-            detail::make_identifier(str.begin(), str.end()));
-
-        out
-            << "<anchor id=\"" << anchor << "\"/>"
-            << "<bridgehead renderas=\"sect" << level_ << "\">"
-            << "<link linkend=\"" << anchor << "\">"
-            << str
-            << "</link>"
-            << "</bridgehead>"
-            ;
-    }
-
-    void simple_phrase_action::operator()(iterator_range const& x, unused_type, unused_type) const
-    {
-        out << pre;
-        if (quickbook::macro const* ptr = macro.find(x))
-        {
-            out << ptr->raw_markup;
-        }
-        else
-        {
-            iterator first = x.begin(), last = x.end();
-            while (first != last)
-                detail::print_char(*first++, out.get());
-        }
-        out << post;
-    }
-
     void span::operator()(iterator_range x, unused_type, unused_type) const
     {
         iterator first = x.begin(), last = x.end();
@@ -214,24 +139,6 @@ namespace quickbook
     void plain_char_action::operator()(iterator_range x, unused_type, unused_type) const
     {
         detail::print_char(*x.begin(), phrase.get());
-    }
-
-    void template_body_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        BOOST_ASSERT(actions.template_info.size());
-        if (actions.templates.find_top_scope(actions.template_info[0]))
-        {
-            boost::spirit::classic::file_position const pos = x.begin().get_position();
-            detail::outerr(pos.file,pos.line)
-                << "Template Redefinition: " << actions.template_info[0] << std::endl;
-            ++actions.error_count;
-        }
-
-        actions.template_info.push_back(std::string(x.begin(), x.end()));
-        actions.templates.add(
-            actions.template_info[0]
-          , template_symbol(actions.template_info, x.begin().get_position()));
-        actions.template_info.clear();
     }
 
     void element_id_warning_action::operator()(iterator_range x, unused_type, unused_type) const

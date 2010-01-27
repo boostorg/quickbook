@@ -66,15 +66,8 @@ namespace quickbook
 
         , syntax_p(source_mode, *this)
         , code(out, phrase, syntax_p)
-        , paragraph(out, phrase, paragraph_pre, paragraph_post)
         , plain_char(phrase)
         , raw_char(phrase)
-
-        , template_body(*this)
-        , url_pre(url_pre_)
-        , url_post(url_post_)
-        , link_pre(link_pre_)
-        , link_post(link_post_)
 
         , xinclude(out, *this)
         , include(*this)

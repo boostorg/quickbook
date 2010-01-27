@@ -98,15 +98,8 @@ namespace quickbook
 
         syntax_highlight        syntax_p;
         code_action             code;
-        phrase_action           paragraph;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
-
-        template_body_action    template_body;
-        char const*             url_pre;
-        char const*             url_post;
-        char const*             link_pre;
-        char const*             link_post;
 
         element_id_warning_action element_id_warning;
         xinclude_action         xinclude;
