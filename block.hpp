@@ -13,6 +13,7 @@
 #include "./grammars.hpp"
 #include "./detail/quickbook.hpp"
 #include "./detail/utils.hpp"
+#include "./detail/actions_class.hpp"
 #include "./parse_utils.hpp"
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
@@ -27,16 +28,15 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
-    template <typename Iterator, typename Actions>
-    struct block_grammar<Iterator, Actions>::rules
+    struct block_grammar::rules
     {
-        rules(Actions& actions_);
+        rules(quickbook::actions& actions_);
 
-        Actions& actions;
+        quickbook::actions& actions;
         bool no_eols;
-        phrase_grammar<Iterator, Actions> common;
+        phrase_grammar common;
         qi::symbols<>   paragraph_end_markups;
-        qi::rule<Iterator>
+        qi::rule<iterator>
                         start_, blocks, block_markup, code, code_line,
                         paragraph, space, blank, comment, headings, h, h1, h2,
                         h3, h4, h5, h6, hr, blurb, blockquote, admonition,
@@ -48,20 +48,17 @@ namespace quickbook
                         template_, template_id, template_formal_arg,
                         template_body, identifier, dummy_block, import,
                         inside_paragraph;
-        qi::rule<Iterator, boost::optional<std::string>()>  element_id, element_id_1_5;
+        qi::rule<iterator, boost::optional<std::string>()>  element_id, element_id_1_5;
     };
 
-    template <typename Iterator, typename Actions>
-    block_grammar<Iterator, Actions>::block_grammar(Actions& actions_)
+    block_grammar::block_grammar(quickbook::actions& actions_)
         : block_grammar::base_type(start, "block")
         , rules_pimpl(new rules(actions_))
         , start(rules_pimpl->start_) {}
 
-    template <typename Iterator, typename Actions>
-    block_grammar<Iterator, Actions>::~block_grammar() {}
+    block_grammar::~block_grammar() {}
 
-    template <typename Iterator, typename Actions>
-    block_grammar<Iterator, Actions>::rules::rules(Actions& actions_)
+    block_grammar::rules::rules(quickbook::actions& actions_)
         : actions(actions_), no_eols(true), common(actions, no_eols)
     {
         start_ =

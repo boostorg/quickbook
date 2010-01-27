@@ -13,62 +13,59 @@
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_symbols.hpp>
 #include <boost/scoped_ptr.hpp>
+#include "./detail/actions_class.hpp"
 
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
 
-    template <typename Iterator, typename Actions>
-    struct phrase_grammar : qi::grammar<Iterator>
+    struct phrase_grammar : qi::grammar<iterator>
     {
-        phrase_grammar(Actions& actions, bool& no_eols);
+        phrase_grammar(quickbook::actions& actions, bool& no_eols);
         ~phrase_grammar();
 
         struct rules;
         boost::scoped_ptr<rules> rules_pimpl;
-        qi::rule<Iterator> start;
+        qi::rule<iterator> start;
     private:
         phrase_grammar(phrase_grammar const&);
         phrase_grammar& operator=(phrase_grammar const&);
     };
 
-    template <typename Iterator, typename Actions>
-    struct simple_phrase_grammar : qi::grammar<Iterator>
+    struct simple_phrase_grammar : qi::grammar<iterator>
     {
-        simple_phrase_grammar(Actions& actions);
+        simple_phrase_grammar(quickbook::actions& actions);
         ~simple_phrase_grammar();
 
         struct rules;
         boost::scoped_ptr<rules> rules_pimpl;
-        qi::rule<Iterator> start;
+        qi::rule<iterator> start;
     private:
         simple_phrase_grammar(simple_phrase_grammar const&);
         simple_phrase_grammar& operator=(simple_phrase_grammar const&);
     };
 
-    template <typename Iterator, typename Actions>
-    struct block_grammar : qi::grammar<Iterator>
+    struct block_grammar : qi::grammar<iterator>
     {
-        block_grammar(Actions& actions);
+        block_grammar(quickbook::actions& actions);
         ~block_grammar();
 
         struct rules;
         boost::scoped_ptr<rules> rules_pimpl;
-        qi::rule<Iterator> start;
+        qi::rule<iterator> start;
     private:
         block_grammar(block_grammar const&);
         block_grammar& operator=(block_grammar const&);
     };
 
-    template <typename Iterator, typename Actions>
-    struct doc_info_grammar : qi::grammar<Iterator>
+    struct doc_info_grammar : qi::grammar<iterator>
     {
-        doc_info_grammar(Actions& actions);
+        doc_info_grammar(quickbook::actions& actions);
         ~doc_info_grammar();
 
         struct rules;
         boost::scoped_ptr<rules> rules_pimpl;
-        qi::rule<Iterator> start;
+        qi::rule<iterator> start;
     private:
         doc_info_grammar(doc_info_grammar const&);
         doc_info_grammar& operator=(doc_info_grammar const&);
@@ -78,9 +75,8 @@ namespace quickbook
     
     struct code_snippet_actions;
 
-    template <typename Iterator>
     struct python_code_snippet_grammar
-        : qi::grammar<Iterator>
+        : qi::grammar<iterator>
     {
         typedef code_snippet_actions actions_type;
     
@@ -89,15 +85,14 @@ namespace quickbook
 
         struct rules;
         boost::scoped_ptr<rules> rules_pimpl;
-        qi::rule<Iterator> start;
+        qi::rule<iterator> start;
     private:
         python_code_snippet_grammar(python_code_snippet_grammar const&);
         python_code_snippet_grammar& operator=(python_code_snippet_grammar const&);
     };
 
-    template <typename Iterator>
     struct cpp_code_snippet_grammar
-        : qi::grammar<Iterator>
+        : qi::grammar<iterator>
     {
         typedef code_snippet_actions actions_type;
     
@@ -106,7 +101,7 @@ namespace quickbook
 
         struct rules;
         boost::scoped_ptr<rules> rules_pimpl;
-        qi::rule<Iterator> start;
+        qi::rule<iterator> start;
     private:
         cpp_code_snippet_grammar(cpp_code_snippet_grammar const&);
         cpp_code_snippet_grammar& operator=(cpp_code_snippet_grammar const&);

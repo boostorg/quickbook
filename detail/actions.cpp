@@ -728,7 +728,7 @@ namespace quickbook
             }
             else if (!is_block)
             {
-                simple_phrase_grammar<iterator, quickbook::actions> phrase_p(actions);
+                simple_phrase_grammar phrase_p(actions);
 
                 //  do a phrase level parse
                 iterator first(body.begin(), body.end(), actions.filename.native_file_string().c_str());
@@ -739,7 +739,7 @@ namespace quickbook
             }
             else
             {
-                block_grammar<iterator, quickbook::actions> block_p(actions);
+                block_grammar block_p(actions);
 
                 //  do a block level parse
                 //  ensure that we have enough trailing newlines to eliminate
@@ -1233,11 +1233,11 @@ namespace quickbook
         code_snippet_actions a(storage, doc_id, is_python ? "[python]" : "[c++]");
         // TODO: Should I check that parse succeeded?
         if(is_python) {
-            python_code_snippet_grammar<iterator> g(a);
+            python_code_snippet_grammar g(a);
             boost::spirit::qi::parse(first, last, g);
         }
         else {
-            cpp_code_snippet_grammar<iterator> g(a);
+            cpp_code_snippet_grammar g(a);
             boost::spirit::qi::parse(first, last, g);
         }
 

@@ -62,7 +62,7 @@ namespace quickbook
         iterator last(storage.end(), storage.end());
         iterator start = first;
 
-        doc_info_grammar<iterator, actions> l(actor);
+        doc_info_grammar l(actor);
         bool success = parse(first, last, l);
 
         if (success || ignore_docinfo)
@@ -71,7 +71,7 @@ namespace quickbook
 
             pre(actor.out, actor, ignore_docinfo);
 
-            block_grammar<iterator, actions> g(actor);
+            block_grammar g(actor);
             success = parse(first, last, g);
             if (success && first == last)
             {

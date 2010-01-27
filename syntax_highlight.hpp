@@ -21,16 +21,15 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     using boost::spirit::unused_type;
 
-    template <class Iterator, class EscapeActions>
     struct parse_escaped_impl
     {
-        parse_escaped_impl(EscapeActions& escape_actions)
+        parse_escaped_impl(quickbook::actions& escape_actions)
             : actions(escape_actions) {}
 
-        void operator()(boost::iterator_range<Iterator> escaped, unused_type, unused_type) const {
+        void operator()(boost::iterator_range<iterator> escaped, unused_type, unused_type) const {
             bool unused;
-            phrase_grammar<Iterator, EscapeActions> common(actions, unused);   
-            Iterator first = escaped.begin(), last = escaped.end();
+            phrase_grammar common(actions, unused);   
+            iterator first = escaped.begin(), last = escaped.end();
             while(first != last) {
                 if(!qi::parse(first, last, common)) {
                     actions.plain_char(*first, 0, 0);
@@ -39,7 +38,7 @@ namespace quickbook
             }
         }
         
-        EscapeActions& actions;
+        quickbook::actions& actions;
     };
 
     // Grammar for C++ highlighting
@@ -50,14 +49,12 @@ namespace quickbook
       , typename DoMacro
       , typename PreEscape
       , typename PostEscape
-      , typename EscapeActions
       , typename Unexpected
-      , typename Out
-      , typename Iterator>
+      , typename Out>
     struct cpp_highlight
-    : public qi::grammar<Iterator>
+    : public qi::grammar<iterator>
     {
-        cpp_highlight(Out& out, Macro const& macro_symbols, DoMacro do_macro, EscapeActions& escape_actions)
+        cpp_highlight(Out& out, Macro const& macro_symbols, DoMacro do_macro, quickbook::actions& escape_actions)
         : cpp_highlight::base_type(program), out(out), macro_symbols(macro_symbols), do_macro(do_macro), escape_actions(escape_actions)
         , parse_escaped(escape_actions)
         {
@@ -162,7 +159,7 @@ namespace quickbook
                 ;
         }
 
-        qi::rule<Iterator>
+        qi::rule<iterator>
                         program, macro, preprocessor, comment, special, string_, 
                         char_, number, identifier, keyword, escape,
                         string_char;
@@ -170,10 +167,10 @@ namespace quickbook
         Out& out;
         Macro const& macro_symbols;
         DoMacro do_macro;
-        EscapeActions& escape_actions;
+        quickbook::actions& escape_actions;
 
         qi::symbols<> keyword_;
-        parse_escaped_impl<Iterator, EscapeActions> parse_escaped;
+        parse_escaped_impl parse_escaped;
         std::string save;
     };
 
@@ -187,14 +184,12 @@ namespace quickbook
       , typename DoMacro
       , typename PreEscape
       , typename PostEscape
-      , typename EscapeActions
       , typename Unexpected
-      , typename Out
-      , typename Iterator>
+      , typename Out>
     struct python_highlight
-    : public qi::grammar<Iterator>
+    : public qi::grammar<iterator>
     {
-        python_highlight(Out& out, Macro const& macro_symbols, DoMacro do_macro, EscapeActions& escape_actions)
+        python_highlight(Out& out, Macro const& macro_symbols, DoMacro do_macro, quickbook::actions& escape_actions)
         : python_highlight::base_type(program), out(out), macro_symbols(macro_symbols), do_macro(do_macro), escape_actions(escape_actions)
         , parse_escaped(escape_actions)
         {
@@ -300,7 +295,7 @@ namespace quickbook
                 ;
         }
 
-        qi::rule<Iterator>
+        qi::rule<iterator>
                         program, macro, comment, special, string_, string_prefix, 
                         short_string, long_string, number, identifier, keyword, 
                         escape, string_char;
@@ -308,10 +303,10 @@ namespace quickbook
         Out& out;
         Macro const& macro_symbols;
         DoMacro do_macro;
-        EscapeActions& escape_actions;
+        quickbook::actions& escape_actions;
 
         qi::symbols<> keyword_;
-        parse_escaped_impl<Iterator, EscapeActions> parse_escaped;
+        parse_escaped_impl parse_escaped;
         std::string save;
     };
 
@@ -322,13 +317,11 @@ namespace quickbook
       , typename DoMacro
       , typename PreEscape
       , typename PostEscape
-      , typename EscapeActions
-      , typename Out
-      , typename Iterator>
+      , typename Out>
     struct teletype_highlight
-    : public qi::grammar<Iterator>
+    : public qi::grammar<iterator>
     {
-        teletype_highlight(Out& out, Macro const& macro_symbols, DoMacro do_macro, EscapeActions& escape_actions)
+        teletype_highlight(Out& out, Macro const& macro_symbols, DoMacro do_macro, quickbook::actions& escape_actions)
         : teletype_highlight::base_type(program), out(out), macro_symbols(macro_symbols), do_macro(do_macro), escape_actions(escape_actions)
         , parse_escaped(escape_actions)
         {
@@ -366,14 +359,14 @@ namespace quickbook
                 ;
         }
 
-        qi::rule<Iterator> program, macro, escape;
+        qi::rule<iterator> program, macro, escape;
 
         Out& out;
         Macro const& macro_symbols;
         DoMacro do_macro;
-        EscapeActions& escape_actions;
+        quickbook::actions& escape_actions;
 
-        parse_escaped_impl<Iterator, EscapeActions> parse_escaped;
+        parse_escaped_impl parse_escaped;
         std::string save;
     };
 
