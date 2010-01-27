@@ -25,9 +25,6 @@
 #include "markups.hpp"
 #include "quickbook.hpp"
 #include "parse_utils.hpp"
-/*
-#include "utils.hpp"
-*/
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::anchor,
@@ -54,7 +51,6 @@ BOOST_FUSION_ADAPT_STRUCT(
     (char const*, dummy)
 )
 
-
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::image,
     (quickbook::file_position, position)
@@ -69,11 +65,11 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::template_,
+    quickbook::call_template,
     (quickbook::file_position, position)
     (bool, escape)
-    (quickbook::template_symbol, symbol)
-    (std::vector<std::string>, params)
+    (quickbook::template_symbol const*, symbol)
+    (std::vector<std::string>, args)
 )
 
 namespace quickbook
@@ -100,7 +96,7 @@ namespace quickbook
 
         qi::rule<iterator, file_position()> position;
 
-        qi::rule<iterator, quickbook::template_()> template_;
+        qi::rule<iterator, quickbook::call_template()> call_template;
         qi::rule<iterator, std::string()> template_arg_1_4, template_arg_1_5;
         qi::rule<iterator, std::vector<std::string>() > template_args;
 
@@ -193,7 +189,7 @@ namespace quickbook
 
         // Template call
 
-        template_ =
+        call_template =
                 position
             >>  (   '`' >> qi::attr(true)
                 |   qi::attr(false)
@@ -306,7 +302,7 @@ namespace quickbook
                 |   source_mode
                 |   formatted
                 |   footnote
-                |   template_
+                |   call_template
                 |   break_
                 )
             >>  ']'

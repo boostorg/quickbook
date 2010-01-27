@@ -102,10 +102,9 @@ namespace quickbook
             }
         }
 
-        std::vector<std::string> tinfo;
-        tinfo.push_back(x.identifier);
-        tinfo.push_back(actions.snippet);
-        actions.storage.push_back(template_symbol(tinfo, x.position));
+        std::vector<std::string> empty_params;
+        actions.storage.push_back(define_template(
+            x.identifier, empty_params, actions.snippet, x.position));
 
         callout_id += actions.callouts.size();
         actions.callouts.clear();

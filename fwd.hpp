@@ -22,10 +22,16 @@ namespace quickbook
 
     struct collector;
     struct string_stream;
-    
+ 
     typedef boost::spirit::classic::position_iterator<
         std::string::const_iterator> iterator;
     typedef boost::spirit::classic::file_position file_position;
+
+    // templates
+
+    struct call_template;
+    struct define_template;
+    struct template_symbol;
 }
 
 #endif

@@ -15,7 +15,7 @@
 #include "fwd.hpp"
 #include "actions.hpp"
 #include "collector.hpp"
-#include "template_stack.hpp"
+#include "template.hpp"
 
 namespace quickbook
 {
@@ -61,7 +61,6 @@ namespace quickbook
         std::stack<state_tuple> state_stack;
 
     // temporary or global state
-        string_list             template_info;
         int                     template_depth;
         template_stack          templates;
         int                     error_count;

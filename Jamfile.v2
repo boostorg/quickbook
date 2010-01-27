@@ -26,12 +26,11 @@ exe quickbook
     input_path.cpp
     post_process.cpp
     collector.cpp
-    template_stack.cpp
+    template.cpp
     markups.cpp
     phrase.cpp
     phrase_actions.cpp
     phrase_image.cpp
-    phrase_template.cpp
     block.cpp
     block_actions.cpp
     block_list.cpp

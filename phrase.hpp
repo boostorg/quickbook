@@ -10,11 +10,11 @@
 #if !defined(BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP)
 #define BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP
 
+#include <vector>
 #include <string>
 #include <map>
 #include "fwd.hpp"
 #include "parse_types.hpp"
-#include "template_stack.hpp"
 
 namespace quickbook
 {
@@ -25,11 +25,11 @@ namespace quickbook
         std::string mode;
     };
     
-    struct template_ {
+    struct call_template {
         file_position position;
         bool escape;
-        template_symbol symbol;
-        std::vector<std::string> params;
+        template_symbol const* symbol;
+        std::vector<std::string> args;
     };
 
     struct anchor {
@@ -68,7 +68,7 @@ namespace quickbook
 
     void process(quickbook::actions&, source_mode const&);
     void process(quickbook::actions&, macro const&);
-    void process(quickbook::actions&, template_ const&);
+    void process(quickbook::actions&, call_template const&);
     void process(quickbook::actions&, anchor const&);
     void process(quickbook::actions&, link const&);
     void process(quickbook::actions&, simple_markup const&);

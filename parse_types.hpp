@@ -16,7 +16,6 @@
 
 namespace quickbook
 {
-
     struct markup {
         markup()
             : pre(""), post("") {}

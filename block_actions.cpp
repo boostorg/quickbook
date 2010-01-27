@@ -182,20 +182,11 @@ namespace quickbook
 
     void process(quickbook::actions& actions, define_template const& x)
     {
-        if (actions.templates.find_top_scope(x.id))
-        {
+        if(!actions.templates.add(x)) {
             detail::outerr(x.position.file, x.position.line)
-                << "Template Redefinition: " << actions.template_info[0] << std::endl;
+                << "Template Redefinition: " << x.id << std::endl;
             ++actions.error_count;
         }
-
-        std::vector<std::string> info;
-        info.reserve(x.params.size() + 2);
-        info.push_back(x.id);
-        info.insert(info.end(), x.params.begin(), x.params.end());
-        info.push_back(x.body);
-
-        actions.templates.add(x.id, template_symbol(info, x.position));
     }
 
     void process(quickbook::actions& actions, variablelist const& x)
@@ -300,8 +291,8 @@ namespace quickbook
     {
         int load_snippets(
             std::string const& file
-          , std::vector<template_symbol>& storage   // snippets are stored in a
-                                                    // vector of template_symbols
+          , std::vector<define_template>& storage   // for storing snippets are stored in a
+                                                    // vector of define_templates
           , std::string const& extension
           , std::string const& doc_id)
         {
@@ -442,23 +433,17 @@ namespace quickbook
     {
         fs::path path = include_search(actions.filename.branch_path(), x.path);
         std::string ext = fs::extension(path);
-        std::vector<template_symbol> storage;
+        std::vector<define_template> storage;
         actions.error_count +=
             load_snippets(path.string(), storage, ext, actions.doc_id);
 
-        BOOST_FOREACH(template_symbol const& ts, storage)
+        BOOST_FOREACH(define_template const& definition, storage)
         {
-            std::string tname = boost::get<0>(ts)[0];
-            if (actions.templates.find_top_scope(tname))
+            if (!actions.templates.add(definition))
             {
-                file_position const pos = boost::get<1>(ts);
-                detail::outerr(pos.file, pos.line)
-                    << "Template Redefinition: " << tname << std::endl;
+                detail::outerr(definition.position.file, definition.position.line)
+                    << "Template Redefinition: " << definition.id << std::endl;
                 ++actions.error_count;
-            }
-            else
-            {
-                actions.templates.add(tname, ts);
             }
         }
     }

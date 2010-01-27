@@ -17,8 +17,6 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/support_unused.hpp>
 #include "fwd.hpp"
-// TODO: Convert template_symbol into a struct so it can be forward declared.
-#include "template_stack.hpp"
 
 namespace quickbook
 {
@@ -67,7 +65,7 @@ namespace quickbook
 
     struct code_snippet_actions
     {
-        code_snippet_actions(std::vector<template_symbol>& storage,
+        code_snippet_actions(std::vector<define_template>& storage,
                                  std::string const& doc_id,
                                  char const* source_type)
             : process(*this)
@@ -104,7 +102,7 @@ namespace quickbook
         std::string code;
         std::string snippet;
         std::vector<std::string> callouts;
-        std::vector<template_symbol>& storage;
+        std::vector<define_template>& storage;
         std::string const doc_id;
         char const* const source_type;
     };
