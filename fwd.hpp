@@ -15,6 +15,7 @@
 namespace quickbook
 {
     struct macro;
+    struct doc_info;
 
     struct actions;
     struct code_snippet_actions;

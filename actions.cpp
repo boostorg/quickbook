@@ -12,7 +12,7 @@
 #include <boost/spirit/include/support_unused.hpp>
 #include "actions.hpp"
 #include "actions_class.hpp"
-#include "grammars.hpp" // TODO: Needed for doc_info
+#include "doc_info.hpp"
 #include "quickbook.hpp" // TODO: Quickbook version number
 #include "utils.hpp"
 

@@ -57,25 +57,6 @@ namespace quickbook
         block_grammar& operator=(block_grammar const&);
     };
 
-    struct doc_info
-    {
-        typedef std::vector<std::string> string_list;
-        typedef std::vector<std::pair<std::string, std::string> > author_list;
-        typedef std::vector<std::pair<string_list, std::string> > copyright_list;
-
-        std::string             doc_type;
-        std::string             doc_title;
-        std::string             doc_version;
-        std::string             doc_id;
-        std::string             doc_dirname;
-        copyright_list          doc_copyrights;
-        std::string             doc_purpose;
-        std::string             doc_category;
-        author_list             doc_authors;
-        std::string             doc_license;
-        std::string             doc_last_revision;
-    };
-
     struct doc_info_grammar : qi::grammar<iterator, doc_info()>
     {
         doc_info_grammar(quickbook::actions& actions);
@@ -88,10 +69,6 @@ namespace quickbook
         doc_info_grammar(doc_info_grammar const&);
         doc_info_grammar& operator=(doc_info_grammar const&);
     };
-
-    // TODO: Duplicate declaration:
-    
-    struct code_snippet_actions;
 
     struct python_code_snippet_grammar
         : qi::grammar<iterator>

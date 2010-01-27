@@ -7,21 +7,22 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#include "actions_class.hpp"
-#include "grammars.hpp"
-#include "post_process.hpp"
-#include "utils.hpp"
-#include "input_path.hpp"
-#include <boost/spirit/include/classic_iterator.hpp>
-#include <boost/program_options.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/ref.hpp>
 
 #include <stdexcept>
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <boost/program_options.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/ref.hpp>
+#include "fwd.hpp"
+#include "actions_class.hpp"
+#include "grammars.hpp"
+#include "post_process.hpp"
+#include "utils.hpp"
+#include "input_path.hpp"
+#include "doc_info.hpp"
 
 #if (defined(BOOST_MSVC) && (BOOST_MSVC <= 1310))
 #pragma warning(disable:4355)
