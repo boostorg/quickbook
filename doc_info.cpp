@@ -23,6 +23,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/fusion/include/std_pair.hpp>
+#include <boost/fusion/include/reverse_view.hpp>
 
 namespace quickbook
 {
@@ -64,7 +65,8 @@ namespace quickbook
         qi::rule<iterator, std::string()> phrase, doc_version, doc_id, doc_dirname, doc_category, doc_last_revision, doc_source_mode, doc_purpose, doc_license;
         qi::rule<iterator, std::pair<std::vector<std::string>, std::string>()> doc_copyright;
         qi::rule<iterator, std::vector<std::pair<std::string, std::string> >()> doc_authors;
-        qi::rule<iterator, std::pair<std::string, std::string>()> doc_author;
+        qi::rule<iterator, boost::fusion::reverse_view<
+                std::pair<std::string, std::string> >()> doc_author;
     };
 
     doc_info_grammar::doc_info_grammar(quickbook::actions& actions)
@@ -153,9 +155,9 @@ namespace quickbook
                 space
             >>  '['
             >> space
-            >>  (*(qi::char_ - ','))        [member_assign(&std::pair<std::string, std::string>::second)]
+            >>  (*(qi::char_ - ','))
             >>  ',' >> space
-            >>  (*(qi::char_ - ']'))        [member_assign(&std::pair<std::string, std::string>::first)]
+            >>  (*(qi::char_ - ']'))
             >>  ']'
             ;
 
