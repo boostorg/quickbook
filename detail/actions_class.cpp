@@ -111,8 +111,6 @@ namespace quickbook
         , start_cell(phrase, table_span)
         , end_cell(phrase, temp_para)
 
-        , begin_section(out, phrase, doc_id, section_id, section_level, qualified_section_id)
-        , end_section(out, section_level, qualified_section_id, error_count)
         , xinclude(out, *this)
         , include(*this)
         , import(out, *this)

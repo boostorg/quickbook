@@ -17,11 +17,19 @@
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
+#include <boost/spirit/include/qi_attr.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::paragraph,
+    (std::string, content)
+    (char const*, dummy)
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::list_item,
@@ -29,6 +37,24 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, indent)
     (char, mark)
     (std::string, content)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::title,
+    (std::string, raw_markup)
+    (std::string, content)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::begin_section,
+    (boost::optional<std::string>, id)
+    (quickbook::title, content)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::end_section,
+    (quickbook::file_position, position)
+    (char const*, dummy)
 )
 
 namespace quickbook
@@ -43,25 +69,38 @@ namespace quickbook
         quickbook::actions& actions;
         bool no_eols;
         phrase_grammar common;
-        qi::symbols<>   paragraph_end_markups;
         qi::rule<iterator>
                         start_, blocks, block_markup, code, code_line,
-                        paragraph, space, blank, comment, headings, h, h1, h2,
-                        h3, h4, h5, h6, hr, blurb, blockquote, admonition,
+                        space, blank, comment, headings, h, h1, h2,
+                        h3, h4, h5, h6, blurb, blockquote, admonition,
                         phrase, phrase_end, ordered_list, def_macro,
                         macro_identifier, table, table_row, variablelist,
                         varlistentry, varlistterm, varlistitem, table_cell,
-                        preformatted, begin_section, end_section,
+                        preformatted,
                         xinclude, include, hard_space, eol, paragraph_end,
                         template_, template_id, template_formal_arg,
                         template_body, identifier, dummy_block, import,
                         inside_paragraph;
 
+        qi::symbols<> paragraph_end_markups;
+        qi::rule<iterator, quickbook::paragraph()> paragraph;
+        qi::rule<iterator, std::string()> paragraph_content;
+
         qi::rule<iterator, std::vector<quickbook::list_item>()> list;
         qi::rule<iterator, quickbook::list_item()> list_item;
         qi::rule<iterator, std::string()> list_item_content;
+        
+        qi::rule<iterator, quickbook::hr()> hr;
 
-        qi::rule<iterator, boost::optional<std::string>()>  element_id, element_id_1_5;
+        qi::rule<iterator, boost::optional<std::string>()> element_id, element_id_1_5;
+        qi::rule<iterator, std::string()> element_id_part;
+
+        qi::rule<iterator, quickbook::begin_section()> begin_section;
+        qi::rule<iterator, quickbook::end_section()> end_section;
+        
+        qi::rule<iterator, quickbook::title()> title_phrase;
+        qi::rule<iterator, std::string()> phrase_attr;
+        
         qi::rule<iterator, file_position()> position;
     };
 
@@ -83,9 +122,9 @@ namespace quickbook
            +(   block_markup
             |   code
             |   list                            [actions.process][actions.output]
-            |   hr                              [actions.hr]
+            |   hr                              [actions.process][actions.output]
             |   comment >> *eol
-            |   paragraph                       [actions.paragraph]
+            |   paragraph                       [actions.process][actions.output]
             |   eol
             )
             ;
@@ -121,15 +160,17 @@ namespace quickbook
             ;
 
         hr =
-            qi::lit("----")
-            >> *(qi::char_ - eol)
-            >> +eol
+            qi::omit[
+                "----"
+            >>  *(qi::char_ - eol)
+            >>  +eol
+            ] >> qi::attr(quickbook::hr())
             ;
 
         block_markup =
                 '[' >> space
-            >>  (   begin_section
-                |   end_section
+            >>  (   begin_section               [actions.process][actions.output]
+                |   end_section                 [actions.process][actions.output]
                 |   headings
                 |   blurb
                 |   blockquote
@@ -149,28 +190,33 @@ namespace quickbook
             ;
         
         element_id =
-            -(
-                ':'
+            (   ':'
             >>  -(qi::eps(qbk_since(105u)) >> space) 
             >>  (
-                    (+(qi::alnum | qi::char_('_'))) [qi::_val = as_string(qi::_1)]
-                |   qi::raw[qi::eps]                [actions.element_id_warning]
+                    element_id_part
+                |   qi::omit[
+                        qi::raw[qi::eps]        [actions.element_id_warning]
+                    ]
                 )
-            );
+            )
+            | qi::eps
+            ;
 
+        element_id_part = +(qi::alnum | qi::char_('_'));
         
-        element_id_1_5 =
-            -(qi::eps(qbk_since(105u)) >> element_id [qi::_val = qi::_1]);
+        element_id_1_5 = (qi::eps(qbk_since(105u)) >> element_id) | qi::eps;
 
-        begin_section = (
-               "section"
-            >> hard_space
-            >> element_id
-            >> qi::raw[phrase])                 [ph::bind(actions.begin_section, qi::_1, qi::_2)]
+        begin_section =
+                "section"
+            >>  hard_space
+            >>  element_id
+            >>  title_phrase
             ;
 
         end_section =
-            qi::raw["endsect"]                  [actions.end_section]
+                position
+            >>  "endsect"
+            >>  qi::attr("dummy")
             ;
 
         headings =
@@ -437,13 +483,32 @@ namespace quickbook
             '[' >> space >> paragraph_end_markups >> hard_space | eol >> eol
             ;
 
-        paragraph =
-           *(   common
-            |   (qi::char_ -                    // Make sure we don't go past
-                    paragraph_end               // a single block.
-                )                               [actions.plain_char]
-            )
+        paragraph_content =
+                qi::eps                         [actions.phrase_push]
+            >> *(   common
+                |   (qi::char_ -                // Make sure we don't go past
+                        paragraph_end           // a single block.
+                    )                           [actions.plain_char]
+                )
+            >>  qi::eps                         [actions.phrase_pop]
             >> (&qi::lit('[') | +eol)
+            ;
+
+        paragraph = paragraph_content >> qi::attr("dummy");
+
+        title_phrase =
+            qi::raw[
+                phrase_attr                     [ph::at_c<1>(qi::_val) = qi::_1]
+            ]                                   [ph::at_c<0>(qi::_val) = as_string(qi::_1)]
+            ;
+
+        phrase_attr =
+                qi::eps                         [actions.phrase_push]        
+            >> *(   common
+                |   comment
+                |   (qi::char_ - phrase_end)    [actions.plain_char]
+                )
+            >>  qi::eps                         [actions.phrase_pop]
             ;
 
         phrase =

@@ -469,26 +469,6 @@ namespace quickbook
         std::string& qualified_section_id;
     };
 
-    struct end_section_action
-    {
-        end_section_action(
-            collector& out
-          , int& section_level
-          , std::string& qualified_section_id
-          , int& error_count)
-        : out(out)
-        , section_level(section_level)
-        , qualified_section_id(qualified_section_id)
-        , error_count(error_count) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-        int& section_level;
-        std::string& qualified_section_id;
-        int& error_count;
-   };
-   
    struct element_id_warning_action
    {
        void operator()(iterator_range, unused_type, unused_type) const;

@@ -135,8 +135,6 @@ namespace quickbook
         start_col_action        start_cell;
         end_col_action          end_cell;
 
-        begin_section_action    begin_section;
-        end_section_action      end_section;
         element_id_warning_action element_id_warning;
         xinclude_action         xinclude;
         include_action          include;
