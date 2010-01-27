@@ -6,8 +6,6 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#if !defined(BOOST_SPIRIT_QUICKBOOK_CODE_SNIPPET_HPP)
-#define BOOST_SPIRIT_QUICKBOOK_CODE_SNIPPET_HPP
 
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
@@ -229,6 +227,3 @@ namespace quickbook
             ;
     }
 }
-
-#endif // BOOST_SPIRIT_QUICKBOOK_CODE_SNIPPET_HPP
-

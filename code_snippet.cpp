@@ -19,7 +19,7 @@
 #include "markups.hpp"
 #include "actions_class.hpp"
 #include "grammars.hpp"
-#include "code_snippet.hpp"
+#include "code_snippet_types.hpp"
 
 namespace quickbook
 {
