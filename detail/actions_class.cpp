@@ -69,7 +69,7 @@ namespace quickbook
         , extract_doc_license(doc_license, phrase)
         , extract_doc_purpose(doc_purpose, phrase)
 
-        , syntax_p(source_mode, macro, *this)
+        , syntax_p(source_mode, *this)
         , code(out, phrase, syntax_p)
         , paragraph(out, phrase, paragraph_pre, paragraph_post)
         , inside_paragraph(temp_para, phrase, paragraph_pre, paragraph_post)
@@ -106,7 +106,6 @@ namespace quickbook
 
         , macro_identifier(*this)
         , macro_definition(*this)
-        , do_macro(phrase)
         , template_body(*this)
         , url_pre(url_pre_)
         , url_post(url_post_)
@@ -131,9 +130,9 @@ namespace quickbook
 
         // add the predefined macros
         macro.add
-            ("__DATE__", std::string(quickbook_get_date))
-            ("__TIME__", std::string(quickbook_get_time))
-            ("__FILENAME__", filename_str)
+            ("__DATE__", quickbook::macro(quickbook_get_date))
+            ("__TIME__", quickbook::macro(quickbook_get_time))
+            ("__FILENAME__", quickbook::macro(filename_str))
         ;
     }
 

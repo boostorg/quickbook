@@ -59,7 +59,7 @@ namespace quickbook
     // state
         fs::path                filename;
         fs::path                outdir;
-        string_symbols          macro;
+        macro_symbols           macro;
         int                     section_level;
         std::string             section_id;
         std::string             qualified_section_id;
@@ -68,7 +68,7 @@ namespace quickbook
         typedef boost::tuple<
             fs::path
           , fs::path
-          , string_symbols
+          , macro_symbols
           , int
           , std::string
           , std::string
@@ -128,7 +128,6 @@ namespace quickbook
 
         macro_identifier_action macro_identifier;
         macro_definition_action macro_definition;
-        do_macro_action         do_macro;
         template_body_action    template_body;
         char const*             url_pre;
         char const*             url_post;

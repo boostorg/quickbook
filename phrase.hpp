@@ -19,6 +19,7 @@ namespace quickbook
 {
     // TODO: Add to a forward header somewhere.
     class actions;
+    struct macro;
     typedef boost::spirit::classic::file_position file_position;
 
     struct source_mode {
@@ -91,6 +92,7 @@ namespace quickbook
     };
 
     void process(quickbook::actions&, source_mode const&);
+    void process(quickbook::actions&, macro const&);
     void process(quickbook::actions&, template_ const&);
     void process(quickbook::actions&, anchor const&);
     void process(quickbook::actions&, link const&);

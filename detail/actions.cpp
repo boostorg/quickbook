@@ -116,9 +116,9 @@ namespace quickbook
     void simple_phrase_action::operator()(iterator_range const& x, unused_type, unused_type) const
     {
         out << pre;
-        if (std::string const* ptr = macro.find(x))
+        if (quickbook::macro const* ptr = macro.find(x))
         {
-            out << *ptr;
+            out << ptr->raw_markup;
         }
         else
         {
@@ -247,26 +247,6 @@ namespace quickbook
         out << "</phrase>";
     }
 
-    void do_macro_action::operator()(std::string const& str, unused_type, unused_type) const
-    {
-        if (str == quickbook_get_date)
-        {
-            char strdate[64];
-            strftime(strdate, sizeof(strdate), "%Y-%b-%d", current_time);
-            phrase << strdate;
-        }
-        else if (str == quickbook_get_time)
-        {
-            char strdate[64];
-            strftime(strdate, sizeof(strdate), "%I:%M:%S %p", current_time);
-            phrase << strdate;
-        }
-        else
-        {
-            phrase << str;
-        }
-    }
-
     void space::operator()(char ch, unused_type, unused_type) const
     {
         detail::print_space(ch, out.get());
@@ -277,17 +257,6 @@ namespace quickbook
         iterator first = x.begin(), last = x.end();
         while (first != last)
             detail::print_space(*first++, out.get());
-    }
-
-    void pre_escape_back::operator()(unused_type, unused_type, unused_type) const
-    {
-        escape_actions.phrase.push(); // save the stream
-    }
-
-    void post_escape_back::operator()(unused_type, unused_type, unused_type) const
-    {
-        out << escape_actions.phrase.str();
-        escape_actions.phrase.pop(); // restore the stream
     }
 
     void code_action::operator()(iterator_range x, unused_type, unused_type) const
@@ -350,7 +319,7 @@ namespace quickbook
         actions.macro.add(
             actions.macro_id.begin()
           , actions.macro_id.end()
-          , actions.phrase.str());
+          , quickbook::macro(actions.phrase.str()));
         actions.phrase.pop(); // restore the phrase
     }
 
@@ -821,7 +790,7 @@ namespace quickbook
         actions.doc_last_revision.swap(doc_last_revision);
 
         // scope the macros
-        string_symbols macro = actions.macro;
+        macro_symbols macro = actions.macro;
         // scope the templates
         //~ template_symbols templates = actions.templates; $$$ fixme $$$
 
@@ -834,7 +803,8 @@ namespace quickbook
         }
 
         // update the __FILENAME__ macro
-        *actions.macro.find("__FILENAME__") = actions.filename.native_file_string();
+        *actions.macro.find("__FILENAME__") =
+            quickbook::macro(actions.filename.native_file_string());
 
         // parse the file
         quickbook::parse(actions.filename.native_file_string().c_str(), actions, true);

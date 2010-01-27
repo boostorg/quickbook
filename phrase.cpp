@@ -206,10 +206,10 @@ namespace quickbook
             |   comment
             ;
 
-        macro =
-            &(actions.macro                         // must not be followed by
-                >> (qi::eps - (qi::alpha | '_')))   // alpha or underscore
-            >> actions.macro                        [actions.do_macro]
+         macro =
+            (   actions.macro                       // must not be followed by
+            >>  &(qi::eps - (qi::alpha | '_'))      // alpha or underscore
+            )                                       [actions.process]
             ;
 
         // Template call

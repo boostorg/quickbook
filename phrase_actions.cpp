@@ -19,6 +19,25 @@ namespace quickbook
         actions.source_mode = s.mode;
     }
 
+    void process(quickbook::actions& actions, macro const& x) {
+        if (x.raw_markup == quickbook_get_date)
+        {
+            char strdate[64];
+            strftime(strdate, sizeof(strdate), "%Y-%b-%d", current_time);
+            actions.phrase << strdate;
+        }
+        else if (x.raw_markup == quickbook_get_time)
+        {
+            char strdate[64];
+            strftime(strdate, sizeof(strdate), "%I:%M:%S %p", current_time);
+            actions.phrase << strdate;
+        }
+        else
+        {
+            actions.phrase << x.raw_markup;
+        }
+    }
+
     void process(quickbook::actions& actions, anchor const& x) {
         actions.phrase << "<anchor id=\"";
         detail::print_string(x.id, actions.phrase.get());

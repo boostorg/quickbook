@@ -36,14 +36,20 @@ namespace quickbook
     namespace fs = boost::filesystem;
     using boost::spirit::unused_type;
 
-    // TODO: This is defined in two places.
-    typedef qi::symbols<char, std::string> string_symbols;    
+    struct macro {
+        macro() {}
+        explicit macro(char const* x) : raw_markup(x) {};
+        explicit macro(std::string const& x) : raw_markup(x) {};
+
+        std::string raw_markup;
+    };
+
+    typedef qi::symbols<char, macro> macro_symbols;    
 
     typedef boost::spirit::classic::position_iterator<
         std::string::const_iterator> iterator;
     typedef boost::spirit::classic::file_position file_position;
     typedef boost::iterator_range<iterator> iterator_range;
-    typedef qi::symbols<char, std::string> string_symbols;
     typedef std::map<std::string, std::string> attribute_map;
 
     struct actions;
@@ -159,7 +165,7 @@ namespace quickbook
             collector& out
           , std::string const& pre
           , std::string const& post
-          , string_symbols const& macro)
+          , macro_symbols const& macro)
         : out(out)
         , pre(pre)
         , post(post)
@@ -170,7 +176,7 @@ namespace quickbook
         collector& out;
         std::string pre;
         std::string post;
-        string_symbols const& macro;
+        macro_symbols const& macro;
     };
 
     struct list_action
@@ -247,17 +253,6 @@ namespace quickbook
     extern char const* quickbook_get_date;
     extern char const* quickbook_get_time;
 
-    struct do_macro_action
-    {
-        // Handles macro substitutions
-        
-        do_macro_action(collector& phrase)
-            : phrase(phrase) {}
-
-        void operator()(std::string const& str, unused_type, unused_type) const;
-        collector& phrase;
-    };
-
     struct space
     {
         // Prints a space
@@ -269,33 +264,6 @@ namespace quickbook
         void operator()(char ch, unused_type, unused_type) const;
 
         collector& out;
-    };
-
-    struct pre_escape_back
-    {
-        // Escapes back from code to quickbook (Pre)
-
-        pre_escape_back(actions& escape_actions, std::string& save)
-            : escape_actions(escape_actions), save(save) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        actions& escape_actions;
-        std::string& save;
-    };
-
-    struct post_escape_back
-    {
-        // Escapes back from code to quickbook (Post)
-
-        post_escape_back(collector& out, actions& escape_actions, std::string& save)
-            : out(out), escape_actions(escape_actions), save(save) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        collector& out;
-        actions& escape_actions;
-        std::string& save;
     };
 
     struct raw_char_action
@@ -358,10 +326,8 @@ namespace quickbook
     {
         syntax_highlight(
             std::string const& source_mode
-          , string_symbols const& macro
           , actions& escape_actions)
         : source_mode(source_mode)
-        , macro(macro)
         , escape_actions(escape_actions)
         {
         }
@@ -369,7 +335,6 @@ namespace quickbook
         std::string operator()(iterator begin, iterator end) const;
 
         std::string const& source_mode;
-        string_symbols const& macro;
         actions& escape_actions;
     };
 

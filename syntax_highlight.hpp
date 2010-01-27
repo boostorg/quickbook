@@ -15,6 +15,7 @@
 #include <boost/spirit/include/qi_string.hpp>
 #include <boost/spirit/include/qi_directive.hpp>
 #include "./grammars.hpp"
+#include "./phrase.hpp"
 
 namespace quickbook
 {
@@ -45,17 +46,13 @@ namespace quickbook
     template <
         typename Process
       , typename Space
-      , typename Macro
-      , typename DoMacro
-      , typename PreEscape
-      , typename PostEscape
       , typename Unexpected
       , typename Out>
     struct cpp_highlight
     : public qi::grammar<iterator>
     {
-        cpp_highlight(Out& out, Macro const& macro_symbols, DoMacro do_macro, quickbook::actions& escape_actions)
-        : cpp_highlight::base_type(program), out(out), macro_symbols(macro_symbols), do_macro(do_macro), escape_actions(escape_actions)
+        cpp_highlight(Out& out, quickbook::actions& escape_actions)
+        : cpp_highlight::base_type(program), out(out), escape_actions(escape_actions)
         , parse_escaped(escape_actions)
         {
             program
@@ -75,30 +72,18 @@ namespace quickbook
                 )
                 ;
 
-            macro = 
-                &(macro_symbols                         // must not be followed by
-                    >> (qi::eps - (qi::alpha | '_')))   // alpha or underscore
-                >> macro_symbols            [do_macro]
+            macro =
+                (   escape_actions.macro                // must not be followed by
+                >>  &(qi::eps - (qi::alpha | '_'))      // alpha or underscore
+                )                                       [escape_actions.process]
                 ;
 
             escape =
-                qi::string("``")            [PreEscape(escape_actions, save)]
-                >>
-                (
-                    (
-                        (
-                            // TODO: Is this right?
-                            qi::raw[+(qi::char_ - "``") >> &qi::lit("``")]
-                                [parse_escaped]
-                        )
-                        >>  qi::string("``")
-                    )
-                    |
-                    (
-                        qi::raw[qi::eps]    [escape_actions.error]
-                        >> *qi::char_
-                    )
-                )                           [PostEscape(out, escape_actions, save)]
+                "``" >> (
+                    (qi::raw[+(qi::char_ - "``")] >> "``")
+                                                        [parse_escaped]
+                    | qi::raw[*qi::char_]               [escape_actions.error]
+                )
                 ;
 
             preprocessor
@@ -165,8 +150,6 @@ namespace quickbook
                         string_char;
 
         Out& out;
-        Macro const& macro_symbols;
-        DoMacro do_macro;
         quickbook::actions& escape_actions;
 
         qi::symbols<> keyword_;
@@ -180,17 +163,13 @@ namespace quickbook
     template <
         typename Process
       , typename Space
-      , typename Macro
-      , typename DoMacro
-      , typename PreEscape
-      , typename PostEscape
       , typename Unexpected
       , typename Out>
     struct python_highlight
     : public qi::grammar<iterator>
     {
-        python_highlight(Out& out, Macro const& macro_symbols, DoMacro do_macro, quickbook::actions& escape_actions)
-        : python_highlight::base_type(program), out(out), macro_symbols(macro_symbols), do_macro(do_macro), escape_actions(escape_actions)
+        python_highlight(Out& out, quickbook::actions& escape_actions)
+        : python_highlight::base_type(program), out(out), escape_actions(escape_actions)
         , parse_escaped(escape_actions)
         {
             program
@@ -208,29 +187,18 @@ namespace quickbook
                 )
                 ;
 
-            macro = 
-                &(macro_symbols                         // must not be followed by
-                    >> (qi::eps - (qi::alpha | '_')))   // alpha or underscore
-                >> macro_symbols            [do_macro]
+            macro =
+                (   escape_actions.macro                // must not be followed by
+                >>  &(qi::eps - (qi::alpha | '_'))      // alpha or underscore
+                )                                       [escape_actions.process]
                 ;
 
             escape =
-                qi::string("``")            [PreEscape(escape_actions, save)]
-                >>
-                (
-                    (
-                        (
-                            qi::raw[+(qi::char_ - "``") >> &qi::lit("``")]
-                                [parse_escaped]
-                        )
-                        >>  qi::string("``")
-                    )
-                    |
-                    (
-                        qi::raw[qi::eps]    [escape_actions.error]
-                    >>  *qi::char_
-                    )
-                )                           [PostEscape(out, escape_actions, save)]
+                "``" >> (
+                    (qi::raw[+(qi::char_ - "``")] >> "``")
+                                                        [parse_escaped]
+                    | qi::raw[*qi::char_]               [escape_actions.error]
+                )
                 ;
 
             comment
@@ -301,8 +269,6 @@ namespace quickbook
                         escape, string_char;
 
         Out& out;
-        Macro const& macro_symbols;
-        DoMacro do_macro;
         quickbook::actions& escape_actions;
 
         qi::symbols<> keyword_;
@@ -313,16 +279,12 @@ namespace quickbook
     // Grammar for plain text (no actual highlighting)
     template <
         typename CharProcess
-      , typename Macro
-      , typename DoMacro
-      , typename PreEscape
-      , typename PostEscape
       , typename Out>
     struct teletype_highlight
     : public qi::grammar<iterator>
     {
-        teletype_highlight(Out& out, Macro const& macro_symbols, DoMacro do_macro, quickbook::actions& escape_actions)
-        : teletype_highlight::base_type(program), out(out), macro_symbols(macro_symbols), do_macro(do_macro), escape_actions(escape_actions)
+        teletype_highlight(Out& out, quickbook::actions& escape_actions)
+        : teletype_highlight::base_type(program), out(out), escape_actions(escape_actions)
         , parse_escaped(escape_actions)
         {
             program
@@ -333,37 +295,24 @@ namespace quickbook
                 )
                 ;
 
-            macro = 
-                &(macro_symbols                         // must not be followed by
-                    >> (qi::eps - (qi::alpha | '_')))   // alpha or underscore
-                >> macro_symbols            [do_macro]
+            macro =
+                (   escape_actions.macro                // must not be followed by
+                >>  &(qi::eps - (qi::alpha | '_'))      // alpha or underscore
+                )                                       [escape_actions.process]
                 ;
 
             escape =
-                qi::lit("``")                           [PreEscape(escape_actions, save)]
-                >>
-                (
-                    (
-                        (
-                            qi::raw[+(qi::char_ - "``") >> &qi::lit("``")]
-                                [parse_escaped]
-                        )
-                        >>  qi::string("``")
-                    )
-                    |
-                    (
-                        qi::raw[qi::eps]                [escape_actions.error]
-                        >> *qi::char_
-                    )
-                )                                       [PostEscape(out, escape_actions, save)]
+                "``" >> (
+                    (qi::raw[+(qi::char_ - "``")] >> "``")
+                                                        [parse_escaped]
+                    | qi::raw[*qi::char_]               [escape_actions.error]
+                )
                 ;
         }
 
         qi::rule<iterator> program, macro, escape;
 
         Out& out;
-        Macro const& macro_symbols;
-        DoMacro do_macro;
         quickbook::actions& escape_actions;
 
         parse_escaped_impl parse_escaped;
