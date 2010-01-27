@@ -198,22 +198,22 @@ namespace quickbook
         out << "      <year>" << year << "</year>\n";
     }
 
-    static void write_document_title(collector& out, quickbook::actions& actions);
-    static void write_document_info(collector& out, quickbook::actions& actions);
+    static void write_document_title(collector& out, doc_info& actions);
+    static void write_document_info(collector& out, doc_info& actions);
 
-    void pre(collector& out, quickbook::actions& actions, bool ignore_docinfo)
+    void pre(collector& out, quickbook::actions& actions, doc_info& info, bool ignore_docinfo)
     {
         // The doc_info in the file has been parsed. Here's what we'll do
         // *before* anything else.
 
-        if (actions.doc_id.empty())
-            actions.doc_id = detail::make_identifier(
-                actions.doc_title.begin(),actions.doc_title.end());
+        if (info.doc_id.empty())
+            info.doc_id = detail::make_identifier(
+                info.doc_title.begin(),info.doc_title.end());
 
-        if (actions.doc_dirname.empty() && actions.doc_type == "library")
-            actions.doc_dirname = actions.doc_id;
+        if (info.doc_dirname.empty() && info.doc_type == "library")
+            info.doc_dirname = info.doc_id;
 
-        if (actions.doc_last_revision.empty())
+        if (info.doc_last_revision.empty())
         {
             // default value for last-revision is now
 
@@ -225,8 +225,10 @@ namespace quickbook
                     "$" /* prevent CVS substitution */ "Date: %Y/%m/%d %H:%M:%S $"),
                 current_gm_time
             );
-            actions.doc_last_revision = strdate;
+            info.doc_last_revision = strdate;
         }
+
+        if(!info.doc_id.empty()) actions.doc_id = info.doc_id;
 
         // if we're ignoring the document info, we're done.
         if (ignore_docinfo)
@@ -234,51 +236,36 @@ namespace quickbook
             return;
         }
 
-        if (qbk_major_version == 0)
-        {
-            // hard code quickbook version to v1.1
-            qbk_major_version = 1;
-            qbk_minor_version = 1;
-            qbk_version_n = 101;
-            detail::outwarn(actions.filename.native_file_string(),1)
-                << "Warning: Quickbook version undefined. "
-                "Version 1.1 is assumed" << std::endl;
-        }
-        else
-        {
-            qbk_version_n = (qbk_major_version * 100) + qbk_minor_version;
-        }
-
         out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             << "<!DOCTYPE library PUBLIC \"-//Boost//DTD BoostBook XML V1.0//EN\"\n"
             << "     \"http://www.boost.org/tools/boostbook/dtd/boostbook.dtd\">\n"
-            << '<' << actions.doc_type << "\n"
-            << "    id=\"" << actions.doc_id << "\"\n";
+            << '<' << info.doc_type << "\n"
+            << "    id=\"" << info.doc_id << "\"\n";
         
-        if(actions.doc_type == "library")
+        if(info.doc_type == "library")
         {
-            out << "    name=\"" << actions.doc_title << "\"\n";
+            out << "    name=\"" << info.doc_title << "\"\n";
         }
 
-        if(!actions.doc_dirname.empty())
+        if(!info.doc_dirname.empty())
         {
-            out << "    dirname=\"" << actions.doc_dirname << "\"\n";
+            out << "    dirname=\"" << info.doc_dirname << "\"\n";
         }
 
-        out << "    last-revision=\"" << actions.doc_last_revision << "\" \n"
+        out << "    last-revision=\"" << info.doc_last_revision << "\" \n"
             << "    xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n";
             
-        if(actions.doc_type == "library") {
-            write_document_info(out, actions);
-            write_document_title(out, actions);
+        if(info.doc_type == "library") {
+            write_document_info(out, info);
+            write_document_title(out, info);
         }
         else {
-            write_document_title(out, actions);
-            write_document_info(out, actions);
+            write_document_title(out, info);
+            write_document_info(out, info);
         }
     }
     
-    void post(collector& out, quickbook::actions& actions, bool ignore_docinfo)
+    void post(collector& out, quickbook::actions& actions, doc_info& info, bool ignore_docinfo)
     {
         // if we're ignoring the document info, do nothing.
         if (ignore_docinfo)
@@ -288,79 +275,72 @@ namespace quickbook
 
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
-        out << "\n</" << actions.doc_type << ">\n\n";
+        out << "\n</" << info.doc_type << ">\n\n";
     }
 
-    void write_document_title(collector& out, quickbook::actions& actions)
+    void write_document_title(collector& out, doc_info& info)
     {
-        if (!actions.doc_title.empty())
+        if (!info.doc_title.empty())
         {
-            out<< "  <title>" << actions.doc_title;
-            if (!actions.doc_version.empty())
-                out << ' ' << actions.doc_version;
+            out<< "  <title>" << info.doc_title;
+            if (!info.doc_version.empty())
+                out << ' ' << info.doc_version;
             out<< "</title>\n\n\n";
         }
     }
 
-    void write_document_info(collector& out, quickbook::actions& actions)
+    void write_document_info(collector& out, doc_info& info)
     {
-        out << "  <" << actions.doc_type << "info>\n";
+        out << "  <" << info.doc_type << "info>\n";
 
-        if(!actions.doc_authors.empty())
+        if(!info.doc_authors.empty())
         {
             out << "    <authorgroup>\n";
             for_each(
-                actions.doc_authors.begin()
-              , actions.doc_authors.end()
+                info.doc_authors.begin()
+              , info.doc_authors.end()
               , xml_author(out));
             out << "    </authorgroup>\n";
         }
 
-        if (!actions.doc_copyrights.empty())
+        if (!info.doc_copyrights.empty())
         {
             for_each(
-                actions.doc_copyrights.begin()
-              , actions.doc_copyrights.end()
+                info.doc_copyrights.begin()
+              , info.doc_copyrights.end()
               , xml_copyright(out));
         }
 
-        if (qbk_version_n < 103)
-        {
-            // version < 1.3 compatibility
-            actions.doc_license = actions.doc_license_1_1;
-            actions.doc_purpose = actions.doc_purpose_1_1;
-        }
-
-        if (!actions.doc_license.empty())
+        if (!info.doc_license.empty())
         {
             out << "    <legalnotice>\n"
                 << "      <para>\n"
-                << "        " << actions.doc_license << "\n"
+                << "        " << info.doc_license << "\n"
                 << "      </para>\n"
                 << "    </legalnotice>\n"
                 << "\n"
             ;
         }
 
-        if (!actions.doc_purpose.empty())
+        if (!info.doc_purpose.empty())
         {
-            out << "    <" << actions.doc_type << "purpose>\n"
-                << "      " << actions.doc_purpose
-                << "    </" << actions.doc_type << "purpose>\n"
+            out << "    <" << info.doc_type << "purpose>\n"
+                << "      " << info.doc_purpose
+                << "    </" << info.doc_type << "purpose>\n"
                 << "\n"
             ;
         }
 
-        if (!actions.doc_category.empty())
+        if (!info.doc_category.empty())
         {
-            out << "    <" << actions.doc_type << "category name=\"category:"
-                << actions.doc_category
-                << "\"></" << actions.doc_type << "category>\n"
+            out << "    <" << info.doc_type << "category name=\"category:"
+                << info.doc_category
+                << "\"></" << info.doc_type << "category>\n"
                 << "\n"
             ;
         }
 
-        out << "  </" << actions.doc_type << "info>\n"
+        out << "  </" << info.doc_type << "info>\n"
             << "\n"
         ;
     }
@@ -376,11 +356,6 @@ namespace quickbook
         phrase.swap(out);
         phrase.pop();
         return out;
-    }
-
-    void phrase_to_string_action::operator()(unused_type, unused_type, unused_type) const
-    {
-        phrase.swap(out);
     }
 }
 

@@ -18,14 +18,38 @@
 #include <boost/spirit/include/qi_uint.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
+#include <boost/spirit/include/qi_attr_cast.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/phoenix_fusion.hpp>
+#include <boost/fusion/include/std_pair.hpp>
 
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
+    
+    void set_quickbook_version(boost::optional<std::pair<unsigned, unsigned> > version)
+    {
+        if (version)
+        {
+            qbk_major_version = version->first;
+            qbk_minor_version = version->second;
+        }
+        else
+        {
+            qbk_major_version = 1;
+            qbk_minor_version = 1;
+
+            // TODO:
+            //detail::outwarn(actions.filename.native_file_string(),1)
+            //    << "Warning: Quickbook version undefined. "
+            //       "Version 1.1 is assumed" << std::endl;
+        }
+
+        qbk_version_n = (qbk_major_version * 100) + qbk_minor_version;
+    }
 
     struct doc_info_grammar::rules
     {
@@ -33,21 +57,21 @@ namespace quickbook
 
         quickbook::actions& actions;
         bool unused;
-        std::pair<std::string, std::string> name;
-        std::pair<std::vector<std::string>, std::string> copyright;
         phrase_grammar common;
         qi::symbols<char> doc_types;
-        qi::rule<iterator>
-                        doc_info, doc_title, doc_version, doc_id, doc_dirname,
-                        doc_copyright, doc_purpose,doc_category, doc_authors,
-                        doc_author, comment, space, hard_space, doc_license,
-                        doc_last_revision, doc_source_mode, phrase, quickbook_version;
+        qi::rule<iterator, doc_info()> doc_info_details;
+        qi::rule<iterator> comment, space, hard_space;
+        qi::rule<iterator, std::pair<unsigned, unsigned>()> quickbook_version;
+        qi::rule<iterator, std::string()> phrase, doc_version, doc_id, doc_dirname, doc_category, doc_last_revision, doc_source_mode, doc_purpose, doc_license;
+        qi::rule<iterator, std::pair<std::vector<std::string>, std::string>()> doc_copyright;
+        qi::rule<iterator, std::vector<std::pair<std::string, std::string> >()> doc_authors;
+        qi::rule<iterator, std::pair<std::string, std::string>()> doc_author;
     };
 
     doc_info_grammar::doc_info_grammar(quickbook::actions& actions)
             : doc_info_grammar::base_type(start)
             , rules_pimpl(new rules(actions))
-            , start(rules_pimpl->doc_info) {}
+            , start(rules_pimpl->doc_info_details) {}
 
     doc_info_grammar::~doc_info_grammar() {}
 
@@ -63,108 +87,89 @@ namespace quickbook
           , "reference", "set"
         ;
         
-        doc_info =
+        doc_info_details =
             space
             >> '[' >> space
-            >> qi::raw[doc_types]           [ph::ref(actions.doc_type) = as_string(qi::_1)]
+            >> qi::raw[doc_types]           [member_assign(&doc_info::doc_type)]
             >> hard_space
             >>  (  *(qi::char_ -
                     (qi::char_('[') | ']' | qi::eol)
                     )
-                )                           [ph::ref(actions.doc_title) = as_string(qi::_1)]
-            >>  -(
-                    space >> '[' >>
-                        quickbook_version
-                    >> space >> ']'
-                )
+                )                           [member_assign(&doc_info::doc_title)]
+            >>  quickbook_version           [set_quickbook_version]
             >>
                 *(
                     space >> '[' >>
                     (
-                      doc_version
-                    | doc_id
-                    | doc_dirname
-                    | doc_copyright         [ph::push_back(ph::ref(actions.doc_copyrights), ph::ref(copyright))]
-                    | doc_purpose           [actions.extract_doc_purpose]
-                    | doc_category
-                    | doc_authors
-                    | doc_license           [actions.extract_doc_license]
-                    | doc_last_revision
-                    | doc_source_mode
+                      doc_version           [member_assign(&doc_info::doc_version)]
+                    | doc_id                [member_assign(&doc_info::doc_id)]
+                    | doc_dirname           [member_assign(&doc_info::doc_dirname)]
+                    | doc_copyright         [ph::push_back(ph::bind(&doc_info::doc_copyrights, qi::_val), qi::_1)]
+                    | doc_purpose           [member_assign(&doc_info::doc_purpose)]
+                    | doc_category          [member_assign(&doc_info::doc_category)]
+                    | doc_authors           [member_assign(&doc_info::doc_authors)]
+                    | doc_license           [member_assign(&doc_info::doc_license)]
+                    | doc_last_revision     [member_assign(&doc_info::doc_last_revision)]
+                      // This has to be set in actions so that source code in phrases use the
+                      // correct encoding.
+                    | doc_source_mode       [ph::ref(actions.source_mode) = qi::_1]
                     )
                     >> space >> ']' >> +qi::eol
                 )
             >> space >> ']' >> +qi::eol
             ;
 
-        quickbook_version =
-                "quickbook" >> hard_space
-            >>  (   qi::uint_               [ph::ref(qbk_major_version) = qi::_1]
-                    >> '.' 
-                    >>  uint2_t()           [ph::ref(qbk_minor_version) = qi::_1]
-                )
-            ;
+        quickbook_version = -(
+                space >> '['
+            >>  "quickbook"
+            >>  hard_space
+            >>  qi::uint_
+            >>  '.' 
+            >>  uint2_t()
+            >>  space >> ']'
+            );
 
-        doc_version =
-                "version" >> hard_space
-            >> qi::raw[*(qi::char_ - ']')]  [ph::ref(actions.doc_version) = as_string(qi::_1)]
-            ;
-
-        doc_id =
-                "id" >> hard_space
-            >> qi::raw[*(qi::char_ - ']')]  [ph::ref(actions.doc_id) = as_string(qi::_1)]
-            ;
-
-        doc_dirname =
-                "dirname" >> hard_space
-            >> qi::raw[*(qi::char_ - ']')]  [ph::ref(actions.doc_dirname) = as_string(qi::_1)]
-            ;
+        doc_version = "version" >> hard_space >> *(qi::char_ - ']');
+        doc_id      = "id"      >> hard_space >> *(qi::char_ - ']');
+        doc_dirname = "dirname" >> hard_space >> *(qi::char_ - ']');
+        doc_category="category" >> hard_space >> *(qi::char_ - ']');
+        doc_last_revision = "last-revision" >> hard_space >> *(qi::char_ - ']');
 
         doc_copyright =
-                "copyright" >> hard_space   [ph::clear(ph::ref(copyright.first))]
-            >> +( qi::repeat(4)[qi::digit]  [ph::push_back(ph::ref(copyright.first), as_string(qi::_1))]
-                  >> space
-                )
-            >> space
-            >> (*(qi::char_ - ']'))         [ph::ref(copyright.second) = as_string(qi::_1)]
+                "copyright"
+            >>  hard_space
+            >>  +(qi::repeat(4)[qi::digit] >> space)
+            >>  qi::raw[(*(qi::char_ - ']'))]
             ;
 
         doc_purpose =
                 "purpose" >> hard_space
-            >> qi::raw[phrase]              [ph::ref(actions.doc_purpose_1_1) = as_string(qi::_1)]
-            ;
-
-        doc_category =
-                "category" >> hard_space
-            >> (*(qi::char_ - ']'))         [ph::ref(actions.doc_category) = as_string(qi::_1)]
+            >>  (
+                    qi::eps(qbk_before(103)) >> qi::raw[phrase] |
+                    qi::eps(qbk_since(103)) >> phrase
+                )
             ;
 
         doc_author =
                 space
-            >>  '[' >> space
-            >>  (*(qi::char_ - ','))        [ph::ref(name.second) = as_string(qi::_1)] // surname
+            >>  '['
+            >> space
+            >>  (*(qi::char_ - ','))        [member_assign(&std::pair<std::string, std::string>::second)]
             >>  ',' >> space
-            >>  (*(qi::char_ - ']'))        [ph::ref(name.first) = as_string(qi::_1)] // firstname
+            >>  (*(qi::char_ - ']'))        [member_assign(&std::pair<std::string, std::string>::first)]
             >>  ']'
             ;
 
-        doc_authors =
-                "authors" >> hard_space
-            >> doc_author                   [ph::push_back(ph::ref(actions.doc_authors), ph::ref(name))]
-            >> *(   ','
-                    >>  doc_author          [ph::push_back(ph::ref(actions.doc_authors), ph::ref(name))]
-                )
-            ;
+        doc_authors = "authors" >> hard_space >> (doc_author % ',') ;
 
         doc_license =
                 "license" >> hard_space
-            >> qi::raw[phrase]              [ph::ref(actions.doc_license_1_1) = as_string(qi::_1)]
+            >>  (
+                    qi::eps(qbk_before(103)) >> qi::raw[phrase] |
+                    qi::eps(qbk_since(103)) >> phrase
+                )
             ;
 
-        doc_last_revision =
-                "last-revision" >> hard_space
-            >> (*(qi::char_ - ']'))         [ph::ref(actions.doc_last_revision) = as_string(qi::_1)]
-            ;
 
         doc_source_mode =
                 "source-mode" >> hard_space
@@ -172,7 +177,7 @@ namespace quickbook
                    qi::string("c++") 
                 |  qi::string("python")
                 |  qi::string("teletype")
-                )                           [ph::ref(actions.source_mode) = qi::_1]
+                )
             ;
 
         comment =
@@ -188,10 +193,12 @@ namespace quickbook
             ;                               // alpha-numeric or underscore
 
         phrase =
-           *(   common
-            |   comment
-            |   (qi::char_ - ']')           [actions.plain_char]
-            )
+                qi::eps                     [actions.phrase_push]
+            >>  *(   common
+                |   comment
+                |   (qi::char_ - ']')       [actions.plain_char]
+                )
+            >>  qi::eps                     [actions.phrase_pop]
             ;
     }
 }

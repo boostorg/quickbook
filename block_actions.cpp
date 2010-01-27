@@ -401,16 +401,13 @@ namespace quickbook
     void process(quickbook::actions& actions, include const& x)
     {
         fs::path filein = include_search(actions.filename.branch_path(), x.path);
-        std::string doc_type, doc_id, doc_dirname, doc_last_revision;
+        std::string doc_id;
 
         // swap the filenames
         std::swap(actions.filename, filein);
 
         // save the doc info strings
-        actions.doc_type.swap(doc_type);
         actions.doc_id.swap(doc_id);
-        actions.doc_dirname.swap(doc_dirname);
-        actions.doc_last_revision.swap(doc_last_revision);
 
         // scope the macros
         macro_symbols macro = actions.macro;
@@ -431,10 +428,7 @@ namespace quickbook
         // restore the values
         std::swap(actions.filename, filein);
 
-        actions.doc_type.swap(doc_type);
         actions.doc_id.swap(doc_id);
-        actions.doc_dirname.swap(doc_dirname);
-        actions.doc_last_revision.swap(doc_last_revision);
 
         // restore the macros
         actions.macro = macro;

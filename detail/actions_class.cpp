@@ -19,19 +19,7 @@ namespace quickbook
 {
     actions::actions(char const* filein_, fs::path const& outdir_, string_stream& out_)
     // header info
-        : doc_type()
-        , doc_title()
-        , doc_version()
-        , doc_id()
-        , doc_dirname()
-        , doc_copyrights()
-        , doc_purpose()
-        , doc_category()
-        , doc_authors()
-        , doc_license()
-        , doc_last_revision()
-        , doc_license_1_1()
-        , doc_purpose_1_1()
+        : doc_id()
 
     // main output stream
         , phrase(out_)
@@ -56,8 +44,6 @@ namespace quickbook
         , phrase_push(phrase)
         , phrase_pop(phrase)
         , error(error_count)
-        , extract_doc_license(doc_license, phrase)
-        , extract_doc_purpose(doc_purpose, phrase)
 
         , syntax_p(source_mode, *this)
         , plain_char(phrase)

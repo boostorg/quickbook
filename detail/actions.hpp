@@ -148,9 +148,6 @@ namespace quickbook
 
         collector& out;
     };
-
-    void pre(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
-    void post(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
     
     struct phrase_push_action
     {
@@ -178,16 +175,10 @@ namespace quickbook
         collector& phrase;
     };
 
-    struct phrase_to_string_action
-    {
-        phrase_to_string_action(std::string& out, collector& phrase)
-            : out(out) , phrase(phrase) {}
+    struct doc_info;
 
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        std::string& out;
-        collector& phrase;
-    };
+    void pre(collector& out, quickbook::actions& actions, doc_info& info, bool ignore_docinfo = false);
+    void post(collector& out, quickbook::actions& actions, doc_info& info, bool ignore_docinfo = false);
 
     struct code_snippet_actions
     {

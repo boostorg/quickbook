@@ -15,10 +15,17 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_function.hpp>
 #include <boost/spirit/include/support_attributes.hpp>
+#include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/qi_core.hpp>
 #include <string>
 
 namespace quickbook
 {
+    namespace qi = boost::spirit::qi;
+    namespace ph = boost::phoenix;
+
+    // as_string - converts a char range to a string.
+
     struct as_string_impl
     {
         template <typename Arg>
@@ -39,11 +46,55 @@ namespace quickbook
         }
     };
 
-    namespace ph = boost::phoenix;
-
     namespace {
         get_position_impl get_position;
         ph::function<as_string_impl> as_string;
+    }
+
+    // member_assign - action to assign the attribute to a member of the
+    //                 rule's attributte.
+
+    template <typename Struct, typename Member>
+    struct member_assign_type {
+        member_assign_type(Member Struct::*mem_ptr) : mem_ptr_(mem_ptr) {}
+    
+        template <typename Context>
+        void operator()(Member& attrib, Context& context, bool& pass) const {
+            namespace qi = boost::spirit::qi;
+            namespace ph = boost::phoenix;
+        
+            (ph::bind(mem_ptr_, qi::_val) = attrib)(attrib, context, pass);
+        }
+        
+        Member Struct::*mem_ptr_;
+    };
+    
+    template <typename Struct>
+    struct member_assign_type<Struct, std::string> {
+        member_assign_type(std::string Struct::*mem_ptr) : mem_ptr_(mem_ptr) {}
+    
+        template <typename Context>
+        void operator()(std::string& attrib, Context& context, bool& pass) const {
+            namespace qi = boost::spirit::qi;
+            namespace ph = boost::phoenix;
+        
+            (ph::bind(mem_ptr_, qi::_val) = attrib)(attrib, context, pass);
+        }
+
+        template <typename Attrib, typename Context>
+        void operator()(Attrib& attrib, Context& context, bool& pass) const {
+            namespace qi = boost::spirit::qi;
+            namespace ph = boost::phoenix;
+        
+            (ph::bind(mem_ptr_, qi::_val) = std::string(attrib.begin(), attrib.end()))(attrib, context, pass);
+        }
+        
+        std::string Struct::*mem_ptr_;
+    };
+    
+    template <typename Struct, typename Member>
+    member_assign_type<Struct, Member> member_assign(Member Struct::*mem_ptr) {
+        return member_assign_type<Struct, Member>(mem_ptr);
     }
 }
 

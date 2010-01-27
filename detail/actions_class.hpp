@@ -27,25 +27,10 @@ namespace quickbook
     ///////////////////////////////////////////////////////////////////////////
 
         typedef std::vector<std::string> string_list;
-        typedef std::vector<std::pair<std::string, std::string> > author_list;
-        typedef std::vector<std::pair<string_list, std::string> > copyright_list;
         typedef std::pair<char, int> mark_type;
         static int const max_template_depth = 100;
 
-    // header info
-        std::string             doc_type;
-        std::string             doc_title;
-        std::string             doc_version;
         std::string             doc_id;
-        std::string             doc_dirname;
-        copyright_list          doc_copyrights;
-        std::string             doc_purpose;
-        std::string             doc_category;
-        author_list             doc_authors;
-        std::string             doc_license;
-        std::string             doc_last_revision;
-        std::string             doc_license_1_1;
-        std::string             doc_purpose_1_1;
 
     // main output stream
         collector               phrase;
@@ -88,8 +73,6 @@ namespace quickbook
         phrase_push_action      phrase_push;
         phrase_pop_action       phrase_pop;
         error_action            error;
-        phrase_to_string_action extract_doc_license;
-        phrase_to_string_action extract_doc_purpose;
 
         syntax_highlight        syntax_p;
         plain_char_action       plain_char;
