@@ -13,6 +13,7 @@
 #include <string>
 #include <map>
 #include <boost/spirit/include/classic_position_iterator.hpp>
+#include "detail/template_stack.hpp"
 
 namespace quickbook
 {
@@ -35,6 +36,13 @@ namespace quickbook
 
         char const* pre;
         char const* post;
+    };
+    
+    struct template_ {
+        file_position position;
+        bool escape;
+        template_symbol symbol;
+        std::vector<std::string> params;
     };
 
     struct anchor {
@@ -72,6 +80,7 @@ namespace quickbook
     };
 
     void process(quickbook::actions&, source_mode const&);
+    void process(quickbook::actions&, template_ const&);
     void process(quickbook::actions&, anchor const&);
     void process(quickbook::actions&, link const&);
     void process(quickbook::actions&, formatted const&);

@@ -468,21 +468,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct do_template_action
-    {
-        template <typename Arg1, typename Arg2, typename Arg3, typename Arg4>
-        struct result { typedef void type; };
-        
-        // Handles template substitutions
-
-        do_template_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        void operator()(iterator, bool, template_symbol const&, std::vector<std::string>) const;
-
-        quickbook::actions& actions;
-    };
-
     struct variablelist_action
     {
         // Handles variable lists

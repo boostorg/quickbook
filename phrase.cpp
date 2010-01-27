@@ -69,6 +69,14 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, content)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::template_,
+    (quickbook::file_position, position)
+    (bool, escape)
+    (quickbook::template_symbol, symbol)
+    (std::vector<std::string>, params)
+)
+
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
@@ -94,7 +102,6 @@ namespace quickbook
                         phrase_end,
                         escape, common,
                         hard_space, eol, inline_code, simple_format,
-                        template_,
                         code_block, replaceable, macro,
                         dummy_block,
                         brackets_1_4, template_inner_arg_1_5, brackets_1_5
@@ -102,6 +109,7 @@ namespace quickbook
 
         qi::rule<iterator, file_position()> position;
 
+        qi::rule<iterator, quickbook::template_()> template_;
         qi::rule<iterator, std::string()> template_arg_1_4, template_arg_1_5;
         qi::rule<iterator, std::vector<std::string>() > template_args;
 
@@ -192,15 +200,16 @@ namespace quickbook
         // Template call
 
         template_ =
-            (   qi::raw[qi::eps]                    // For the position of the template
-            >>  -qi::char_('`')                     // Attribute implicitly cast to bool
+                position
+            >>  (   '`' >> qi::attr(true)
+                |   qi::attr(false)
+                )
             >>  (                                   // Lookup the template name
                     (&qi::punct >> actions.templates.scope)
                 |   (actions.templates.scope >> hard_space)
                 )
             >>  template_args
             >>  &qi::lit(']')
-            ) [ph::bind(actions.do_template, ph::begin(qi::_1), qi::_2, qi::_3, qi::_4)]
             ;
 
         template_args =
@@ -306,17 +315,17 @@ namespace quickbook
 
         phrase_markup =
                 '['
-            >>  (   cond_phrase                     [actions.process]
-                |   image                           [actions.process]
-                |   url                             [actions.process]
-                |   link                            [actions.process]
-                |   anchor                          [actions.process]
-                |   source_mode                     [actions.process]
-                |   formatted                       [actions.process]
-                |   footnote                        [actions.process]
+            >>  (   cond_phrase
+                |   image
+                |   url
+                |   link
+                |   anchor
+                |   source_mode
+                |   formatted
+                |   footnote
                 |   template_
-                |   break_                          [actions.process]
-                )
+                |   break_
+                )                                   [actions.process]
             >>  ']'
             ;
 

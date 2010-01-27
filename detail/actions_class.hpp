@@ -139,7 +139,6 @@ namespace quickbook
         macro_definition_action macro_definition;
         do_macro_action         do_macro;
         template_body_action    template_body;
-        do_template_action      do_template;
         char const*             url_pre;
         char const*             url_post;
         char const*             link_pre;

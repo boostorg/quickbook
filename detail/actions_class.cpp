@@ -117,7 +117,6 @@ namespace quickbook
         , macro_definition(*this)
         , do_macro(phrase)
         , template_body(*this)
-        , do_template(*this)
         , url_pre(url_pre_)
         , url_post(url_post_)
         , link_pre(link_pre_)
