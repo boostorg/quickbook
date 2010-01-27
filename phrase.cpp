@@ -98,7 +98,7 @@ namespace quickbook
         bool& no_eols;
 
         qi::rule<iterator>
-                        space, blank, comment, phrase, phrase_markup,
+                        space, blank, comment, phrase_markup,
                         phrase_end,
                         escape, common,
                         hard_space, eol, inline_code, simple_format,
@@ -113,7 +113,7 @@ namespace quickbook
         qi::rule<iterator, std::string()> template_arg_1_4, template_arg_1_5;
         qi::rule<iterator, std::vector<std::string>() > template_args;
 
-        qi::rule<iterator, std::string()> phrase_attr;
+        qi::rule<iterator, std::string()> phrase;
         
         qi::rule<iterator, quickbook::break_()> break_, escape_break;
 
@@ -300,22 +300,17 @@ namespace quickbook
             ;
 
         phrase =
-           *(   common
-            |   comment
-            |   (qi::char_ - phrase_end)            [actions.plain_char]
-            )
-            ;
-
-        phrase_attr =
-                qi::eps                             [actions.phrase_push]
-            >>  (   phrase
-                |   qi::eps
-                )                                   [actions.phrase_pop]
+                qi::eps                         [actions.phrase_push]        
+            >> *(   common
+                |   comment
+                |   (qi::char_ - phrase_end)    [actions.plain_char]
+                )
+            >>  qi::eps                         [actions.phrase_pop]
             ;
 
         phrase_markup =
-                '['
-            >>  (   cond_phrase
+            (   '['
+            >>  (   cond_phrase                     
                 |   image
                 |   url
                 |   link
@@ -325,8 +320,9 @@ namespace quickbook
                 |   footnote
                 |   template_
                 |   break_
-                )                                   [actions.process]
+                )
             >>  ']'
+            )                                       [actions.process]
             ;
 
         break_ =
@@ -360,7 +356,7 @@ namespace quickbook
                 '?'
             >>  blank
             >>  macro_identifier
-            >>  -phrase_attr
+            >>  -phrase
             ;
 
         image =
@@ -429,7 +425,7 @@ namespace quickbook
             >>  hard_space
             >>  *(qi::char_ - (']' | qi::space))
             >>  (   &qi::lit(']')
-                |   (hard_space >> phrase_attr)
+                |   (hard_space >> phrase)
                 )
             ;
 
@@ -438,7 +434,7 @@ namespace quickbook
             >>  qi::attr(markup(url_pre_, url_post_))
             >>  *(qi::char_ - (']' | qi::space))
             >>  (   &qi::lit(']')
-                |   (hard_space >> phrase_attr)
+                |   (hard_space >> phrase)
                 )
             ;
 
@@ -452,7 +448,7 @@ namespace quickbook
             ("~", markup(replaceable_pre_, replaceable_post_))
             ;
 
-        formatted = format_symbol >> blank >> phrase_attr;
+        formatted = format_symbol >> blank >> phrase;
 
         source_mode.add
             ("c++", quickbook::source_mode("c++"))
@@ -464,7 +460,7 @@ namespace quickbook
                 "footnote"
             >>  qi::attr(markup(footnote_pre_, footnote_post_))
             >>  blank
-            >>  phrase_attr
+            >>  phrase
             ;
 
          position = qi::raw[qi::eps] [get_position];
