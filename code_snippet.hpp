@@ -11,6 +11,8 @@
 
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
+#include <boost/spirit/include/qi_eps.hpp>
+#include <boost/spirit/include/qi_attr.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
@@ -24,6 +26,14 @@ namespace quickbook
 {
     namespace ph = boost::phoenix;
 
+    namespace
+    {
+        // Shared rules
+        
+        qi::rule<iterator, file_position()>
+            position = qi::raw[qi::eps] [get_position];
+    }
+
     struct python_code_snippet_grammar::rules
     {
         typedef code_snippet_actions actions_type;
@@ -33,10 +43,15 @@ namespace quickbook
         actions_type& actions;
 
         qi::rule<iterator>
-            start_, snippet, code_elements, escaped_comment,
-            inline_callout, line_callout, ignore;
+            start_, ignore;
+        qi::rule<iterator, quickbook::code_snippet()>
+            snippet;
         qi::rule<iterator, std::string()>
-            identifier;
+            code_elements, identifier;
+        qi::rule<iterator, quickbook::callout()>
+            inline_callout, line_callout;
+        qi::rule<iterator, quickbook::escaped_comment()>
+            escaped_comment;
     };  
 
     python_code_snippet_grammar::python_code_snippet_grammar(actions_type & actions)
@@ -51,7 +66,7 @@ namespace quickbook
     {
         start_ =
             +(
-                    qi::raw[snippet]            [ph::bind(&actions_type::compile, &actions, qi::_1)]
+                    snippet                     [actions.output]
                 |   qi::char_
             )
             ;
@@ -61,16 +76,18 @@ namespace quickbook
             ;
 
         snippet =
-            "#[" >> *qi::space
-            >> identifier                       [ph::ref(actions.id) = qi::_1]
-            >> (*(code_elements - "#]"))
-            >> "#]"
+                position
+            >>  "#["
+            >>  qi::omit[*qi::space]
+            >>  identifier
+            >>  qi::omit[*(code_elements - "#]")]
+            >>  "#]"
             ;
 
         code_elements =
-                escaped_comment
+                escaped_comment                 [actions.process]
             |   ignore
-            |   (qi::char_ - "#]")              [ph::bind(&actions_type::pass_thru, &actions, qi::_1)]
+            |   (qi::char_ - "#]")              [actions.process]
             ;
 
         ignore =
@@ -86,13 +103,18 @@ namespace quickbook
             ;
 
         escaped_comment =
-                *qi::space >> "#`"
-                >> ((*(qi::char_ - qi::eol))
-                    >> qi::eol)                 [ph::bind(&actions_type::escaped_comment, &actions, as_string(qi::_1))]
-            |   *qi::space >> "\"\"\"`"
-                >> (*(qi::char_ - "\"\"\""))
-                                                [ph::bind(&actions_type::escaped_comment, &actions, as_string(qi::_1))]
-                >> "\"\"\""
+                    qi::omit[*qi::space >> "#`"]
+                >>  (
+                        *(qi::char_ - qi::eol)
+                    >>  qi::eol
+                    )
+                >>  qi::attr("dummy")
+            |       qi::omit[*qi::space >> "\"\"\"`"]
+                >>  (
+                        *(qi::char_ - "\"\"\"")
+                    )
+                >>  "\"\"\""
+                >>  qi::attr("dummy")
             ;
     }
 
@@ -105,10 +127,15 @@ namespace quickbook
         actions_type& actions;
 
         qi::rule<iterator>
-            start_, snippet, code_elements, escaped_comment,
-            inline_callout, line_callout, ignore;
+            start_, code_elements, ignore;
+        qi::rule<iterator, quickbook::code_snippet()>
+            snippet;
         qi::rule<iterator, std::string()>
             identifier;
+        qi::rule<iterator, quickbook::callout()>
+            inline_callout, line_callout;
+        qi::rule<iterator, quickbook::escaped_comment()>
+            escaped_comment;
     };
 
     cpp_code_snippet_grammar::cpp_code_snippet_grammar(actions_type & actions)
@@ -123,7 +150,7 @@ namespace quickbook
     {
         start_ =
             +(
-                    qi::raw[snippet]            [ph::bind(&actions_type::compile, &actions, qi::_1)]
+                    snippet                     [actions.output]
                 |   qi::char_
             )
             ;
@@ -133,37 +160,43 @@ namespace quickbook
             ;
 
         snippet =
-                "//[" >> *qi::space
-                >> identifier                   [ph::ref(actions.id) = qi::_1]
-                >> (*(code_elements - "//]"))
-                >> "//]"
+                position
+            >>  "//["
+            >>  qi::omit[*qi::space]
+            >>  identifier
+            >>  qi::omit[*(code_elements - "//]")]
+            >>  "//]"
             |
-                "/*[" >> *qi::space
-                >> identifier                   [ph::ref(actions.id) = qi::_1]
-                >> *qi::space >> "*/"
-                >> (*(code_elements - "/*]*"))
-                >> "/*]*/"
+                position
+            >>  "/*["
+            >>  qi::omit[*qi::space]
+            >>  identifier
+            >>  qi::omit[*qi::space >> "*/"]
+            >>  qi::omit[*(code_elements - "/*]*")]
+            >>  "/*]*/"
             ;
 
         code_elements =
-                escaped_comment
+                escaped_comment                 [actions.process]
             |   ignore
-            |   line_callout
-            |   inline_callout
-            |   (qi::char_ - "//]" - "/*]*/")   [ph::bind(&actions_type::pass_thru, &actions, qi::_1)]
+            |   line_callout                    [actions.process]
+            |   inline_callout                  [actions.process]
+            |   (qi::char_ - "//]" - "/*]*/")   [actions.process]
             ;
 
         inline_callout =
-            "/*<"
-            >> (*(qi::char_ - ">*/"))           [ph::bind(&actions_type::inline_callout, &actions, as_string(qi::_1))]
-            >> ">*/"
+                "/*<"
+            >>  *(qi::char_ - ">*/")
+            >>  ">*/"
+            >>  qi::attr("callout_bug")
             ;
 
         line_callout =
-            "/*<<"
-            >> (*(qi::char_ - ">>*/"))          [ph::bind(&actions_type::line_callout, &actions, as_string(qi::_1))]
-            >> ">>*/"
-            >> *qi::space
+                "/*<<"
+            >>  *(qi::char_ - ">>*/")
+            >>  ">>*/"
+            >>  qi::omit[*qi::space]
+            >>  qi::attr("line_callout_bug")
             ;
 
         ignore =
@@ -179,12 +212,20 @@ namespace quickbook
             ;
 
         escaped_comment =
-                *qi::space >> "//`"
-                >> ((*(qi::char_ - qi::eol))
-                    >> qi::eol)                 [ph::bind(&actions_type::escaped_comment, &actions, as_string(qi::_1))]
-            |   *qi::space >> "/*`"
-                >> (*(qi::char_ - "*/"))        [ph::bind(&actions_type::escaped_comment, &actions, as_string(qi::_1))]
-                >> "*/"
+                qi::omit[*qi::space]
+            >>  "//`"
+            >>  (
+                    (*(qi::char_ - qi::eol))
+                >>  qi::eol
+                )
+            >>  qi::attr("dummy")
+            |   qi::omit[*qi::space]
+            >>  "/*`"
+            >>  (
+                    *(qi::char_ - "*/")
+                )
+            >> "*/"
+            >>  qi::attr("dummy")
             ;
     }
 }

@@ -14,30 +14,91 @@
 
 #include <vector>
 #include <string>
+#include <boost/fusion/include/adapt_struct.hpp>
+#include "./parse_types.hpp"
 #include "./detail/actions.hpp"
 
 namespace quickbook
 {
+    struct code_snippet
+    {
+        file_position position;
+        std::string identifier;
+    };
+    
+    struct callout
+    {
+        std::string content;
+        char const* role;
+    };
+    
+    struct escaped_comment
+    {
+        std::string content;
+        char const* dummy;
+    };
+}
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::code_snippet,
+    (quickbook::file_position, position)
+    (std::string, identifier)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::callout,
+    (std::string, content)
+    (char const*, role)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::escaped_comment,
+    (std::string, content)
+    (char const*, dummy)
+)
+
+namespace quickbook
+{
+    using boost::spirit::unused_type;
+
     struct code_snippet_actions
     {
         code_snippet_actions(std::vector<template_symbol>& storage,
                                  std::string const& doc_id,
                                  char const* source_type)
-            : storage(storage)
+            : process(*this)
+            , output(*this)
+            , storage(storage)
             , doc_id(doc_id)
             , source_type(source_type)
         {}
 
-        void pass_thru(char);
-        void escaped_comment(std::string const&);
-        void compile(boost::iterator_range<iterator>);
-        void callout(std::string const&, char const* role);
-        void inline_callout(std::string const&);
-        void line_callout(std::string const&);
+        struct process_action
+        {
+            explicit process_action(code_snippet_actions& a)
+                : actions(a) {}
 
+            void operator()(char x, unused_type, unused_type) const;
+            void operator()(callout const& x, unused_type, unused_type) const;
+            void operator()(escaped_comment const& x, unused_type, unused_type) const;
+
+            code_snippet_actions& actions;
+        };
+
+        struct output_action
+        {
+            explicit output_action(code_snippet_actions& a)
+                : actions(a) {}
+        
+            void operator()(code_snippet const& x, unused_type, unused_type) const;
+
+            code_snippet_actions& actions;
+        };
+
+        process_action process;
+        output_action output;
         std::string code;
         std::string snippet;
-        std::string id;
         std::vector<std::string> callouts;
         std::vector<template_symbol>& storage;
         std::string const doc_id;

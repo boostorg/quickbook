@@ -23,9 +23,9 @@
 
 namespace quickbook
 {
-    void code_snippet_actions::pass_thru(char x)
+    void code_snippet_actions::process_action::operator()(char x, unused_type, unused_type) const
     {
-        code += x;
+        actions.code += x;
     }
 
     namespace detail
@@ -33,94 +33,83 @@ namespace quickbook
         int callout_id = 0;
     }
 
-    void code_snippet_actions::callout(std::string const& x, char const* role)
+    void code_snippet_actions::process_action::operator()(callout const& x, unused_type, unused_type) const
     {
         using detail::callout_id;
-        code += "``'''";
-        code += std::string("<phrase role=\"") + role + "\">";
-        code += "<co id=\"";
-        code += doc_id + boost::lexical_cast<std::string>(callout_id + callouts.size()) + "co\" ";
-        code += "linkends=\"";
-        code += doc_id + boost::lexical_cast<std::string>(callout_id + callouts.size()) + "\" />";
-        code += "</phrase>";
-        code += "'''``";
+        actions.code += "``'''";
+        actions.code += std::string("<phrase role=\"") + x.role + "\">";
+        actions.code += "<co id=\"";
+        actions.code += actions.doc_id + boost::lexical_cast<std::string>(callout_id + actions.callouts.size()) + "co\" ";
+        actions.code += "linkends=\"";
+        actions.code += actions.doc_id + boost::lexical_cast<std::string>(callout_id + actions.callouts.size()) + "\" />";
+        actions.code += "</phrase>";
+        actions.code += "'''``";
 
-        callouts.push_back(x);
+        actions.callouts.push_back(x.content);
     }
 
-    void code_snippet_actions::inline_callout(std::string const& x)
+    void code_snippet_actions::process_action::operator()(escaped_comment const& x, unused_type, unused_type) const
     {
-        callout(x, "callout_bug");
-    }
-
-    void code_snippet_actions::line_callout(std::string const& x)
-    {
-        callout(x, "line_callout_bug");
-    }
-
-    void code_snippet_actions::escaped_comment(std::string const& x)
-    {
-        if (!code.empty())
+        if (!actions.code.empty())
         {
-            detail::unindent(code); // remove all indents
-            if (code.size() != 0)
+            detail::unindent(actions.code); // remove all indents
+            if (actions.code.size() != 0)
             {
-                snippet += "\n\n";
-                snippet += source_type;
-                snippet += "``\n" + code + "``\n\n";
-                code.clear();
+                actions.snippet += "\n\n";
+                actions.snippet += actions.source_type;
+                actions.snippet += "``\n" + actions.code + "``\n\n";
+                actions.code.clear();
             }
         }
-        std::string temp(x);
+        std::string temp(x.content);
         detail::unindent(temp); // remove all indents
         if (temp.size() != 0)
         {
-            snippet += "\n" + temp; // add a linebreak to allow block marskups
+            actions.snippet += "\n" + temp; // add a linebreak to allow block marskups
         }
     }
 
-    void code_snippet_actions::compile(boost::iterator_range<iterator> x)
+    void code_snippet_actions::output_action::operator()(code_snippet const& x, unused_type, unused_type) const
     {
         using detail::callout_id;
-        if (!code.empty())
+        if (!actions.code.empty())
         {
-            detail::unindent(code); // remove all indents
-            if (code.size() != 0)
+            detail::unindent(actions.code); // remove all indents
+            if (actions.code.size() != 0)
             {
-                snippet += "\n\n";
-                snippet += source_type;
-                snippet += "```\n" + code + "```\n\n";
+                actions.snippet += "\n\n";
+                actions.snippet += actions.source_type;
+                actions.snippet += "```\n" + actions.code + "```\n\n";
             }
 
-            if(callouts.size() > 0)
+            if(actions.callouts.size() > 0)
             {
-              snippet += "'''<calloutlist>'''";
-              for (size_t i = 0; i < callouts.size(); ++i)
+              actions.snippet += "'''<calloutlist>'''";
+              for (size_t i = 0; i < actions.callouts.size(); ++i)
               {
-                  snippet += "'''<callout arearefs=\"";
-                  snippet += doc_id + boost::lexical_cast<std::string>(callout_id + i) + "co\" ";
-                  snippet += "id=\"";
-                  snippet += doc_id + boost::lexical_cast<std::string>(callout_id + i) + "\">";
-                  snippet += "'''";
+                  actions.snippet += "'''<callout arearefs=\"";
+                  actions.snippet += actions.doc_id + boost::lexical_cast<std::string>(callout_id + i) + "co\" ";
+                  actions.snippet += "id=\"";
+                  actions.snippet += actions.doc_id + boost::lexical_cast<std::string>(callout_id + i) + "\">";
+                  actions.snippet += "'''";
 
-                  snippet += "'''<para>'''";
-                  snippet += callouts[i];
-                  snippet += "'''</para>'''";
-                  snippet += "'''</callout>'''";
+                  actions.snippet += "'''<para>'''";
+                  actions.snippet += actions.callouts[i];
+                  actions.snippet += "'''</para>'''";
+                  actions.snippet += "'''</callout>'''";
               }
-              snippet += "'''</calloutlist>'''";
+              actions.snippet += "'''</calloutlist>'''";
             }
         }
 
         std::vector<std::string> tinfo;
-        tinfo.push_back(id);
-        tinfo.push_back(snippet);
-        storage.push_back(template_symbol(tinfo, x.begin().get_position()));
+        tinfo.push_back(x.identifier);
+        tinfo.push_back(actions.snippet);
+        actions.storage.push_back(template_symbol(tinfo, x.position));
 
-        callout_id += callouts.size();
-        callouts.clear();
-        code.clear();
-        snippet.clear();
-        id.clear();
+        callout_id += actions.callouts.size();
+        actions.callouts.clear();
+        actions.code.clear();
+        actions.snippet.clear();
     }
 }
