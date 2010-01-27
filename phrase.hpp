@@ -12,9 +12,9 @@
 
 #include <string>
 #include <map>
-#include "./parse_types.hpp"
-#include "./code.hpp"
-#include "./detail/template_stack.hpp"
+#include "parse_types.hpp"
+#include "code.hpp"
+#include "template_stack.hpp"
 
 namespace quickbook
 {

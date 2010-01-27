@@ -10,10 +10,10 @@
 #if !defined(BOOST_SPIRIT_QUICKBOOK_DOC_INFO_HPP)
 #define BOOST_SPIRIT_QUICKBOOK_DOC_INFO_HPP
 
-#include "./grammars.hpp"
-#include "./detail/quickbook.hpp"
-#include "./detail/actions_class.hpp"
-#include "./parse_utils.hpp"
+#include "grammars.hpp"
+#include "quickbook.hpp"
+#include "actions_class.hpp"
+#include "parse_utils.hpp"
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
 #include <boost/spirit/include/qi_eol.hpp>

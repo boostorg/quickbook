@@ -14,8 +14,8 @@
 #include <vector>
 #include <boost/optional.hpp>
 #include <boost/spirit/include/classic_position_iterator.hpp>
-#include "./parse_types.hpp"
-#include "./code.hpp"
+#include "parse_types.hpp"
+#include "code.hpp"
 
 namespace quickbook
 {

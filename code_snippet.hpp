@@ -16,11 +16,11 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
-#include "./code_snippet_types.hpp"
-#include "./grammars.hpp"
-#include "./parse_utils.hpp"
-#include "./detail/actions.hpp"
-#include "./detail/actions_class.hpp"
+#include "code_snippet_types.hpp"
+#include "grammars.hpp"
+#include "parse_utils.hpp"
+#include "actions.hpp"
+#include "actions_class.hpp"
 
 namespace quickbook
 {

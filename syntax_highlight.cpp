@@ -1,5 +1,5 @@
-#include "../syntax_highlight.hpp"
-#include "./actions_class.hpp"
+#include "syntax_highlight.hpp"
+#include "actions_class.hpp"
 
 namespace quickbook
 {

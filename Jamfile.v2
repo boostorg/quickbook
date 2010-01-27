@@ -19,15 +19,15 @@ project quickbook
 
 exe quickbook
     :
-    detail/quickbook.cpp
-    detail/actions.cpp
-    detail/actions_class.cpp
-    detail/utils.cpp
-    detail/input_path.cpp
-    detail/post_process.cpp
-    detail/collector.cpp
-    detail/template_stack.cpp
-    detail/markups.cpp
+    quickbook.cpp
+    actions.cpp
+    actions_class.cpp
+    utils.cpp
+    input_path.cpp
+    post_process.cpp
+    collector.cpp
+    template_stack.cpp
+    markups.cpp
     phrase.cpp
     phrase_actions.cpp
     phrase_image.cpp
@@ -37,7 +37,7 @@ exe quickbook
     block_list.cpp
     doc_info.cpp
     code_snippet.cpp
-    detail/syntax_highlight.cpp
+    syntax_highlight.cpp
     /boost//program_options
     /boost//filesystem
     : #<define>QUICKBOOK_NO_DATES

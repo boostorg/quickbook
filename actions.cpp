@@ -15,12 +15,12 @@
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/spirit/include/support_unused.hpp>
-#include "./quickbook.hpp"
-#include "./actions.hpp"
-#include "./utils.hpp"
-#include "./markups.hpp"
-#include "./actions_class.hpp"
-#include "../grammars.hpp"
+#include "quickbook.hpp"
+#include "actions.hpp"
+#include "utils.hpp"
+#include "markups.hpp"
+#include "actions_class.hpp"
+#include "grammars.hpp"
 
 namespace quickbook
 {

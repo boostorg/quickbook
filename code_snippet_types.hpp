@@ -15,8 +15,8 @@
 #include <vector>
 #include <string>
 #include <boost/fusion/include/adapt_struct.hpp>
-#include "./parse_types.hpp"
-#include "./detail/actions.hpp"
+#include "parse_types.hpp"
+#include "actions.hpp"
 
 namespace quickbook
 {

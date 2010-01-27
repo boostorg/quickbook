@@ -13,7 +13,7 @@
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_symbols.hpp>
 #include <boost/scoped_ptr.hpp>
-#include "./detail/actions_class.hpp"
+#include "actions_class.hpp"
 
 namespace quickbook
 {

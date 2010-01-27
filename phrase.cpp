@@ -8,13 +8,13 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "./phrase.hpp"
-#include "./grammars.hpp"
-#include "./detail/quickbook.hpp"
-#include "./detail/utils.hpp"
-#include "./detail/markups.hpp"
-#include "./detail/actions_class.hpp"
-#include "./parse_utils.hpp"
+#include "phrase.hpp"
+#include "grammars.hpp"
+#include "quickbook.hpp"
+#include "utils.hpp"
+#include "markups.hpp"
+#include "actions_class.hpp"
+#include "parse_utils.hpp"
 #include <map>
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_auxiliary.hpp>

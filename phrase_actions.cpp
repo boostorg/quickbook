@@ -8,9 +8,9 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "./phrase.hpp"
-#include "./detail/actions_class.hpp"
-#include "./detail/markups.hpp"
+#include "phrase.hpp"
+#include "actions_class.hpp"
+#include "markups.hpp"
 #include <boost/assert.hpp>
 
 namespace quickbook

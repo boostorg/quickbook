@@ -8,12 +8,12 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "./block.hpp"
-#include "./detail/actions_class.hpp"
-#include "./detail/markups.hpp"
-#include "./detail/quickbook.hpp"
-#include "./grammars.hpp"
-#include "./code_snippet_types.hpp"
+#include "block.hpp"
+#include "actions_class.hpp"
+#include "markups.hpp"
+#include "quickbook.hpp"
+#include "grammars.hpp"
+#include "code_snippet_types.hpp"
 #include <numeric>
 #include <boost/assert.hpp>
 #include <boost/filesystem/convenience.hpp>
