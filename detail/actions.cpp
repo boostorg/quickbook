@@ -739,7 +739,7 @@ namespace quickbook
             }
             else
             {
-                block_grammar<iterator, quickbook::actions, false> block_p(actions);
+                block_grammar<iterator, quickbook::actions> block_p(actions);
 
                 //  do a block level parse
                 //  ensure that we have enough trailing newlines to eliminate

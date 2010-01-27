@@ -46,7 +46,7 @@ namespace quickbook
         simple_phrase_grammar& operator=(simple_phrase_grammar const&);
     };
 
-    template <typename Iterator, typename Actions, bool skip_initial_spaces = false>
+    template <typename Iterator, typename Actions>
     struct block_grammar : qi::grammar<Iterator>
     {
         block_grammar(Actions& actions);

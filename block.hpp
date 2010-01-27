@@ -27,8 +27,8 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
-    template <typename Iterator, typename Actions, bool skip_initial_spaces>
-    struct block_grammar<Iterator, Actions, skip_initial_spaces>::rules
+    template <typename Iterator, typename Actions>
+    struct block_grammar<Iterator, Actions>::rules
     {
         rules(Actions& actions_);
 
@@ -51,31 +51,22 @@ namespace quickbook
         qi::rule<Iterator, boost::optional<std::string>()>  element_id, element_id_1_5;
     };
 
-    template <typename Iterator, typename Actions, bool skip_initial_spaces>
-    block_grammar<Iterator, Actions, skip_initial_spaces>::block_grammar(Actions& actions_)
+    template <typename Iterator, typename Actions>
+    block_grammar<Iterator, Actions>::block_grammar(Actions& actions_)
         : block_grammar::base_type(start, "block")
         , rules_pimpl(new rules(actions_))
         , start(rules_pimpl->start_) {}
 
-    template <typename Iterator, typename Actions, bool skip_initial_spaces>
-    block_grammar<Iterator, Actions, skip_initial_spaces>::~block_grammar() {}
+    template <typename Iterator, typename Actions>
+    block_grammar<Iterator, Actions>::~block_grammar() {}
 
-    template <typename Iterator, typename Actions, bool skip_initial_spaces>
-    block_grammar<Iterator, Actions, skip_initial_spaces>::rules::rules(Actions& actions_)
+    template <typename Iterator, typename Actions>
+    block_grammar<Iterator, Actions>::rules::rules(Actions& actions_)
         : actions(actions_), no_eols(true), common(actions, no_eols)
     {
-        if (skip_initial_spaces)
-        {
-            start_ =
-                *(qi::space | comment) >> blocks >> blank
-                ;
-        }
-        else
-        {
-            start_ =
-                blocks >> blank
-                ;
-        }
+        start_ =
+            blocks >> blank
+            ;
 
         blocks =
            +(   block_markup
