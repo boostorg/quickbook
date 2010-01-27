@@ -93,6 +93,24 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::vector<quickbook::table_row>, rows)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::xinclude,
+    (std::string, path)
+    (char const*, dummy)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::import,
+    (std::string, path)
+    (char const*, dummy)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::include,
+    (boost::optional<std::string>, id)
+    (std::string, path)
+)
+
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
@@ -109,8 +127,8 @@ namespace quickbook
                         start_, blocks, block_markup,
                         space, blank, comment,
                         phrase, phrase_end, ordered_list,
-                        xinclude, include, hard_space, eol, paragraph_end,
-                        dummy_block, import;
+                        hard_space, eol, paragraph_end,
+                        dummy_block;
 
         qi::symbols<> paragraph_end_markups;
         qi::rule<iterator, quickbook::paragraph()> paragraph;
@@ -160,6 +178,10 @@ namespace quickbook
         
         qi::rule<iterator, quickbook::code()> code;
         qi::rule<iterator> code_line;
+
+        qi::rule<iterator, quickbook::xinclude()> xinclude;
+        qi::rule<iterator, quickbook::include()> include;
+        qi::rule<iterator, quickbook::import()> import;
         
         qi::rule<iterator, quickbook::title()> title_phrase;
         qi::rule<iterator, std::string()> phrase_attr;
@@ -242,9 +264,9 @@ namespace quickbook
                 |   def_macro                   [actions.process][actions.output]
                 |   table                       [actions.process][actions.output]
                 |   variablelist                [actions.process][actions.output]
-                |   xinclude
-                |   include
-                |   import
+                |   xinclude                    [actions.process][actions.output]
+                |   include                     [actions.process][actions.output]
+                |   import                      [actions.process][actions.output]
                 |   define_template             [actions.process][actions.output]
                 )
             >>  (   (space >> ']' >> +eol)
@@ -467,31 +489,28 @@ namespace quickbook
             ;
 
         xinclude =
-               "xinclude"
-            >> hard_space
-            >> qi::raw[*(qi::char_ -
-                    phrase_end)]                [actions.xinclude]
+                "xinclude"
+            >>  hard_space
+            >>  *(qi::char_ - phrase_end)
+            >>  qi::attr("dummy")
             ;
 
         import =
-               "import"
-            >> hard_space
-            >> qi::raw[*(qi::char_ -
-                    phrase_end)]                [actions.import]
+                "import"
+            >>  hard_space
+            >>  *(qi::char_ - phrase_end)
+            >>  qi::attr("dummy")
             ;
 
         include =
-               "include"
-            >> hard_space
-            >>
-           -(
-                ':'
-                >> qi::raw[*((qi::alnum | '_') - qi::space)]
-                                                [ph::ref(actions.include_doc_id) = as_string(qi::_1)]
-                >> space
-            )
-            >> qi::raw[*(qi::char_ -
-                    phrase_end)]                [actions.include]
+                "include"
+            >>  hard_space
+            >>  -(
+                    ':'
+                >>  *((qi::alnum | '_') - qi::space)
+                >>  space
+                )
+            >>  *(qi::char_ - phrase_end)
             ;
 
         code =

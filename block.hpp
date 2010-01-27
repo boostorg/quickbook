@@ -97,6 +97,24 @@ namespace quickbook
         std::string title;
         std::vector<table_row> rows;
     };
+
+    struct xinclude
+    {
+        std::string path;
+        char const* dummy;
+    };
+
+    struct import
+    {
+        std::string path;
+        char const* dummy;
+    };
+    
+    struct include
+    {
+        boost::optional<std::string> id;
+        std::string path;
+    };
     
     void process(quickbook::actions&, hr);
     void process(quickbook::actions&, paragraph const&);
@@ -108,6 +126,9 @@ namespace quickbook
     void process(quickbook::actions&, define_template const&);
     void process(quickbook::actions&, variablelist const&);
     void process(quickbook::actions&, table const&);
+    void process(quickbook::actions&, xinclude const&);
+    void process(quickbook::actions&, import const&);
+    void process(quickbook::actions&, include const&);
 }
 
 #endif

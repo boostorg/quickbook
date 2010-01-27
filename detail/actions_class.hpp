@@ -44,7 +44,6 @@ namespace quickbook
         author_list             doc_authors;
         std::string             doc_license;
         std::string             doc_last_revision;
-        std::string             include_doc_id;
         std::string             doc_license_1_1;
         std::string             doc_purpose_1_1;
 
@@ -102,9 +101,6 @@ namespace quickbook
         raw_char_action         raw_char;
 
         element_id_warning_action element_id_warning;
-        xinclude_action         xinclude;
-        include_action          include;
-        import_action           import;
     };
 }
 

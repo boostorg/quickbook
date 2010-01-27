@@ -30,7 +30,6 @@ namespace quickbook
         , doc_authors()
         , doc_license()
         , doc_last_revision()
-        , include_doc_id()
         , doc_license_1_1()
         , doc_purpose_1_1()
 
@@ -68,10 +67,6 @@ namespace quickbook
         , code(out, phrase, syntax_p)
         , plain_char(phrase)
         , raw_char(phrase)
-
-        , xinclude(out, *this)
-        , include(*this)
-        , import(out, *this)
     {
         // turn off __FILENAME__ macro on debug mode = true
         std::string filename_str = debug_mode ?

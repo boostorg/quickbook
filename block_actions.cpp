@@ -12,7 +12,10 @@
 #include "./detail/actions_class.hpp"
 #include "./detail/markups.hpp"
 #include "./detail/quickbook.hpp"
+#include "./code_snippet.hpp"
+#include <numeric>
 #include <boost/assert.hpp>
+#include <boost/filesystem/convenience.hpp>
 
 namespace quickbook
 {
@@ -288,6 +291,179 @@ namespace quickbook
         else
         {
             actions.phrase << "</informaltable>\n";
+        }
+    }
+
+    namespace
+    {
+        int load_snippets(
+            std::string const& file
+          , std::vector<template_symbol>& storage   // snippets are stored in a
+                                                    // vector of template_symbols
+          , std::string const& extension
+          , std::string const& doc_id)
+        {
+            std::string code;
+            int err = detail::load(file, code);
+            if (err != 0)
+                return err; // return early on error
+    
+            iterator first(code.begin(), code.end(), file);
+            iterator last(code.end(), code.end());
+    
+            size_t fname_len = file.size();
+            bool is_python = fname_len >= 3
+                && file[--fname_len]=='y' && file[--fname_len]=='p' && file[--fname_len]=='.';
+            code_snippet_actions a(storage, doc_id, is_python ? "[python]" : "[c++]");
+            // TODO: Should I check that parse succeeded?
+            if(is_python) {
+                python_code_snippet_grammar g(a);
+                boost::spirit::qi::parse(first, last, g);
+            }
+            else {
+                cpp_code_snippet_grammar g(a);
+                boost::spirit::qi::parse(first, last, g);
+            }
+    
+            return 0;
+        }
+
+        fs::path include_search(fs::path const & current, std::string const & name)
+        {
+            fs::path path(name,fs::native);
+
+            // If the path is relative, try and resolve it.
+            if (!path.is_complete())
+            {
+                // See if it can be found locally first.
+                if (fs::exists(current / path))
+                {
+                    return current / path;
+                }
+
+                // Search in each of the include path locations.
+                BOOST_FOREACH(std::string const & p, include_path)
+                {
+                    fs::path full(p,fs::native);
+                    full /= path;
+                    if (fs::exists(full))
+                    {
+                        return full;
+                    }
+                }
+            }
+
+            return path;
+        }
+
+        fs::path path_difference(fs::path const& outdir, fs::path const& path)
+        {
+            fs::path outtmp, temp;
+            fs::path::iterator out = outdir.begin(), file = path.begin();
+            for(; out != outdir.end() && file != path.end(); ++out, ++file)
+            {
+                if(!fs::equivalent(outtmp /= *out, temp /= *file))
+                    break;
+            }
+            out = (out == outdir.begin()) ? outdir.end() : out;
+    
+            fs::path result = fs::path();
+            for(; out != outdir.end(); ++out)
+                if(*out != ".") result /= "..";
+            std::divides<fs::path> concat;
+            return std::accumulate(file, path.end(), result, concat);
+        }
+    
+        fs::path calculate_relative_path(std::string const& x, quickbook::actions& actions)
+        {
+            // Given a source file and the current filename, calculate the
+            // path to the source file relative to the output directory.
+            fs::path path(x);
+            if (!path.is_complete())
+            {
+                fs::path infile = fs::complete(actions.filename).normalize();
+                path = (infile.branch_path() / path).normalize();
+                fs::path outdir = fs::complete(actions.outdir).normalize();
+                path = path_difference(outdir, path);
+            }
+            return path;
+        }
+    }
+
+    void process(quickbook::actions& actions, xinclude const& x)
+    {
+        fs::path path = calculate_relative_path(x.path, actions);
+        actions.phrase << "\n<xi:include href=\"";
+        detail::print_string(detail::escape_uri(path.string()), actions.phrase.get());
+        actions.phrase << "\" />\n";
+    }
+
+    void process(quickbook::actions& actions, include const& x)
+    {
+        fs::path filein = include_search(actions.filename.branch_path(), x.path);
+        std::string doc_type, doc_id, doc_dirname, doc_last_revision;
+
+        // swap the filenames
+        std::swap(actions.filename, filein);
+
+        // save the doc info strings
+        actions.doc_type.swap(doc_type);
+        actions.doc_id.swap(doc_id);
+        actions.doc_dirname.swap(doc_dirname);
+        actions.doc_last_revision.swap(doc_last_revision);
+
+        // scope the macros
+        macro_symbols macro = actions.macro;
+        // scope the templates
+        //~ template_symbols templates = actions.templates; $$$ fixme $$$
+
+        // if an id is specified in this include (as in [include:id foo.qbk])
+        // then use it as the doc_id.
+        if (x.id) actions.doc_id = *x.id;
+
+        // update the __FILENAME__ macro
+        *actions.macro.find("__FILENAME__") =
+            quickbook::macro(actions.filename.native_file_string());
+
+        // parse the file
+        quickbook::parse(actions.filename.native_file_string().c_str(), actions, true);
+
+        // restore the values
+        std::swap(actions.filename, filein);
+
+        actions.doc_type.swap(doc_type);
+        actions.doc_id.swap(doc_id);
+        actions.doc_dirname.swap(doc_dirname);
+        actions.doc_last_revision.swap(doc_last_revision);
+
+        // restore the macros
+        actions.macro = macro;
+        // restore the templates
+        //~ actions.templates = templates; $$$ fixme $$$
+    }
+
+    void process(quickbook::actions& actions, import const& x)
+    {
+        fs::path path = include_search(actions.filename.branch_path(), x.path);
+        std::string ext = fs::extension(path);
+        std::vector<template_symbol> storage;
+        actions.error_count +=
+            load_snippets(path.string(), storage, ext, actions.doc_id);
+
+        BOOST_FOREACH(template_symbol const& ts, storage)
+        {
+            std::string tname = boost::get<0>(ts)[0];
+            if (actions.templates.find_top_scope(tname))
+            {
+                boost::spirit::classic::file_position const pos = boost::get<1>(ts);
+                detail::outerr(pos.file, pos.line)
+                    << "Template Redefinition: " << tname << std::endl;
+                ++actions.error_count;
+            }
+            else
+            {
+                actions.templates.add(tname, ts);
+            }
         }
     }
 }
