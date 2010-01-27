@@ -31,17 +31,42 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 
 BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::anchor,
+    (std::string, id)
+    (char const*, dummy)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
     quickbook::link,
-    (quickbook::link_type, type)
+    (quickbook::markup, type)
     (std::string, destination)
     (std::string, content)
 )
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::formatted,
+    (quickbook::markup, type)
+    (std::string, content)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::break_,
+    (quickbook::file_position, position)
+    (char const*, dummy)
+)
+
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::image,
     (quickbook::file_position, position)
     (std::string, image_filename)
     (quickbook::image::attribute_map, attributes)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::cond_phrase,
+    (std::string, macro_id)
+    (std::string, content)
 )
 
 namespace quickbook
@@ -66,12 +91,12 @@ namespace quickbook
 
         qi::rule<iterator>
                         space, blank, comment, phrase, phrase_markup,
-                        phrase_end, bold, italic, underline, teletype,
-                        strikethrough, escape, common,
-                        anchor, hard_space, eol, inline_code, simple_format,
+                        phrase_end,
+                        escape, common,
+                        hard_space, eol, inline_code, simple_format,
                         template_,
-                        quote, code_block, footnote, replaceable, macro,
-                        dummy_block, cond_phrase, macro_identifier,
+                        code_block, replaceable, macro,
+                        dummy_block,
                         brackets_1_4, template_inner_arg_1_5, brackets_1_5
                         ;
 
@@ -81,6 +106,11 @@ namespace quickbook
         qi::rule<iterator, std::vector<std::string>() > template_args;
 
         qi::rule<iterator, std::string()> phrase_attr;
+        
+        qi::rule<iterator, quickbook::break_()> break_, escape_break;
+
+        qi::rule<iterator, std::string()> macro_identifier;
+        qi::rule<iterator, quickbook::cond_phrase()> cond_phrase;
 
         qi::rule<iterator, quickbook::image()> image, image_1_4, image_1_5;
         qi::rule<iterator, std::string()> image_filename, image_attribute_key, image_attribute_value;
@@ -88,8 +118,14 @@ namespace quickbook
         qi::rule<iterator, std::pair<std::string, std::string>()> image_attribute;
         
         qi::rule<iterator, boost::iterator_range<iterator>(char)> simple_markup;
-        qi::symbols<char, link_type> link_symbol;
+        
+        qi::rule<iterator, quickbook::anchor()> anchor;
+
+        qi::symbols<char, markup> link_symbol;
         qi::rule<iterator, quickbook::link()> link, url;
+
+        qi::symbols<char, markup> format_symbol;
+        qi::rule<iterator, quickbook::formatted()> formatted, footnote;
         
         qi::symbols<char, quickbook::source_mode> source_mode;
     };
@@ -270,28 +306,28 @@ namespace quickbook
 
         phrase_markup =
                 '['
-            >>  (   cond_phrase
+            >>  (   cond_phrase                     [actions.process]
                 |   image                           [actions.process]
                 |   url                             [actions.process]
                 |   link                            [actions.process]
-                |   anchor
+                |   anchor                          [actions.process]
                 |   source_mode                     [actions.process]
-                |   bold
-                |   italic
-                |   underline
-                |   teletype
-                |   strikethrough
-                |   quote
-                |   replaceable
-                |   footnote
+                |   formatted                       [actions.process]
+                |   footnote                        [actions.process]
                 |   template_
-                |   qi::raw["br"]                   [actions.break_]
+                |   break_                          [actions.process]
                 )
             >>  ']'
             ;
 
+        break_ =
+                position
+            >>  "br"
+            >>  qi::attr("dummy")
+            ;
+
         escape =
-                qi::raw["\\n"]                      [actions.break_]
+                escape_break                        [actions.process]
             |   "\\ "                               // ignore an escaped char
             |   '\\' >> qi::punct                   [actions.raw_char]
             |   (
@@ -300,15 +336,22 @@ namespace quickbook
                 >>  qi::lit("'''")                  [actions.escape_post]
                 )
             ;
+        
+        escape_break =
+                position
+            >>  "\\n"
+            >>  qi::attr("dummy")
+            ;
 
         macro_identifier =
             +(qi::char_ - (qi::space | ']'))
             ;
 
         cond_phrase =
-                '?' >> blank
-            >>  qi::raw[macro_identifier]           [actions.cond_phrase_pre]
-            >>  qi::raw[-phrase]                    [actions.cond_phrase_post]
+                '?'
+            >>  blank
+            >>  macro_identifier
+            >>  -phrase_attr
             ;
 
         image =
@@ -356,19 +399,20 @@ namespace quickbook
         anchor =
                 '#'
             >>  blank
-            >>  qi::raw[*(qi::char_ - phrase_end)]  [actions.anchor]
+            >>  *(qi::char_ - phrase_end)
+            >>  qi::attr("dummy")
             ;
 
         link_symbol.add
-            ("link", link_type(link_pre_, link_post_))
-            ("funcref", link_type(funcref_pre_, funcref_post_))
-            ("classref", link_type(classref_pre_, classref_post_))
-            ("memberref", link_type(memberref_pre_, memberref_post_))
-            ("enumref", link_type(enumref_pre_, enumref_post_)) 
-            ("macroref", link_type(macroref_pre_, macroref_post_)) 
-            ("headerref", link_type(headerref_pre_, headerref_post_)) 
-            ("conceptref", link_type(conceptref_pre_, conceptref_post_)) 
-            ("globalref", link_type(globalref_pre_, globalref_post_))
+            ("link", markup(link_pre_, link_post_))
+            ("funcref", markup(funcref_pre_, funcref_post_))
+            ("classref", markup(classref_pre_, classref_post_))
+            ("memberref", markup(memberref_pre_, memberref_post_))
+            ("enumref", markup(enumref_pre_, enumref_post_)) 
+            ("macroref", markup(macroref_pre_, macroref_post_)) 
+            ("headerref", markup(headerref_pre_, headerref_post_)) 
+            ("conceptref", markup(conceptref_pre_, conceptref_post_)) 
+            ("globalref", markup(globalref_pre_, globalref_post_))
             ;
 
         link =
@@ -382,47 +426,24 @@ namespace quickbook
 
         url =
                 '@'
-            >>  qi::attr(link_type(url_pre_, url_post_))
+            >>  qi::attr(markup(url_pre_, url_post_))
             >>  *(qi::char_ - (']' | qi::space))
             >>  (   &qi::lit(']')
                 |   (hard_space >> phrase_attr)
                 )
             ;
 
-        bold =
-                qi::char_('*')                      [actions.bold_pre]
-            >>  blank >> phrase                     [actions.bold_post]
+        format_symbol.add
+            ("*", markup(bold_pre_, bold_post_))
+            ("'", markup(italic_pre_, italic_post_))
+            ("_", markup(underline_pre_, underline_post_))
+            ("^", markup(teletype_pre_, teletype_post_))
+            ("-", markup(strikethrough_pre_, strikethrough_post_))
+            ("\"", markup(quote_pre_, quote_post_))
+            ("~", markup(replaceable_pre_, replaceable_post_))
             ;
 
-        italic =
-                qi::char_('\'')                     [actions.italic_pre]
-            >>  blank >> phrase                     [actions.italic_post]
-            ;
-
-        underline =
-                qi::char_('_')                      [actions.underline_pre]
-            >>  blank >> phrase                     [actions.underline_post]
-            ;
-
-        teletype =
-                qi::char_('^')                      [actions.teletype_pre]
-            >>  blank >> phrase                     [actions.teletype_post]
-            ;
-
-        strikethrough =
-                qi::char_('-')                      [actions.strikethrough_pre]
-            >>  blank >> phrase                     [actions.strikethrough_post]
-            ;
-
-        quote =
-                qi::char_('"')                      [actions.quote_pre]
-            >>  blank >> phrase                     [actions.quote_post]
-            ;
-
-        replaceable =
-                qi::char_('~')                      [actions.replaceable_pre]
-            >>  blank >> phrase                     [actions.replaceable_post]
-            ;
+        formatted = format_symbol >> blank >> phrase_attr;
 
         source_mode.add
             ("c++", quickbook::source_mode("c++"))
@@ -431,8 +452,10 @@ namespace quickbook
             ;
 
         footnote =
-                qi::lit("footnote")                 [actions.footnote_pre]
-            >>  blank >> phrase                     [actions.footnote_post]
+                "footnote"
+            >>  qi::attr(markup(footnote_pre_, footnote_post_))
+            >>  blank
+            >>  phrase_attr
             ;
 
          position = qi::raw[qi::eps] [get_position];

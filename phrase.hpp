@@ -27,20 +27,40 @@ namespace quickbook
         std::string mode;
     };
 
-    struct link_type {
-        link_type()
+    struct markup {
+        markup()
             : pre(""), post("") {}
-        link_type(char const* pre, char const* post)
+        markup(char const* pre, char const* post)
             : pre(pre), post(post) {}
 
         char const* pre;
         char const* post;
     };
+
+    struct anchor {
+        char const* dummy;
+        std::string id;
+    };
     
     struct link {
-        link_type type;
+        markup type;
         std::string destination;
         std::string content;
+    };
+    
+    struct formatted {
+        markup type;
+        std::string content;
+    };
+    
+    struct cond_phrase {
+        std::string macro_id;
+        std::string content;
+    };
+    
+    struct break_ {
+        const char* dummy;
+        file_position position;
     };
     
     struct image {
@@ -51,9 +71,13 @@ namespace quickbook
         attribute_map attributes;
     };
 
-    void process(quickbook::actions& actions, source_mode const& s);
-    void process(quickbook::actions& actions, link const& x);
-    void process(quickbook::actions& actions, image const& x);
+    void process(quickbook::actions&, source_mode const&);
+    void process(quickbook::actions&, anchor const&);
+    void process(quickbook::actions&, link const&);
+    void process(quickbook::actions&, formatted const&);
+    void process(quickbook::actions&, cond_phrase const&);
+    void process(quickbook::actions&, break_ const&);
+    void process(quickbook::actions&, image const&);
 }
 
 #endif // BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP

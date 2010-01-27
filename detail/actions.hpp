@@ -173,44 +173,6 @@ namespace quickbook
         string_symbols const& macro;
     };
 
-    struct cond_phrase_action_pre
-    {
-        //  Handles conditional phrases
-
-        cond_phrase_action_pre(
-            collector& out
-          , std::vector<bool>& conditions
-          , string_symbols const& macro)
-        : out(out)
-        , conditions(conditions)
-        , macro(macro) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-        std::vector<bool>& conditions;
-        string_symbols const& macro;
-    };
-
-    struct cond_phrase_action_post
-    {
-        //  Handles conditional phrases
-
-        cond_phrase_action_post(
-            collector& out
-          , std::vector<bool>& conditions
-          , string_symbols const& macro)
-        : out(out)
-        , conditions(conditions)
-        , macro(macro) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-        std::vector<bool>& conditions;
-        string_symbols const& macro;
-    };
-
     struct list_action
     {
         //  Handles lists
@@ -276,18 +238,6 @@ namespace quickbook
 
         unexpected_char(collector& out)
         : out(out) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-    };
-
-    struct anchor_action
-    {
-        // Handles anchors
-
-        anchor_action(collector& out)
-            : out(out) {}
 
         void operator()(iterator_range, unused_type, unused_type) const;
 
@@ -480,18 +430,6 @@ namespace quickbook
 
         collector& phrase;
         collector& temp_para;
-    };
-
-    struct break_action
-    {
-        // Handles line-breaks (DEPRECATED!!!)
-
-        break_action(collector& phrase)
-        : phrase(phrase) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& phrase;
     };
 
     struct macro_identifier_action

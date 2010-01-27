@@ -46,15 +46,6 @@ namespace quickbook
         }
     }
 
-    // Handles line-breaks (DEPRECATED!!!)
-    void break_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        boost::spirit::classic::file_position const pos = x.begin().get_position();
-        detail::outwarn(pos.file,pos.line) << "in column:" << pos.column << ", "
-            << "[br] and \\n are deprecated" << ".\n";
-        phrase << break_mark;
-    }
-
     void error_action::operator()(iterator_range x, unused_type, unused_type) const
     {
         boost::spirit::classic::file_position const pos = x.begin().get_position();
@@ -136,31 +127,6 @@ namespace quickbook
                 detail::print_char(*first++, out.get());
         }
         out << post;
-    }
-
-    void cond_phrase_action_pre::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        std::string str(x.begin(), x.end());
-        conditions.push_back(macro.find(str.c_str()));
-        out.push(); // save the stream
-    }
-
-    void cond_phrase_action_post::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        bool symbol_found = conditions.back();
-        conditions.pop_back();
-
-        if (x.begin() == x.end() || !symbol_found)
-        {
-            out.pop(); // restore the stream
-        }
-        else
-        {
-            std::string save;
-            out.swap(save);
-            out.pop(); // restore the stream
-            out << save; // print the body
-        }
     }
 
     void list_action::operator()(unused_type, unused_type, unused_type) const
@@ -279,15 +245,6 @@ namespace quickbook
         while (first != last)
             detail::print_char(*first++, out.get());
         out << "</phrase>";
-    }
-
-    void anchor_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        iterator first = x.begin(), last = x.end();
-        out << "<anchor id=\"";
-        while (first != last)
-            detail::print_char(*first++, out.get());
-        out << "\" />\n";
     }
 
     void do_macro_action::operator()(std::string const& str, unused_type, unused_type) const

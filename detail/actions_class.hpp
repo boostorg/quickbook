@@ -83,7 +83,6 @@ namespace quickbook
         std::string             macro_id;
         std::stack<mark_type>   list_marks;
         int                     list_indent;
-        std::vector<bool>       conditions;
         string_list             template_info;
         int                     template_depth;
         bool                    template_escape;
@@ -117,29 +116,10 @@ namespace quickbook
         phrase_action           warning, caution, important, note, tip;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
-        cond_phrase_action_pre  cond_phrase_pre;
-        cond_phrase_action_post cond_phrase_post;
 
         list_action             list;
         list_format_action      list_format;
         phrase_action           list_item;
-
-        markup_action           bold_pre;
-        markup_action           bold_post;
-        markup_action           italic_pre;
-        markup_action           italic_post;
-        markup_action           underline_pre;
-        markup_action           underline_post;
-        markup_action           teletype_pre;
-        markup_action           teletype_post;
-        markup_action           strikethrough_pre;
-        markup_action           strikethrough_post;
-        markup_action           quote_pre;
-        markup_action           quote_post;
-        markup_action           replaceable_pre;
-        markup_action           replaceable_post;
-        markup_action           footnote_pre;
-        markup_action           footnote_post;
 
         simple_phrase_action    simple_bold;
         simple_phrase_action    simple_italic;
@@ -155,7 +135,6 @@ namespace quickbook
         start_varlistitem_action start_varlistitem;
         end_varlistitem_action  end_varlistitem;
 
-        break_action            break_;
         macro_identifier_action macro_identifier;
         macro_definition_action macro_definition;
         do_macro_action         do_macro;
@@ -170,7 +149,6 @@ namespace quickbook
         markup_action           end_row;
         start_col_action        start_cell;
         end_col_action          end_cell;
-        anchor_action           anchor;
 
         begin_section_action    begin_section;
         end_section_action      end_section;
