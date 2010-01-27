@@ -14,6 +14,7 @@
 
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_function.hpp>
+#include <boost/spirit/include/support_attributes.hpp>
 #include <string>
 
 namespace quickbook
@@ -30,9 +31,18 @@ namespace quickbook
         }
     };
     
+    struct get_position_impl
+    {
+        template <typename Range, typename Context>
+        void operator()(Range const& it, Context& c, bool& x) const {
+            boost::spirit::_val(it, c, x) = it.begin().get_position();
+        }
+    };
+
     namespace ph = boost::phoenix;
 
     namespace {
+        get_position_impl get_position;
         ph::function<as_string_impl> as_string;
     }
 }

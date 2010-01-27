@@ -94,14 +94,6 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
     
-    struct get_position_impl
-    {
-        template <typename Context>
-        void operator()(iterator_range& it, Context& c, unused_type x) const {
-            qi::_val(it, c, x) = it.begin().get_position();
-        }
-    } get_position;
-    
     struct phrase_grammar::rules
     {
         rules(quickbook::actions& actions, bool& no_eols);

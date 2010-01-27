@@ -7,10 +7,9 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#if !defined(BOOST_SPIRIT_QUICKBOOK_BLOCK_HPP)
-#define BOOST_SPIRIT_QUICKBOOK_BLOCK_HPP
 
 #include "./grammars.hpp"
+#include "./block.hpp"
 #include "./detail/quickbook.hpp"
 #include "./detail/utils.hpp"
 #include "./detail/actions_class.hpp"
@@ -22,6 +21,15 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/fusion/include/adapt_struct.hpp>
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::list_item,
+    (quickbook::file_position, position)
+    (std::string, indent)
+    (char, mark)
+    (std::string, content)
+)
 
 namespace quickbook
 {
@@ -40,15 +48,21 @@ namespace quickbook
                         start_, blocks, block_markup, code, code_line,
                         paragraph, space, blank, comment, headings, h, h1, h2,
                         h3, h4, h5, h6, hr, blurb, blockquote, admonition,
-                        phrase, list, phrase_end, ordered_list, def_macro,
+                        phrase, phrase_end, ordered_list, def_macro,
                         macro_identifier, table, table_row, variablelist,
                         varlistentry, varlistterm, varlistitem, table_cell,
-                        preformatted, list_item, begin_section, end_section,
+                        preformatted, begin_section, end_section,
                         xinclude, include, hard_space, eol, paragraph_end,
                         template_, template_id, template_formal_arg,
                         template_body, identifier, dummy_block, import,
                         inside_paragraph;
+
+        qi::rule<iterator, std::vector<quickbook::list_item>()> list;
+        qi::rule<iterator, quickbook::list_item()> list_item;
+        qi::rule<iterator, std::string()> list_item_content;
+
         qi::rule<iterator, boost::optional<std::string>()>  element_id, element_id_1_5;
+        qi::rule<iterator, file_position()> position;
     };
 
     block_grammar::block_grammar(quickbook::actions& actions_)
@@ -68,7 +82,7 @@ namespace quickbook
         blocks =
            +(   block_markup
             |   code
-            |   list                            [actions.list]
+            |   list                            [actions.process][actions.output]
             |   hr                              [actions.hr]
             |   comment >> *eol
             |   paragraph                       [actions.paragraph]
@@ -387,17 +401,20 @@ namespace quickbook
             ;
 
         list =
-            &(qi::char_('*') | '#') >>
-           +qi::raw[
-                qi::raw[*qi::blank
-                >> (qi::char_('*') | '#')]
-                                                [actions.list_format]
-                >> *qi::blank
-                >> list_item
-            ]                                   [actions.list_item]
+                &qi::char_("*#")
+            >>  +list_item
+            ;
+        
+        list_item =
+                position
+            >>  *qi::blank
+            >>  qi::char_("*#")
+            >>  qi::omit[*qi::blank]
+            >>  list_item_content
             ;
 
-        list_item =
+        list_item_content =
+            qi::eps[actions.phrase_push] >>
            *(   common
             |   (qi::char_ -
                     (   qi::eol >> *qi::blank >> &(qi::char_('*') | '#')
@@ -406,6 +423,7 @@ namespace quickbook
                 )                               [actions.plain_char]
             )
             >> +eol
+            >> qi::eps[actions.phrase_pop]
             ;
 
         paragraph_end_markups =
@@ -435,9 +453,7 @@ namespace quickbook
                     phrase_end)                 [actions.plain_char]
             )
             ;
+
+        position = qi::raw[qi::eps] [get_position];
     }
 }
-
-#endif // BOOST_SPIRIT_QUICKBOOK_BLOCK_HPP
-
-

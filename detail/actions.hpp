@@ -179,52 +179,6 @@ namespace quickbook
         macro_symbols const& macro;
     };
 
-    struct list_action
-    {
-        //  Handles lists
-
-        typedef std::pair<char, int> mark_type;
-        list_action(
-            collector& out
-          , collector& list_buffer
-          , int& list_indent
-          , std::stack<mark_type>& list_marks)
-        : out(out)
-        , list_buffer(list_buffer)
-        , list_indent(list_indent)
-        , list_marks(list_marks) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        collector& out;
-        collector& list_buffer;
-        int& list_indent;
-        std::stack<mark_type>& list_marks;
-    };
-
-    struct list_format_action
-    {
-        //  Handles list formatting and hierarchy
-
-        typedef std::pair<char, int> mark_type;
-        list_format_action(
-            collector& out
-          , int& list_indent
-          , std::stack<mark_type>& list_marks
-          , int& error_count)
-        : out(out)
-        , list_indent(list_indent)
-        , list_marks(list_marks)
-        , error_count(error_count) {}
-
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& out;
-        int& list_indent;
-        std::stack<mark_type>& list_marks;
-        int& error_count;
-    };
-
     struct span
     {
         // Decorates c++ code fragments
@@ -710,6 +664,16 @@ namespace quickbook
         void operator()(T const& x) const {
             process(actions, x);
         }
+        
+        quickbook::actions& actions;
+    };
+    
+    struct output_action
+    {
+        output_action(quickbook::actions& actions)
+            : actions(actions) {}
+        
+        void operator()(unused_type, unused_type, unused_type) const;
         
         quickbook::actions& actions;
     };

@@ -39,7 +39,6 @@ namespace quickbook
 
     // auxilliary streams
         , phrase()
-        , list_buffer()
 
     // state
         , filename(fs::complete(fs::path(filein_, fs::native)))
@@ -54,14 +53,13 @@ namespace quickbook
         , table_span(0)
         , table_header()
         , macro_id()
-        , list_marks()
-        , list_indent(-1)
         , template_info()
         , template_depth(0)
         , templates()
         , error_count(0)
 
     // actions
+        , output(*this)
         , process(*this)
         , phrase_push(phrase)
         , phrase_pop(phrase)
@@ -91,10 +89,6 @@ namespace quickbook
         , tip(out, temp_para, tip_pre, tip_post)
         , plain_char(phrase)
         , raw_char(phrase)
-
-        , list(out, list_buffer, list_indent, list_marks)
-        , list_format(list_buffer, list_indent, list_marks, error_count)
-        , list_item(list_buffer, phrase, list_item_pre, list_item_post)
 
         , variablelist(*this)
         , start_varlistentry(phrase, start_varlistentry_)
@@ -153,7 +147,6 @@ namespace quickbook
         out.push();
         phrase.push();
         temp_para.push();
-        list_buffer.push();
         templates.push();
     }
 
@@ -173,7 +166,6 @@ namespace quickbook
         out.pop();
         phrase.pop();
         temp_para.pop();
-        list_buffer.pop();
         templates.pop();
     }
 }

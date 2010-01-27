@@ -32,6 +32,7 @@ exe quickbook
     phrase_image.cpp
     phrase_template.cpp
     block.cpp
+    block_list.cpp
     doc_info.cpp
     detail/syntax_highlight.cpp
     /boost//program_options

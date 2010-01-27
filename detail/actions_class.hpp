@@ -54,7 +54,6 @@ namespace quickbook
     // auxilliary streams
         collector               phrase;
         collector               temp_para;
-        collector               list_buffer;
 
     // state
         fs::path                filename;
@@ -95,6 +94,7 @@ namespace quickbook
     ///////////////////////////////////////////////////////////////////////////
     // actions
     ///////////////////////////////////////////////////////////////////////////
+        output_action           output;
         process_action          process;
         phrase_push_action      phrase_push;
         phrase_pop_action       phrase_pop;
@@ -113,10 +113,6 @@ namespace quickbook
         phrase_action           warning, caution, important, note, tip;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
-
-        list_action             list;
-        list_format_action      list_format;
-        phrase_action           list_item;
 
         variablelist_action     variablelist;
         markup_action           start_varlistentry;

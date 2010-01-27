@@ -129,98 +129,6 @@ namespace quickbook
         out << post;
     }
 
-    void list_action::operator()(unused_type, unused_type, unused_type) const
-    {
-        BOOST_ASSERT(!list_marks.empty()); // there must be at least one item in the stack
-        out << list_buffer.str();
-        list_buffer.clear();
-
-        while (!list_marks.empty())
-        {
-            char mark = list_marks.top().first;
-            list_marks.pop();
-            out << std::string((mark == '#') ? "\n</orderedlist>" : "\n</itemizedlist>");
-            if (list_marks.size() >= 1)
-                out << std::string("\n</listitem>");
-        }
-
-        list_indent = -1; // reset
-    }
-
-    void list_format_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        int new_indent = 0;
-        iterator first = x.begin(), last = x.end();
-        while (first != last && (*first == ' ' || *first == '\t'))
-        {
-            char mark = *first++;
-            if (mark == ' ')
-            {
-                ++new_indent;
-            }
-            else // must be a tab
-            {
-                BOOST_ASSERT(mark == '\t');
-                // hardcoded tab to 4 for now
-                new_indent = ((new_indent + 4) / 4) * 4;
-            }
-        }
-
-        char mark = *first;
-        BOOST_ASSERT(mark == '#' || mark == '*'); // expecting a mark
-
-        if (list_indent == -1) // the very start
-        {
-            BOOST_ASSERT(new_indent == 0);
-        }
-
-        if (new_indent > list_indent)
-        {
-            list_indent = new_indent;
-            list_marks.push(mark_type(mark, list_indent));
-            if (list_marks.size() > 1)
-            {
-                // Make this new list a child of the previous list.
-                // The previous listelem has already ended so we erase
-                // </listitem> to accomodate this sub-list. We'll close
-                // the listelem later.
-
-                std::string str;
-                out.swap(str);
-                std::string::size_type pos = str.rfind("\n</listitem>");
-                BOOST_ASSERT(pos <= str.size());
-                str.erase(str.begin()+pos, str.end());
-                out << str;
-            }
-            out << std::string((mark == '#') ? "<orderedlist>\n" : "<itemizedlist>\n");
-        }
-
-        else if (new_indent < list_indent)
-        {
-            BOOST_ASSERT(!list_marks.empty());
-            list_indent = new_indent;
-
-            while (!list_marks.empty() && (list_indent < list_marks.top().second))
-            {
-                char mark = list_marks.top().first;
-                list_marks.pop();
-                out << std::string((mark == '#') ? "\n</orderedlist>" : "\n</itemizedlist>");
-                if (list_marks.size() >= 1)
-                    out << std::string("\n</listitem>");
-            }
-        }
-
-        if (mark != list_marks.top().first) // new_indent == list_indent
-        {
-            boost::spirit::classic::file_position const pos = first.get_position();
-            detail::outerr(pos.file,pos.line)
-                << "Illegal change of list style near column " << pos.column << ".\n";
-            detail::outwarn(pos.file,pos.line)
-                << "Ignoring change of list style" << std::endl;
-            ++error_count;
-        }
-    }
-
     void span::operator()(iterator_range x, unused_type, unused_type) const
     {
         iterator first = x.begin(), last = x.end();
@@ -1035,5 +943,13 @@ namespace quickbook
     {
         phrase.swap(out);
     }
+    
+    void output_action::operator()(unused_type, unused_type, unused_type) const
+    {
+        std::string out;
+        actions.phrase.swap(out);
+        actions.out << out;
+    }
+
 }
 
