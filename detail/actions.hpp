@@ -257,16 +257,6 @@ namespace quickbook
         markup_action(collector& phrase, std::string const& str)
         : phrase(phrase), str(str) {}
 
-        void operator()() const
-        {
-            phrase << str;
-        }
-
-        void operator()(unused_type) const
-        {
-            phrase << str;
-        }
-
         void operator()(unused_type, unused_type, unused_type) const
         {
             phrase << str;
@@ -313,27 +303,6 @@ namespace quickbook
         syntax_highlight& syntax_p;
     };
 
-    struct start_varlistitem_action
-    {
-        start_varlistitem_action(collector& phrase)
-        : phrase(phrase) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        collector& phrase;
-    };
-
-    struct end_varlistitem_action
-    {
-        end_varlistitem_action(collector& phrase, collector& temp_para)
-        : phrase(phrase), temp_para(temp_para) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        collector& phrase;
-        collector& temp_para;
-    };
-
     struct macro_identifier_action
     {
         // Handles macro identifiers
@@ -368,105 +337,6 @@ namespace quickbook
         void operator()(iterator_range, unused_type, unused_type) const;
 
         quickbook::actions& actions;
-    };
-
-    struct variablelist_action
-    {
-        // Handles variable lists
-
-        variablelist_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        template <typename T>
-        struct result { typedef void type; };
-
-        void operator()(std::string const&) const;
-
-        quickbook::actions& actions;
-    };
-
-    struct table_action
-    {
-        // Handles tables
-
-        table_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        template <typename Arg1, typename Arg2>
-        struct result { typedef void type; };
-
-        void operator()(boost::optional<std::string> const&, std::string const&) const;
-
-        quickbook::actions& actions;
-    };
-
-    struct start_row_action
-    {
-        // Handles table rows
-
-        start_row_action(collector& phrase, unsigned& span, std::string& header)
-            : phrase(phrase), span(span), header(header) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        collector& phrase;
-        unsigned& span;
-        std::string& header;
-    };
-
-    struct start_col_action
-    {
-        // Handles table columns
-
-        start_col_action(collector& phrase, unsigned& span)
-        : phrase(phrase), span(span) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        collector& phrase;
-        unsigned& span;
-    };
-
-    struct end_col_action
-    {
-        end_col_action(collector& phrase, collector& temp_para)
-        : phrase(phrase), temp_para(temp_para) {}
-
-        void operator()(unused_type, unused_type, unused_type) const;
-
-        collector& phrase;
-        collector& temp_para;
-    };
-
-    struct begin_section_action
-    {    
-        // Handles begin page
-
-        begin_section_action(
-            collector& out
-          , collector& phrase
-          , std::string& library_id
-          , std::string& section_id
-          , int& section_level
-          , std::string& qualified_section_id)
-        : out(out)
-        , phrase(phrase)
-        , library_id(library_id)
-        , section_id(section_id)
-        , section_level(section_level)
-        , qualified_section_id(qualified_section_id) {}
-
-        template <typename A1, typename A2>
-        struct result { typedef void type; };
-
-        void operator()(boost::optional<std::string> const&, iterator_range) const;
-
-        collector& out;
-        collector& phrase;
-        std::string& library_id;
-        std::string& section_id;
-        int& section_level;
-        std::string& qualified_section_id;
     };
 
    struct element_id_warning_action

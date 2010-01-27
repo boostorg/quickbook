@@ -53,7 +53,6 @@ namespace quickbook
 
     // auxilliary streams
         collector               phrase;
-        collector               temp_para;
 
     // state
         fs::path                filename;
@@ -77,11 +76,7 @@ namespace quickbook
         std::stack<state_tuple> state_stack;
 
     // temporary or global state
-        unsigned                table_span;
-        std::string             table_header;
         std::string             macro_id;
-        std::stack<mark_type>   list_marks;
-        int                     list_indent;
         string_list             template_info;
         int                     template_depth;
         template_stack          templates;
@@ -105,22 +100,8 @@ namespace quickbook
         syntax_highlight        syntax_p;
         code_action             code;
         phrase_action           paragraph;
-        phrase_action           inside_paragraph;
-        generic_header_action   h;
-        header_action           h1, h2, h3, h4, h5, h6;
-        markup_action           hr;
-        phrase_action           blurb, blockquote, preformatted;
-        phrase_action           warning, caution, important, note, tip;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
-
-        variablelist_action     variablelist;
-        markup_action           start_varlistentry;
-        markup_action           end_varlistentry;
-        markup_action           start_varlistterm;
-        markup_action           end_varlistterm;
-        start_varlistitem_action start_varlistitem;
-        end_varlistitem_action  end_varlistitem;
 
         macro_identifier_action macro_identifier;
         macro_definition_action macro_definition;
@@ -129,11 +110,6 @@ namespace quickbook
         char const*             url_post;
         char const*             link_pre;
         char const*             link_post;
-        table_action            table;
-        start_row_action        start_row;
-        markup_action           end_row;
-        start_col_action        start_cell;
-        end_col_action          end_cell;
 
         element_id_warning_action element_id_warning;
         xinclude_action         xinclude;

@@ -12,31 +12,16 @@
 
 #include <string>
 #include <map>
-#include <boost/spirit/include/classic_position_iterator.hpp>
-#include "detail/template_stack.hpp"
+#include "./parse_types.hpp"
+#include "./detail/template_stack.hpp"
 
 namespace quickbook
 {
-    // TODO: Add to a forward header somewhere.
-    class actions;
-    struct macro;
-    typedef boost::spirit::classic::file_position file_position;
-
     struct source_mode {
         source_mode() {}
         source_mode(std::string const& m) : mode(m) {}
 
         std::string mode;
-    };
-
-    struct markup {
-        markup()
-            : pre(""), post("") {}
-        markup(char const* pre, char const* post)
-            : pre(pre), post(post) {}
-
-        char const* pre;
-        char const* post;
     };
     
     struct template_ {
@@ -54,11 +39,6 @@ namespace quickbook
     struct link {
         markup type;
         std::string destination;
-        std::string content;
-    };
-    
-    struct formatted {
-        markup type;
         std::string content;
     };
     
@@ -96,7 +76,6 @@ namespace quickbook
     void process(quickbook::actions&, template_ const&);
     void process(quickbook::actions&, anchor const&);
     void process(quickbook::actions&, link const&);
-    void process(quickbook::actions&, formatted const&);
     void process(quickbook::actions&, simple_markup const&);
     void process(quickbook::actions&, code const&);
     void process(quickbook::actions&, cond_phrase const&);

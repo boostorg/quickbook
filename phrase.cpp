@@ -43,12 +43,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::formatted,
-    (quickbook::markup, type)
-    (std::string, content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
     quickbook::simple_markup,
     (char, symbol)
     (std::string, raw_content)

@@ -14,10 +14,13 @@
 #include "./detail/utils.hpp"
 #include "./detail/actions_class.hpp"
 #include "./parse_utils.hpp"
+#include "./detail/markups.hpp"
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_attr.hpp>
+#include <boost/spirit/include/qi_attr_cast.hpp>
+#include <boost/spirit/include/qi_repeat.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
@@ -57,6 +60,25 @@ BOOST_FUSION_ADAPT_STRUCT(
     (char const*, dummy)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::heading,
+    (int, level)
+    (quickbook::title, content)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::variablelist,
+    (std::string, title)
+    (std::vector<quickbook::varlistentry>, entries)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::table,
+    (boost::optional<std::string>, id)
+    (std::string, title)
+    (std::vector<quickbook::table_row>, rows)
+)
+
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
@@ -71,16 +93,12 @@ namespace quickbook
         phrase_grammar common;
         qi::rule<iterator>
                         start_, blocks, block_markup, code, code_line,
-                        space, blank, comment, headings, h, h1, h2,
-                        h3, h4, h5, h6, blurb, blockquote, admonition,
+                        space, blank, comment,
                         phrase, phrase_end, ordered_list, def_macro,
-                        macro_identifier, table, table_row, variablelist,
-                        varlistentry, varlistterm, varlistitem, table_cell,
-                        preformatted,
+                        macro_identifier,
                         xinclude, include, hard_space, eol, paragraph_end,
                         template_, template_id, template_formal_arg,
-                        template_body, identifier, dummy_block, import,
-                        inside_paragraph;
+                        template_body, identifier, dummy_block, import;
 
         qi::symbols<> paragraph_end_markups;
         qi::rule<iterator, quickbook::paragraph()> paragraph;
@@ -97,11 +115,32 @@ namespace quickbook
 
         qi::rule<iterator, quickbook::begin_section()> begin_section;
         qi::rule<iterator, quickbook::end_section()> end_section;
+
+        qi::symbols<char, int> heading_symbol;
+        qi::rule<iterator, quickbook::heading()> heading;
+        
+        qi::rule<iterator, std::string()> inside_paragraph;
+        qi::rule<iterator, quickbook::formatted()> inside_paragraph2;
+        
+        qi::symbols<char, quickbook::markup> paragraph_blocks;
+        qi::rule<iterator, quickbook::formatted()> paragraph_block, blockquote, preformatted;
+
+        qi::rule<iterator, quickbook::variablelist()> variablelist;
+        qi::rule<iterator, quickbook::varlistentry()> varlistentry;
+        qi::rule<iterator, quickbook::formatted()>
+            varlistterm, varlistterm_body,
+            varlistitem, varlistitem_body;
+
+        qi::rule<iterator, quickbook::table()> table;
+        qi::rule<iterator, quickbook::table_row()> table_row;
+        qi::rule<iterator, quickbook::table_cell()> table_cell;
+        qi::rule<iterator, quickbook::formatted()> table_cell_body;
         
         qi::rule<iterator, quickbook::title()> title_phrase;
         qi::rule<iterator, std::string()> phrase_attr;
         
         qi::rule<iterator, file_position()> position;
+        qi::rule<iterator> error;
     };
 
     block_grammar::block_grammar(quickbook::actions& actions_)
@@ -171,21 +210,20 @@ namespace quickbook
                 '[' >> space
             >>  (   begin_section               [actions.process][actions.output]
                 |   end_section                 [actions.process][actions.output]
-                |   headings
-                |   blurb
-                |   blockquote
-                |   admonition
-                |   preformatted
+                |   heading                     [actions.process][actions.output]
+                |   paragraph_block             [actions.process][actions.output]
+                |   blockquote                  [actions.process][actions.output]
+                |   preformatted                [actions.process][actions.output]
                 |   def_macro
-                |   table
-                |   variablelist
+                |   table                       [actions.process][actions.output]
+                |   variablelist                [actions.process][actions.output]
                 |   xinclude
                 |   include
                 |   import
                 |   template_
                 )
             >>  (   (space >> ']' >> +eol)
-                |   qi::raw[qi::eps]            [actions.error]
+                |   error
                 )
             ;
         
@@ -219,60 +257,61 @@ namespace quickbook
             >>  qi::attr("dummy")
             ;
 
-        headings =
-            h1 | h2 | h3 | h4 | h5 | h6 | h
-            ;
+        heading = heading_symbol >> hard_space >> title_phrase;
 
-        h = "heading" >> hard_space >> qi::raw[phrase]   [actions.h];
-        h1 = "h1" >> hard_space >> qi::raw[phrase]       [actions.h1];
-        h2 = "h2" >> hard_space >> qi::raw[phrase]       [actions.h2];
-        h3 = "h3" >> hard_space >> qi::raw[phrase]       [actions.h3];
-        h4 = "h4" >> hard_space >> qi::raw[phrase]       [actions.h4];
-        h5 = "h5" >> hard_space >> qi::raw[phrase]       [actions.h5];
-        h6 = "h6" >> hard_space >> qi::raw[phrase]       [actions.h6];
+        heading_symbol.add
+            ("h1", 1)
+            ("h2", 2)
+            ("h3", 3)
+            ("h4", 4)
+            ("h5", 5)
+            ("h6", 6)
+            ("heading", -1);
 
         static const bool true_ = true;
         static const bool false_ = false;
 
         inside_paragraph =
-            phrase                              [actions.inside_paragraph]
-            >> *(
-                eol >> eol >> phrase            [actions.inside_paragraph]
-            )
+                qi::eps                             [actions.phrase_push]
+            >>  inside_paragraph2                   [actions.process]
+            >>  *(  eol
+                >>  eol
+                >>  inside_paragraph2               [actions.process]
+                )
+            >>  qi::eps                             [actions.phrase_pop]
             ;
 
-        blurb =
-            "blurb" >> hard_space
-            >> inside_paragraph                 [actions.blurb]
-            >> qi::eps
+        inside_paragraph2 =
+                qi::attr(markup(paragraph_pre, paragraph_post))
+            >>  phrase_attr;
+
+        paragraph_blocks.add
+            ("blurb", markup(blurb_pre, blurb_post))
+            ("warning", markup(warning_pre, warning_post))
+            ("caution", markup(caution_pre, caution_post))
+            ("important", markup(important_pre, important_post))
+            ("note", markup(note_pre, note_post))
+            ("tip", markup(tip_pre, tip_post))
+            ;
+
+        paragraph_block =
+            paragraph_blocks >> hard_space >> inside_paragraph
             ;
 
         blockquote =
-            ':' >> blank >>
-            inside_paragraph                    [actions.blockquote]
+                ':'
+            >>  blank
+            >>  qi::attr(markup(blockquote_pre, blockquote_post))
+            >>  inside_paragraph
             ;
 
-        admonition =
-            "warning" >> blank >>
-            inside_paragraph                    [actions.warning]
-            |
-            "caution" >> blank >>
-            inside_paragraph                    [actions.caution]
-            |
-            "important" >> blank >>
-            inside_paragraph                    [actions.important]
-            |
-            "note" >> blank >>
-            inside_paragraph                    [actions.note]
-            |
-            "tip" >> blank >>
-            inside_paragraph                    [actions.tip]
-            ;
-
-        preformatted =
-            "pre" >> hard_space                 [ph::ref(no_eols) = false_]
-            >> -eol >> phrase                   [actions.preformatted]
-            >> qi::eps                          [ph::ref(no_eols) = true_]
+        preformatted %=
+                "pre"
+            >>  hard_space                      [ph::ref(no_eols) = false_]
+            >>  -eol
+            >>  qi::attr(markup(preformatted_pre, preformatted_post))
+            >>  phrase_attr
+            >>  qi::eps                         [ph::ref(no_eols) = true_]
             ;
 
         macro_identifier =
@@ -314,95 +353,80 @@ namespace quickbook
             >> space >> &qi::lit(']')
             ;
 
-        variablelist = (
-            "variablelist"
-            >>  qi::omit[&(*qi::blank >> qi::eol) | hard_space]
+        variablelist =
+                "variablelist"
+            >>  (&(*qi::blank >> qi::eol) | hard_space)
             >>  *(qi::char_ - eol)
             >>  +eol
             >>  *varlistentry
-            )                                   [ph::bind(actions.variablelist, as_string(qi::_1))]
             ;
 
         varlistentry =
-            space
-            >>  qi::char_('[')                  [actions.start_varlistentry]
-            >>
-            (
-                (
-                    varlistterm
-                    >> +varlistitem
-                    >>  qi::char_(']')          [actions.end_varlistentry]
-                    >>  space
+                space
+            >>  '['
+            >>  (   varlistterm
+                >>  +varlistitem
+                >>  ']'
+                >>  space
+                |   error >> qi::attr(quickbook::varlistentry())
                 )
-                | qi::raw[qi::eps]              [actions.error]
-            )
             ;
 
         varlistterm =
-            space
-            >>  qi::char_('[')                  [actions.start_varlistterm]
-            >>
-            (
-                (
-                    phrase
-                    >>  qi::char_(']')          [actions.end_varlistterm]
-                    >>  space
+                space
+            >>  '['
+            >>  (   varlistterm_body >> ']' >> space
+                |   error >> qi::attr(quickbook::formatted())
                 )
-                | qi::raw[qi::eps]              [actions.error]
-            )
+            ;
+
+        varlistterm_body =
+                qi::attr(markup(start_varlistterm_, end_varlistterm_))
+            >>  phrase_attr
             ;
 
         varlistitem =
-            space
-            >>  qi::char_('[')                  [actions.start_varlistitem]
-            >>
-            (
-                (
-                    inside_paragraph
-                    >>  qi::char_(']')          [actions.end_varlistitem]
-                    >>  space
+                space
+            >>  '['
+            >>  (   varlistitem_body >> ']' >> space
+                |   error >> qi::attr(quickbook::formatted())
                 )
-                | qi::raw[qi::eps]              [actions.error]
-            )
             ;
 
-        table = (
-            "table"
+        varlistitem_body =
+                qi::attr(markup(start_varlistitem_, end_varlistitem_))
+            >>  inside_paragraph
+            ;
+
+        table =
+                "table"
             >>  (&(*qi::blank >> qi::eol) | hard_space)
             >>  element_id_1_5
             >>  (&(*qi::blank >> qi::eol) | space)
             >>  *(qi::char_ - eol)
             >>  +eol
             >>  *table_row
-            )                                   [ph::bind(actions.table, qi::_1, as_string(qi::_2))]
             ;
 
         table_row =
-            space
-            >>  qi::char_('[')                  [actions.start_row]
-            >>
-            (
-                (
-                    *table_cell
-                    >>  qi::char_(']')          [actions.end_row]
-                    >>  space
+                space
+            >>  '['
+            >>  (   *table_cell >> ']' >> space
+                |   error >> qi::attr(quickbook::table_row())
                 )
-                | qi::raw[qi::eps]              [actions.error]
-            )
             ;
 
         table_cell =
-            space
-            >>  qi::char_('[')                  [actions.start_cell]
-            >>
-            (
-                (
-                    inside_paragraph
-                    >>  qi::char_(']')          [actions.end_cell]
-                    >>  space
+                space
+            >>  '['
+            >>  (   table_cell_body >> ']' >> space
+                |   error >> qi::attr(quickbook::table_cell())
                 )
-                | qi::raw[qi::eps]              [actions.error]
-            )
+            ;
+
+        table_cell_body =
+                qi::attr(markup(start_cell_, end_cell_))
+            >>  inside_paragraph
             ;
 
         xinclude =
@@ -520,5 +544,6 @@ namespace quickbook
             ;
 
         position = qi::raw[qi::eps] [get_position];
+        error = qi::raw[qi::eps] [actions.error];
     }
 }

@@ -50,8 +50,6 @@ namespace quickbook
         , source_mode("c++")
 
     // temporary or global state
-        , table_span(0)
-        , table_header()
         , macro_id()
         , template_info()
         , template_depth(0)
@@ -70,33 +68,8 @@ namespace quickbook
         , syntax_p(source_mode, *this)
         , code(out, phrase, syntax_p)
         , paragraph(out, phrase, paragraph_pre, paragraph_post)
-        , inside_paragraph(temp_para, phrase, paragraph_pre, paragraph_post)
-        , h(out, phrase, doc_id, section_id, qualified_section_id, section_level)
-        , h1(out, phrase, doc_id, section_id, qualified_section_id, h1_pre, h1_post)
-        , h2(out, phrase, doc_id, section_id, qualified_section_id, h2_pre, h2_post)
-        , h3(out, phrase, doc_id, section_id, qualified_section_id, h3_pre, h3_post)
-        , h4(out, phrase, doc_id, section_id, qualified_section_id, h4_pre, h4_post)
-        , h5(out, phrase, doc_id, section_id, qualified_section_id, h5_pre, h5_post)
-        , h6(out, phrase, doc_id, section_id, qualified_section_id, h6_pre, h6_post)
-        , hr(out, hr_)
-        , blurb(out, temp_para, blurb_pre, blurb_post)
-        , blockquote(out, temp_para, blockquote_pre, blockquote_post)
-        , preformatted(out, phrase, preformatted_pre, preformatted_post)
-        , warning(out, temp_para, warning_pre, warning_post)
-        , caution(out, temp_para, caution_pre, caution_post)
-        , important(out, temp_para, important_pre, important_post)
-        , note(out, temp_para, note_pre, note_post)
-        , tip(out, temp_para, tip_pre, tip_post)
         , plain_char(phrase)
         , raw_char(phrase)
-
-        , variablelist(*this)
-        , start_varlistentry(phrase, start_varlistentry_)
-        , end_varlistentry(phrase, end_varlistentry_)
-        , start_varlistterm(phrase, start_varlistterm_)
-        , end_varlistterm(phrase, end_varlistterm_)
-        , start_varlistitem(phrase)
-        , end_varlistitem(phrase, temp_para)
 
         , macro_identifier(*this)
         , macro_definition(*this)
@@ -105,11 +78,6 @@ namespace quickbook
         , url_post(url_post_)
         , link_pre(link_pre_)
         , link_post(link_post_)
-        , table(*this)
-        , start_row(phrase, table_span, table_header)
-        , end_row(phrase, end_row_)
-        , start_cell(phrase, table_span)
-        , end_cell(phrase, temp_para)
 
         , xinclude(out, *this)
         , include(*this)
@@ -144,7 +112,6 @@ namespace quickbook
 
         out.push();
         phrase.push();
-        temp_para.push();
         templates.push();
     }
 
@@ -163,7 +130,6 @@ namespace quickbook
 
         out.pop();
         phrase.pop();
-        temp_para.pop();
         templates.pop();
     }
 }
