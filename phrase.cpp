@@ -49,13 +49,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::code,
-    (quickbook::file_position, position)
-    (std::string, code)
-    (bool, block)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
     quickbook::break_,
     (quickbook::file_position, position)
     (char const*, dummy)

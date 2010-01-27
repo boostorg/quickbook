@@ -106,7 +106,7 @@ namespace quickbook
         bool no_eols;
         phrase_grammar common;
         qi::rule<iterator>
-                        start_, blocks, block_markup, code, code_line,
+                        start_, blocks, block_markup,
                         space, blank, comment,
                         phrase, phrase_end, ordered_list,
                         xinclude, include, hard_space, eol, paragraph_end,
@@ -158,6 +158,9 @@ namespace quickbook
         qi::rule<iterator, quickbook::table_cell()> table_cell;
         qi::rule<iterator, quickbook::formatted()> table_cell_body;
         
+        qi::rule<iterator, quickbook::code()> code;
+        qi::rule<iterator> code_line;
+        
         qi::rule<iterator, quickbook::title()> title_phrase;
         qi::rule<iterator, std::string()> phrase_attr;
         
@@ -181,7 +184,7 @@ namespace quickbook
 
         blocks =
            +(   block_markup
-            |   code
+            |   code                            [actions.process][actions.output]
             |   list                            [actions.process][actions.output]
             |   hr                              [actions.process][actions.output]
             |   comment >> *eol
@@ -492,16 +495,19 @@ namespace quickbook
             ;
 
         code =
-            qi::raw[
-                code_line
-                >> *(*eol >> code_line)
-            ]                                   [actions.code]
-            >> +eol
+                position
+            >>  qi::raw[
+                    code_line
+                >>  *(*eol >> code_line)
+                ]
+            >>  +eol
+            >>  qi::attr(true)
             ;
 
         code_line =
-            ((qi::char_(' ') | '\t'))
-            >> *(qi::char_ - eol) >> eol
+                qi::char_(" \t")
+            >>  *(qi::char_ - eol)
+            >>  eol
             ;
 
         list =
