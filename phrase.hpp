@@ -30,41 +30,7 @@ namespace quickbook
 {
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
-
-    template <typename Rule, typename Action>
-    inline void
-    simple_markup(
-        Rule& simple
-      , char mark
-      , Action const& action
-      , Rule const& close
-    )
-    {
-        simple =
-            mark >> 
-            qi::raw[
-                (
-                    qi::graph                   // A single char. e.g. *c*
-                    >> &(mark
-                        >> (qi::space | qi::punct | qi::eoi))
-                                                // space, punct or end
-                )                               // must follow mark
-            |
-                (   qi::graph >>                // qi::graph must follow mark
-                    *(qi::char_ -
-                        (   (qi::graph >> mark) // Make sure that we don't go
-                        |   close               // past a single block
-                        )
-                    ) >> qi::graph              // qi::graph must precede mark
-                    >> &(mark
-                        >> (qi::space | qi::punct | qi::eoi))
-                                                // space, punct or end
-                )                               // must follow mark
-            ]                                   [action]
-            >> mark
-            ;
-    }
-
+    
     template <typename Iterator, typename Actions>
     struct phrase_grammar<Iterator, Actions>::rules
     {
@@ -79,8 +45,7 @@ namespace quickbook
                         strikethrough, escape, url, common, funcref, classref,
                         memberref, enumref, macroref, headerref, conceptref, globalref,
                         anchor, link, hard_space, eol, inline_code, simple_format,
-                        simple_bold, simple_italic, simple_underline,
-                        simple_teletype, source_mode, template_,
+                        source_mode, template_,
                         quote, code_block, footnote, replaceable, macro,
                         dummy_block, cond_phrase, macro_identifier,
                         brackets_1_4, template_inner_arg_1_5, brackets_1_5
@@ -93,6 +58,8 @@ namespace quickbook
         qi::rule<Iterator, std::string()> image_filename, image_attribute_key, image_attribute_value;
         qi::rule<Iterator, std::multimap<std::string, std::string>()> image_attributes;
         qi::rule<Iterator, std::pair<std::string, std::string>()> image_attribute;
+        
+        qi::rule<Iterator, boost::iterator_range<Iterator>(char)> simple_markup;
     };
 
     template <typename Iterator, typename Actions>
@@ -226,21 +193,37 @@ namespace quickbook
                 )
             ;
 
-        simple_format =
-                simple_bold
-            |   simple_italic
-            |   simple_underline
-            |   simple_teletype
+        simple_markup =
+            qi::omit[qi::char_(qi::_r1)] >> 
+            qi::raw[
+                (
+                    qi::graph                   // A single char. e.g. *c*
+                    >> &(qi::char_(qi::_r1)
+                        >> (qi::space | qi::punct | qi::eoi))
+                                                // space, punct or end
+                )                               // must follow qi::char_(qi::_r1)
+            |
+                (   qi::graph >>                // qi::graph must follow qi::char_(qi::_r1)
+                    *(qi::char_ -
+                        (   (qi::graph >> qi::char_(qi::_r1)) // Make sure that we don't go
+                        |   phrase_end          // past a single block
+                        )
+                    ) >> qi::graph              // qi::graph must precede qi::char_(qi::_r1)
+                    >> &(qi::char_(qi::_r1)
+                        >> (qi::space | qi::punct | qi::eoi))
+                                                // space, punct or end
+                )                               // must follow qi::char_(qi::_r1)
+            ]
+            >> qi::omit[qi::char_(qi::_r1)]
             ;
 
-        simple_markup(simple_bold,
-            '*', actions.simple_bold, phrase_end);
-        simple_markup(simple_italic,
-            '/', actions.simple_italic, phrase_end);
-        simple_markup(simple_underline,
-            '_', actions.simple_underline, phrase_end);
-        simple_markup(simple_teletype,
-            '=', actions.simple_teletype, phrase_end);
+
+        simple_format =
+                simple_markup('*')              [actions.simple_bold]
+            |   simple_markup('/')              [actions.simple_italic]
+            |   simple_markup('_')              [actions.simple_underline]
+            |   simple_markup('=')              [actions.simple_teletype]
+            ;
 
         phrase =
            *(   common
