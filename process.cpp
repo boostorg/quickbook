@@ -63,4 +63,5 @@ namespace quickbook
     template void process_action::operator()<code>(code const&) const;
     template void process_action::operator()<define_template>(define_template const&) const;
     template void process_action::operator()<code_token>(code_token const&) const;
+    template void process_action::operator()<char>(char const&) const;
 }

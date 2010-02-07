@@ -296,7 +296,7 @@ namespace quickbook
     xinclude2 process(quickbook::actions& actions, xinclude const& x)
     {
         xinclude2 r;
-        r.path = calculate_relative_path(x.path, actions).string();
+        r.path = calculate_relative_path(detail::escape_uri(x.path), actions).string();
         return r;
     }
 

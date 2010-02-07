@@ -49,7 +49,6 @@ namespace quickbook
         , error(error_count)
 
         , syntax_p(source_mode, *this)
-        , plain_char(phrase)
     {
         // turn off __FILENAME__ macro on debug mode = true
         std::string filename_str = debug_mode ?

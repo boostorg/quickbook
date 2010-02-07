@@ -28,6 +28,9 @@ namespace quickbook
     // should either take a stream/collector to write to, or return their
     // output by value.
 
+    // Note: char is a plain quickbook character, string is an encoded
+    // boostbook string. Oops.
+    void output(quickbook::actions&, char);
     void output(quickbook::actions&, std::string const&);
     void output(quickbook::actions&, anchor const&);
     void output(quickbook::actions&, link const&);

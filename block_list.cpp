@@ -8,6 +8,7 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
+#include <stack>
 #include <boost/assert.hpp>
 #include "actions_class.hpp"
 #include "gen_types.hpp"

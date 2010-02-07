@@ -14,8 +14,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <stack>
-#include <algorithm>
 #include <boost/spirit/include/qi_symbols.hpp>
 #include "fwd.hpp"
 

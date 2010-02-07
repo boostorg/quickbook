@@ -197,7 +197,7 @@ namespace quickbook
                 qi::eps                     [actions.phrase_push]
             >>  *(   common
                 |   comment
-                |   (qi::char_ - ']')       [actions.plain_char]
+                |   (qi::char_ - ']')       [actions.process]
                 )
             >>  qi::eps                     [actions.phrase_pop]
             ;

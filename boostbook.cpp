@@ -123,6 +123,11 @@ namespace quickbook
         actions.phrase << x;
     }
 
+    void output(quickbook::actions& actions, char x)
+    {
+        actions.phrase << encode(x);
+    }
+
     void output(quickbook::actions& actions, anchor const& x) {
         actions.phrase << "<anchor id=\"";
         actions.phrase << encode(x.id);
@@ -308,7 +313,7 @@ namespace quickbook
 
     void output(quickbook::actions& actions, xinclude2 const& x)
     {
-        actions.phrase << "\n<xi:include href=\"" <<x.path << "\" />\n";
+        actions.phrase << "\n<xi:include href=\"" << x.path << "\" />\n";
     }
 
     void output(quickbook::actions& actions, list2 const& x)

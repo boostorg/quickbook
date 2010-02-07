@@ -41,7 +41,7 @@ namespace quickbook
             iterator first = escaped.begin(), last = escaped.end();
             while(first != last) {
                 if(!qi::parse(first, last, common)) {
-                    actions.plain_char(*first, 0, 0);
+                    actions.process(*first);
                     ++first;
                 }
             }
@@ -340,7 +340,7 @@ namespace quickbook
                 =
                 *(  macro                   [actions.process]
                 |   escape          
-                |   qi::char_               [actions.plain_char]
+                |   qi::char_               [actions.process]
                 )
                 ;
 

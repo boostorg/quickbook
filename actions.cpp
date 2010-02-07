@@ -45,16 +45,6 @@ namespace quickbook
         ++error_count;
     }
 
-    void plain_char_action::operator()(char ch, unused_type, unused_type) const
-    {
-        detail::print_char(ch, phrase.get());
-    }
-
-    void plain_char_action::operator()(iterator_range x, unused_type, unused_type) const
-    {
-        detail::print_char(*x.begin(), phrase.get());
-    }
-
     void element_id_warning_action::operator()(iterator_range x, unused_type, unused_type) const
     {
         file_position const pos = x.begin().get_position();

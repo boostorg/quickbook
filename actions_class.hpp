@@ -10,6 +10,7 @@
 #if !defined(BOOST_SPIRIT_ACTIONS_CLASS_HPP)
 #define BOOST_SPIRIT_ACTIONS_CLASS_HPP
 
+#include <stack>
 #include <boost/tuple/tuple.hpp>
 #include <boost/filesystem/path.hpp>
 #include "fwd.hpp"
@@ -79,7 +80,6 @@ namespace quickbook
         error_action            error;
 
         syntax_highlight        syntax_p;
-        plain_char_action       plain_char;
 
         element_id_warning_action element_id_warning;
     };

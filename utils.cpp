@@ -23,34 +23,6 @@ namespace quickbook {
 
 namespace quickbook { namespace detail
 {
-    void print_char(char ch, std::ostream& out)
-    {
-        switch (ch)
-        {
-            case '<': out << "&lt;";    break;
-            case '>': out << "&gt;";    break;
-            case '&': out << "&amp;";   break;
-            case '"': out << "&quot;";  break;
-            default:  out << ch;        break;
-            // note &apos; is not included. see the curse of apos:
-            // http://fishbowl.pastiche.org/2003/07/01/the_curse_of_apos
-        }
-    }
-
-    void print_string(std::basic_string<char> const& str, std::ostream& out)
-    {
-        for (std::string::const_iterator cur = str.begin();
-            cur != str.end(); ++cur)
-        {
-            print_char(*cur, out);
-        }
-    }
-
-    void print_space(char ch, std::ostream& out)
-    {
-        out << ch;
-    }
-
     char filter_identifier_char(char ch)
     {
         if (!std::isalnum(static_cast<unsigned char>(ch)))

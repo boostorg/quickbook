@@ -440,7 +440,7 @@ namespace quickbook
                     (   qi::eol >> *qi::blank >> &(qi::char_('*') | '#')
                     |   (eol >> eol)
                     )
-                )                               [actions.plain_char]
+                )                               [actions.process]
             )
             >> +eol
             >> qi::eps[actions.phrase_pop]
@@ -461,7 +461,7 @@ namespace quickbook
             >> *(   common
                 |   (qi::char_ -                // Make sure we don't go past
                         paragraph_end           // a single block.
-                    )                           [actions.plain_char]
+                    )                           [actions.process]
                 )
             >>  qi::eps                         [actions.phrase_pop]
             >> (&qi::lit('[') | +eol)
@@ -506,7 +506,7 @@ namespace quickbook
                 qi::eps                         [actions.phrase_push]        
             >> *(   common
                 |   comment
-                |   (qi::char_ - phrase_end)    [actions.plain_char]
+                |   (qi::char_ - phrase_end)    [actions.process]
                 )
             >>  qi::eps                         [actions.phrase_pop]
             ;

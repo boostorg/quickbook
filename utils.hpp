@@ -17,9 +17,6 @@
 
 namespace quickbook { namespace detail
 {
-    void print_char(char ch, std::ostream& out);
-    void print_string(std::basic_string<char> const& str, std::ostream& out);
-    void print_space(char ch, std::ostream& out);
     char filter_identifier_char(char ch);
 
     template <typename Iterator>
@@ -30,24 +27,6 @@ namespace quickbook { namespace detail
         for (Iterator i = first; i != last; ++i)
             out_name += filter_identifier_char(*i);
         return out_name;
-    }
-
-    template <typename T>
-    struct var_wrapper
-        : public ::boost::reference_wrapper<T>
-    {
-        typedef ::boost::reference_wrapper<T> parent;
-
-        explicit inline var_wrapper(T& t) : parent(t) {}
-
-        inline T& operator()() const { return parent::get(); }
-    };
-
-    template <typename T>
-    inline var_wrapper<T>
-    var(T& t)
-    {
-        return var_wrapper<T>(t);
     }
 
     // un-indent a code segment
