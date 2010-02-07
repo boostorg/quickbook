@@ -31,8 +31,6 @@ namespace quickbook
     // State
     ///////////////////////////////////////////////////////////////////////////
 
-        typedef std::vector<std::string> string_list;
-        typedef std::pair<char, int> mark_type;
         static int const max_template_depth = 100;
 
         std::string             doc_id;
