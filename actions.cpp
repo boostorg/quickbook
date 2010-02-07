@@ -30,7 +30,6 @@ namespace quickbook
         , phrase_push(state.phrase)
         , phrase_pop(state.phrase)
         , error(state.error_count)
-        , syntax_p(state.source_mode, *this)
     {}
 
     namespace {

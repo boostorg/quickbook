@@ -21,6 +21,11 @@ namespace quickbook
         file_position position;
         std::string code;
     };
+
+    std::string syntax_highlight(
+        iterator first, iterator last,
+        actions& escape_actions,
+        std::string& source_mode);
 }
 
 BOOST_FUSION_ADAPT_STRUCT(

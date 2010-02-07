@@ -85,22 +85,6 @@ namespace quickbook
     extern char const* quickbook_get_date;
     extern char const* quickbook_get_time;
 
-    struct syntax_highlight
-    {
-        syntax_highlight(
-            std::string const& source_mode
-          , actions& escape_actions)
-        : source_mode(source_mode)
-        , escape_actions(escape_actions)
-        {
-        }
-
-        std::string operator()(iterator begin, iterator end) const;
-
-        std::string const& source_mode;
-        actions& escape_actions;
-    };
-
     struct element_id_warning_action
     {
         void operator()(iterator_range, unused_type, unused_type) const;
@@ -187,7 +171,6 @@ namespace quickbook
         phrase_pop_action           phrase_pop;
         error_action                error;
         element_id_warning_action   element_id_warning;
-        syntax_highlight            syntax_p;
     };
 }
 

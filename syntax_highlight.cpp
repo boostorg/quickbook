@@ -368,7 +368,10 @@ namespace quickbook
         std::string save;
     };
 
-    std::string syntax_highlight::operator()(iterator first, iterator last) const
+    std::string syntax_highlight(
+        iterator first, iterator last,
+        actions& escape_actions,
+        std::string& source_mode)
     {
         escape_actions.phrase_push();
 

@@ -102,7 +102,8 @@ namespace quickbook
 
         // print the code with syntax coloring
         quickbook::actions actions(state);
-        std::string str = actions.syntax_p(first_, last_);
+        std::string str = syntax_highlight(
+            first_, last_, actions, state.source_mode);
 
         state.phrase.swap(save);
         
