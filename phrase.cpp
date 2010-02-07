@@ -15,6 +15,7 @@
 #include <boost/spirit/include/qi_eoi.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
+#include <boost/spirit/include/qi_matches.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -387,9 +388,7 @@ namespace quickbook
 
         call_template =
                 position
-            >>  (   '`' >> qi::attr(true)
-                |   qi::attr(false)
-                )
+            >>  qi::matches['`']
             >>  (                                   // Lookup the template name
                     (&qi::punct >> actions.templates.scope)
                 |   (actions.templates.scope >> hard_space)
