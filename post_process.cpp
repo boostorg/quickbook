@@ -14,6 +14,7 @@
 #include <boost/spirit/include/qi_char_.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
 #include <set>
 #include <stack>
 #include <cctype>
@@ -215,6 +216,18 @@ namespace quickbook
         , "warning"
         , "xml"
         , "xi:include"
+
+        // TODO: Should separate html and boostbook tags.
+        , "dd"
+        , "dl"
+        , "dt"
+        , "div"
+        , "ol"
+        , "p"
+        , "pre"
+        , "td"
+        , "tr"
+        , "ul"
     };
 
     char const* doc_types_[] =
@@ -280,10 +293,15 @@ namespace quickbook
                 ]]
                [ph::bind(&tidy_grammar::do_tag, this, qi::_1)];
 
-            code = qi::raw[
-                    "<programlisting>"
-                >>  *(qi::char_ - "</programlisting>")
-                >>  "</programlisting>"
+            code_tags.add
+                ("<programlisting>", "</programlisting>")
+                ("<pre>", "</pre>")
+                ;
+
+            code %= qi::raw[
+                    code_tags                           [qi::_a = qi::_1]
+                >>  *(qi::char_ - qi::lit(qi::_a))
+                >>  qi::lit(qi::_a)
                 ];
 
             // What's the business of lexeme_d['>' >> *space]; ?
@@ -421,7 +439,9 @@ namespace quickbook
                             markup, escape;
         qi::rule<Iterator, std::string()>
                             start_tag, start_end_tag,
-                            content, end_tag, code;
+                            content, end_tag;
+        qi::rule<Iterator, qi::locals<std::string>, std::string()> code;
+        qi::symbols<char, std::string> code_tags;
     };
 
     int post_process(
