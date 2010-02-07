@@ -10,13 +10,14 @@
 =============================================================================*/
 
 #include "fwd.hpp"
+#include "phrase_actions.hpp"
 #include "actions.hpp"
 #include "parse_types.hpp"
-#include "phrase.hpp"
 #include "block.hpp"
 #include "code.hpp"
 #include "syntax_highlight.hpp"
 #include "template.hpp"
+#include "boostbook.hpp"
 
 namespace quickbook
 {
@@ -26,14 +27,17 @@ namespace quickbook
         output(actions, process(actions, x));
     }
 
-    void output(quickbook::actions&, nothing) {}
+    template <typename T>
+    T const& process(quickbook::actions&, T const& x)
+    {
+        return x;
+    }
 
-    nothing process(quickbook::actions&, formatted const&);
-    nothing process(quickbook::actions&, source_mode const&);
-    nothing process(quickbook::actions&, macro const&);
+    void output(quickbook::actions&, nothing) {
+    }
+
+    void output(quickbook::actions&, std::string const&);
     nothing process(quickbook::actions&, call_template const&);
-    nothing process(quickbook::actions&, anchor const&);
-    nothing process(quickbook::actions&, link const&);
     nothing process(quickbook::actions&, simple_markup const&);
     nothing process(quickbook::actions&, cond_phrase const&);
     nothing process(quickbook::actions&, break_ const&);

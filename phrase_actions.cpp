@@ -22,48 +22,33 @@ namespace quickbook
         return nothing();
     }
 
-    nothing process(quickbook::actions& actions, macro const& x) {
+    std::string process(quickbook::actions& actions, macro const& x) {
+        // TODO: Should the dates be encoded?
         if (x.raw_markup == quickbook_get_date)
         {
             char strdate[64];
             strftime(strdate, sizeof(strdate), "%Y-%b-%d", current_time);
-            actions.phrase << strdate;
+            return strdate;
         }
         else if (x.raw_markup == quickbook_get_time)
         {
             char strdate[64];
             strftime(strdate, sizeof(strdate), "%I:%M:%S %p", current_time);
-            actions.phrase << strdate;
+            return strdate;
         }
         else
         {
-            actions.phrase << x.raw_markup;
+            return x.raw_markup;
         }
-        return nothing();
     }
 
-    nothing process(quickbook::actions& actions, anchor const& x) {
-        actions.phrase << "<anchor id=\"";
-        detail::print_string(x.id, actions.phrase.get());
-        actions.phrase << "\" />\n";
-        return nothing();
-    }
-
-    nothing process(quickbook::actions& actions, link const& x) {
-        actions.phrase << x.type.pre;
-        detail::print_string(x.destination, actions.phrase.get());
-        actions.phrase << "\">";
-        if(x.content.empty())
-            detail::print_string(x.destination, actions.phrase.get());
-        else
-            actions.phrase << x.content;
-        actions.phrase << x.type.post;
-        return nothing();
-    }
-
-    nothing process(quickbook::actions& actions, formatted const& x) {
-        actions.phrase << x.type.pre << x.content << x.type.post;
-        return nothing();
+    link process(quickbook::actions& actions, link const& x) {
+        link r = x;
+        if(r.content.empty()) {
+            // TODO: Encode this
+            r.content = x.destination;
+        }
+        return r;
     }
 
     nothing process(quickbook::actions& actions, simple_markup const& x) {
