@@ -399,7 +399,7 @@ namespace quickbook
         {
             state.phrase << "<copyright>\n";
 
-            BOOST_FOREACH(std::string const& year, copyright.first) {
+            BOOST_FOREACH(unsigned int year, copyright.first) {
                 state.phrase << "<year>" << year << "</year>\n";
             }
 

@@ -18,7 +18,7 @@ namespace quickbook
 {
     struct doc_info
     {
-        typedef std::vector<std::string> copyright_years;
+        typedef std::vector<unsigned int> copyright_years;
         typedef std::pair<copyright_years, std::string> copyright_entry;
         typedef std::vector<copyright_entry> copyright_list;
         typedef std::pair<std::string, std::string> author;

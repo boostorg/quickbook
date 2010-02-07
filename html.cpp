@@ -355,12 +355,33 @@ namespace quickbook
             {
                 state.phrase << "<div>\nCopyright &copy; ";
     
-                bool previous = false;
-                BOOST_FOREACH(std::string const& year, copyright.first) {
-                    if(previous) state.phrase << ", ";
-                    state.phrase << year;
-                    previous = true;
+                unsigned int range_state = 0;
+                unsigned int previous = 0;
+                BOOST_FOREACH(unsigned int year, copyright.first) {
+                    switch(range_state) {
+                    case 0: // Start
+                        state.phrase << year;
+                        range_state = 1;
+                        break;
+                    case 1: // Printed a year in last iteration
+                        if(year == previous + 1) {
+                            range_state = 2;
+                        }
+                        else {
+                            state.phrase << ", " << year;
+                            range_state = 1;
+                        }
+                        break;
+                    case 2: // In the middle of a range
+                        if(year != previous + 1) {
+                            state.phrase << " - " << previous << ", " << year;
+                            range_state = 1;
+                        }
+                        break;
+                    }
+                    previous = year;
                 }
+                if(range_state == 2) state.phrase << " - " << previous;
     
                 state.phrase
                     << " "
@@ -371,6 +392,17 @@ namespace quickbook
 
             state.phrase
                 << "</p>\n";
+        }
+
+        if (!info.doc_license.empty())
+        {
+            state.phrase
+                << "<p class=\"license\">\n"
+                << info.doc_license
+                << "\n"
+                << "</p>\n"
+                << "\n"
+            ;
         }
 
         state.phrase
