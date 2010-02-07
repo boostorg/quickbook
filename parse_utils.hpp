@@ -13,7 +13,6 @@
 #define BOOST_SPIRIT_QUICKBOOK_AS_STRING_HPP
 
 #include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_function.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/qi_core.hpp>
 #include <string>
@@ -23,20 +22,6 @@ namespace quickbook
     namespace spirit = boost::spirit;
     namespace ph = boost::phoenix;
 
-    // as_string - converts a char range to a string.
-
-    struct as_string_impl
-    {
-        template <typename Arg>
-        struct result { typedef std::string type; };
-        
-        template <typename Arg>
-        std::string operator()(Arg const& arg1) const
-        {
-            return std::string(arg1.begin(), arg1.end());
-        }
-    };
-    
     struct get_position_impl
     {
         template <typename Range, typename Context>
@@ -47,7 +32,6 @@ namespace quickbook
 
     namespace {
         get_position_impl get_position;
-        ph::function<as_string_impl> as_string;
     }
 
     // member_assign - action to assign the attribute to a member of the

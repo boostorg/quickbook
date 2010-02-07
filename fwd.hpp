@@ -11,6 +11,7 @@
 #define BOOST_SPIRIT_FWD_HPP
 
 #include <boost/spirit/include/classic_iterator.hpp>
+#include <boost/range.hpp>
 
 namespace quickbook
 {
@@ -30,6 +31,7 @@ namespace quickbook
     typedef boost::spirit::classic::position_iterator<
         std::string::const_iterator> iterator;
     typedef boost::spirit::classic::file_position file_position;
+    typedef boost::iterator_range<iterator> raw_source;
 
     // templates
 

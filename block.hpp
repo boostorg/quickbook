@@ -39,7 +39,7 @@ namespace quickbook
 
     struct title
     {
-        std::string raw_markup;
+        raw_source raw;
         std::string content;
     };
 

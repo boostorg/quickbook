@@ -40,7 +40,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::title,
-    (std::string, raw_markup)
+    (quickbook::raw_source, raw)
     (std::string, content)
 )
 
@@ -484,7 +484,7 @@ namespace quickbook
         title_phrase =
             qi::raw[
                 phrase_attr                     [ph::at_c<1>(qi::_val) = qi::_1]
-            ]                                   [ph::at_c<0>(qi::_val) = as_string(qi::_1)]
+            ]                                   [ph::at_c<0>(qi::_val) = qi::_1]
             ;
 
         inside_paragraph =

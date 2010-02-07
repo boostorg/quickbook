@@ -48,8 +48,8 @@ namespace quickbook
         // TODO: This uses the generated title.
         state.section_id = x.id ? *x.id :
             detail::make_identifier(
-                x.content.raw_markup.begin(),
-                x.content.raw_markup.end());
+                x.content.raw.begin(),
+                x.content.raw.end());
 
         if (state.section_level != 0) {
             state.qualified_section_id += '.';
@@ -125,16 +125,16 @@ namespace quickbook
         {
             r.id = state.section_id + "." +
                 detail::make_identifier(
-                    x.content.raw_markup.begin(),
-                    x.content.raw_markup.end());
+                    x.content.raw.begin(),
+                    x.content.raw.end());
         }
         else // version 1.3 and above
         {
             r.linkend = r.id = fully_qualified_id(
                 state.doc_id, state.qualified_section_id,
                 detail::make_identifier(
-                    x.content.raw_markup.begin(),
-                    x.content.raw_markup.end()));
+                    x.content.raw.begin(),
+                    x.content.raw.end()));
 
         }
 

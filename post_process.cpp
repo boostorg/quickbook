@@ -268,12 +268,17 @@ namespace quickbook
     template <typename Iterator>
     struct tidy_grammar : qi::grammar<Iterator>
     {
+        typedef boost::iterator_range<Iterator> iterator_range;
+    
         tidy_grammar(tidy_compiler& state, int indent)
             : tidy_grammar::base_type(tidy)
             , state(state), indent(indent)
         {
-            tag = (qi::lexeme[+(qi::alpha | qi::char_("_:"))]) 
-                                                [ph::bind(&tidy_grammar::do_tag, this, as_string(qi::_1))];
+            tag =
+                qi::lexeme[qi::raw[
+                    +(qi::alpha | qi::char_("_:"))
+                ]]
+               [ph::bind(&tidy_grammar::do_tag, this, qi::_1)];
 
             code = qi::raw[
                     "<programlisting>"
@@ -286,19 +291,13 @@ namespace quickbook
             // otherwise consumed by the space skipper.
 
             escape =
-                qi::lit("<!--quickbook-escape-prefix-->") >>
-                (*(qi::char_ - (qi::lit("<!--quickbook-escape-postfix-->"))))
-                [
-                    ph::bind(&tidy_grammar::do_escape, this, as_string(qi::_1))
-                ]
-                >>  qi::lexeme
-                    [
-                        qi::lit("<!--quickbook-escape-postfix-->") >>
-                        (*qi::space)
-                        [
-                            ph::bind(&tidy_grammar::do_escape_post, this, as_string(qi::_1))
-                        ]
+                (    "<!--quickbook-escape-prefix-->"
+                >>  qi::raw[*(qi::char_ - "<!--quickbook-escape-postfix-->")]
+                >>  qi::lexeme[
+                        "<!--quickbook-escape-postfix-->"
+                    >>  qi::raw[*qi::space]
                     ]
+                )   [ph::bind(&tidy_grammar::do_escape, this, qi::_1, qi::_2)]
                 ;
 
             start_tag = qi::raw['<' >> tag >> *(qi::char_ - '>') >> qi::lexeme['>' >> *qi::space]];
@@ -323,21 +322,18 @@ namespace quickbook
             tidy = +markup;
         }
 
-        void do_escape_post(std::string const& x) const
+        void do_escape(iterator_range x, iterator_range post) const
         {
-            for (std::string::const_iterator i = x.begin(), l = x.end(); i != l; ++i)
-                state.out += *i;
-        }
-
-        void do_escape(std::string const& x) const
-        {
-            std::string::const_iterator f = x.begin(), l = x.end();
+            // Trim spaces from contents and append
+            Iterator f = x.begin(), l = x.end();
             while (f != l && std::isspace(*f))
                 ++f;
             while (f != l && std::isspace(*(l - 1)))
                 --l;
-            for (std::string::const_iterator i = f; i != l; ++i)
-                state.out += *i;
+            state.out.append(f, l);
+
+            // Append spaces trailing the closing tag.
+            state.out.append(post.begin(), post.end());
         }
 
         void do_code(std::string const& x) const
@@ -370,7 +366,7 @@ namespace quickbook
             state.printer_.indent();
         }
 
-        void do_tag(std::string const& x) const
+        void do_tag(iterator_range x) const
         {
             state.current_tag = std::string(x.begin(), x.end());
         }
