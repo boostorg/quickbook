@@ -125,7 +125,7 @@ namespace quickbook
         qi::rule<iterator, quickbook::heading()> heading;
         qi::symbols<char, int> heading_symbol;
         qi::rule<iterator, quickbook::formatted()> paragraph_block, blockquote, preformatted;
-        qi::symbols<char, quickbook::markup> paragraph_blocks;
+        qi::symbols<char, quickbook::formatted_type> paragraph_blocks;
         qi::rule<iterator, quickbook::def_macro()> def_macro;
         qi::rule<iterator, quickbook::table()> table;
         qi::rule<iterator, quickbook::table_row()> table_row;
@@ -242,18 +242,18 @@ namespace quickbook
             ;
 
         paragraph_blocks.add
-            ("blurb", markup(blurb_pre, blurb_post))
-            ("warning", markup(warning_pre, warning_post))
-            ("caution", markup(caution_pre, caution_post))
-            ("important", markup(important_pre, important_post))
-            ("note", markup(note_pre, note_post))
-            ("tip", markup(tip_pre, tip_post))
+            ("blurb", formatted_type("blurb"))
+            ("warning", formatted_type("warning"))
+            ("caution", formatted_type("caution"))
+            ("important", formatted_type("important"))
+            ("note", formatted_type("note"))
+            ("tip", formatted_type("tip"))
             ;
 
         blockquote =
                 ':'
             >>  blank
-            >>  qi::attr(markup(blockquote_pre, blockquote_post))
+            >>  qi::attr(formatted_type("blockquote"))
             >>  inside_paragraph
             ;
 
@@ -261,7 +261,7 @@ namespace quickbook
                 "pre"
             >>  hard_space                      [ph::ref(no_eols) = false]
             >>  -eol
-            >>  qi::attr(markup(preformatted_pre, preformatted_post))
+            >>  qi::attr(formatted_type("preformatted"))
             >>  phrase_attr
             >>  qi::eps                         [ph::ref(no_eols) = true]
             ;
@@ -301,7 +301,7 @@ namespace quickbook
             ;
 
         table_cell_body =
-                qi::attr(markup(start_cell_, end_cell_))
+                qi::attr(formatted_type("cell"))
             >>  inside_paragraph
             ;
 
@@ -333,7 +333,7 @@ namespace quickbook
             ;
 
         varlistterm_body =
-                qi::attr(markup(start_varlistterm_, end_varlistterm_))
+                qi::attr(formatted_type("varlistterm"))
             >>  phrase_attr
             ;
 
@@ -346,7 +346,7 @@ namespace quickbook
             ;
 
         varlistitem_body =
-                qi::attr(markup(start_varlistitem_, end_varlistitem_))
+                qi::attr(formatted_type("varlistitem"))
             >>  inside_paragraph
             ;
 
@@ -500,7 +500,7 @@ namespace quickbook
             ;
 
         inside_paragraph2 =
-                qi::attr(markup(paragraph_pre, paragraph_post))
+                qi::attr(formatted_type("paragraph"))
             >>  phrase_attr;
 
         phrase_attr =

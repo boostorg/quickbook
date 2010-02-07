@@ -37,7 +37,7 @@ namespace quickbook
     };
     
     struct link {
-        markup type;
+        formatted_type type;
         std::string destination;
         std::string content;
     };

@@ -33,7 +33,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::link,
-    (quickbook::markup, type)
+    (quickbook::formatted_type, type)
     (std::string, destination)
     (std::string, content)
 )
@@ -104,11 +104,11 @@ namespace quickbook
         qi::rule<iterator, std::string()> image_attribute_key, image_attribute_value;
         qi::rule<iterator, quickbook::link()> url;
         qi::rule<iterator, quickbook::link()> link;
-        qi::symbols<char, markup> link_symbol;
+        qi::symbols<char, formatted_type> link_symbol;
         qi::rule<iterator, quickbook::anchor()> anchor;
         qi::symbols<char, quickbook::source_mode> source_mode;
         qi::rule<iterator, quickbook::formatted()> formatted;
-        qi::symbols<char, markup> format_symbol;
+        qi::symbols<char, formatted_type> format_symbol;
         qi::rule<iterator, quickbook::formatted()> footnote;
         qi::rule<iterator, quickbook::call_template()> call_template;
         qi::rule<iterator, std::vector<std::string>() > template_args;
@@ -249,14 +249,14 @@ namespace quickbook
             ;
 
         escape_punct =
-                qi::attr(markup())
+                qi::attr(formatted_type(""))
             >>  '\\'
             >>  qi::repeat(1)[qi::punct]
             ;
 
         escape_markup =
                 ("'''" >> -eol)
-            >>  qi::attr(markup(escape_pre_, escape_post_))
+            >>  qi::attr("escape")
             >>  *(qi::char_ - "'''")
             >>  "'''"
             ;
@@ -324,7 +324,7 @@ namespace quickbook
 
         url =
                 '@'
-            >>  qi::attr(markup(url_pre_, url_post_))
+            >>  qi::attr("url")
             >>  *(qi::char_ - (']' | qi::space))
             >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)
@@ -341,15 +341,15 @@ namespace quickbook
             ;
 
         link_symbol.add
-            ("link", markup(link_pre_, link_post_))
-            ("funcref", markup(funcref_pre_, funcref_post_))
-            ("classref", markup(classref_pre_, classref_post_))
-            ("memberref", markup(memberref_pre_, memberref_post_))
-            ("enumref", markup(enumref_pre_, enumref_post_)) 
-            ("macroref", markup(macroref_pre_, macroref_post_)) 
-            ("headerref", markup(headerref_pre_, headerref_post_)) 
-            ("conceptref", markup(conceptref_pre_, conceptref_post_)) 
-            ("globalref", markup(globalref_pre_, globalref_post_))
+            ("link", formatted_type("link"))
+            ("funcref", formatted_type("funcref"))
+            ("classref", formatted_type("classref"))
+            ("memberref", formatted_type("memberref"))
+            ("enumref", formatted_type("enumref")) 
+            ("macroref", formatted_type("macroref")) 
+            ("headerref", formatted_type("headerref")) 
+            ("conceptref", formatted_type("conceptref"))
+            ("globalref", formatted_type("globalref"))
             ;
 
         anchor =
@@ -368,18 +368,18 @@ namespace quickbook
         formatted = format_symbol >> blank >> phrase;
 
         format_symbol.add
-            ("*", markup(bold_pre_, bold_post_))
-            ("'", markup(italic_pre_, italic_post_))
-            ("_", markup(underline_pre_, underline_post_))
-            ("^", markup(teletype_pre_, teletype_post_))
-            ("-", markup(strikethrough_pre_, strikethrough_post_))
-            ("\"", markup(quote_pre_, quote_post_))
-            ("~", markup(replaceable_pre_, replaceable_post_))
+            ("*", "bold")
+            ("'", "italic")
+            ("_", "underline")
+            ("^", "teletype")
+            ("-", "strikethrough")
+            ("\"", "quote")
+            ("~", "replaceable")
             ;
 
         footnote =
                 "footnote"
-            >>  qi::attr(markup(footnote_pre_, footnote_post_))
+            >>  qi::attr("footnote")
             >>  blank
             >>  phrase
             ;

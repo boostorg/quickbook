@@ -14,6 +14,7 @@
 #include "markups.hpp"
 #include "utils.hpp"
 #include "code.hpp"
+#include "boostbook.hpp"
 
 namespace quickbook
 {    
@@ -23,18 +24,17 @@ namespace quickbook
     }
 
     std::string process(quickbook::actions& actions, macro const& x) {
-        // TODO: Should the dates be encoded?
         if (x.raw_markup == quickbook_get_date)
         {
             char strdate[64];
             strftime(strdate, sizeof(strdate), "%Y-%b-%d", current_time);
-            return strdate;
+            return encode(strdate);
         }
         else if (x.raw_markup == quickbook_get_time)
         {
             char strdate[64];
             strftime(strdate, sizeof(strdate), "%I:%M:%S %p", current_time);
-            return strdate;
+            return encode(strdate);
         }
         else
         {
@@ -45,25 +45,24 @@ namespace quickbook
     link process(quickbook::actions& actions, link const& x) {
         link r = x;
         if(r.content.empty()) {
-            // TODO: Encode this
-            r.content = x.destination;
+            r.content = encode(x.destination);
         }
         return r;
     }
 
-    nothing process(quickbook::actions& actions, simple_markup const& x) {
-        markup type;
+    formatted process(quickbook::actions& actions, simple_markup const& x) {
+        formatted r;
         switch(x.symbol) {
-            case '*': type = markup(bold_pre_, bold_post_); break;
-            case '/': type = markup(italic_pre_, italic_post_); break;
-            case '_': type = markup(underline_pre_, underline_post_); break;
-            case '=': type = markup(teletype_pre_, teletype_post_); break;
+            case '*': r.type = "bold"; break;
+            case '/': r.type = "italic"; break;
+            case '_': r.type = "underline"; break;
+            case '=': r.type = "teletype"; break;
             default: BOOST_ASSERT(false);
         }
-        actions.phrase << type.pre;
-        detail::print_string(x.raw_content, actions.phrase.get());
-        actions.phrase << type.post;
-        return nothing();
+
+        r.content = encode(x.raw_content);
+
+        return r;
     }
 
     nothing process(quickbook::actions& actions, cond_phrase const& x) {

@@ -38,7 +38,6 @@ namespace quickbook
 
     void output(quickbook::actions&, std::string const&);
     nothing process(quickbook::actions&, call_template const&);
-    nothing process(quickbook::actions&, simple_markup const&);
     nothing process(quickbook::actions&, cond_phrase const&);
     nothing process(quickbook::actions&, break_ const&);
     nothing process(quickbook::actions&, image const&);

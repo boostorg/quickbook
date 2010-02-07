@@ -13,4 +13,8 @@ namespace quickbook
     void output(quickbook::actions&, anchor const&);
     void output(quickbook::actions&, link const&);
     void output(quickbook::actions&, formatted const&);
+
+    std::string encode(std::string const&);
+    std::string encode(char);
+    std::string encode(char const*);
 }

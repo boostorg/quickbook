@@ -16,25 +16,17 @@
 
 namespace quickbook
 {
-    struct markup {
-        markup()
-            : pre(""), post("") {}
-        markup(char const* pre, char const* post)
-            : pre(pre), post(post) {}
-
-        char const* pre;
-        char const* post;
-    };
+    typedef char const* formatted_type;
 
     struct formatted {
-        markup type;
+        formatted_type type;
         std::string content;
     };
 }
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::formatted,
-    (quickbook::markup, type)
+    (quickbook::formatted_type, type)
     (std::string, content)
 )
 
