@@ -158,13 +158,10 @@ namespace quickbook
         qi::rule<iterator, std::string()> phrase_attr;
         qi::rule<iterator> phrase_end;
         qi::rule<iterator> comment, dummy_block;
-        qi::rule<iterator, boost::optional<std::string>()> element_id_1_5;
         qi::rule<iterator, boost::optional<std::string>()> element_id;
         qi::rule<iterator, std::string()> element_id_part;
         qi::rule<iterator, std::string()> macro_identifier;
         qi::rule<iterator, std::string()> template_id;
-        qi::rule<iterator, std::string()> identifier;
-        qi::rule<iterator, std::string()> punctuation_identifier;
         qi::rule<iterator> hard_space, space, blank, eol;
         qi::rule<iterator, file_position()> position;
         qi::rule<iterator> error;
@@ -280,7 +277,7 @@ namespace quickbook
         table =
                 "table"
             >>  (&(*qi::blank >> qi::eol) | hard_space)
-            >>  element_id_1_5
+            >>  ((qi::eps(qbk_since(105u)) >> element_id) | qi::eps)
             >>  (&(*qi::blank >> qi::eol) | space)
             >>  *(qi::char_ - eol)
             >>  +eol
@@ -531,11 +528,9 @@ namespace quickbook
 
         // Identifiers
 
-        element_id_1_5 = (qi::eps(qbk_since(105u)) >> element_id) | qi::eps;
-
         element_id =
             (   ':'
-            >>  -(qi::eps(qbk_since(105u)) >> space) 
+            >>  -(qi::eps(qbk_since(105u)) >> space)
             >>  (
                     element_id_part
                 |   qi::omit[
@@ -552,16 +547,9 @@ namespace quickbook
             +(qi::char_ - (qi::space | ']'))
             ;
 
-        template_id =
-            identifier | punctuation_identifier
-            ;
-
-        identifier =
-            (qi::alpha | '_') >> *(qi::alnum | '_')
-            ;
-        
-        punctuation_identifier =
-            qi::repeat(1)[qi::punct - qi::char_("[]")]
+        template_id
+            =   (qi::alpha | '_') >> *(qi::alnum | '_')
+            |   qi::repeat(1)[qi::punct - qi::char_("[]")]
             ;
 
         // Used after an identifier that must not be immediately
