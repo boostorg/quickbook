@@ -16,15 +16,15 @@
 
 namespace quickbook
 {
-    nothing process(quickbook::actions&, source_mode const&);
-    std::string process(quickbook::actions&, macro const&);
-    link process(quickbook::actions&, link const&);
-    formatted process(quickbook::actions&, simple_markup const&);
-    std::string process(quickbook::actions&, cond_phrase const&);
-    break_ process(quickbook::actions&, break_ const&);
-    formatted process(quickbook::actions&, code const&);
-    image2 process(quickbook::actions&, image const&);
-    std::string process(quickbook::actions&, call_template const&);
+    nothing process(quickbook::state&, source_mode const&);
+    std::string process(quickbook::state&, macro const&);
+    link process(quickbook::state&, link const&);
+    formatted process(quickbook::state&, simple_markup const&);
+    std::string process(quickbook::state&, cond_phrase const&);
+    break_ process(quickbook::state&, break_ const&);
+    formatted process(quickbook::state&, code const&);
+    image2 process(quickbook::state&, image const&);
+    std::string process(quickbook::state&, call_template const&);
 }
 
 #endif

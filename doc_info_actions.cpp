@@ -16,13 +16,12 @@
 #include "collector.hpp"
 #include "quickbook.hpp"
 #include "doc_info_actions.hpp"
-#include "actions.hpp"
 #include "state.hpp"
 #include "utils.hpp"
 
 namespace quickbook
 {
-    doc_info process(quickbook::actions& actions, doc_info const& x)
+    doc_info process(quickbook::state& state, doc_info const& x)
     {
         doc_info info = x;
     
@@ -30,18 +29,17 @@ namespace quickbook
         // *before* anything else.
 
         if(!info.doc_title.empty())
-            actions.state_.doc_title = info.doc_title;
+            state.doc_title = info.doc_title;
 
         if(info.doc_id.empty())
             info.doc_id = detail::make_identifier(
-                actions.state_.doc_title.begin(),
-                actions.state_.doc_title.end());
+               state.doc_title.begin(),state.doc_title.end());
 
-        if(actions.state_.doc_id.empty())
-            actions.state_.doc_id = info.doc_id;
+        if(state.doc_id.empty())
+            state.doc_id = info.doc_id;
 
         if (info.doc_dirname.empty() && info.doc_type == "library")
-            info.doc_dirname = actions.state_.doc_id;
+            info.doc_dirname = state.doc_id;
 
         if (info.doc_last_revision.empty())
         {

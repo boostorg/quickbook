@@ -257,7 +257,7 @@ namespace quickbook
           , std::vector<std::string> const& params
           , template_scope const& scope
           , file_position const& pos
-          , quickbook::actions& actions
+          , quickbook::state& state
         )
         {
             std::vector<std::string>::const_iterator arg = args.begin();
@@ -268,13 +268,13 @@ namespace quickbook
             {
                 std::vector<std::string> empty_params;
 
-                if (!actions.state_.templates.add(
+                if (!state.templates.add(
                         define_template(*tpl, empty_params, *arg, pos),
                         &scope))
                 {
                     detail::outerr(pos.file,pos.line)
                         << "Duplicate Symbol Found" << std::endl;
-                    ++actions.state_.error_count;
+                    ++state.error_count;
                     return std::make_pair(false, tpl);
                 }
                 ++arg; ++tpl;
@@ -287,7 +287,7 @@ namespace quickbook
           , std::string& result
           , file_position const& template_pos
           , bool template_escape
-          , quickbook::actions& actions
+          , quickbook::state& state
         )
         {
             // How do we know if we are to parse the template as a block or
@@ -312,17 +312,19 @@ namespace quickbook
             }
             else if (!is_block)
             {
+                quickbook::actions actions(state);
                 simple_phrase_grammar phrase_p(actions);
 
                 //  do a phrase level parse
-                iterator first(body.begin(), body.end(), actions.state_.filename.native_file_string().c_str());
+                iterator first(body.begin(), body.end(), state.filename.native_file_string().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
                 r = boost::spirit::qi::parse(first, last, phrase_p) && first == last;
-                actions.state_.phrase.swap(result);
+                state.phrase.swap(result);
             }
             else
             {
+                quickbook::actions actions(state);
                 block_grammar block_p(actions);
 
                 //  do a block level parse
@@ -331,25 +333,25 @@ namespace quickbook
                 body += "\n\n";
                 while (iter != body.end() && ((*iter == '\r') || (*iter == '\n')))
                     ++iter; // skip initial newlines
-                iterator first(iter, body.end(), actions.state_.filename.native_file_string().c_str());
+                iterator first(iter, body.end(), state.filename.native_file_string().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
                 r = boost::spirit::qi::parse(first, last, block_p) && first == last;
-                actions.state_.phrase.swap(result);
+                state.phrase.swap(result);
             }
             return r;
         }
     }
 
-    std::string process(quickbook::actions& actions, call_template const& x)
+    std::string process(quickbook::state& state, call_template const& x)
     {
-        ++actions.state_.template_depth;
-        if (actions.state_.template_depth > actions.state_.max_template_depth)
+        ++state.template_depth;
+        if (state.template_depth > state.max_template_depth)
         {
             detail::outerr(x.position.file, x.position.line)
                 << "Infinite loop detected" << std::endl;
-            --actions.state_.template_depth;
-            ++actions.state_.error_count;
+            --state.template_depth;
+            ++state.error_count;
             return "";
         }
 
@@ -358,17 +360,17 @@ namespace quickbook
         //
         // Note that for quickbook 1.4- this value is just ignored when the
         // arguments are expanded.
-        template_scope const& call_scope = actions.state_.templates.top_scope();
+        template_scope const& call_scope = state.templates.top_scope();
 
         std::string result;
-        actions.state_.push(); // scope the actions' states
+        state.push(); // scope the state
         {
             // Quickbook 1.4-: When expanding the tempalte continue to use the
             //                 current scope (the dynamic scope).
             // Quickbook 1.5+: Use the scope the template was defined in
             //                 (the static scope).
             if (qbk_version_n >= 105)
-                actions.state_.templates.set_parent_scope(*x.symbol->parent);
+                state.templates.set_parent_scope(*x.symbol->parent);
 
             std::vector<std::string> args = x.args;
     
@@ -376,9 +378,9 @@ namespace quickbook
             // Break the arguments
             if (!break_arguments(args, x.symbol->params, x.position))
             {
-                actions.state_.pop(); // restore the actions' states
-                --actions.state_.template_depth;
-                ++actions.state_.error_count;
+                state.pop(); // restore the state
+                --state.template_depth;
+                ++state.error_count;
                 return "";
             }
 
@@ -388,19 +390,19 @@ namespace quickbook
             std::vector<std::string>::const_iterator tpl;
             boost::tie(get_arg_result, tpl) =
                 get_arguments(args, x.symbol->params,
-                    call_scope, x.position, actions);
+                    call_scope, x.position, state);
 
             if (!get_arg_result)
             {
-                actions.state_.pop(); // restore the actions' states
-                --actions.state_.template_depth;
+                state.pop(); // restore the state
+                --state.template_depth;
                 return "";
             }
 
             ///////////////////////////////////
             // parse the template body:
 
-            if (!parse_template(x.symbol->body, result, x.symbol->position, x.escape, actions))
+            if (!parse_template(x.symbol->body, result, x.symbol->position, x.escape, state))
             {
                 detail::outerr(x.position.file,x.position.line)
                     //<< "Expanding template:" << x.symbol->identifier << std::endl
@@ -409,15 +411,15 @@ namespace quickbook
                     << x.symbol->body
                     << "------------------end--------------------" << std::endl
                     << std::endl;
-                actions.state_.pop(); // restore the actions' states
-                --actions.state_.template_depth;
-                ++actions.state_.error_count;
+                state.pop(); // restore the state
+                --state.template_depth;
+                ++state.error_count;
                 return "";
             }
         }
 
-        actions.state_.pop(); // restore the actions' states
-        --actions.state_.template_depth;
+        state.pop(); // restore the state
+        --state.template_depth;
         
         return result;
     }

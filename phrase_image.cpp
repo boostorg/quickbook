@@ -12,7 +12,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include "phrase.hpp"
 #include "gen_types.hpp"
-#include "actions.hpp"
 #include "state.hpp"
 #include "utils.hpp"
 
@@ -20,7 +19,7 @@ namespace quickbook
 {
     namespace fs = boost::filesystem;
 
-    image2 process(quickbook::actions& actions, image const& x)
+    image2 process(quickbook::state& state, image const& x)
     {
         typedef image2::attribute_map attribute_map;
         typedef attribute_map::value_type attribute;
@@ -42,7 +41,7 @@ namespace quickbook
                     << "Duplicate image attribute: "
                     << begin->first
                     << std::endl;
-                ++actions.state_.error_count;
+                ++state.error_count;
             }
         }
     

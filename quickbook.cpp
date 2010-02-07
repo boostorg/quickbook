@@ -48,7 +48,7 @@ namespace quickbook
     //
     ///////////////////////////////////////////////////////////////////////////
     int
-    parse(char const* filein_, actions& actor, bool ignore_docinfo)
+    parse(char const* filein_, state& state_, bool ignore_docinfo)
     {
         using std::cerr;
         using std::vector;
@@ -57,7 +57,7 @@ namespace quickbook
         std::string storage;
         int err = detail::load(filein_, storage);
         if (err != 0) {
-            ++actor.state_.error_count;
+            ++state_.error_count;
             return err;
         }
 
@@ -66,6 +66,7 @@ namespace quickbook
         iterator start = first;
 
         doc_info info;
+        actions actor(state_);
         doc_info_grammar l(actor);
         bool success = parse(first, last, l, info);
 
@@ -95,25 +96,24 @@ namespace quickbook
             file_position const pos = first.get_position();
             detail::outerr(pos.file,pos.line)
                 << "Syntax Error near column " << pos.column << ".\n";
-            ++actor.state_.error_count;
+            ++state_.error_count;
         }
         
-        if(actor.state_.error_count)
+        if(state_.error_count)
         {
             detail::outerr(filein_)
                 << "Error count: " << actor.state_.error_count << ".\n";
         }
 
-        return actor.state_.error_count ? 1 : 0;
+        return state_.error_count ? 1 : 0;
     }
 
     static int
     parse(char const* filein_, fs::path const& outdir, string_stream& out, bool ignore_docinfo = false)
     {
         quickbook::state state(filein_, outdir, out);
-        actions actor(state);
-        bool r = parse(filein_, actor);
-        if (actor.state_.section_level != 0)
+        bool r = parse(filein_, state);
+        if (state.section_level != 0)
             detail::outwarn(filein_)
                 << "Warning missing [endsect] detected at end of file."
                 << std::endl;

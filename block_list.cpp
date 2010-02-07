@@ -10,7 +10,6 @@
 
 #include <stack>
 #include <boost/assert.hpp>
-#include "actions.hpp"
 #include "state.hpp"
 #include "gen_types.hpp"
 #include "utils.hpp"
@@ -43,7 +42,7 @@ namespace quickbook
         int indent;
     };
 
-    list2 process(quickbook::actions& actions, quickbook::list const& list)
+    list2 process(quickbook::state& state, quickbook::list const& list)
     {
         list::const_iterator it = list.begin(), end = list.end();
         BOOST_ASSERT(it != end);
@@ -83,7 +82,7 @@ namespace quickbook
                     << "Illegal change of list style near column " << pos.column << ".\n";
                 detail::outwarn(pos.file,pos.line)
                     << "Ignoring change of list style" << std::endl;
-                ++actions.state_.error_count;
+                ++state.error_count;
             }
         }
 

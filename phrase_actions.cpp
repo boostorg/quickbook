@@ -19,12 +19,12 @@
 
 namespace quickbook
 {    
-    nothing process(quickbook::actions& actions, source_mode const& s) {
-        actions.state_.source_mode = s.mode;
+    nothing process(quickbook::state& state, source_mode const& s) {
+        state.source_mode = s.mode;
         return nothing();
     }
 
-    std::string process(quickbook::actions& actions, macro const& x) {
+    std::string process(quickbook::state& state, macro const& x) {
         if (x.raw_markup == quickbook_get_date)
         {
             char strdate[64];
@@ -43,7 +43,7 @@ namespace quickbook
         }
     }
 
-    link process(quickbook::actions& actions, link const& x) {
+    link process(quickbook::state& state, link const& x) {
         link r = x;
         if(r.content.empty()) {
             r.content = encode(x.destination);
@@ -51,7 +51,7 @@ namespace quickbook
         return r;
     }
 
-    formatted process(quickbook::actions& actions, simple_markup const& x) {
+    formatted process(quickbook::state& state, simple_markup const& x) {
         formatted r;
         switch(x.symbol) {
             case '*': r.type = "bold"; break;
@@ -66,20 +66,20 @@ namespace quickbook
         return r;
     }
 
-    std::string process(quickbook::actions& actions, cond_phrase const& x) {
-        bool symbol_found = actions.macro.find(x.macro_id.c_str());
+    std::string process(quickbook::state& state, cond_phrase const& x) {
+        bool symbol_found = state.macro.find(x.macro_id.c_str());
 
         return (!x.content.empty() && symbol_found) ? x.content : "";
     }
 
-    break_ process(quickbook::actions& actions, break_ const& x) {
+    break_ process(quickbook::state& state, break_ const& x) {
         detail::outwarn(x.position.file,x.position.line)
             << "in column:" << x.position.column << ", "
             << "[br] and \\n are deprecated" << ".\n";
         return x;
     }
 
-    formatted process(quickbook::actions& actions, code const& x) {
+    formatted process(quickbook::state& state, code const& x) {
         formatted r;
         r.type = "";
 
@@ -98,12 +98,13 @@ namespace quickbook
 
         // TODO: I don't need to save this, do I?
         std::string save;
-        actions.state_.phrase.swap(save);
+        state.phrase.swap(save);
 
         // print the code with syntax coloring
+        quickbook::actions actions(state);
         std::string str = actions.syntax_p(first_, last_);
 
-        actions.state_.phrase.swap(save);
+        state.phrase.swap(save);
         
         r.type = x.block ? "programlisting" : "code";
         r.content = str;

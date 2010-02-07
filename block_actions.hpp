@@ -16,17 +16,17 @@
 namespace quickbook
 {
     // TODO: Just generate formatted.
-    formatted process(quickbook::actions&, paragraph const&);
-    begin_section2 process(quickbook::actions&, begin_section const&);
-    end_section2 process(quickbook::actions&, end_section const&);
-    heading2 process(quickbook::actions&, heading const&);
-    nothing process(quickbook::actions&, def_macro const&);
-    nothing process(quickbook::actions&, define_template const&);
-    table2 process(quickbook::actions&, table const&);
-    xinclude2 process(quickbook::actions&, xinclude const&);
-    nothing process(quickbook::actions&, import const&);
-    nothing process(quickbook::actions&, include const&);
-    list2 process(quickbook::actions&, list const&);
+    formatted process(quickbook::state&, paragraph const&);
+    begin_section2 process(quickbook::state&, begin_section const&);
+    end_section2 process(quickbook::state&, end_section const&);
+    heading2 process(quickbook::state&, heading const&);
+    nothing process(quickbook::state&, def_macro const&);
+    nothing process(quickbook::state&, define_template const&);
+    table2 process(quickbook::state&, table const&);
+    xinclude2 process(quickbook::state&, xinclude const&);
+    nothing process(quickbook::state&, import const&);
+    nothing process(quickbook::state&, include const&);
+    list2 process(quickbook::state&, list const&);
 }
 
 #endif

@@ -25,7 +25,7 @@ namespace quickbook
     extern std::vector<std::string> include_path;
 
     // forward declarations
-    int parse(char const* filein_, actions& actor, bool ignore_docinfo = false);
+    int parse(char const* filein_, state&, bool ignore_docinfo = false);
 }
 
 #endif

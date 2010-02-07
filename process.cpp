@@ -25,11 +25,11 @@ namespace quickbook
     template <typename T>
     void process_action::operator()(T const& x) const
     {
-        output(actions.state_, process(actions, x));
+        output(actions.state_, process(actions.state_, x));
     }
 
     template <typename T>
-    T const& process(quickbook::actions&, T const& x)
+    T const& process(quickbook::state&, T const& x)
     {
         return x;
     }
