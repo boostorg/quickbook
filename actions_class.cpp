@@ -23,6 +23,7 @@ namespace quickbook
     actions::actions(char const* filein_, fs::path const& outdir_, string_stream& out_)
     // header info
         : doc_id()
+        , doc_title()
 
     // main output stream
         , phrase(out_)

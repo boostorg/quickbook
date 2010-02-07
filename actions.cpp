@@ -98,12 +98,18 @@ namespace quickbook
         // The doc_info in the file has been parsed. Here's what we'll do
         // *before* anything else.
 
+        if (!info.doc_title.empty())
+            actions.doc_title = info.doc_title;
+
         if (info.doc_id.empty())
             info.doc_id = detail::make_identifier(
-                info.doc_title.begin(),info.doc_title.end());
+                actions.doc_title.begin(),actions.doc_title.end());
+
+        if(actions.doc_id.empty())
+            actions.doc_id = info.doc_id;
 
         if (info.doc_dirname.empty() && info.doc_type == "library")
-            info.doc_dirname = info.doc_id;
+            info.doc_dirname = actions.doc_id;
 
         if (info.doc_last_revision.empty())
         {
@@ -119,8 +125,6 @@ namespace quickbook
             );
             info.doc_last_revision = strdate;
         }
-
-        if(!info.doc_id.empty()) actions.doc_id = info.doc_id;
 
         // if we're ignoring the document info, we're done.
         if (ignore_docinfo)
