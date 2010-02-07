@@ -21,8 +21,6 @@ namespace quickbook
         file_position position;
         std::string code;
     };
-    
-    nothing process(quickbook::actions&, code const&);
 }
 
 BOOST_FUSION_ADAPT_STRUCT(

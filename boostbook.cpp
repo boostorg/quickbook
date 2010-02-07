@@ -131,4 +131,9 @@ namespace quickbook
         boostbook_markup m = markup_map.at(x.type);
         actions.phrase << m.pre << x.content << m.post;
     }
+
+    void output(quickbook::actions& actions, break_ const& x) {
+        boostbook_markup m = markup_map.at("break");
+        actions.phrase << m.pre;
+    }
 }

@@ -65,37 +65,37 @@ namespace quickbook
         return r;
     }
 
-    nothing process(quickbook::actions& actions, cond_phrase const& x) {
+    std::string process(quickbook::actions& actions, cond_phrase const& x) {
         bool symbol_found = actions.macro.find(x.macro_id.c_str());
 
-        if (!x.content.empty() && symbol_found) {
-            actions.phrase << x.content; // print the body
-        }
-        return nothing();
+        return (!x.content.empty() && symbol_found) ? x.content : "";
     }
 
-    nothing process(quickbook::actions& actions, break_ const& x) {
+    break_ process(quickbook::actions& actions, break_ const& x) {
         detail::outwarn(x.position.file,x.position.line)
             << "in column:" << x.position.column << ", "
             << "[br] and \\n are deprecated" << ".\n";
-        actions.phrase << break_mark;
-        return nothing();
+        return x;
     }
 
-    nothing process(quickbook::actions& actions, code const& x) {
+    formatted process(quickbook::actions& actions, code const& x) {
+        formatted r;
+        r.type = "";
+
          std::string program = x.code;
     
         if(x.block) {
             // preprocess the code section to remove the initial indentation
             detail::unindent(program);
             if (program.size() == 0)
-                return nothing(); // Nothing left to do here. The program is empty.
+                return r; // Nothing left to do here. The program is empty.
         }
 
         iterator first_(program.begin(), program.end());
         iterator last_(program.end(), program.end());
         first_.set_position(x.position);
 
+        // TODO: I don't need to save this, do I?
         std::string save;
         actions.phrase.swap(save);
 
@@ -103,21 +103,9 @@ namespace quickbook
         std::string str = actions.syntax_p(first_, last_);
 
         actions.phrase.swap(save);
-
-        if(x.block) {    
-            //
-            // We must not place a \n after the <programlisting> tag
-            // otherwise PDF output starts code blocks with a blank line:
-            //
-            actions.phrase << "<programlisting>";
-            actions.phrase << str;
-            actions.phrase << "</programlisting>\n";
-        }
-        else {
-            actions.phrase << "<code>";
-            actions.phrase << str;
-            actions.phrase << "</code>";
-        }
-        return nothing();
+        
+        r.type = x.block ? "programlisting" : "code";
+        r.content = str;
+        return r;
     }
 }
