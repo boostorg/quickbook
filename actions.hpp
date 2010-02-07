@@ -67,20 +67,6 @@ namespace quickbook
     extern char const* quickbook_get_date;
     extern char const* quickbook_get_time;
 
-    struct plain_char_action
-    {
-        // Prints a single plain char.
-        // Converts '<' to "&lt;"... etc See utils.hpp
-
-        plain_char_action(collector& phrase)
-        : phrase(phrase) {}
-
-        void operator()(char ch, unused_type, unused_type) const;
-        void operator()(iterator_range, unused_type, unused_type) const;
-
-        collector& phrase;
-    };
-    
     struct syntax_highlight
     {
         syntax_highlight(
