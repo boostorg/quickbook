@@ -11,6 +11,7 @@
 
 #include <boost/filesystem/operations.hpp>
 #include "actions_class.hpp"
+#include "quickbook.hpp"
 
 #if (defined(BOOST_MSVC) && (BOOST_MSVC <= 1310))
 #pragma warning(disable:4355)

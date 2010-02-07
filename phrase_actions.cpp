@@ -14,6 +14,7 @@
 #include "utils.hpp"
 #include "code.hpp"
 #include "boostbook.hpp"
+#include "quickbook.hpp"
 
 namespace quickbook
 {    

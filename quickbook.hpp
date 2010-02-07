@@ -12,36 +12,20 @@
 #if !defined(BOOST_SPIRIT_QUICKBOOK_QUICKBOOK_HPP)
 #define BOOST_SPIRIT_QUICKBOOK_QUICKBOOK_HPP
 
-#include <boost/spirit/include/phoenix_function.hpp>
+#include <time.h>
+#include <string>
+#include <vector>
+#include "fwd.hpp"
 
 namespace quickbook
 {
-    extern unsigned qbk_major_version;
-    extern unsigned qbk_minor_version;
-    extern unsigned qbk_version_n; // qbk_major_version * 100 + qbk_minor_version
+    extern tm* current_time; // the current time
+    extern tm* current_gm_time; // the current UTC time
+    extern bool debug_mode;
+    extern std::vector<std::string> include_path;
 
-    struct quickbook_since_impl {
-        template <typename Arg1>
-        struct result { typedef bool type; };
-        
-        bool operator()(unsigned min_) const {
-            return qbk_version_n >= min_;
-        }
-    };
-
-    struct quickbook_before_impl {
-        template <typename Arg1>
-        struct result { typedef bool type; };
-        
-        bool operator()(unsigned max_) const {
-            return qbk_version_n < max_;
-        }
-    };
-
-    namespace {
-        boost::phoenix::function<quickbook_since_impl> qbk_since;
-        boost::phoenix::function<quickbook_before_impl> qbk_before;
-    }
+    // forward declarations
+    int parse(char const* filein_, actions& actor, bool ignore_docinfo = false);
 }
 
 #endif

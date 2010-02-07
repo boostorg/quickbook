@@ -10,11 +10,11 @@
 #if !defined(BOOST_SPIRIT_QUICKBOOK_ACTIONS_HPP)
 #define BOOST_SPIRIT_QUICKBOOK_ACTIONS_HPP
 
-#include <time.h>
 #include <map>
 #include <string>
 #include <vector>
 #include <boost/spirit/include/qi_symbols.hpp>
+#include <boost/spirit/include/phoenix_function.hpp>
 #include "fwd.hpp"
 
 #ifdef BOOST_MSVC
@@ -28,6 +28,33 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     using boost::spirit::unused_type;
 
+    extern unsigned qbk_major_version;
+    extern unsigned qbk_minor_version;
+    extern unsigned qbk_version_n; // qbk_major_version * 100 + qbk_minor_version
+
+    struct quickbook_since_impl {
+        template <typename Arg1>
+        struct result { typedef bool type; };
+        
+        bool operator()(unsigned min_) const {
+            return qbk_version_n >= min_;
+        }
+    };
+
+    struct quickbook_before_impl {
+        template <typename Arg1>
+        struct result { typedef bool type; };
+        
+        bool operator()(unsigned max_) const {
+            return qbk_version_n < max_;
+        }
+    };
+
+    namespace {
+        boost::phoenix::function<quickbook_since_impl> qbk_since;
+        boost::phoenix::function<quickbook_before_impl> qbk_before;
+    }
+
     struct macro {
         macro() {}
         explicit macro(char const* x) : raw_markup(x) {};
@@ -36,20 +63,9 @@ namespace quickbook
         std::string raw_markup;
     };
 
-    typedef qi::symbols<char, macro> macro_symbols;    
+    typedef qi::symbols<char, macro> macro_symbols;
 
     typedef boost::iterator_range<iterator> iterator_range;
-    typedef std::map<std::string, std::string> attribute_map;
-
-    struct actions;
-    extern tm* current_time; // the current time
-    extern tm* current_gm_time; // the current UTC time
-    extern bool debug_mode;
-    extern std::vector<std::string> include_path;
-
-    // forward declarations
-    struct actions;
-    int parse(char const* filein_, actions& actor, bool ignore_docinfo = false);
 
     struct error_action
     {

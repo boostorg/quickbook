@@ -12,7 +12,6 @@
 #include "actions.hpp"
 #include "actions_class.hpp"
 #include "doc_info.hpp"
-#include "quickbook.hpp" // TODO: Quickbook version number
 #include "utils.hpp"
 
 namespace quickbook

@@ -14,6 +14,7 @@
 #include <utility>
 #include "fwd.hpp"
 #include "collector.hpp"
+#include "quickbook.hpp"
 #include "doc_info_actions.hpp"
 #include "actions_class.hpp"
 #include "utils.hpp"

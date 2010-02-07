@@ -17,6 +17,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/ref.hpp>
 #include "fwd.hpp"
+#include "quickbook.hpp"
 #include "actions_class.hpp"
 #include "grammars.hpp"
 #include "post_process.hpp"

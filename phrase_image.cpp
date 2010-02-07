@@ -21,8 +21,10 @@ namespace quickbook
 
     image2 process(quickbook::actions& actions, image const& x)
     {
-        std::map<std::string, std::string> attributes(
-            x.attributes.begin(), x.attributes.end());
+        typedef image2::attribute_map attribute_map;
+        typedef attribute_map::value_type attribute;
+    
+        attribute_map attributes(x.attributes.begin(), x.attributes.end());
         
         if(attributes.size() != x.attributes.size()) {
             std::map<std::string, std::string> duplicates;
@@ -44,9 +46,9 @@ namespace quickbook
         }
     
         fs::path const img_path(x.image_filename);
-        attributes.insert(attribute_map::value_type("fileref", x.image_filename));
+        attributes.insert(attribute("fileref", x.image_filename));
         // Note: If there is already an alt attribute this is a no-op.
-        attributes.insert(attribute_map::value_type("alt", fs::basename(img_path)));
+        attributes.insert(attribute("alt", fs::basename(img_path)));
 
         if(fs::extension(img_path) == ".svg")
         {
@@ -61,7 +63,7 @@ namespace quickbook
            //    a tiny box with scrollbars (Firefox), or else cropped to
            //    fit in a tiny box (IE7).
            //
-           attributes.insert(attribute_map::value_type("format", "SVG"));
+           attributes.insert(attribute("format", "SVG"));
            //
            // Image paths are relative to the html subdirectory:
            // TODO: This only works when you're running in the correct directory.
@@ -97,7 +99,7 @@ namespace quickbook
            b = svg_text.find('\"', a + 1);
            if(a != std::string::npos)
            {
-              attributes.insert(attribute_map::value_type("contentwidth",
+              attributes.insert(attribute("contentwidth",
                 std::string(svg_text.begin() + a + 1, svg_text.begin() + b)));
            }
            a = svg_text.find("height");
@@ -106,7 +108,7 @@ namespace quickbook
            b = svg_text.find('\"', a + 1);
            if(a != std::string::npos)
            {
-              attributes.insert(attribute_map::value_type("contentdepth",
+              attributes.insert(attribute("contentdepth",
                 std::string(svg_text.begin() + a + 1, svg_text.begin() + b)));
            }
         }

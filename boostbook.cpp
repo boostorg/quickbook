@@ -175,7 +175,7 @@ namespace quickbook
 
         actions.phrase << "></imagedata></imageobject>";
 
-        attribute_map::const_iterator it = x.attributes.find("alt");
+        image2::attribute_map::const_iterator it = x.attributes.find("alt");
         if(it != x.attributes.end()) {
             // Also add a textobject -- use the basename of the image file.
             // This will mean we get "alt" attributes of the HTML img.
