@@ -39,7 +39,7 @@ namespace quickbook
         quickbook::file_position position;
     };
 
-    void process(quickbook::actions&, define_template const&);
+    nothing process(quickbook::actions&, define_template const&);
 
     struct template_scope;
     struct template_symbol;

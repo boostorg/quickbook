@@ -200,9 +200,7 @@ namespace quickbook
         }
 
         template <typename T>
-        void operator()(T const& x) const {
-            process(actions, x);
-        }
+        void operator()(T const& x) const;
         
         quickbook::actions& actions;
     };

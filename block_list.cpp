@@ -36,7 +36,7 @@ namespace quickbook
         }
     }
 
-    void process(quickbook::actions& actions, quickbook::list const& list)
+    nothing process(quickbook::actions& actions, quickbook::list const& list)
     {
         int list_indent = -1;
         std::stack<mark_type> list_marks;
@@ -94,5 +94,7 @@ namespace quickbook
             actions.phrase << std::string(list_marks.top().first == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
             list_marks.pop();
         }
+
+        return nothing();
     }
 }

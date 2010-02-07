@@ -99,19 +99,6 @@ namespace quickbook
         boost::optional<std::string> id;
         std::string path;
     };
-    
-    void process(quickbook::actions&, hr);
-    void process(quickbook::actions&, paragraph const&);
-    void process(quickbook::actions&, list const&);
-    void process(quickbook::actions&, begin_section const&);
-    void process(quickbook::actions&, end_section const&);
-    void process(quickbook::actions&, heading const&);
-    void process(quickbook::actions&, def_macro const&);
-    void process(quickbook::actions&, variablelist const&);
-    void process(quickbook::actions&, table const&);
-    void process(quickbook::actions&, xinclude const&);
-    void process(quickbook::actions&, import const&);
-    void process(quickbook::actions&, include const&);
 }
 
 #endif

@@ -14,6 +14,8 @@
 
 namespace quickbook
 {
+    struct nothing {};
+
     struct macro;
     struct doc_info;
 

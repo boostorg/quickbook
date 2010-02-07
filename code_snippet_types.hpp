@@ -20,8 +20,6 @@
 
 namespace quickbook
 {
-    using boost::spirit::unused_type;
-
     struct code_snippet
     {
         file_position position;

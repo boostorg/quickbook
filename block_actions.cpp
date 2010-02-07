@@ -35,17 +35,19 @@ namespace quickbook
         }
     }
 
-    void process(quickbook::actions& actions, hr)
+    nothing process(quickbook::actions& actions, hr)
     {
         actions.phrase << hr_;
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, paragraph const& x)
+    nothing process(quickbook::actions& actions, paragraph const& x)
     {
         actions.phrase << paragraph_pre << x.content << paragraph_post;
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, begin_section const& x)
+    nothing process(quickbook::actions& actions, begin_section const& x)
     {
         // TODO: This uses the generated title.
         actions.section_id = x.id ? *x.id :
@@ -94,10 +96,11 @@ namespace quickbook
                 << "</title>\n"
                 ;
         }
-
+        
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, end_section const& x)
+    nothing process(quickbook::actions& actions, end_section const& x)
     {
         actions.phrase << "</section>";
 
@@ -122,9 +125,11 @@ namespace quickbook
             BOOST_ASSERT(std::string::npos != n);
             actions.qualified_section_id.erase(n, std::string::npos);
         }
+        
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, heading const& x)
+    nothing process(quickbook::actions& actions, heading const& x)
     {
         // TODO: Is this right?
         bool new_style = qbk_version_n >= 103 || x.level > 0;
@@ -169,27 +174,31 @@ namespace quickbook
                 << "</bridgehead>"
                 ;
         }
+        
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, def_macro const& x)
+    nothing process(quickbook::actions& actions, def_macro const& x)
     {
         actions.macro.add(
             x.macro_identifier.begin()
           , x.macro_identifier.end()
           , quickbook::macro(x.content));
-
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, define_template const& x)
+    nothing process(quickbook::actions& actions, define_template const& x)
     {
         if(!actions.templates.add(x)) {
             detail::outerr(x.position.file, x.position.line)
                 << "Template Redefinition: " << x.id << std::endl;
             ++actions.error_count;
         }
+        
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, variablelist const& x)
+    nothing process(quickbook::actions& actions, variablelist const& x)
     {
         actions.phrase << "<variablelist>\n";
 
@@ -206,10 +215,12 @@ namespace quickbook
         }
 
         actions.phrase << "</variablelist>\n";
+        
+        return nothing();
     }
 
 
-    void process(quickbook::actions& actions, table const& x)
+    nothing process(quickbook::actions& actions, table const& x)
     {
         bool has_title = !x.title.empty();
         
@@ -285,6 +296,8 @@ namespace quickbook
         {
             actions.phrase << "</informaltable>\n";
         }
+        
+        return nothing();
     }
 
     namespace
@@ -383,15 +396,17 @@ namespace quickbook
         }
     }
 
-    void process(quickbook::actions& actions, xinclude const& x)
+    nothing process(quickbook::actions& actions, xinclude const& x)
     {
         fs::path path = calculate_relative_path(x.path, actions);
         actions.phrase << "\n<xi:include href=\"";
         detail::print_string(detail::escape_uri(path.string()), actions.phrase.get());
         actions.phrase << "\" />\n";
+        
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, include const& x)
+    nothing process(quickbook::actions& actions, include const& x)
     {
         fs::path filein = include_search(actions.filename.branch_path(), x.path);
         std::string doc_id;
@@ -427,9 +442,11 @@ namespace quickbook
         actions.macro = macro;
         // restore the templates
         //~ actions.templates = templates; $$$ fixme $$$
+        
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, import const& x)
+    nothing process(quickbook::actions& actions, import const& x)
     {
         fs::path path = include_search(actions.filename.branch_path(), x.path);
         std::string ext = fs::extension(path);
@@ -446,5 +463,7 @@ namespace quickbook
                 ++actions.error_count;
             }
         }
+
+        return nothing();
     }
 }

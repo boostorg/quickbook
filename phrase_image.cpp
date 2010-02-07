@@ -18,7 +18,7 @@ namespace quickbook
 {
     namespace fs = boost::filesystem;
 
-    void process(quickbook::actions& actions, image const& x)
+    nothing process(quickbook::actions& actions, image const& x)
     {
         std::map<std::string, std::string> attributes(
             x.attributes.begin(), x.attributes.end());
@@ -144,5 +144,7 @@ namespace quickbook
         actions.phrase << "</phrase></textobject>";
 
         actions.phrase << "</inlinemediaobject>";
+
+        return nothing();
     }
 }

@@ -31,7 +31,7 @@ namespace quickbook
         std::string content;
     };
 
-    void process(quickbook::actions&, formatted const&);
+    nothing process(quickbook::actions&, formatted const&);
 }
 
 BOOST_FUSION_ADAPT_STRUCT(

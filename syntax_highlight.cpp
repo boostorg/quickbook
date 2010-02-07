@@ -19,6 +19,7 @@
 #include "grammars.hpp"
 #include "phrase.hpp"
 #include "utils.hpp"
+#include "syntax_highlight.hpp"
 
 namespace quickbook
 {
@@ -34,7 +35,7 @@ namespace quickbook
         char const* dummy;
     };
     
-    void process(quickbook::actions& actions, code_token const& x)
+    nothing process(quickbook::actions& actions, code_token const& x)
     {
         std::string type = x.type;
         if(type == "space") {
@@ -45,6 +46,8 @@ namespace quickbook
             detail::print_string(x.text, actions.phrase.get());
             actions.phrase << "</phrase>";
         }
+
+        return nothing();
     }
 }   
 

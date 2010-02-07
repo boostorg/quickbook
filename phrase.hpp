@@ -63,16 +63,6 @@ namespace quickbook
         std::string image_filename;
         attribute_map attributes;
     };
-
-    void process(quickbook::actions&, source_mode const&);
-    void process(quickbook::actions&, macro const&);
-    void process(quickbook::actions&, call_template const&);
-    void process(quickbook::actions&, anchor const&);
-    void process(quickbook::actions&, link const&);
-    void process(quickbook::actions&, simple_markup const&);
-    void process(quickbook::actions&, cond_phrase const&);
-    void process(quickbook::actions&, break_ const&);
-    void process(quickbook::actions&, image const&);
 }
 
 #endif // BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP

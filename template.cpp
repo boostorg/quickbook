@@ -342,7 +342,7 @@ namespace quickbook
         }
     }
 
-    void process(quickbook::actions& actions, call_template const& x)
+    nothing process(quickbook::actions& actions, call_template const& x)
     {
         ++actions.template_depth;
         if (actions.template_depth > actions.max_template_depth)
@@ -351,7 +351,7 @@ namespace quickbook
                 << "Infinite loop detected" << std::endl;
             --actions.template_depth;
             ++actions.error_count;
-            return;
+            return nothing();
         }
 
         // The template arguments should have the scope that the template was
@@ -380,7 +380,7 @@ namespace quickbook
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
                 ++actions.error_count;
-                return;
+                return nothing();
             }
 
             ///////////////////////////////////
@@ -395,7 +395,7 @@ namespace quickbook
             {
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
-                return;
+                return nothing();
             }
 
             ///////////////////////////////////
@@ -413,13 +413,15 @@ namespace quickbook
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
                 ++actions.error_count;
-                return;
+                return nothing();
             }
         }
 
         actions.pop(); // restore the actions' states
         actions.phrase << result; // print it!!!
         --actions.template_depth;
+        
+        return nothing();
     }
 }
 

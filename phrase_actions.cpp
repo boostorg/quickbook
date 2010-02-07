@@ -17,11 +17,12 @@
 
 namespace quickbook
 {    
-    void process(quickbook::actions& actions, source_mode const& s) {
+    nothing process(quickbook::actions& actions, source_mode const& s) {
         actions.source_mode = s.mode;
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, macro const& x) {
+    nothing process(quickbook::actions& actions, macro const& x) {
         if (x.raw_markup == quickbook_get_date)
         {
             char strdate[64];
@@ -38,15 +39,17 @@ namespace quickbook
         {
             actions.phrase << x.raw_markup;
         }
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, anchor const& x) {
+    nothing process(quickbook::actions& actions, anchor const& x) {
         actions.phrase << "<anchor id=\"";
         detail::print_string(x.id, actions.phrase.get());
         actions.phrase << "\" />\n";
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, link const& x) {
+    nothing process(quickbook::actions& actions, link const& x) {
         actions.phrase << x.type.pre;
         detail::print_string(x.destination, actions.phrase.get());
         actions.phrase << "\">";
@@ -55,13 +58,15 @@ namespace quickbook
         else
             actions.phrase << x.content;
         actions.phrase << x.type.post;
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, formatted const& x) {
+    nothing process(quickbook::actions& actions, formatted const& x) {
         actions.phrase << x.type.pre << x.content << x.type.post;
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, simple_markup const& x) {
+    nothing process(quickbook::actions& actions, simple_markup const& x) {
         markup type;
         switch(x.symbol) {
             case '*': type = markup(bold_pre_, bold_post_); break;
@@ -73,32 +78,34 @@ namespace quickbook
         actions.phrase << type.pre;
         detail::print_string(x.raw_content, actions.phrase.get());
         actions.phrase << type.post;
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, cond_phrase const& x) {
+    nothing process(quickbook::actions& actions, cond_phrase const& x) {
         bool symbol_found = actions.macro.find(x.macro_id.c_str());
 
         if (!x.content.empty() && symbol_found) {
             actions.phrase << x.content; // print the body
         }
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, break_ const& x) {
+    nothing process(quickbook::actions& actions, break_ const& x) {
         detail::outwarn(x.position.file,x.position.line)
             << "in column:" << x.position.column << ", "
             << "[br] and \\n are deprecated" << ".\n";
         actions.phrase << break_mark;
-
+        return nothing();
     }
 
-    void process(quickbook::actions& actions, code const& x) {
+    nothing process(quickbook::actions& actions, code const& x) {
          std::string program = x.code;
     
         if(x.block) {
             // preprocess the code section to remove the initial indentation
             detail::unindent(program);
             if (program.size() == 0)
-                return; // Nothing left to do here. The program is empty.
+                return nothing(); // Nothing left to do here. The program is empty.
         }
 
         iterator first_(program.begin(), program.end());
@@ -127,5 +134,6 @@ namespace quickbook
             actions.phrase << str;
             actions.phrase << "</code>";
         }
+        return nothing();
     }
 }
