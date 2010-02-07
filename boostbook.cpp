@@ -2,10 +2,21 @@
 #include "boostbook.hpp"
 #include "phrase.hpp"
 #include "actions_class.hpp"
-#include "utils.hpp"
+#include <algorithm>
 
 namespace quickbook
 {
+    struct output_action
+    {
+        output_action(quickbook::actions& actions) : actions(actions) {}    
+        quickbook::actions& actions;
+
+        template <typename T>
+        void operator()(T const& x) const {
+            output(actions, x);
+        }
+    };
+
     template <typename Iter>
     std::string encode(Iter first, Iter last)
     {
@@ -114,14 +125,14 @@ namespace quickbook
 
     void output(quickbook::actions& actions, anchor const& x) {
         actions.phrase << "<anchor id=\"";
-        detail::print_string(x.id, actions.phrase.get());
-        actions.phrase << "\" />\n";
+        actions.phrase << encode(x.id);
+        actions.phrase << "\"/>\n";
     }
 
     void output(quickbook::actions& actions, link const& x) {
         boostbook_markup m = markup_map.at(x.type);
         actions.phrase << m.pre;
-        detail::print_string(x.destination, actions.phrase.get());
+        actions.phrase << encode(x.destination);
         actions.phrase << "\">";
         actions.phrase << x.content;
         actions.phrase << m.post;
@@ -135,5 +146,197 @@ namespace quickbook
     void output(quickbook::actions& actions, break_ const& x) {
         boostbook_markup m = markup_map.at("break");
         actions.phrase << m.pre;
+    }
+
+    void output(quickbook::actions& actions, image2 const& x) {
+        actions.phrase << "<inlinemediaobject>";
+
+        actions.phrase << "<imageobject><imagedata";
+        
+        for(image2::attribute_map::const_iterator
+            attr_first = x.attributes.begin(), attr_last  = x.attributes.end();
+            attr_first != attr_last; ++attr_first)
+        {
+            if(attr_first->first == "alt") continue;
+        
+            actions.phrase
+                << " "
+                << attr_first->first
+                << "=\""
+                << encode(attr_first->second)
+                << "\"";
+        }
+
+        actions.phrase << "></imagedata></imageobject>";
+
+        attribute_map::const_iterator it = x.attributes.find("alt");
+        if(it != x.attributes.end()) {
+            // Also add a textobject -- use the basename of the image file.
+            // This will mean we get "alt" attributes of the HTML img.
+            actions.phrase << "<textobject><phrase>";
+            actions.phrase << encode(it->second);
+            actions.phrase << "</phrase></textobject>";
+        }
+
+        actions.phrase << "</inlinemediaobject>";
+    }
+
+    void output(quickbook::actions& actions, hr) {
+        actions.phrase << markup_map.at("hr").pre;
+    }
+
+    void output(quickbook::actions& actions, begin_section2 const& x) {
+        actions.phrase << "\n<section id=\"" << x.id << "\">\n";
+        if(x.linkend.empty()) {
+            actions.phrase
+                << "<title>"
+                << x.content
+                << "</title>\n"
+                ;
+        }
+        else {
+            actions.phrase
+                << "<title>"
+                << "<link linkend=\""
+                << x.linkend
+                << "\">"
+                << x.content
+                << "</link>"
+                << "</title>\n"
+                ;
+        }
+    }
+
+    void output(quickbook::actions& actions, end_section2 const& x) {
+        actions.phrase << "</section>";
+    }
+
+    void output(quickbook::actions& actions, heading2 const& x) {
+        actions.phrase
+            << "<anchor id=\"" << x.id << "\"/>"
+            << "<bridgehead renderas=\"sect" << x.level << "\">";
+
+        if(x.linkend.empty()) {
+            actions.phrase << x.content;
+        }
+        else {
+            actions.phrase
+                << "<link linkend=\"" << x.linkend << "\">"
+                << x.content << "</link>";
+        }
+
+        actions.phrase << "</bridgehead>";
+    }
+
+    void output(quickbook::actions& actions, variablelist const& x)
+    {
+        actions.phrase << "<variablelist>\n";
+
+        actions.phrase << "<title>";
+        actions.phrase << encode(x.title);
+        actions.phrase << "</title>\n";
+
+        boostbook_markup m = markup_map.at("varlistentry");
+
+        for(std::vector<varlistentry>::const_iterator
+            it = x.entries.begin(); it != x.entries.end(); ++it)
+        {
+            actions.phrase << m.pre;
+            std::for_each(it->begin(), it->end(), output_action(actions));
+            actions.phrase << m.post;
+        }
+
+        actions.phrase << "</variablelist>\n";
+    }
+
+    void output(quickbook::actions& actions, table2 const& x)
+    {
+        if (x.title)
+        {
+            actions.phrase << "<table frame=\"all\"";
+            if(x.id)
+                actions.phrase << " id=\"" << *x.id << "\"";
+            actions.phrase << ">\n";
+            actions.phrase << "<title>";
+            actions.phrase << encode(*x.title);
+            actions.phrase << "</title>";
+        }
+        else
+        {
+            actions.phrase << "<informaltable frame=\"all\"";
+            if(x.id)
+                actions.phrase << " id=\"" << *x.id << "\"";
+            actions.phrase << ">\n";
+        }
+
+        // This is a bit odd for backwards compatability: the old version just
+        // used the last count that was calculated.
+        actions.phrase << "<tgroup cols=\"" << x.cols << "\">\n";
+
+        boostbook_markup m = markup_map.at("row");
+
+        if (x.head)
+        {
+            actions.phrase << "<thead>";
+            actions.phrase << m.pre;
+            std::for_each(x.head->begin(), x.head->end(), actions.process);
+            actions.phrase << m.post;
+            actions.phrase << "</thead>\n";
+        }
+
+        actions.phrase << "<tbody>\n";
+
+        for(std::vector<table_row>::const_iterator
+            it = x.rows.begin(); it != x.rows.end(); ++it)
+        {
+            actions.phrase << m.pre;
+            std::for_each(it->begin(), it->end(), actions.process);
+            actions.phrase << m.post;
+        }
+
+        actions.phrase << "</tbody>\n" << "</tgroup>\n";
+
+        if (x.title)
+        {
+            actions.phrase << "</table>\n";
+        }
+        else
+        {
+            actions.phrase << "</informaltable>\n";
+        }
+    }
+
+    void output(quickbook::actions& actions, xinclude2 const& x)
+    {
+        actions.phrase << "\n<xi:include href=\"" <<x.path << "\" />\n";
+    }
+
+    void output(quickbook::actions& actions, list2 const& x)
+    {
+        actions.phrase << std::string(x.mark == '#' ? "<orderedlist>\n" : "<itemizedlist>\n");
+
+        for(std::vector<list_item2>::const_iterator
+            it = x.items.begin(), end = x.items.end(); it != end; ++it)
+        {
+            actions.phrase << "<listitem>\n" << it->content;
+            if(!it->sublist.items.empty()) output(actions, it->sublist);
+            actions.phrase << std::string("\n</listitem>");
+        }
+
+        actions.phrase << std::string(x.mark == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
+    }
+
+    void output(quickbook::actions& actions, code_token const& x)
+    {
+        std::string type = x.type;
+        if(type == "space") {
+            actions.phrase << x.text;
+        }
+        else {
+            actions.phrase
+                << "<phrase role=\"" << x.type << "\">"
+                << encode(x.text)
+                << "</phrase>";
+        }
     }
 }

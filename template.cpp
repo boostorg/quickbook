@@ -9,7 +9,7 @@
 
 #include <boost/spirit/include/qi_symbols.hpp>
 #include "template.hpp"
-#include "phrase.hpp"
+#include "phrase_actions.hpp"
 #include "grammars.hpp"
 #include "actions_class.hpp"
 #include "quickbook.hpp"
@@ -342,7 +342,7 @@ namespace quickbook
         }
     }
 
-    nothing process(quickbook::actions& actions, call_template const& x)
+    std::string process(quickbook::actions& actions, call_template const& x)
     {
         ++actions.template_depth;
         if (actions.template_depth > actions.max_template_depth)
@@ -351,7 +351,7 @@ namespace quickbook
                 << "Infinite loop detected" << std::endl;
             --actions.template_depth;
             ++actions.error_count;
-            return nothing();
+            return "";
         }
 
         // The template arguments should have the scope that the template was
@@ -380,7 +380,7 @@ namespace quickbook
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
                 ++actions.error_count;
-                return nothing();
+                return "";
             }
 
             ///////////////////////////////////
@@ -395,7 +395,7 @@ namespace quickbook
             {
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
-                return nothing();
+                return "";
             }
 
             ///////////////////////////////////
@@ -413,15 +413,14 @@ namespace quickbook
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
                 ++actions.error_count;
-                return nothing();
+                return "";
             }
         }
 
         actions.pop(); // restore the actions' states
-        actions.phrase << result; // print it!!!
         --actions.template_depth;
         
-        return nothing();
+        return result;
     }
 }
 

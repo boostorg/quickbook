@@ -14,8 +14,11 @@
 
 namespace quickbook
 {
-    struct code_token;
-    struct space;
+    struct code_token
+    {
+        std::string text;
+        char const* type;
+    };
 }
 
 #endif

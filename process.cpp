@@ -11,9 +11,9 @@
 
 #include "fwd.hpp"
 #include "phrase_actions.hpp"
+#include "block_actions.hpp"
 #include "actions.hpp"
 #include "parse_types.hpp"
-#include "block.hpp"
 #include "code.hpp"
 #include "syntax_highlight.hpp"
 #include "template.hpp"
@@ -37,22 +37,6 @@ namespace quickbook
     }
 
     void output(quickbook::actions&, std::string const&);
-    nothing process(quickbook::actions&, call_template const&);
-    nothing process(quickbook::actions&, image const&);
-    nothing process(quickbook::actions&, hr);
-    nothing process(quickbook::actions&, paragraph const&);
-    nothing process(quickbook::actions&, list const&);
-    nothing process(quickbook::actions&, begin_section const&);
-    nothing process(quickbook::actions&, end_section const&);
-    nothing process(quickbook::actions&, heading const&);
-    nothing process(quickbook::actions&, def_macro const&);
-    nothing process(quickbook::actions&, variablelist const&);
-    nothing process(quickbook::actions&, table const&);
-    nothing process(quickbook::actions&, xinclude const&);
-    nothing process(quickbook::actions&, import const&);
-    nothing process(quickbook::actions&, include const&);
-    nothing process(quickbook::actions&, define_template const&);
-    nothing process(quickbook::actions&, code_token const&);
 
     template void process_action::operator()<formatted>(formatted const&) const;
     template void process_action::operator()<source_mode>(source_mode const&) const;

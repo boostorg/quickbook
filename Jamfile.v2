@@ -28,7 +28,6 @@ exe quickbook
     post_process.cpp
     collector.cpp
     template.cpp
-    markups.cpp
     phrase.cpp
     phrase_actions.cpp
     phrase_image.cpp

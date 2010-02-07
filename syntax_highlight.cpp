@@ -7,8 +7,6 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#if !defined(BOOST_SPIRIT_QUICKBOOK_SYNTAX_HIGHLIGHT_HPP)
-#define BOOST_SPIRIT_QUICKBOOK_SYNTAX_HIGHLIGHT_HPP
 
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_auxiliary.hpp>
@@ -20,36 +18,6 @@
 #include "phrase.hpp"
 #include "utils.hpp"
 #include "syntax_highlight.hpp"
-
-namespace quickbook
-{
-    struct code_token
-    {
-        std::string text;
-        char const* type;
-    };
-    
-    struct space
-    {
-        std::string text;
-        char const* dummy;
-    };
-    
-    nothing process(quickbook::actions& actions, code_token const& x)
-    {
-        std::string type = x.type;
-        if(type == "space") {
-            actions.phrase << x.text;
-        }
-        else {
-            actions.phrase << "<phrase role=\"" << x.type << "\">";
-            detail::print_string(x.text, actions.phrase.get());
-            actions.phrase << "</phrase>";
-        }
-
-        return nothing();
-    }
-}   
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::code_token,
@@ -432,5 +400,3 @@ namespace quickbook
         return str;
     }
 }
-
-#endif // BOOST_SPIRIT_QUICKBOOK_SYNTAX_HIGHLIGHT_HPP

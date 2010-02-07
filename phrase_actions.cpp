@@ -11,7 +11,6 @@
 #include <boost/assert.hpp>
 #include "phrase.hpp"
 #include "actions_class.hpp"
-#include "markups.hpp"
 #include "utils.hpp"
 #include "code.hpp"
 #include "boostbook.hpp"

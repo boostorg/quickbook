@@ -11,6 +11,7 @@
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include "phrase.hpp"
+#include "gen_types.hpp"
 #include "actions_class.hpp"
 #include "utils.hpp"
 
@@ -18,7 +19,7 @@ namespace quickbook
 {
     namespace fs = boost::filesystem;
 
-    nothing process(quickbook::actions& actions, image const& x)
+    image2 process(quickbook::actions& actions, image const& x)
     {
         std::map<std::string, std::string> attributes(
             x.attributes.begin(), x.attributes.end());
@@ -43,12 +44,9 @@ namespace quickbook
         }
     
         fs::path const img_path(x.image_filename);
-        
-        attribute_map::iterator it = attributes.find("alt");
-        std::string alt_text = it != attributes.end() ? it->second : fs::basename(img_path);
-        attributes.erase("alt");
-
         attributes.insert(attribute_map::value_type("fileref", x.image_filename));
+        // Note: If there is already an alt attribute this is a no-op.
+        attributes.insert(attribute_map::value_type("alt", fs::basename(img_path)));
 
         if(fs::extension(img_path) == ".svg")
         {
@@ -112,39 +110,7 @@ namespace quickbook
                 std::string(svg_text.begin() + a + 1, svg_text.begin() + b)));
            }
         }
-
-        actions.phrase << "<inlinemediaobject>";
-
-        actions.phrase << "<imageobject><imagedata";
         
-        for(attribute_map::const_iterator
-            attr_first = attributes.begin(), attr_last  = attributes.end();
-            attr_first != attr_last; ++attr_first)
-        {
-            actions.phrase << " " << attr_first->first << "=\"";
-
-            for(std::string::const_iterator
-                first = attr_first->second.begin(),
-                last  = attr_first->second.end();
-                first != last; ++first)
-            {
-                if (*first == '\\' && ++first == last) break;
-                detail::print_char(*first, actions.phrase.get());
-            }
-
-            actions.phrase << "\"";
-        }
-
-        actions.phrase << "></imagedata></imageobject>";
-
-        // Also add a textobject -- use the basename of the image file.
-        // This will mean we get "alt" attributes of the HTML img.
-        actions.phrase << "<textobject><phrase>";
-        detail::print_string(alt_text, actions.phrase.get());
-        actions.phrase << "</phrase></textobject>";
-
-        actions.phrase << "</inlinemediaobject>";
-
-        return nothing();
+        return image2(attributes);
     }
 }

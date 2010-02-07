@@ -9,14 +9,12 @@
 =============================================================================*/
 
 #include <boost/assert.hpp>
-#include "block.hpp"
 #include "actions_class.hpp"
+#include "gen_types.hpp"
 #include "utils.hpp"
 
 namespace quickbook
 {
-    typedef std::pair<char, int> mark_type;
-
     namespace {
         int indent_length(std::string const& indent)
         {
@@ -36,46 +34,47 @@ namespace quickbook
         }
     }
 
-    nothing process(quickbook::actions& actions, quickbook::list const& list)
+    struct stack_entry
     {
-        int list_indent = -1;
-        std::stack<mark_type> list_marks;
+        explicit stack_entry(list2& list, int indent) : list(list), indent(indent) {}
+        list2& list;
+        int indent;
+    };
+
+    list2 process(quickbook::actions& actions, quickbook::list const& list)
+    {
+        list::const_iterator it = list.begin(), end = list.end();
+        BOOST_ASSERT(it != end);
+        
+        list2 r;
+        r.mark = list.begin()->mark;
+        std::stack<stack_entry> stack;
+        stack.push(stack_entry(r, 0));
 
         for(list::const_iterator it = list.begin(), end = list.end(); it != end; ++it)
         {
             int new_indent = indent_length(it->indent);
             BOOST_ASSERT(it->mark == '#' || it->mark == '*');
             
-            // The first item shouldn't be indented.
-            BOOST_ASSERT(list_indent != -1 || new_indent == 0);
-    
-            if (new_indent > list_indent)
+            if (new_indent > stack.top().indent)
             {
-                list_indent = new_indent;
-                list_marks.push(mark_type(it->mark, list_indent));
-                actions.phrase << std::string(it->mark == '#' ? "<orderedlist>\n" : "<itemizedlist>\n");
+                stack.push(stack_entry(stack.top().list.items.back().sublist, new_indent));
+                stack.top().list.mark = it->mark;
             }
-            else if(new_indent == list_indent)
+            else if (new_indent < stack.top().indent)
             {
-                actions.phrase << std::string("\n</listitem>");
-            }
-            else if (new_indent < list_indent)
-            {
-                list_indent = new_indent;
-    
-                // TODO: This assumes that list_indent is equal to one of the
+                // TODO: This assumes that new_indent is equal to one of the
                 // existing indents.
-                while (!list_marks.empty() && (list_indent < list_marks.top().second))
-                {
-                    actions.phrase << std::string("\n</listitem>");
-                    actions.phrase << std::string(list_marks.top().first == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
-                    list_marks.pop();
-                }
-                BOOST_ASSERT(!list_marks.empty());
-                actions.phrase << std::string("\n</listitem>");
+                while (!stack.empty() && (new_indent < stack.top().indent))
+                    stack.pop();
+                BOOST_ASSERT(!stack.empty());
             }
+            
+            list_item2 item;
+            item.content = it->content;
+            stack.top().list.items.push_back(item);
     
-            if (it->mark != list_marks.top().first)
+            if (it->mark != stack.top().list.mark)
             {
                 file_position const pos = it->position;
                 detail::outerr(pos.file,pos.line)
@@ -84,17 +83,8 @@ namespace quickbook
                     << "Ignoring change of list style" << std::endl;
                 ++actions.error_count;
             }
-            
-            actions.phrase << "<listitem>\n" << it->content;
         }
 
-        while (!list_marks.empty())
-        {
-            actions.phrase << std::string("\n</listitem>");
-            actions.phrase << std::string(list_marks.top().first == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
-            list_marks.pop();
-        }
-
-        return nothing();
+        return r;
     }
 }
