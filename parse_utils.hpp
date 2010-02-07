@@ -15,7 +15,7 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_function.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/support_attributes.hpp>
+#include <boost/spirit/include/qi_core.hpp>
 #include <string>
 
 namespace quickbook
