@@ -95,6 +95,7 @@ namespace quickbook
 
                   actions.snippet += "'''<para>'''";
                   actions.snippet += actions.callouts[i];
+                  actions.snippet += "\n";
                   actions.snippet += "'''</para>'''";
                   actions.snippet += "'''</callout>'''";
               }
