@@ -84,48 +84,45 @@ namespace quickbook
         quickbook::actions& actions;
         bool& no_eols;
 
-        qi::rule<iterator>
-                        space, blank, comment, phrase_markup,
-                        phrase_end,
-                        escape, common,
-                        hard_space, eol,
-                        replaceable, macro,
-                        dummy_block,
-                        brackets_1_4, template_inner_arg_1_5, brackets_1_5
-                        ;
-
-        qi::rule<iterator, file_position()> position;
-
-        qi::rule<iterator, quickbook::call_template()> call_template;
-        qi::rule<iterator, std::string()> template_arg_1_4, template_arg_1_5;
-        qi::rule<iterator, std::vector<std::string>() > template_args;
-
         qi::rule<iterator, std::string()> phrase;
-        
-        qi::rule<iterator, quickbook::formatted()> escape_punct, escape_markup;
-        qi::rule<iterator, quickbook::break_()> break_, escape_break;
-
-        qi::rule<iterator, std::string()> macro_identifier;
+        qi::rule<iterator> common;
+        qi::rule<iterator> macro;
+        qi::rule<iterator> phrase_markup;
+        qi::rule<iterator, quickbook::code()> code_block;
+        qi::rule<iterator, quickbook::code()> inline_code;
+        qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> > simple_format;
+        qi::rule<iterator> escape;        
+        qi::rule<iterator, quickbook::break_()> escape_break;
+        qi::rule<iterator, quickbook::formatted()> escape_punct;
+        qi::rule<iterator, quickbook::formatted()> escape_markup;
+        qi::rule<iterator> comment;
+        qi::rule<iterator> dummy_block;
         qi::rule<iterator, quickbook::cond_phrase()> cond_phrase;
-
+        qi::rule<iterator, std::string()> macro_identifier;
         qi::rule<iterator, quickbook::image()> image, image_1_4, image_1_5;
-        qi::rule<iterator, std::string()> image_filename, image_attribute_key, image_attribute_value;
+        qi::rule<iterator, std::string()> image_filename;
         qi::rule<iterator, quickbook::image::attribute_map()> image_attributes;
         qi::rule<iterator, std::pair<std::string, std::string>()> image_attribute;
-        
-        qi::rule<iterator, quickbook::code()> inline_code, code_block;
-        
-        qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> > simple_format;
-        
-        qi::rule<iterator, quickbook::anchor()> anchor;
-
+        qi::rule<iterator, std::string()> image_attribute_key, image_attribute_value;
+        qi::rule<iterator, quickbook::link()> url;
+        qi::rule<iterator, quickbook::link()> link;
         qi::symbols<char, markup> link_symbol;
-        qi::rule<iterator, quickbook::link()> link, url;
-
-        qi::symbols<char, markup> format_symbol;
-        qi::rule<iterator, quickbook::formatted()> formatted, footnote;
-        
+        qi::rule<iterator, quickbook::anchor()> anchor;
         qi::symbols<char, quickbook::source_mode> source_mode;
+        qi::rule<iterator, quickbook::formatted()> formatted;
+        qi::symbols<char, markup> format_symbol;
+        qi::rule<iterator, quickbook::formatted()> footnote;
+        qi::rule<iterator, quickbook::call_template()> call_template;
+        qi::rule<iterator, std::vector<std::string>() > template_args;
+        qi::rule<iterator, std::string()> template_arg_1_4;
+        qi::rule<iterator> brackets_1_4;
+        qi::rule<iterator, std::string()> template_arg_1_5;
+        qi::rule<iterator> template_inner_arg_1_5;
+        qi::rule<iterator> brackets_1_5;
+        qi::rule<iterator, quickbook::break_()> break_;
+        qi::rule<iterator> space, blank, eol, phrase_end, hard_space;
+        qi::rule<iterator, file_position()> position;
+        
     };
 
     phrase_grammar::phrase_grammar(quickbook::actions& actions, bool& no_eols)
@@ -140,35 +137,13 @@ namespace quickbook
     phrase_grammar::rules::rules(quickbook::actions& actions, bool& no_eols)
         : actions(actions), no_eols(no_eols)
     {
-        space =
-            *(qi::space | comment)
-            ;
-
-        blank =
-            *(qi::blank | comment)
-            ;
-
-        eol = blank >> qi::eol
-            ;
-
-        phrase_end =
-            ']' |
-            qi::eps(ph::ref(no_eols)) >>
-                eol >> eol                      // Make sure that we don't go
-            ;                                   // past a single block, except
-                                                // when preformatted.
-
-        hard_space =
-            !(qi::alnum | '_') >> space
-            ;                                   // must not be preceded by
-                                                // alpha-numeric or underscore
-
-        comment =
-            "[/" >> *(dummy_block | (qi::char_ - ']')) >> ']'
-            ;
-
-        dummy_block =
-            '[' >> *(dummy_block | (qi::char_ - ']')) >> ']'
+        phrase =
+                qi::eps                         [actions.phrase_push]        
+            >> *(   common
+                |   comment
+                |   (qi::char_ - phrase_end)    [actions.plain_char]
+                )
+            >>  qi::eps                         [actions.phrase_pop]
             ;
 
         common =
@@ -187,58 +162,21 @@ namespace quickbook
             )                                       [actions.process]
             ;
 
-        // Template call
-
-        call_template =
-                position
-            >>  (   '`' >> qi::attr(true)
-                |   qi::attr(false)
+        phrase_markup =
+            (   '['
+            >>  (   cond_phrase                     
+                |   image
+                |   url
+                |   link
+                |   anchor
+                |   source_mode
+                |   formatted
+                |   footnote
+                |   call_template
+                |   break_
                 )
-            >>  (                                   // Lookup the template name
-                    (&qi::punct >> actions.templates.scope)
-                |   (actions.templates.scope >> hard_space)
-                )
-            >>  template_args
-            >>  &qi::lit(']')
-            ;
-
-        template_args =
-            qi::eps(qbk_before(105u)) >> -(template_arg_1_4 % "..") |
-            qi::eps(qbk_since(105u)) >> -(template_arg_1_5 % "..");
-
-        template_arg_1_4 =
-            qi::raw[+(brackets_1_4 | (qi::char_ - (qi::lit("..") | ']')))]
-            ;
-
-        brackets_1_4 =
-            '[' >> +template_arg_1_4 >> ']'
-            ;
-
-        template_arg_1_5 =
-            qi::raw[+(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit("..") | '[' | ']')))]
-            ;
-
-        template_inner_arg_1_5 =
-            +(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit('[') | ']')))
-            ;
-
-        brackets_1_5 =
-            '[' >> +template_inner_arg_1_5 >> ']'
-            ;
-
-        inline_code =
-                '`'
-            >>  position
-            >>  qi::raw
-                [   *(  qi::char_ -
-                        (   '`'
-                        |   (eol >> eol)            // Make sure that we don't go
-                        )                           // past a single block
-                    )
-                    >>  &qi::lit('`')
-                ]
-            >>  '`'
-            >>  qi::attr(false)
+            >>  ']'
+            )                                       [actions.process]
             ;
 
         code_block =
@@ -256,6 +194,21 @@ namespace quickbook
                 >>  "``"
                 >>  qi::attr(true)
                 )
+            ;
+
+        inline_code =
+                '`'
+            >>  position
+            >>  qi::raw
+                [   *(  qi::char_ -
+                        (   '`'
+                        |   (eol >> eol)            // Make sure that we don't go
+                        )                           // past a single block
+                    )
+                    >>  &qi::lit('`')
+                ]
+            >>  '`'
+            >>  qi::attr(false)
             ;
 
         simple_format %=
@@ -281,38 +234,6 @@ namespace quickbook
                     )
                 ]
             >> qi::omit[qi::char_(qi::_a)]
-            ;
-
-        phrase =
-                qi::eps                         [actions.phrase_push]        
-            >> *(   common
-                |   comment
-                |   (qi::char_ - phrase_end)    [actions.plain_char]
-                )
-            >>  qi::eps                         [actions.phrase_pop]
-            ;
-
-        phrase_markup =
-            (   '['
-            >>  (   cond_phrase                     
-                |   image
-                |   url
-                |   link
-                |   anchor
-                |   source_mode
-                |   formatted
-                |   footnote
-                |   call_template
-                |   break_
-                )
-            >>  ']'
-            )                                       [actions.process]
-            ;
-
-        break_ =
-                position
-            >>  "br"
-            >>  qi::attr("dummy")
             ;
 
         escape =
@@ -342,8 +263,12 @@ namespace quickbook
             >>  "'''"
             ;
 
-        macro_identifier =
-            +(qi::char_ - (qi::space | ']'))
+        comment =
+            "[/" >> *(dummy_block | (qi::char_ - ']')) >> ']'
+            ;
+
+        dummy_block =
+            '[' >> *(dummy_block | (qi::char_ - ']')) >> ']'
             ;
 
         cond_phrase =
@@ -351,6 +276,10 @@ namespace quickbook
             >>  blank
             >>  macro_identifier
             >>  -phrase
+            ;
+
+        macro_identifier =
+            +(qi::char_ - (qi::space | ']'))
             ;
 
         image =
@@ -395,11 +324,22 @@ namespace quickbook
         image_attribute_key = *(qi::alnum | '_');
         image_attribute_value = *(qi::char_ - (phrase_end | '['));
 
-        anchor =
-                '#'
-            >>  blank
-            >>  *(qi::char_ - phrase_end)
-            >>  qi::attr("dummy")
+        url =
+                '@'
+            >>  qi::attr(markup(url_pre_, url_post_))
+            >>  *(qi::char_ - (']' | qi::space))
+            >>  (   &qi::lit(']')
+                |   (hard_space >> phrase)
+                )
+            ;
+
+        link =
+                link_symbol
+            >>  hard_space
+            >>  *(qi::char_ - (']' | qi::space))
+            >>  (   &qi::lit(']')
+                |   (hard_space >> phrase)
+                )
             ;
 
         link_symbol.add
@@ -414,23 +354,20 @@ namespace quickbook
             ("globalref", markup(globalref_pre_, globalref_post_))
             ;
 
-        link =
-                link_symbol
-            >>  hard_space
-            >>  *(qi::char_ - (']' | qi::space))
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )
+        anchor =
+                '#'
+            >>  blank
+            >>  *(qi::char_ - phrase_end)
+            >>  qi::attr("dummy")
             ;
 
-        url =
-                '@'
-            >>  qi::attr(markup(url_pre_, url_post_))
-            >>  *(qi::char_ - (']' | qi::space))
-            >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
-                )
+        source_mode.add
+            ("c++", quickbook::source_mode("c++"))
+            ("python", quickbook::source_mode("python"))
+            ("teletype", quickbook::source_mode("teletype"))
             ;
+
+        formatted = format_symbol >> blank >> phrase;
 
         format_symbol.add
             ("*", markup(bold_pre_, bold_post_))
@@ -442,14 +379,6 @@ namespace quickbook
             ("~", markup(replaceable_pre_, replaceable_post_))
             ;
 
-        formatted = format_symbol >> blank >> phrase;
-
-        source_mode.add
-            ("c++", quickbook::source_mode("c++"))
-            ("python", quickbook::source_mode("python"))
-            ("teletype", quickbook::source_mode("teletype"))
-            ;
-
         footnote =
                 "footnote"
             >>  qi::attr(markup(footnote_pre_, footnote_post_))
@@ -457,6 +386,73 @@ namespace quickbook
             >>  phrase
             ;
 
+        // Template call
+
+        call_template =
+                position
+            >>  (   '`' >> qi::attr(true)
+                |   qi::attr(false)
+                )
+            >>  (                                   // Lookup the template name
+                    (&qi::punct >> actions.templates.scope)
+                |   (actions.templates.scope >> hard_space)
+                )
+            >>  template_args
+            >>  &qi::lit(']')
+            ;
+
+        template_args =
+            qi::eps(qbk_before(105u)) >> -(template_arg_1_4 % "..") |
+            qi::eps(qbk_since(105u)) >> -(template_arg_1_5 % "..");
+
+        template_arg_1_4 =
+            qi::raw[+(brackets_1_4 | (qi::char_ - (qi::lit("..") | ']')))]
+            ;
+
+        brackets_1_4 =
+            '[' >> +template_arg_1_4 >> ']'
+            ;
+
+        template_arg_1_5 =
+            qi::raw[+(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit("..") | '[' | ']')))]
+            ;
+
+        template_inner_arg_1_5 =
+            +(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit('[') | ']')))
+            ;
+
+        brackets_1_5 =
+            '[' >> +template_inner_arg_1_5 >> ']'
+            ;
+
+        break_ =
+                position
+            >>  "br"
+            >>  qi::attr("dummy")
+            ;
+
+        space =
+            *(qi::space | comment)
+            ;
+
+        blank =
+            *(qi::blank | comment)
+            ;
+
+        eol = blank >> qi::eol
+            ;
+
+        phrase_end =
+            ']' |
+            qi::eps(ph::ref(no_eols)) >>
+                eol >> eol                      // Make sure that we don't go
+            ;                                   // past a single block, except
+                                                // when preformatted.
+
+        hard_space =
+            !(qi::alnum | '_') >> space
+            ;                                   // must not be preceded by
+                                                // alpha-numeric or underscore
          position = qi::raw[qi::eps] [get_position];
     }
 
