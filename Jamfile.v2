@@ -40,6 +40,8 @@ exe quickbook
     code_snippet_grammar.cpp
     syntax_highlight.cpp
     boostbook.cpp
+    html.cpp
+    encoder_impl.cpp
     /boost//program_options
     /boost//filesystem
     : #<define>QUICKBOOK_NO_DATES
