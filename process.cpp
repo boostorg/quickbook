@@ -25,7 +25,7 @@ namespace quickbook
     template <typename T>
     void process_action::operator()(T const& x) const
     {
-        output(actions, process(actions, x));
+        output(actions.state_, process(actions, x));
     }
 
     template <typename T>
@@ -34,10 +34,8 @@ namespace quickbook
         return x;
     }
 
-    void output(quickbook::actions&, nothing) {
+    void output(quickbook::state&, nothing) {
     }
-
-    void output(quickbook::actions&, std::string const&);
 
     template void process_action::operator()<formatted>(formatted const&) const;
     template void process_action::operator()<source_mode>(source_mode const&) const;

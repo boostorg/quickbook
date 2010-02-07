@@ -21,7 +21,8 @@
 #include "code.hpp"
 #include "phrase.hpp"
 #include "grammars.hpp"
-#include "actions_class.hpp"
+#include "actions.hpp"
+#include "template.hpp"
 #include "parse_utils.hpp"
 
 BOOST_FUSION_ADAPT_STRUCT(

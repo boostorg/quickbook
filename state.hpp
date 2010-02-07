@@ -14,18 +14,18 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/filesystem/path.hpp>
 #include "fwd.hpp"
-#include "actions.hpp"
 #include "collector.hpp"
 #include "template.hpp"
+#include "actions.hpp"
 
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
     namespace fs = boost::filesystem;
 
-    struct actions
+    struct state
     {
-        actions(char const* filein_, fs::path const& outdir, string_stream& out_);
+        state(char const* filein_, fs::path const& outdir, string_stream& out_);
 
     ///////////////////////////////////////////////////////////////////////////
     // State
@@ -70,19 +70,7 @@ namespace quickbook
     // push/pop the states and the streams
         void push();
         void pop();
-
-    ///////////////////////////////////////////////////////////////////////////
-    // actions
-    ///////////////////////////////////////////////////////////////////////////
-        process_action          process;
-        phrase_push_action      phrase_push;
-        phrase_pop_action       phrase_pop;
-        error_action            error;
-
-        syntax_highlight        syntax_p;
-
-        element_id_warning_action element_id_warning;
-    };
+    };    
 }
 
 #endif // BOOST_SPIRIT_ACTIONS_CLASS_HPP

@@ -16,7 +16,8 @@
 #include "collector.hpp"
 #include "quickbook.hpp"
 #include "doc_info_actions.hpp"
-#include "actions_class.hpp"
+#include "actions.hpp"
+#include "state.hpp"
 #include "utils.hpp"
 
 namespace quickbook

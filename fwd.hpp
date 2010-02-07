@@ -16,9 +16,11 @@ namespace quickbook
 {
     struct nothing {};
 
+    struct template_stack;
     struct macro;
     struct doc_info;
 
+    struct state;
     struct actions;
     struct code_snippet_actions;
 

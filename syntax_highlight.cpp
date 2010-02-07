@@ -13,7 +13,7 @@
 #include <boost/spirit/include/qi_string.hpp>
 #include <boost/spirit/include/qi_directive.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
-#include "actions_class.hpp"
+#include "actions.hpp"
 #include "grammars.hpp"
 #include "phrase.hpp"
 #include "utils.hpp"
@@ -370,7 +370,7 @@ namespace quickbook
 
     std::string syntax_highlight::operator()(iterator first, iterator last) const
     {
-        escape_actions.phrase.push();
+        escape_actions.phrase_push();
 
         // print the code with syntax coloring
         if (source_mode == "c++")
@@ -393,10 +393,6 @@ namespace quickbook
             BOOST_ASSERT(0);
         }
 
-        std::string str;
-        escape_actions.phrase.swap(str);
-        escape_actions.phrase.pop();
-
-        return str;
+        return escape_actions.phrase_pop();
     }
 }

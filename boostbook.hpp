@@ -25,33 +25,33 @@ namespace quickbook
 
     // Output function for boostbook, these should eventually become an
     // interface with implementations for boostbook and html.
-    // They probably shouldn't use quickbook::actions, instead they
+    // They probably shouldn't use quickbook::state, instead they
     // should either take a stream/collector to write to, or return their
     // output by value.
 
-    void output(quickbook::actions&, doc_info const&);
-    void output(quickbook::actions&, doc_info_post const&);
+    void output(quickbook::state&, doc_info const&);
+    void output(quickbook::state&, doc_info_post const&);
 
     // Note: char is a plain quickbook character, string is an encoded
     // boostbook string. Oops.
-    void output(quickbook::actions&, char);
-    void output(quickbook::actions&, std::string const&);
-    void output(quickbook::actions&, anchor const&);
-    void output(quickbook::actions&, link const&);
-    void output(quickbook::actions&, formatted const&);
-    void output(quickbook::actions&, break_ const&);
-    void output(quickbook::actions&, image2 const&);
+    void output(quickbook::state&, char);
+    void output(quickbook::state&, std::string const&);
+    void output(quickbook::state&, anchor const&);
+    void output(quickbook::state&, link const&);
+    void output(quickbook::state&, formatted const&);
+    void output(quickbook::state&, break_ const&);
+    void output(quickbook::state&, image2 const&);
 
-    void output(quickbook::actions&, hr);
-    void output(quickbook::actions&, begin_section2 const&);
-    void output(quickbook::actions&, end_section2 const&);
-    void output(quickbook::actions&, heading2 const&);
-    void output(quickbook::actions&, variablelist const&);
-    void output(quickbook::actions&, table2 const&);
-    void output(quickbook::actions&, xinclude2 const&);
-    void output(quickbook::actions&, list2 const&);
+    void output(quickbook::state&, hr);
+    void output(quickbook::state&, begin_section2 const&);
+    void output(quickbook::state&, end_section2 const&);
+    void output(quickbook::state&, heading2 const&);
+    void output(quickbook::state&, variablelist const&);
+    void output(quickbook::state&, table2 const&);
+    void output(quickbook::state&, xinclude2 const&);
+    void output(quickbook::state&, list2 const&);
 
-    void output(quickbook::actions&, code_token const&);
+    void output(quickbook::state&, code_token const&);
 
     std::string encode(std::string const&);
     std::string encode(char);

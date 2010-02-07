@@ -10,7 +10,8 @@
 =============================================================================*/
 
 #include <boost/filesystem/operations.hpp>
-#include "actions_class.hpp"
+#include "actions.hpp"
+#include "state.hpp"
 #include "quickbook.hpp"
 
 #if (defined(BOOST_MSVC) && (BOOST_MSVC <= 1310))
@@ -21,7 +22,7 @@ namespace quickbook
 {
     namespace fs = boost::filesystem;
 
-    actions::actions(char const* filein_, fs::path const& outdir_, string_stream& out_)
+    state::state(char const* filein_, fs::path const& outdir_, string_stream& out_)
     // header info
         : doc_id()
         , doc_title()
@@ -42,14 +43,6 @@ namespace quickbook
         , template_depth(0)
         , templates()
         , error_count(0)
-
-    // actions
-        , process(*this)
-        , phrase_push(phrase)
-        , phrase_pop(phrase)
-        , error(error_count)
-
-        , syntax_p(source_mode, *this)
     {
         // turn off __FILENAME__ macro on debug mode = true
         std::string filename_str = debug_mode ?
@@ -64,7 +57,7 @@ namespace quickbook
         ;
     }
 
-    void actions::push()
+    void state::push()
     {
         state_stack.push(
             boost::make_tuple(
@@ -82,7 +75,7 @@ namespace quickbook
         templates.push();
     }
 
-    void actions::pop()
+    void state::pop()
     {
         boost::tie(
             filename

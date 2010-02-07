@@ -12,7 +12,8 @@
 #include <boost/assert.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include "block_actions.hpp"
-#include "actions_class.hpp"
+#include "actions.hpp"
+#include "state.hpp"
 #include "quickbook.hpp"
 #include "grammars.hpp"
 #include "code_snippet_types.hpp"
@@ -45,30 +46,30 @@ namespace quickbook
     begin_section2 process(quickbook::actions& actions, begin_section const& x)
     {
         // TODO: This uses the generated title.
-        actions.section_id = x.id ? *x.id :
+        actions.state_.section_id = x.id ? *x.id :
             detail::make_identifier(
                 x.content.raw_markup.begin(),
                 x.content.raw_markup.end());
 
-        if (actions.section_level != 0) {
-            actions.qualified_section_id += '.';
+        if (actions.state_.section_level != 0) {
+            actions.state_.qualified_section_id += '.';
         }
         else {
-            BOOST_ASSERT(actions.qualified_section_id.empty());
+            BOOST_ASSERT(actions.state_.qualified_section_id.empty());
         }
 
-        actions.qualified_section_id += actions.section_id;
-        ++actions.section_level;
+        actions.state_.qualified_section_id += actions.state_.section_id;
+        ++actions.state_.section_level;
 
         begin_section2 r;
 
         if (qbk_version_n < 103) // version 1.2 and below
         {
-            r.id = actions.doc_id + "." + actions.section_id;
+            r.id = actions.state_.doc_id + "." + actions.state_.section_id;
         }
         else // version 1.3 and above
         {
-            r.linkend = r.id = actions.doc_id + "." + actions.qualified_section_id;
+            r.linkend = r.id = actions.state_.doc_id + "." + actions.state_.qualified_section_id;
         }
         
         r.content = x.content.content;
@@ -78,26 +79,26 @@ namespace quickbook
 
     end_section2 process(quickbook::actions& actions, end_section const& x)
     {
-        --actions.section_level;
-        if (actions.section_level < 0)
+        --actions.state_.section_level;
+        if (actions.state_.section_level < 0)
         {
             detail::outerr(x.position.file,x.position.line)
                 << "Mismatched [endsect] near column " << x.position.column << ".\n";
-            ++actions.error_count;
+            ++actions.state_.error_count;
             
             // $$$ TODO: somehow fail parse else BOOST_ASSERT(std::string::npos != n)
             // $$$ below will assert.
         }
-        if (actions.section_level == 0)
+        if (actions.state_.section_level == 0)
         {
-            actions.qualified_section_id.clear();
+            actions.state_.qualified_section_id.clear();
         }
         else
         {
             std::string::size_type const n =
-                actions.qualified_section_id.find_last_of('.');
+                actions.state_.qualified_section_id.find_last_of('.');
             BOOST_ASSERT(std::string::npos != n);
-            actions.qualified_section_id.erase(n, std::string::npos);
+            actions.state_.qualified_section_id.erase(n, std::string::npos);
         }
         
         return end_section2();
@@ -112,7 +113,8 @@ namespace quickbook
         
         r.level = x.level;
         if(r.level < 0) {
-            r.level = actions.section_level + 2;// section_level is zero-based. We need to use a
+            r.level = actions.state_.section_level + 2;
+                                                // section_level is zero-based. We need to use a
                                                 // one-based heading which is one greater
                                                 // than the current. Thus: section_level + 2.
             if (r.level > 6)                    // The max is h6, clip it if it goes
@@ -121,7 +123,7 @@ namespace quickbook
 
         if (!new_style) // version 1.2 and below
         {
-            r.id = actions.section_id + "." +
+            r.id = actions.state_.section_id + "." +
                 detail::make_identifier(
                     x.content.raw_markup.begin(),
                     x.content.raw_markup.end());
@@ -129,7 +131,7 @@ namespace quickbook
         else // version 1.3 and above
         {
             r.linkend = r.id = fully_qualified_id(
-                actions.doc_id, actions.qualified_section_id,
+                actions.state_.doc_id, actions.state_.qualified_section_id,
                 detail::make_identifier(
                     x.content.raw_markup.begin(),
                     x.content.raw_markup.end()));
@@ -143,7 +145,7 @@ namespace quickbook
 
     nothing process(quickbook::actions& actions, def_macro const& x)
     {
-        actions.macro.add(
+        actions.state_.macro.add(
             x.macro_identifier.begin()
           , x.macro_identifier.end()
           , quickbook::macro(x.content));
@@ -152,10 +154,10 @@ namespace quickbook
 
     nothing process(quickbook::actions& actions, define_template const& x)
     {
-        if(!actions.templates.add(x)) {
+        if(!actions.state_.templates.add(x)) {
             detail::outerr(x.position.file, x.position.line)
                 << "Template Redefinition: " << x.id << std::endl;
-            ++actions.error_count;
+            ++actions.state_.error_count;
         }
         
         return nothing();
@@ -169,12 +171,12 @@ namespace quickbook
         
         if(qbk_version_n >= 105) {
             if(x.id) {
-                r.id = fully_qualified_id(actions.doc_id,
-                    actions.qualified_section_id, *x.id);
+                r.id = fully_qualified_id(actions.state_.doc_id,
+                    actions.state_.qualified_section_id, *x.id);
             }
             else if(r.title) {
-                r.id = fully_qualified_id(actions.doc_id,
-                    actions.qualified_section_id,
+                r.id = fully_qualified_id(actions.state_.doc_id,
+                    actions.state_.qualified_section_id,
                     detail::make_identifier(x.title.begin(), x.title.end()));
             }
         }
@@ -284,9 +286,9 @@ namespace quickbook
             fs::path path(x);
             if (!path.is_complete())
             {
-                fs::path infile = fs::complete(actions.filename).normalize();
+                fs::path infile = fs::complete(actions.state_.filename).normalize();
                 path = (infile.branch_path() / path).normalize();
-                fs::path outdir = fs::complete(actions.outdir).normalize();
+                fs::path outdir = fs::complete(actions.state_.outdir).normalize();
                 path = path_difference(outdir, path);
             }
             return path;
@@ -302,59 +304,59 @@ namespace quickbook
 
     nothing process(quickbook::actions& actions, include const& x)
     {
-        fs::path filein = include_search(actions.filename.branch_path(), x.path);
+        fs::path filein = include_search(actions.state_.filename.branch_path(), x.path);
         std::string doc_id;
 
         // swap the filenames
-        std::swap(actions.filename, filein);
+        std::swap(actions.state_.filename, filein);
 
         // save the doc info strings
-        actions.doc_id.swap(doc_id);
+        actions.state_.doc_id.swap(doc_id);
 
         // scope the macros
-        macro_symbols macro = actions.macro;
+        macro_symbols macro = actions.state_.macro;
         // scope the templates
-        //~ template_symbols templates = actions.templates; $$$ fixme $$$
+        //~ template_symbols templates = actions.state_.templates; $$$ fixme $$$
 
         // if an id is specified in this include (as in [include:id foo.qbk])
         // then use it as the doc_id.
-        if (x.id) actions.doc_id = *x.id;
+        if (x.id) actions.state_.doc_id = *x.id;
 
         // update the __FILENAME__ macro
-        *actions.macro.find("__FILENAME__") =
-            quickbook::macro(actions.filename.native_file_string());
+        *actions.state_.macro.find("__FILENAME__") =
+            quickbook::macro(actions.state_.filename.native_file_string());
 
         // parse the file
-        quickbook::parse(actions.filename.native_file_string().c_str(), actions, true);
+        quickbook::parse(actions.state_.filename.native_file_string().c_str(), actions, true);
 
         // restore the values
-        std::swap(actions.filename, filein);
+        std::swap(actions.state_.filename, filein);
 
-        actions.doc_id.swap(doc_id);
+        actions.state_.doc_id.swap(doc_id);
 
         // restore the macros
-        actions.macro = macro;
+        actions.state_.macro = macro;
         // restore the templates
-        //~ actions.templates = templates; $$$ fixme $$$
+        //~ actions.state_.templates = templates; $$$ fixme $$$
         
         return nothing();
     }
 
     nothing process(quickbook::actions& actions, import const& x)
     {
-        fs::path path = include_search(actions.filename.branch_path(), x.path);
+        fs::path path = include_search(actions.state_.filename.branch_path(), x.path);
         std::string ext = fs::extension(path);
         std::vector<define_template> storage;
-        actions.error_count +=
-            load_snippets(path.string(), storage, ext, actions.doc_id);
+        actions.state_.error_count +=
+            load_snippets(path.string(), storage, ext, actions.state_.doc_id);
 
         BOOST_FOREACH(define_template const& definition, storage)
         {
-            if (!actions.templates.add(definition))
+            if (!actions.state_.templates.add(definition))
             {
                 detail::outerr(definition.position.file, definition.position.line)
                     << "Template Redefinition: " << definition.id << std::endl;
-                ++actions.error_count;
+                ++actions.state_.error_count;
             }
         }
 

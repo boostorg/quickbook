@@ -11,7 +11,7 @@
 #include "template.hpp"
 #include "phrase_actions.hpp"
 #include "grammars.hpp"
-#include "actions_class.hpp"
+#include "state.hpp"
 #include "utils.hpp"
 
 #ifdef BOOST_MSVC
@@ -268,13 +268,13 @@ namespace quickbook
             {
                 std::vector<std::string> empty_params;
 
-                if (!actions.templates.add(
+                if (!actions.state_.templates.add(
                         define_template(*tpl, empty_params, *arg, pos),
                         &scope))
                 {
                     detail::outerr(pos.file,pos.line)
                         << "Duplicate Symbol Found" << std::endl;
-                    ++actions.error_count;
+                    ++actions.state_.error_count;
                     return std::make_pair(false, tpl);
                 }
                 ++arg; ++tpl;
@@ -315,11 +315,11 @@ namespace quickbook
                 simple_phrase_grammar phrase_p(actions);
 
                 //  do a phrase level parse
-                iterator first(body.begin(), body.end(), actions.filename.native_file_string().c_str());
+                iterator first(body.begin(), body.end(), actions.state_.filename.native_file_string().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
                 r = boost::spirit::qi::parse(first, last, phrase_p) && first == last;
-                actions.phrase.swap(result);
+                actions.state_.phrase.swap(result);
             }
             else
             {
@@ -331,11 +331,11 @@ namespace quickbook
                 body += "\n\n";
                 while (iter != body.end() && ((*iter == '\r') || (*iter == '\n')))
                     ++iter; // skip initial newlines
-                iterator first(iter, body.end(), actions.filename.native_file_string().c_str());
+                iterator first(iter, body.end(), actions.state_.filename.native_file_string().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
                 r = boost::spirit::qi::parse(first, last, block_p) && first == last;
-                actions.phrase.swap(result);
+                actions.state_.phrase.swap(result);
             }
             return r;
         }
@@ -343,13 +343,13 @@ namespace quickbook
 
     std::string process(quickbook::actions& actions, call_template const& x)
     {
-        ++actions.template_depth;
-        if (actions.template_depth > actions.max_template_depth)
+        ++actions.state_.template_depth;
+        if (actions.state_.template_depth > actions.state_.max_template_depth)
         {
             detail::outerr(x.position.file, x.position.line)
                 << "Infinite loop detected" << std::endl;
-            --actions.template_depth;
-            ++actions.error_count;
+            --actions.state_.template_depth;
+            ++actions.state_.error_count;
             return "";
         }
 
@@ -358,17 +358,17 @@ namespace quickbook
         //
         // Note that for quickbook 1.4- this value is just ignored when the
         // arguments are expanded.
-        template_scope const& call_scope = actions.templates.top_scope();
+        template_scope const& call_scope = actions.state_.templates.top_scope();
 
         std::string result;
-        actions.push(); // scope the actions' states
+        actions.state_.push(); // scope the actions' states
         {
             // Quickbook 1.4-: When expanding the tempalte continue to use the
             //                 current scope (the dynamic scope).
             // Quickbook 1.5+: Use the scope the template was defined in
             //                 (the static scope).
             if (qbk_version_n >= 105)
-                actions.templates.set_parent_scope(*x.symbol->parent);
+                actions.state_.templates.set_parent_scope(*x.symbol->parent);
 
             std::vector<std::string> args = x.args;
     
@@ -376,9 +376,9 @@ namespace quickbook
             // Break the arguments
             if (!break_arguments(args, x.symbol->params, x.position))
             {
-                actions.pop(); // restore the actions' states
-                --actions.template_depth;
-                ++actions.error_count;
+                actions.state_.pop(); // restore the actions' states
+                --actions.state_.template_depth;
+                ++actions.state_.error_count;
                 return "";
             }
 
@@ -392,8 +392,8 @@ namespace quickbook
 
             if (!get_arg_result)
             {
-                actions.pop(); // restore the actions' states
-                --actions.template_depth;
+                actions.state_.pop(); // restore the actions' states
+                --actions.state_.template_depth;
                 return "";
             }
 
@@ -409,15 +409,15 @@ namespace quickbook
                     << x.symbol->body
                     << "------------------end--------------------" << std::endl
                     << std::endl;
-                actions.pop(); // restore the actions' states
-                --actions.template_depth;
-                ++actions.error_count;
+                actions.state_.pop(); // restore the actions' states
+                --actions.state_.template_depth;
+                ++actions.state_.error_count;
                 return "";
             }
         }
 
-        actions.pop(); // restore the actions' states
-        --actions.template_depth;
+        actions.state_.pop(); // restore the actions' states
+        --actions.state_.template_depth;
         
         return result;
     }

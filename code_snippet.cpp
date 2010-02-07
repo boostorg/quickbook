@@ -16,9 +16,9 @@
 #include <iterator>
 #include <boost/lexical_cast.hpp>
 #include "utils.hpp"
-#include "actions_class.hpp"
 #include "grammars.hpp"
 #include "code_snippet_types.hpp"
+#include "template.hpp"
 
 namespace quickbook
 {

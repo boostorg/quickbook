@@ -10,7 +10,8 @@
 
 #include <stack>
 #include <boost/assert.hpp>
-#include "actions_class.hpp"
+#include "actions.hpp"
+#include "state.hpp"
 #include "gen_types.hpp"
 #include "utils.hpp"
 
@@ -82,7 +83,7 @@ namespace quickbook
                     << "Illegal change of list style near column " << pos.column << ".\n";
                 detail::outwarn(pos.file,pos.line)
                     << "Ignoring change of list style" << std::endl;
-                ++actions.error_count;
+                ++actions.state_.error_count;
             }
         }
 

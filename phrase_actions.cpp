@@ -10,7 +10,8 @@
 
 #include <boost/assert.hpp>
 #include "phrase.hpp"
-#include "actions_class.hpp"
+#include "actions.hpp"
+#include "state.hpp"
 #include "utils.hpp"
 #include "code.hpp"
 #include "boostbook.hpp"
@@ -19,7 +20,7 @@
 namespace quickbook
 {    
     nothing process(quickbook::actions& actions, source_mode const& s) {
-        actions.source_mode = s.mode;
+        actions.state_.source_mode = s.mode;
         return nothing();
     }
 
@@ -97,12 +98,12 @@ namespace quickbook
 
         // TODO: I don't need to save this, do I?
         std::string save;
-        actions.phrase.swap(save);
+        actions.state_.phrase.swap(save);
 
         // print the code with syntax coloring
         std::string str = actions.syntax_p(first_, last_);
 
-        actions.phrase.swap(save);
+        actions.state_.phrase.swap(save);
         
         r.type = x.block ? "programlisting" : "code";
         r.content = str;

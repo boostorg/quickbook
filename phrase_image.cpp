@@ -12,7 +12,8 @@
 #include <boost/filesystem/fstream.hpp>
 #include "phrase.hpp"
 #include "gen_types.hpp"
-#include "actions_class.hpp"
+#include "actions.hpp"
+#include "state.hpp"
 #include "utils.hpp"
 
 namespace quickbook
@@ -41,7 +42,7 @@ namespace quickbook
                     << "Duplicate image attribute: "
                     << begin->first
                     << std::endl;
-                ++actions.error_count;
+                ++actions.state_.error_count;
             }
         }
     

@@ -10,7 +10,8 @@
 
 #include "doc_info.hpp"
 #include "grammars.hpp"
-#include "actions_class.hpp"
+#include "actions.hpp"
+#include "state.hpp"
 #include "parse_utils.hpp"
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
@@ -112,7 +113,7 @@ namespace quickbook
                     | doc_last_revision     [member_assign(&doc_info::doc_last_revision)]
                       // This has to be set in actions so that source code in phrases use the
                       // correct encoding.
-                    | doc_source_mode       [ph::ref(actions.source_mode) = qi::_1]
+                    | doc_source_mode       [ph::ref(actions.state_.source_mode) = qi::_1]
                     )
                     >> space >> ']' >> +qi::eol
                 )

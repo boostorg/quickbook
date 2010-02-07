@@ -10,7 +10,7 @@
 =============================================================================*/
 
 #include "actions.hpp"
-#include "actions_class.hpp"
+#include "state.hpp"
 #include "doc_info.hpp"
 #include "utils.hpp"
 
@@ -21,6 +21,17 @@ namespace quickbook
     unsigned qbk_major_version = 0;
     unsigned qbk_minor_version = 0;
     unsigned qbk_version_n = 0; // qbk_major_version * 100 + qbk_minor_version
+
+    actions::actions(state& state)
+        : state_(state)
+        , templates(state.templates)
+        , macro(state.macro)
+        , process(*this)
+        , phrase_push(state.phrase)
+        , phrase_pop(state.phrase)
+        , error(state.error_count)
+        , syntax_p(state.source_mode, *this)
+    {}
 
     namespace {
         std::string fully_qualified_id(std::string const& library_id,
@@ -50,7 +61,7 @@ namespace quickbook
         detail::outwarn(pos.file,pos.line) << "Empty id.\n";        
     }
 
-    void phrase_push_action::operator()(unused_type, unused_type, unused_type) const
+    void phrase_push_action::operator()() const
     {
         phrase.push();
     }

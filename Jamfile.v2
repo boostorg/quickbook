@@ -22,7 +22,7 @@ exe quickbook
     process.cpp
     quickbook.cpp
     actions.cpp
-    actions_class.cpp
+    state.cpp
     utils.cpp
     input_path.cpp
     post_process.cpp

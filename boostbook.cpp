@@ -3,18 +3,18 @@
 #include "fwd.hpp"
 #include "boostbook.hpp"
 #include "phrase.hpp"
-#include "actions_class.hpp"
+#include "state.hpp"
 
 namespace quickbook
 {
     struct output_action
     {
-        output_action(quickbook::actions& actions) : actions(actions) {}    
-        quickbook::actions& actions;
+        output_action(quickbook::state& state) : state(state) {}    
+        quickbook::state& state;
 
         template <typename T>
         void operator()(T const& x) const {
-            output(actions, x);
+            output(state, x);
         }
     };
 
@@ -119,45 +119,45 @@ namespace quickbook
         } initialize_instance;
     }
 
-    void output(quickbook::actions& actions, std::string const& x)
+    void output(quickbook::state& state, std::string const& x)
     {
-        actions.phrase << x;
+        state.phrase << x;
     }
 
-    void output(quickbook::actions& actions, char x)
+    void output(quickbook::state& state, char x)
     {
-        actions.phrase << encode(x);
+        state.phrase << encode(x);
     }
 
-    void output(quickbook::actions& actions, anchor const& x) {
-        actions.phrase << "<anchor id=\"";
-        actions.phrase << encode(x.id);
-        actions.phrase << "\"/>\n";
+    void output(quickbook::state& state, anchor const& x) {
+        state.phrase << "<anchor id=\"";
+        state.phrase << encode(x.id);
+        state.phrase << "\"/>\n";
     }
 
-    void output(quickbook::actions& actions, link const& x) {
+    void output(quickbook::state& state, link const& x) {
         boostbook_markup m = markup_map.at(x.type);
-        actions.phrase << m.pre;
-        actions.phrase << encode(x.destination);
-        actions.phrase << "\">";
-        actions.phrase << x.content;
-        actions.phrase << m.post;
+        state.phrase << m.pre;
+        state.phrase << encode(x.destination);
+        state.phrase << "\">";
+        state.phrase << x.content;
+        state.phrase << m.post;
     }
 
-    void output(quickbook::actions& actions, formatted const& x) {
+    void output(quickbook::state& state, formatted const& x) {
         boostbook_markup m = markup_map.at(x.type);
-        actions.phrase << m.pre << x.content << m.post;
+        state.phrase << m.pre << x.content << m.post;
     }
 
-    void output(quickbook::actions& actions, break_ const& x) {
+    void output(quickbook::state& state, break_ const& x) {
         boostbook_markup m = markup_map.at("break");
-        actions.phrase << m.pre;
+        state.phrase << m.pre;
     }
 
-    void output(quickbook::actions& actions, image2 const& x) {
-        actions.phrase << "<inlinemediaobject>";
+    void output(quickbook::state& state, image2 const& x) {
+        state.phrase << "<inlinemediaobject>";
 
-        actions.phrase << "<imageobject><imagedata";
+        state.phrase << "<imageobject><imagedata";
         
         for(image2::attribute_map::const_iterator
             attr_first = x.attributes.begin(), attr_last  = x.attributes.end();
@@ -165,7 +165,7 @@ namespace quickbook
         {
             if(attr_first->first == "alt") continue;
         
-            actions.phrase
+            state.phrase
                 << " "
                 << attr_first->first
                 << "=\""
@@ -173,35 +173,35 @@ namespace quickbook
                 << "\"";
         }
 
-        actions.phrase << "></imagedata></imageobject>";
+        state.phrase << "></imagedata></imageobject>";
 
         image2::attribute_map::const_iterator it = x.attributes.find("alt");
         if(it != x.attributes.end()) {
             // Also add a textobject -- use the basename of the image file.
             // This will mean we get "alt" attributes of the HTML img.
-            actions.phrase << "<textobject><phrase>";
-            actions.phrase << encode(it->second);
-            actions.phrase << "</phrase></textobject>";
+            state.phrase << "<textobject><phrase>";
+            state.phrase << encode(it->second);
+            state.phrase << "</phrase></textobject>";
         }
 
-        actions.phrase << "</inlinemediaobject>";
+        state.phrase << "</inlinemediaobject>";
     }
 
-    void output(quickbook::actions& actions, hr) {
-        actions.phrase << markup_map.at("hr").pre;
+    void output(quickbook::state& state, hr) {
+        state.phrase << markup_map.at("hr").pre;
     }
 
-    void output(quickbook::actions& actions, begin_section2 const& x) {
-        actions.phrase << "\n<section id=\"" << x.id << "\">\n";
+    void output(quickbook::state& state, begin_section2 const& x) {
+        state.phrase << "\n<section id=\"" << x.id << "\">\n";
         if(x.linkend.empty()) {
-            actions.phrase
+            state.phrase
                 << "<title>"
                 << x.content
                 << "</title>\n"
                 ;
         }
         else {
-            actions.phrase
+            state.phrase
                 << "<title>"
                 << "<link linkend=\""
                 << x.linkend
@@ -213,169 +213,169 @@ namespace quickbook
         }
     }
 
-    void output(quickbook::actions& actions, end_section2 const& x) {
-        actions.phrase << "</section>";
+    void output(quickbook::state& state, end_section2 const& x) {
+        state.phrase << "</section>";
     }
 
-    void output(quickbook::actions& actions, heading2 const& x) {
-        actions.phrase
+    void output(quickbook::state& state, heading2 const& x) {
+        state.phrase
             << "<anchor id=\"" << x.id << "\"/>"
             << "<bridgehead renderas=\"sect" << x.level << "\">";
 
         if(x.linkend.empty()) {
-            actions.phrase << x.content;
+            state.phrase << x.content;
         }
         else {
-            actions.phrase
+            state.phrase
                 << "<link linkend=\"" << x.linkend << "\">"
                 << x.content << "</link>";
         }
 
-        actions.phrase << "</bridgehead>";
+        state.phrase << "</bridgehead>";
     }
 
-    void output(quickbook::actions& actions, variablelist const& x)
+    void output(quickbook::state& state, variablelist const& x)
     {
-        actions.phrase << "<variablelist>\n";
+        state.phrase << "<variablelist>\n";
 
-        actions.phrase << "<title>";
-        actions.phrase << encode(x.title);
-        actions.phrase << "</title>\n";
+        state.phrase << "<title>";
+        state.phrase << encode(x.title);
+        state.phrase << "</title>\n";
 
         boostbook_markup m = markup_map.at("varlistentry");
 
         for(std::vector<varlistentry>::const_iterator
             it = x.entries.begin(); it != x.entries.end(); ++it)
         {
-            actions.phrase << m.pre;
-            std::for_each(it->begin(), it->end(), output_action(actions));
-            actions.phrase << m.post;
+            state.phrase << m.pre;
+            std::for_each(it->begin(), it->end(), output_action(state));
+            state.phrase << m.post;
         }
 
-        actions.phrase << "</variablelist>\n";
+        state.phrase << "</variablelist>\n";
     }
 
-    void output(quickbook::actions& actions, table2 const& x)
+    void output(quickbook::state& state, table2 const& x)
     {
         if (x.title)
         {
-            actions.phrase << "<table frame=\"all\"";
+            state.phrase << "<table frame=\"all\"";
             if(x.id)
-                actions.phrase << " id=\"" << *x.id << "\"";
-            actions.phrase << ">\n";
-            actions.phrase << "<title>";
-            actions.phrase << encode(*x.title);
-            actions.phrase << "</title>";
+                state.phrase << " id=\"" << *x.id << "\"";
+            state.phrase << ">\n";
+            state.phrase << "<title>";
+            state.phrase << encode(*x.title);
+            state.phrase << "</title>";
         }
         else
         {
-            actions.phrase << "<informaltable frame=\"all\"";
+            state.phrase << "<informaltable frame=\"all\"";
             if(x.id)
-                actions.phrase << " id=\"" << *x.id << "\"";
-            actions.phrase << ">\n";
+                state.phrase << " id=\"" << *x.id << "\"";
+            state.phrase << ">\n";
         }
 
         // This is a bit odd for backwards compatability: the old version just
         // used the last count that was calculated.
-        actions.phrase << "<tgroup cols=\"" << x.cols << "\">\n";
+        state.phrase << "<tgroup cols=\"" << x.cols << "\">\n";
 
         boostbook_markup m = markup_map.at("row");
 
         if (x.head)
         {
-            actions.phrase << "<thead>";
-            actions.phrase << m.pre;
-            std::for_each(x.head->begin(), x.head->end(), actions.process);
-            actions.phrase << m.post;
-            actions.phrase << "</thead>\n";
+            state.phrase << "<thead>";
+            state.phrase << m.pre;
+            std::for_each(x.head->begin(), x.head->end(), output_action(state));
+            state.phrase << m.post;
+            state.phrase << "</thead>\n";
         }
 
-        actions.phrase << "<tbody>\n";
+        state.phrase << "<tbody>\n";
 
         for(std::vector<table_row>::const_iterator
             it = x.rows.begin(); it != x.rows.end(); ++it)
         {
-            actions.phrase << m.pre;
-            std::for_each(it->begin(), it->end(), actions.process);
-            actions.phrase << m.post;
+            state.phrase << m.pre;
+            std::for_each(it->begin(), it->end(), output_action(state));
+            state.phrase << m.post;
         }
 
-        actions.phrase << "</tbody>\n" << "</tgroup>\n";
+        state.phrase << "</tbody>\n" << "</tgroup>\n";
 
         if (x.title)
         {
-            actions.phrase << "</table>\n";
+            state.phrase << "</table>\n";
         }
         else
         {
-            actions.phrase << "</informaltable>\n";
+            state.phrase << "</informaltable>\n";
         }
     }
 
-    void output(quickbook::actions& actions, xinclude2 const& x)
+    void output(quickbook::state& state, xinclude2 const& x)
     {
-        actions.phrase << "\n<xi:include href=\"" << x.path << "\" />\n";
+        state.phrase << "\n<xi:include href=\"" << x.path << "\" />\n";
     }
 
-    void output(quickbook::actions& actions, list2 const& x)
+    void output(quickbook::state& state, list2 const& x)
     {
-        actions.phrase << std::string(x.mark == '#' ? "<orderedlist>\n" : "<itemizedlist>\n");
+        state.phrase << std::string(x.mark == '#' ? "<orderedlist>\n" : "<itemizedlist>\n");
 
         for(std::vector<list_item2>::const_iterator
             it = x.items.begin(), end = x.items.end(); it != end; ++it)
         {
-            actions.phrase << "<listitem>\n" << it->content;
-            if(!it->sublist.items.empty()) output(actions, it->sublist);
-            actions.phrase << std::string("\n</listitem>");
+            state.phrase << "<listitem>\n" << it->content;
+            if(!it->sublist.items.empty()) output(state, it->sublist);
+            state.phrase << std::string("\n</listitem>");
         }
 
-        actions.phrase << std::string(x.mark == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
+        state.phrase << std::string(x.mark == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
     }
 
-    void output(quickbook::actions& actions, code_token const& x)
+    void output(quickbook::state& state, code_token const& x)
     {
         std::string type = x.type;
         if(type == "space") {
-            actions.phrase << x.text;
+            state.phrase << x.text;
         }
         else {
-            actions.phrase
+            state.phrase
                 << "<phrase role=\"" << x.type << "\">"
                 << encode(x.text)
                 << "</phrase>";
         }
     }
 
-    void output(quickbook::actions& actions, doc_info const& info)
+    void output(quickbook::state& state, doc_info const& info)
     {
         // if we're ignoring the document info, we're done.
         if (info.ignore) return;
 
-        actions.phrase
+        state.phrase
             << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             << "<!DOCTYPE library PUBLIC \"-//Boost//DTD BoostBook XML V1.0//EN\""
             << " \"http://www.boost.org/tools/boostbook/dtd/boostbook.dtd\">";
 
         // Document tag
 
-        actions.phrase
+        state.phrase
             << '<' << info.doc_type << " id=\"" << info.doc_id << "\"\n";
         
         if(info.doc_type == "library")
         {
-            actions.phrase << " name=\"" << info.doc_title << "\"\n";
+            state.phrase << " name=\"" << info.doc_title << "\"\n";
         }
 
         if(!info.doc_dirname.empty())
         {
-            actions.phrase << " dirname=\"" << info.doc_dirname << "\"\n";
+            state.phrase << " dirname=\"" << info.doc_dirname << "\"\n";
         }
 
-        actions.phrase
+        state.phrase
             << "last-revision=\"" << info.doc_last_revision << "\""
             << " xmlns:xi=\"http://www.w3.org/2001/XInclude\"";
 
-        actions.phrase << ">"; // end document tag.
+        state.phrase << ">"; // end document tag.
 
         // Title tag
 
@@ -389,35 +389,35 @@ namespace quickbook
         }
 
         // For 'library', the title comes after the info block.
-        if(info.doc_type != "library") actions.phrase << title;
+        if(info.doc_type != "library") state.phrase << title;
 
         // Info tag
 
-        actions.phrase << "<" << info.doc_type << "info>\n";
+        state.phrase << "<" << info.doc_type << "info>\n";
 
         if(!info.doc_authors.empty())
         {
-            actions.phrase << "<authorgroup>\n";
+            state.phrase << "<authorgroup>\n";
             BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
-                actions.phrase
+                state.phrase
                     << "<author>\n"
                     << "<firstname>" << author.first << "</firstname>\n"
                     << "<surname>" << author.second << "</surname>\n"
                     << "</author>\n";
             }
-            actions.phrase << "</authorgroup>\n";
+            state.phrase << "</authorgroup>\n";
         }
 
         BOOST_FOREACH(doc_info::copyright_entry const& copyright,
             info.doc_copyrights)
         {
-            actions.phrase << "<copyright>\n";
+            state.phrase << "<copyright>\n";
 
             BOOST_FOREACH(std::string const& year, copyright.first) {
-                actions.phrase << "<year>" << year << "</year>\n";
+                state.phrase << "<year>" << year << "</year>\n";
             }
 
-            actions.phrase
+            state.phrase
                 << "<holder>" << copyright.second << "</holder>\n"
                 << "</copyright>\n"
             ;
@@ -425,7 +425,7 @@ namespace quickbook
 
         if (!info.doc_license.empty())
         {
-            actions.phrase
+            state.phrase
                 << "<legalnotice>\n"
                 << "<para>\n"
                 << info.doc_license
@@ -438,7 +438,7 @@ namespace quickbook
 
         if (!info.doc_purpose.empty())
         {
-            actions.phrase
+            state.phrase
                 << "<" << info.doc_type << "purpose>\n"
                 << info.doc_purpose
                 << "</" << info.doc_type << "purpose>\n"
@@ -448,7 +448,7 @@ namespace quickbook
 
         if (!info.doc_category.empty())
         {
-            actions.phrase
+            state.phrase
                 << "<" << info.doc_type << "category name=\"category:"
                 << info.doc_category
                 << "\"></" << info.doc_type << "category>\n"
@@ -456,20 +456,20 @@ namespace quickbook
             ;
         }
 
-        actions.phrase
+        state.phrase
             << "</" << info.doc_type << "info>\n"
         ;
 
-        if(info.doc_type == "library") actions.phrase << title;
+        if(info.doc_type == "library") state.phrase << title;
     }
 
-    void output(quickbook::actions& actions, doc_info_post const& x)
+    void output(quickbook::state& state, doc_info_post const& x)
     {
         // if we're ignoring the document info, do nothing.
         if (x.info.ignore) return;
 
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
-        actions.phrase << "</" << x.info.doc_type << ">";
+        state.phrase << "</" << x.info.doc_type << ">";
     }
 }

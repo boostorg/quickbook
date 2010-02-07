@@ -55,6 +55,8 @@ namespace quickbook
         boost::phoenix::function<quickbook_before_impl> qbk_before;
     }
 
+    // TODO: Define this elsewhere?
+
     struct macro {
         macro() {}
         explicit macro(char const* x) : raw_markup(x) {};
@@ -109,7 +111,11 @@ namespace quickbook
         phrase_push_action(collector& phrase)
             : phrase(phrase) {}
 
-        void operator()(unused_type, unused_type, unused_type) const;
+        void operator()(unused_type, unused_type, unused_type) const {
+            return (*this)();
+        }
+
+        void operator()() const;
         
         collector& phrase;
     };
@@ -162,6 +168,26 @@ namespace quickbook
         void operator()(T const& x) const;
         
         quickbook::actions& actions;
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+    // actions
+    ///////////////////////////////////////////////////////////////////////////
+
+    struct actions
+    {
+        actions(state&);
+    
+        state&                      state_;
+        template_stack&             templates;
+        macro_symbols&              macro;
+
+        process_action              process;
+        phrase_push_action          phrase_push;
+        phrase_pop_action           phrase_pop;
+        error_action                error;
+        element_id_warning_action   element_id_warning;
+        syntax_highlight            syntax_p;
     };
 }
 

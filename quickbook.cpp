@@ -18,7 +18,8 @@
 #include <boost/ref.hpp>
 #include "fwd.hpp"
 #include "quickbook.hpp"
-#include "actions_class.hpp"
+#include "state.hpp"
+#include "actions.hpp"
 #include "grammars.hpp"
 #include "post_process.hpp"
 #include "utils.hpp"
@@ -56,7 +57,7 @@ namespace quickbook
         std::string storage;
         int err = detail::load(filein_, storage);
         if (err != 0) {
-            ++actor.error_count;
+            ++actor.state_.error_count;
             return err;
         }
 
@@ -94,24 +95,25 @@ namespace quickbook
             file_position const pos = first.get_position();
             detail::outerr(pos.file,pos.line)
                 << "Syntax Error near column " << pos.column << ".\n";
-            ++actor.error_count;
+            ++actor.state_.error_count;
         }
         
-        if(actor.error_count)
+        if(actor.state_.error_count)
         {
             detail::outerr(filein_)
-                << "Error count: " << actor.error_count << ".\n";
+                << "Error count: " << actor.state_.error_count << ".\n";
         }
 
-        return actor.error_count ? 1 : 0;
+        return actor.state_.error_count ? 1 : 0;
     }
 
     static int
     parse(char const* filein_, fs::path const& outdir, string_stream& out, bool ignore_docinfo = false)
     {
-        actions actor(filein_, outdir, out);
+        quickbook::state state(filein_, outdir, out);
+        actions actor(state);
         bool r = parse(filein_, actor);
-        if (actor.section_level != 0)
+        if (actor.state_.section_level != 0)
             detail::outwarn(filein_)
                 << "Warning missing [endsect] detected at end of file."
                 << std::endl;
