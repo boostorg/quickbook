@@ -35,6 +35,7 @@ exe quickbook
     block_actions.cpp
     block_list.cpp
     doc_info.cpp
+    doc_info_actions.cpp
     code_snippet.cpp
     code_snippet_grammar.cpp
     syntax_highlight.cpp

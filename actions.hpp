@@ -97,47 +97,11 @@ namespace quickbook
         actions& escape_actions;
     };
 
-   struct element_id_warning_action
-   {
-       void operator()(iterator_range, unused_type, unused_type) const;
-   };
-
-    struct xml_author
+    struct element_id_warning_action
     {
-        // Handles xml author
-
-        xml_author(collector& out)
-        : out(out) {}
-
-        void operator()(std::pair<std::string, std::string> const& author) const;
-
-        collector& out;
+        void operator()(iterator_range, unused_type, unused_type) const;
     };
 
-    struct xml_year
-    {
-        // Handles xml year
-
-        xml_year(collector& out)
-            : out(out) {}
-
-        void operator()(std::string const &year) const;
-
-        collector& out;
-    };
-
-    struct xml_copyright
-    {
-        // Handles xml copyright
-
-        xml_copyright(collector& out)
-            : out(out) {}
-
-        void operator()(std::pair<std::vector<std::string>, std::string> const &copyright) const;
-
-        collector& out;
-    };
-    
     struct phrase_push_action
     {
         phrase_push_action(collector& phrase)
@@ -163,11 +127,6 @@ namespace quickbook
         
         collector& phrase;
     };
-
-    struct doc_info;
-
-    void pre(collector& out, quickbook::actions& actions, doc_info& info, bool ignore_docinfo = false);
-    void post(collector& out, quickbook::actions& actions, doc_info& info, bool ignore_docinfo = false);
 
     struct process_action
     {

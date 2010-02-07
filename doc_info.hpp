@@ -12,14 +12,17 @@
 
 #include <vector>
 #include <string>
+#include <utility>
 
 namespace quickbook
 {
     struct doc_info
     {
-        typedef std::vector<std::string> string_list;
-        typedef std::vector<std::pair<std::string, std::string> > author_list;
-        typedef std::vector<std::pair<string_list, std::string> > copyright_list;
+        typedef std::vector<std::string> copyright_years;
+        typedef std::pair<copyright_years, std::string> copyright_entry;
+        typedef std::vector<copyright_entry> copyright_list;
+        typedef std::pair<std::string, std::string> author;
+        typedef std::vector<author> author_list;
 
         std::string             doc_type;
         std::string             doc_title;
@@ -32,6 +35,13 @@ namespace quickbook
         author_list             doc_authors;
         std::string             doc_license;
         std::string             doc_last_revision;
+        bool                    ignore;
+    };
+    
+    struct doc_info_post
+    {
+        doc_info_post(doc_info& info) : info(info) {}
+        doc_info& info;
     };
 }
 

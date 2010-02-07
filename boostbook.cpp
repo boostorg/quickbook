@@ -1,8 +1,9 @@
+#include <algorithm>
+#include <boost/foreach.hpp>
 #include "fwd.hpp"
 #include "boostbook.hpp"
 #include "phrase.hpp"
 #include "actions_class.hpp"
-#include <algorithm>
 
 namespace quickbook
 {
@@ -343,5 +344,132 @@ namespace quickbook
                 << encode(x.text)
                 << "</phrase>";
         }
+    }
+
+    void output(quickbook::actions& actions, doc_info const& info)
+    {
+        // if we're ignoring the document info, we're done.
+        if (info.ignore) return;
+
+        actions.phrase
+            << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            << "<!DOCTYPE library PUBLIC \"-//Boost//DTD BoostBook XML V1.0//EN\""
+            << " \"http://www.boost.org/tools/boostbook/dtd/boostbook.dtd\">";
+
+        // Document tag
+
+        actions.phrase
+            << '<' << info.doc_type << " id=\"" << info.doc_id << "\"\n";
+        
+        if(info.doc_type == "library")
+        {
+            actions.phrase << " name=\"" << info.doc_title << "\"\n";
+        }
+
+        if(!info.doc_dirname.empty())
+        {
+            actions.phrase << " dirname=\"" << info.doc_dirname << "\"\n";
+        }
+
+        actions.phrase
+            << "last-revision=\"" << info.doc_last_revision << "\""
+            << " xmlns:xi=\"http://www.w3.org/2001/XInclude\"";
+
+        actions.phrase << ">"; // end document tag.
+
+        // Title tag
+
+        std::string title;
+        if(!info.doc_title.empty())
+        {
+            title =  "<title>" + info.doc_title;
+            if (!info.doc_version.empty())
+                title += ' ' + info.doc_version;
+            title += "</title>\n";
+        }
+
+        // For 'library', the title comes after the info block.
+        if(info.doc_type != "library") actions.phrase << title;
+
+        // Info tag
+
+        actions.phrase << "<" << info.doc_type << "info>\n";
+
+        if(!info.doc_authors.empty())
+        {
+            actions.phrase << "<authorgroup>\n";
+            BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
+                actions.phrase
+                    << "<author>\n"
+                    << "<firstname>" << author.first << "</firstname>\n"
+                    << "<surname>" << author.second << "</surname>\n"
+                    << "</author>\n";
+            }
+            actions.phrase << "</authorgroup>\n";
+        }
+
+        BOOST_FOREACH(doc_info::copyright_entry const& copyright,
+            info.doc_copyrights)
+        {
+            actions.phrase << "<copyright>\n";
+
+            BOOST_FOREACH(std::string const& year, copyright.first) {
+                actions.phrase << "<year>" << year << "</year>\n";
+            }
+
+            actions.phrase
+                << "<holder>" << copyright.second << "</holder>\n"
+                << "</copyright>\n"
+            ;
+        }
+
+        if (!info.doc_license.empty())
+        {
+            actions.phrase
+                << "<legalnotice>\n"
+                << "<para>\n"
+                << info.doc_license
+                << "\n"
+                << "</para>\n"
+                << "</legalnotice>\n"
+                << "\n"
+            ;
+        }
+
+        if (!info.doc_purpose.empty())
+        {
+            actions.phrase
+                << "<" << info.doc_type << "purpose>\n"
+                << info.doc_purpose
+                << "</" << info.doc_type << "purpose>\n"
+                << "\n"
+            ;
+        }
+
+        if (!info.doc_category.empty())
+        {
+            actions.phrase
+                << "<" << info.doc_type << "category name=\"category:"
+                << info.doc_category
+                << "\"></" << info.doc_type << "category>\n"
+                << "\n"
+            ;
+        }
+
+        actions.phrase
+            << "</" << info.doc_type << "info>\n"
+        ;
+
+        if(info.doc_type == "library") actions.phrase << title;
+    }
+
+    void output(quickbook::actions& actions, doc_info_post const& x)
+    {
+        // if we're ignoring the document info, do nothing.
+        if (x.info.ignore) return;
+
+        // We've finished generating our output. Here's what we'll do
+        // *after* everything else.
+        actions.phrase << "</" << x.info.doc_type << ">";
     }
 }

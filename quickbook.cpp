@@ -71,13 +71,15 @@ namespace quickbook
         {
             if(!success) first = start;
 
-            pre(actor.phrase, actor, info, ignore_docinfo);
+            info.ignore = ignore_docinfo;
+
+            actor.process(info);
 
             block_grammar g(actor);
             success = parse(first, last, g);
             if (success && first == last)
             {
-                post(actor.phrase, actor, info, ignore_docinfo);
+                actor.process(doc_info_post(info));
             }
         }
         else {

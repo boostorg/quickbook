@@ -16,6 +16,7 @@
 #include "phrase.hpp"
 #include "block.hpp"
 #include "syntax_highlight.hpp"
+#include "doc_info.hpp"
 #include "gen_types.hpp"
 
 namespace quickbook
@@ -27,6 +28,9 @@ namespace quickbook
     // They probably shouldn't use quickbook::actions, instead they
     // should either take a stream/collector to write to, or return their
     // output by value.
+
+    void output(quickbook::actions&, doc_info const&);
+    void output(quickbook::actions&, doc_info_post const&);
 
     // Note: char is a plain quickbook character, string is an encoded
     // boostbook string. Oops.
