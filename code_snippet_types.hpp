@@ -37,7 +37,6 @@ namespace quickbook
     struct escaped_comment
     {
         std::string content;
-        char const* dummy;
     };
 }
 
@@ -56,7 +55,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::escaped_comment,
     (std::string, content)
-    (char const*, dummy)
 )
 
 namespace quickbook

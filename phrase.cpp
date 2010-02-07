@@ -29,7 +29,6 @@
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::anchor,
     (std::string, id)
-    (char const*, dummy)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -48,7 +47,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::break_,
     (quickbook::file_position, position)
-    (char const*, dummy)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -247,7 +245,7 @@ namespace quickbook
         escape_break =
                 position
             >>  "\\n"
-            >>  qi::attr("dummy")
+            >>  qi::attr(nothing())
             ;
 
         escape_punct =
@@ -358,7 +356,7 @@ namespace quickbook
                 '#'
             >>  blank
             >>  *(qi::char_ - phrase_end)
-            >>  qi::attr("dummy")
+            >>  qi::attr(nothing())
             ;
 
         source_mode.add
@@ -428,7 +426,7 @@ namespace quickbook
         break_ =
                 position
             >>  "br"
-            >>  qi::attr("dummy")
+            >>  qi::attr(nothing())
             ;
 
         space =

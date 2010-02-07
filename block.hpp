@@ -25,7 +25,6 @@ namespace quickbook
     struct paragraph
     {
         std::string content;
-        char const* dummy;
     };
 
     struct list_item
@@ -53,7 +52,6 @@ namespace quickbook
     struct end_section
     {
         quickbook::file_position position;
-        char const* dummy;
     };
 
     struct heading
@@ -89,13 +87,11 @@ namespace quickbook
     struct xinclude
     {
         std::string path;
-        char const* dummy;
     };
 
     struct import
     {
         std::string path;
-        char const* dummy;
     };
     
     struct include

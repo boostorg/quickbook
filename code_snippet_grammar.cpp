@@ -102,13 +102,13 @@ namespace quickbook
                         *(qi::char_ - qi::eol)
                     >>  qi::eol
                     )
-                >>  qi::attr("dummy")
+                >>  qi::attr(nothing())
             |       qi::omit[*qi::space >> "\"\"\"`"]
                 >>  (
                         *(qi::char_ - "\"\"\"")
                     )
                 >>  "\"\"\""
-                >>  qi::attr("dummy")
+                >>  qi::attr(nothing())
             ;
     }
 
@@ -212,14 +212,14 @@ namespace quickbook
                     (*(qi::char_ - qi::eol))
                 >>  qi::eol
                 )
-            >>  qi::attr("dummy")
+            >>  qi::attr(nothing())
             |   qi::omit[*qi::space]
             >>  "/*`"
             >>  (
                     *(qi::char_ - "*/")
                 )
             >> "*/"
-            >>  qi::attr("dummy")
+            >>  qi::attr(nothing())
             ;
     }
 }

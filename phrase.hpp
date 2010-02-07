@@ -33,7 +33,6 @@ namespace quickbook
     };
 
     struct anchor {
-        char const* dummy;
         std::string id;
     };
     
@@ -54,7 +53,6 @@ namespace quickbook
     };
     
     struct break_ {
-        const char* dummy;
         file_position position;
     };
     

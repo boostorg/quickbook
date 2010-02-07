@@ -30,7 +30,6 @@
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::paragraph,
     (std::string, content)
-    (char const*, dummy)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -56,7 +55,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::end_section,
     (quickbook::file_position, position)
-    (char const*, dummy)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -95,13 +93,11 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::xinclude,
     (std::string, path)
-    (char const*, dummy)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::import,
     (std::string, path)
-    (char const*, dummy)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -230,7 +226,7 @@ namespace quickbook
         end_section =
                 position
             >>  "endsect"
-            >>  qi::attr("dummy")
+            >>  qi::attr(nothing())
             ;
 
         heading = heading_symbol >> hard_space >> title_phrase;
@@ -362,7 +358,7 @@ namespace quickbook
                 "xinclude"
             >>  hard_space
             >>  *(qi::char_ - phrase_end)
-            >>  qi::attr("dummy")
+            >>  qi::attr(nothing())
             ;
 
         include =
@@ -380,7 +376,7 @@ namespace quickbook
                 "import"
             >>  hard_space
             >>  *(qi::char_ - phrase_end)
-            >>  qi::attr("dummy")
+            >>  qi::attr(nothing())
             ;
 
         define_template =
@@ -462,7 +458,7 @@ namespace quickbook
             ] >> qi::attr(quickbook::hr())
             ;
 
-        paragraph = paragraph_content >> qi::attr("dummy");
+        paragraph = paragraph_content >> qi::attr(nothing());
 
         paragraph_content =
                 qi::eps                         [actions.phrase_push]
