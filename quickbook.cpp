@@ -111,7 +111,7 @@ namespace quickbook
     static int
     parse(char const* filein_, fs::path const& outdir, string_stream& out, bool ignore_docinfo = false)
     {
-        quickbook::state state(filein_, outdir, out);
+        quickbook::state state(filein_, outdir, out, create_encoder("boostbook"));
         bool r = parse(filein_, state);
         if (state.section_level != 0)
             detail::outwarn(filein_)

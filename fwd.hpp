@@ -12,6 +12,7 @@
 
 #include <boost/spirit/include/classic_iterator.hpp>
 #include <boost/range.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace quickbook
 {
@@ -38,6 +39,12 @@ namespace quickbook
     struct call_template;
     struct define_template;
     struct template_symbol;
+    
+    // encoder
+    
+    struct encoder;
+    typedef boost::shared_ptr<encoder> encoder_ptr;
+    encoder_ptr create_encoder(std::string const&);
 }
 
 #endif

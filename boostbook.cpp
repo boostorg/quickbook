@@ -1,25 +1,49 @@
 #include <algorithm>
 #include <boost/foreach.hpp>
 #include "fwd.hpp"
-#include "boostbook.hpp"
+#include "encoder.hpp"
 #include "phrase.hpp"
 #include "state.hpp"
 
 namespace quickbook
 {
-    struct output_action
-    {
-        output_action(quickbook::state& state) : state(state) {}    
-        quickbook::state& state;
-
-        template <typename T>
-        void operator()(T const& x) const {
-            output(state, x);
-        }
+    struct boostbook_encoder : encoder {
+        virtual void operator()(quickbook::state&, doc_info const&) const;
+        virtual void operator()(quickbook::state&, doc_info_post const&) const;
+    
+        // Note: char is a plain quickbook character, string is an encoded
+        // boostbook string. Oops.
+        virtual void operator()(quickbook::state&, char) const;
+        virtual void operator()(quickbook::state&, std::string const&) const;
+        virtual void operator()(quickbook::state&, anchor const&) const;
+        virtual void operator()(quickbook::state&, link const&) const;
+        virtual void operator()(quickbook::state&, formatted const&) const;
+        virtual void operator()(quickbook::state&, break_ const&) const;
+        virtual void operator()(quickbook::state&, image2 const&) const;
+    
+        virtual void operator()(quickbook::state&, hr) const;
+        virtual void operator()(quickbook::state&, begin_section2 const&) const;
+        virtual void operator()(quickbook::state&, end_section2 const&) const;
+        virtual void operator()(quickbook::state&, heading2 const&) const;
+        virtual void operator()(quickbook::state&, variablelist const&) const;
+        virtual void operator()(quickbook::state&, table2 const&) const;
+        virtual void operator()(quickbook::state&, xinclude2 const&) const;
+        virtual void operator()(quickbook::state&, list2 const&) const;
+    
+        virtual void operator()(quickbook::state&, code_token const&) const;
+    
+        virtual std::string encode(std::string const&) const;
+        virtual std::string encode(char) const;
+        virtual std::string encode(char const*) const;
     };
+    
+    encoder_ptr create_encoder(std::string const&)
+    {
+        return boost::shared_ptr<encoder>(new boostbook_encoder());
+    }
 
     template <typename Iter>
-    std::string encode(Iter first, Iter last)
+    std::string encode_impl(Iter first, Iter last)
     {
         std::string r;
         
@@ -37,18 +61,18 @@ namespace quickbook
         return r;
     }
 
-    std::string encode(std::string const& x) {
-        return encode(x.begin(), x.end());
+    std::string boostbook_encoder::encode(std::string const& x) const {
+        return encode_impl(x.begin(), x.end());
     }
 
-    std::string encode(char const* x) {
+    std::string boostbook_encoder::encode(char const* x) const {
         char const* end = x;
         while(*end) ++end;
-        return encode(x, end);
+        return encode_impl(x, end);
     }
 
-    std::string encode(char c) {
-        return encode(&c, &c + 1);
+    std::string boostbook_encoder::encode(char c) const {
+        return encode_impl(&c, &c + 1);
     }
 
     namespace {
@@ -119,23 +143,23 @@ namespace quickbook
         } initialize_instance;
     }
 
-    void output(quickbook::state& state, std::string const& x)
+    void boostbook_encoder::operator()(quickbook::state& state, std::string const& x) const
     {
         state.phrase << x;
     }
 
-    void output(quickbook::state& state, char x)
+    void boostbook_encoder::operator()(quickbook::state& state, char x) const
     {
         state.phrase << encode(x);
     }
 
-    void output(quickbook::state& state, anchor const& x) {
+    void boostbook_encoder::operator()(quickbook::state& state, anchor const& x) const {
         state.phrase << "<anchor id=\"";
         state.phrase << encode(x.id);
         state.phrase << "\"/>\n";
     }
 
-    void output(quickbook::state& state, link const& x) {
+    void boostbook_encoder::operator()(quickbook::state& state, link const& x) const {
         boostbook_markup m = markup_map.at(x.type);
         state.phrase << m.pre;
         state.phrase << encode(x.destination);
@@ -144,17 +168,17 @@ namespace quickbook
         state.phrase << m.post;
     }
 
-    void output(quickbook::state& state, formatted const& x) {
+    void boostbook_encoder::operator()(quickbook::state& state, formatted const& x) const {
         boostbook_markup m = markup_map.at(x.type);
         state.phrase << m.pre << x.content << m.post;
     }
 
-    void output(quickbook::state& state, break_ const& x) {
+    void boostbook_encoder::operator()(quickbook::state& state, break_ const& x) const {
         boostbook_markup m = markup_map.at("break");
         state.phrase << m.pre;
     }
 
-    void output(quickbook::state& state, image2 const& x) {
+    void boostbook_encoder::operator()(quickbook::state& state, image2 const& x) const {
         state.phrase << "<inlinemediaobject>";
 
         state.phrase << "<imageobject><imagedata";
@@ -187,11 +211,11 @@ namespace quickbook
         state.phrase << "</inlinemediaobject>";
     }
 
-    void output(quickbook::state& state, hr) {
+    void boostbook_encoder::operator()(quickbook::state& state, hr) const {
         state.phrase << markup_map.at("hr").pre;
     }
 
-    void output(quickbook::state& state, begin_section2 const& x) {
+    void boostbook_encoder::operator()(quickbook::state& state, begin_section2 const& x) const {
         state.phrase << "\n<section id=\"" << x.id << "\">\n";
         if(x.linkend.empty()) {
             state.phrase
@@ -213,11 +237,11 @@ namespace quickbook
         }
     }
 
-    void output(quickbook::state& state, end_section2 const& x) {
+    void boostbook_encoder::operator()(quickbook::state& state, end_section2 const& x) const {
         state.phrase << "</section>";
     }
 
-    void output(quickbook::state& state, heading2 const& x) {
+    void boostbook_encoder::operator()(quickbook::state& state, heading2 const& x) const {
         state.phrase
             << "<anchor id=\"" << x.id << "\"/>"
             << "<bridgehead renderas=\"sect" << x.level << "\">";
@@ -234,7 +258,7 @@ namespace quickbook
         state.phrase << "</bridgehead>";
     }
 
-    void output(quickbook::state& state, variablelist const& x)
+    void boostbook_encoder::operator()(quickbook::state& state, variablelist const& x) const
     {
         state.phrase << "<variablelist>\n";
 
@@ -248,14 +272,14 @@ namespace quickbook
             it = x.entries.begin(); it != x.entries.end(); ++it)
         {
             state.phrase << m.pre;
-            std::for_each(it->begin(), it->end(), output_action(state));
+            std::for_each(it->begin(), it->end(), encode_action(state, *this));
             state.phrase << m.post;
         }
 
         state.phrase << "</variablelist>\n";
     }
 
-    void output(quickbook::state& state, table2 const& x)
+    void boostbook_encoder::operator()(quickbook::state& state, table2 const& x) const
     {
         if (x.title)
         {
@@ -285,7 +309,7 @@ namespace quickbook
         {
             state.phrase << "<thead>";
             state.phrase << m.pre;
-            std::for_each(x.head->begin(), x.head->end(), output_action(state));
+            std::for_each(x.head->begin(), x.head->end(), encode_action(state, *this));
             state.phrase << m.post;
             state.phrase << "</thead>\n";
         }
@@ -296,7 +320,7 @@ namespace quickbook
             it = x.rows.begin(); it != x.rows.end(); ++it)
         {
             state.phrase << m.pre;
-            std::for_each(it->begin(), it->end(), output_action(state));
+            std::for_each(it->begin(), it->end(), encode_action(state, *this));
             state.phrase << m.post;
         }
 
@@ -312,12 +336,12 @@ namespace quickbook
         }
     }
 
-    void output(quickbook::state& state, xinclude2 const& x)
+    void boostbook_encoder::operator()(quickbook::state& state, xinclude2 const& x) const
     {
         state.phrase << "\n<xi:include href=\"" << x.path << "\" />\n";
     }
 
-    void output(quickbook::state& state, list2 const& x)
+    void boostbook_encoder::operator()(quickbook::state& state, list2 const& x) const
     {
         state.phrase << std::string(x.mark == '#' ? "<orderedlist>\n" : "<itemizedlist>\n");
 
@@ -325,14 +349,14 @@ namespace quickbook
             it = x.items.begin(), end = x.items.end(); it != end; ++it)
         {
             state.phrase << "<listitem>\n" << it->content;
-            if(!it->sublist.items.empty()) output(state, it->sublist);
+            if(!it->sublist.items.empty()) (*this)(state, it->sublist);
             state.phrase << std::string("\n</listitem>");
         }
 
         state.phrase << std::string(x.mark == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
     }
 
-    void output(quickbook::state& state, code_token const& x)
+    void boostbook_encoder::operator()(quickbook::state& state, code_token const& x) const
     {
         std::string type = x.type;
         if(type == "space") {
@@ -346,7 +370,7 @@ namespace quickbook
         }
     }
 
-    void output(quickbook::state& state, doc_info const& info)
+    void boostbook_encoder::operator()(quickbook::state& state, doc_info const& info) const
     {
         // if we're ignoring the document info, we're done.
         if (info.ignore) return;
@@ -463,7 +487,7 @@ namespace quickbook
         if(info.doc_type == "library") state.phrase << title;
     }
 
-    void output(quickbook::state& state, doc_info_post const& x)
+    void boostbook_encoder::operator()(quickbook::state& state, doc_info_post const& x) const
     {
         // if we're ignoring the document info, do nothing.
         if (x.info.ignore) return;

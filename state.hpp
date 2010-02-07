@@ -25,7 +25,8 @@ namespace quickbook
 
     struct state
     {
-        state(char const* filein_, fs::path const& outdir, string_stream& out_);
+        state(char const* filein_, fs::path const& outdir, string_stream& out_,
+            encoder_ptr const&);
 
     ///////////////////////////////////////////////////////////////////////////
     // State
@@ -38,6 +39,7 @@ namespace quickbook
 
     // main output stream
         collector               phrase;
+        encoder_ptr             encoder;
 
     // state
         fs::path                filename;

@@ -22,13 +22,15 @@ namespace quickbook
 {
     namespace fs = boost::filesystem;
 
-    state::state(char const* filein_, fs::path const& outdir_, string_stream& out_)
+    state::state(char const* filein_, fs::path const& outdir_, string_stream& out_,
+        encoder_ptr const& encoder)
     // header info
         : doc_id()
         , doc_title()
 
     // main output stream
         , phrase(out_)
+        , encoder(encoder)
 
     // state
         , filename(fs::complete(fs::path(filein_, fs::native)))

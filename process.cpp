@@ -13,28 +13,26 @@
 #include "phrase_actions.hpp"
 #include "block_actions.hpp"
 #include "actions.hpp"
+#include "state.hpp"
 #include "parse_types.hpp"
 #include "code.hpp"
 #include "syntax_highlight.hpp"
 #include "template.hpp"
 #include "doc_info_actions.hpp"
-#include "boostbook.hpp"
+#include "encoder.hpp"
 
 namespace quickbook
 {
     template <typename T>
     void process_action::operator()(T const& x) const
     {
-        output(actions.state_, process(actions.state_, x));
+        (*actions.state_.encoder)(actions.state_, process(actions.state_, x));
     }
 
     template <typename T>
     T const& process(quickbook::state&, T const& x)
     {
         return x;
-    }
-
-    void output(quickbook::state&, nothing) {
     }
 
     template void process_action::operator()<formatted>(formatted const&) const;

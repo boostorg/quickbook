@@ -14,7 +14,7 @@
 #include "state.hpp"
 #include "utils.hpp"
 #include "code.hpp"
-#include "boostbook.hpp"
+#include "encoder.hpp"
 #include "quickbook.hpp"
 
 namespace quickbook
@@ -24,18 +24,20 @@ namespace quickbook
         return nothing();
     }
 
+    // TODO: If I used a different types for quickbook and the generated
+    // output, I could possibly do something smarter here.
     std::string process(quickbook::state& state, macro const& x) {
         if (x.raw_markup == quickbook_get_date)
         {
             char strdate[64];
             strftime(strdate, sizeof(strdate), "%Y-%b-%d", current_time);
-            return encode(strdate);
+            return state.encoder->encode(strdate);
         }
         else if (x.raw_markup == quickbook_get_time)
         {
             char strdate[64];
             strftime(strdate, sizeof(strdate), "%I:%M:%S %p", current_time);
-            return encode(strdate);
+            return state.encoder->encode(strdate);
         }
         else
         {
@@ -46,7 +48,7 @@ namespace quickbook
     link process(quickbook::state& state, link const& x) {
         link r = x;
         if(r.content.empty()) {
-            r.content = encode(x.destination);
+            r.content = state.encoder->encode(x.destination);
         }
         return r;
     }
@@ -61,7 +63,7 @@ namespace quickbook
             default: BOOST_ASSERT(false);
         }
 
-        r.content = encode(x.raw_content);
+        r.content = state.encoder->encode(x.raw_content);
 
         return r;
     }
