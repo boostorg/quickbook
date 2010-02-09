@@ -331,82 +331,92 @@ namespace quickbook
             << "<h1>" << info.doc_title << "</h1>"
             ;
 
-        if(!info.doc_authors.empty())
+        if(!info.doc_authors.empty() || !info.doc_copyrights.empty() ||
+            !info.doc_license.empty())
         {
-            state.phrase << "<h2 class=\"authors\">\n";
-            BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
-                state.phrase
-                    << "<div>\n"
-                    << author.first
-                    << " "
-                    << author.second
-                    << "</div>\n";
-            }
-            state.phrase << "</h2>\n";
-        }
 
-        if(!info.doc_copyrights.empty())
-        {
-            state.phrase
-                << "<p class=\"copyrights\">\n";
+            state.phrase << "<dl>\n";
 
-            BOOST_FOREACH(doc_info::copyright_entry const& copyright,
-                info.doc_copyrights)
+            if(!info.doc_authors.empty())
             {
-                state.phrase << "<div>\nCopyright &copy; ";
-    
-                unsigned int range_state = 0;
-                unsigned int previous = 0;
-                BOOST_FOREACH(unsigned int year, copyright.first) {
-                    switch(range_state) {
-                    case 0: // Start
-                        state.phrase << year;
-                        range_state = 1;
-                        break;
-                    case 1: // Printed a year in last iteration
-                        if(year == previous + 1) {
-                            range_state = 2;
-                        }
-                        else {
-                            state.phrase << ", " << year;
-                            range_state = 1;
-                        }
-                        break;
-                    case 2: // In the middle of a range
-                        if(year != previous + 1) {
-                            state.phrase << " - " << previous << ", " << year;
-                            range_state = 1;
-                        }
-                        break;
-                    }
-                    previous = year;
-                }
-                if(range_state == 2) state.phrase << " - " << previous;
-    
                 state.phrase
-                    << " "
-                    << copyright.second
-                    << "</div>\n"
+                    << "<dt>"
+                    << (info.doc_authors.size() == 1 ? "Author:" :  "Authors:")
+                    << "</dt>\n"
+                    ;
+
+                BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
+                    state.phrase
+                        << "<dd>"
+                        << author.first
+                        << " "
+                        << author.second
+                        << "</dd>\n";
+                }
+            }
+    
+            if(!info.doc_copyrights.empty())
+            {
+                state.phrase
+                    << "<dt>Copyright:</dt>\n"
+                    ;
+    
+                BOOST_FOREACH(doc_info::copyright_entry const& copyright,
+                    info.doc_copyrights)
+                {
+                    state.phrase << "<dd>&copy; ";
+        
+                    unsigned int range_state = 0;
+                    unsigned int previous = 0;
+                    BOOST_FOREACH(unsigned int year, copyright.first) {
+                        switch(range_state) {
+                        case 0: // Start
+                            state.phrase << year;
+                            range_state = 1;
+                            break;
+                        case 1: // Printed a year in last iteration
+                            if(year == previous + 1) {
+                                range_state = 2;
+                            }
+                            else {
+                                state.phrase << ", " << year;
+                                range_state = 1;
+                            }
+                            break;
+                        case 2: // In the middle of a range
+                            if(year != previous + 1) {
+                                state.phrase << " - " << previous << ", " << year;
+                                range_state = 1;
+                            }
+                            break;
+                        }
+                        previous = year;
+                    }
+                    if(range_state == 2) state.phrase << " - " << previous;
+        
+                    state.phrase
+                        << " "
+                        << copyright.second
+                        << "</dd>\n"
+                    ;
+                }
+            }
+    
+            if (!info.doc_license.empty())
+            {
+                state.phrase
+                    << "<dt>License:</dt>\n"
+                    << "<dd>"
+                    << info.doc_license
+                    << "</dd>\n"
                 ;
             }
 
-            state.phrase
-                << "</p>\n";
-        }
-
-        if (!info.doc_license.empty())
-        {
-            state.phrase
-                << "<p class=\"license\">\n"
-                << info.doc_license
-                << "\n"
-                << "</p>\n"
-                << "\n"
-            ;
+            state.phrase << "</dl>\n";
         }
 
         state.phrase
-            << "</header>"
+            << "</header>\n"
             ;
     }
 
