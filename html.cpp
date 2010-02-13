@@ -1,9 +1,13 @@
 #include <algorithm>
 #include <boost/foreach.hpp>
+#include <boost/assert.hpp>
 #include "encoder_impl.hpp"
 
 namespace quickbook
-{    
+{
+    html_encoder::html_encoder() : footnote_id(0) {}
+    html_encoder::~html_encoder() {}
+
     template <typename Iter>
     std::string encode_impl(Iter first, Iter last)
     {
@@ -136,8 +140,23 @@ namespace quickbook
 
     void html_encoder::operator()(quickbook::state& state, formatted const& x)
     {
-        html_markup m = markup_map.at(x.type);
-        state.phrase << m.pre << x.content << m.post;
+        std::string type = x.type;
+        if(type == "footnote") {
+            int id = ++footnote_id;
+            footnote_stack.top().push_back(footnote(id, x.content));
+            // TODO: Maybe get section id from the state?
+            state.phrase
+                << "<sup id=\"footnote_ref_" << id << "\">"
+                << "<a href=\"#footnote_" << id << "\">"
+                << "[" << id << "]"
+                << "</a>"
+                << "</sup>"
+                ;
+        }
+        else {
+            html_markup m = markup_map.at(x.type);
+            state.phrase << m.pre << x.content << m.post;
+        }
     }
 
     void html_encoder::operator()(quickbook::state& state, break_ const& x)
@@ -202,10 +221,14 @@ namespace quickbook
                 << "</h" << level << ">\n"
                 ;
         }
+
+        push_footnotes(state);
     }
 
     void html_encoder::operator()(quickbook::state& state, end_section2 const& x)
     {
+        pop_footnotes(state);
+
         state.phrase << "</section>";
     }
 
@@ -471,6 +494,8 @@ namespace quickbook
         state.phrase
             << "</header>\n"
             ;
+
+        push_footnotes(state);
     }
 
     void html_encoder::operator()(quickbook::state& state, doc_info_post const& x)
@@ -478,8 +503,43 @@ namespace quickbook
         // if we're ignoring the document info, do nothing.
         if (x.info.ignore) return;
 
+        pop_footnotes(state);
+
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
         state.phrase << "</html>";
+    }
+
+    void html_encoder::push_footnotes(quickbook::state& state)
+    {
+        footnote_stack.push(footnotes());
+    }
+
+    void html_encoder::pop_footnotes(quickbook::state& state)
+    {
+        BOOST_ASSERT(!footnote_stack.empty());
+        footnotes notes = footnote_stack.top();
+        footnote_stack.pop();
+        
+        if(!notes.empty()) {
+            state.phrase
+                << "<dl class=\"footnotes\">\n";
+            
+            BOOST_FOREACH(footnote const& x, notes) {
+                state.phrase
+                    << "<dt id=\"footnote_" << x.id << "\">"
+                    << "<a href=\"#footnote_ref_" << x.id << "\">"
+                    << "Footnote"
+                    << "</a>"
+                    << "</dt>"
+                    << "<dd>"
+                    << x.content
+                    << "</dd>"
+                    ;
+            }
+
+            state.phrase
+                << "</dl>\n";
+        }
     }
 }

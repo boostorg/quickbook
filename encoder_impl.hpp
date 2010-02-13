@@ -2,6 +2,8 @@
 #include "encoder.hpp"
 #include "phrase.hpp"
 #include "state.hpp"
+#include <vector>
+#include <stack>
 
 namespace quickbook
 {
@@ -38,6 +40,9 @@ namespace quickbook
     };
 
     struct html_encoder : encoder {
+        html_encoder();
+        ~html_encoder();
+
         virtual void operator()(quickbook::state&, doc_info const&);
         virtual void operator()(quickbook::state&, doc_info_post const&);
     
@@ -67,5 +72,19 @@ namespace quickbook
         virtual std::string encode(std::string const&);
         virtual std::string encode(char);
         virtual std::string encode(char const*);
+    private:
+        void push_footnotes(quickbook::state&);
+        void pop_footnotes(quickbook::state&);
+
+        int footnote_id;
+        struct footnote {
+            footnote(int id, std::string const& content)
+                : id(id), content(content) {}
+        
+            int id;
+            std::string content;
+        };
+        typedef std::vector<footnote> footnotes;
+        std::stack<footnotes> footnote_stack;
     };
 }
