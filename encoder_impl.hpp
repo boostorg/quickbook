@@ -27,6 +27,8 @@ namespace quickbook
         virtual void operator()(quickbook::state&, table2 const&) const;
         virtual void operator()(quickbook::state&, xinclude2 const&) const;
         virtual void operator()(quickbook::state&, list2 const&) const;
+        virtual void operator()(quickbook::state&, callout_link const&) const;
+        virtual void operator()(quickbook::state&, callout_list const&) const;
     
         virtual void operator()(quickbook::state&, code_token const&) const;
     
@@ -57,6 +59,8 @@ namespace quickbook
         virtual void operator()(quickbook::state&, table2 const&) const;
         virtual void operator()(quickbook::state&, xinclude2 const&) const;
         virtual void operator()(quickbook::state&, list2 const&) const;
+        virtual void operator()(quickbook::state&, callout_link const&) const;
+        virtual void operator()(quickbook::state&, callout_list const&) const;
     
         virtual void operator()(quickbook::state&, code_token const&) const;
     

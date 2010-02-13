@@ -302,6 +302,46 @@ namespace quickbook
         state.phrase << std::string(x.mark == '#' ? "\n</ol>" : "\n</ul>");
     }
 
+    void html_encoder::operator()(quickbook::state& state, callout_link const& x) const
+    {
+        state.phrase
+            << "<span"
+            << " class=\"" << x.role << "\""
+            << " id=\"" << x.identifier << "co\""
+            << ">"
+            << "<a href=\"#" << x.identifier << "\">"
+            // TODO: Get correct number
+            // TODO: Better style
+            << "(c)"
+            << "</a>"
+            << "</span>"
+            ;
+    }
+
+    void html_encoder::operator()(quickbook::state& state, callout_list const& x) const
+    {
+        state.phrase
+            << "<dl class=\"calloutlist\">";
+        unsigned int count = 0;
+
+        BOOST_FOREACH(callout_item const& c, x)
+        {
+            state.phrase
+                << "<dt id=\"" << c.identifier << "\">"
+                << "<a href=\"#" << c.identifier << "co\">"
+                << "callout " << ++count
+                << "</a>"
+                << "</dt>"
+                << "<dd>"
+                << c.content
+                << "</dd>"
+                ;
+        }
+
+        state.phrase
+            << "</ol>";
+    }
+
     void html_encoder::operator()(quickbook::state& state, code_token const& x) const
     {
         std::string type = x.type;

@@ -17,6 +17,7 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/support_unused.hpp>
 #include "fwd.hpp"
+#include "template.hpp"
 
 namespace quickbook
 {
@@ -28,8 +29,9 @@ namespace quickbook
     
     struct callout
     {
-        std::string content;
         char const* role;
+        quickbook::file_position position;
+        std::string content;
     };
     
     struct escaped_comment
@@ -46,6 +48,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::callout,
+    (quickbook::file_position, position)
     (std::string, content)
     (char const*, role)
 )
@@ -97,7 +100,7 @@ namespace quickbook
         output_action output;
         std::string code;
         std::string snippet;
-        std::vector<std::string> callouts;
+        quickbook::callouts callouts;
         std::vector<define_template>& storage;
         std::string const doc_id;
         char const* const source_type;

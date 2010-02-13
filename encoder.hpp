@@ -19,6 +19,7 @@
 #include "syntax_highlight.hpp"
 #include "doc_info.hpp"
 #include "gen_types.hpp"
+#include "template.hpp"
 
 namespace quickbook
 {
@@ -54,6 +55,8 @@ namespace quickbook
         virtual void operator()(quickbook::state&, table2 const&) const = 0;
         virtual void operator()(quickbook::state&, xinclude2 const&) const = 0;
         virtual void operator()(quickbook::state&, list2 const&) const = 0;
+        virtual void operator()(quickbook::state&, callout_link const&) const = 0;
+        virtual void operator()(quickbook::state&, callout_list const&) const = 0;
     
         virtual void operator()(quickbook::state&, code_token const&) const = 0;
     

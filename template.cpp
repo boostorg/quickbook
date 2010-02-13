@@ -31,10 +31,24 @@ namespace quickbook
            , params(params)
            , body(body)
            , parent(parent) {}
+
+        template_symbol(
+                std::string const& identifier,
+                std::vector<std::string> const& params,
+                template_value const& body,
+                quickbook::callouts const& callouts,
+                template_scope const* parent)
+           : identifier(identifier)
+           , params(params)
+           , body(body)
+           , callouts(callouts)
+           , parent(parent) {}
+
     
         std::string identifier;
         std::vector<std::string> params;
         template_value body;
+        quickbook::callouts callouts;
         template_scope const* parent;
     };
 
@@ -121,6 +135,7 @@ namespace quickbook
             definition.id,
             definition.params,
             definition.body,
+            definition.callouts,
             parent ? parent : &top_scope());
 
         scopes.front().symbols.add(ts.identifier.c_str(), ts);
@@ -341,6 +356,7 @@ namespace quickbook
                 r = boost::spirit::qi::parse(first, last, block_p) && first == last;
                 state.phrase.swap(result);
             }
+            
             return r;
         }
     }
@@ -422,7 +438,45 @@ namespace quickbook
 
         state.pop(); // restore the state
         --state.template_depth;
-        
+
+        if(x.symbol->callouts.size()) {
+            callout_list list;
+            BOOST_FOREACH(callout_source const& c, x.symbol->callouts) {
+                callout_item item;
+                item.identifier = c.identifier;
+                
+                std::size_t pos = c.body.content.find_first_not_of(" \t\n\r");
+                if(pos != std::string::npos) {
+                    std::string content = "\n";
+                    content.append(c.body.content, pos, c.body.content.size() - pos);
+
+                    state.push();
+                    // TODO: adjust the position?
+                    bool r = parse_template(content, item.content, c.body.position, false, state);
+                    state.pop();
+
+                    if(!r)
+                    {
+                        detail::outerr(c.body.position.file, c.body.position.line)
+                            << "Error expanding callout."
+                            << std::endl;
+                        ++state.error_count;
+                        return "";
+                    }
+                }
+
+                list.push_back(item);
+            }
+
+            state.push();
+            {
+                quickbook::actions actions(state);
+                actions.process(list);
+            }
+            result += state.phrase.str();
+            state.pop();
+        }
+      
         return result;
     }
 }

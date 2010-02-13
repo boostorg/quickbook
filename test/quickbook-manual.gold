@@ -2612,16 +2612,25 @@ for the journey to old age.]]]
         <para>
           <para>
             
-<programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="identifier">foo_bar</phrase><phrase role="special">()</phrase> <!--quickbook-escape-prefix--><phrase role="callout_bug"><co id="quickbook0co" linkends="quickbook0" /></phrase><!--quickbook-escape-postfix-->
+<programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="identifier">foo_bar</phrase><phrase role="special">()</phrase> <phrase role="callout_bug"><co id="quickbook0co" linkends="quickbook0" /></phrase>
 <phrase role="special">{</phrase>
-    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo-bar&quot;</phrase><phrase role="special">;</phrase> <!--quickbook-escape-prefix--><phrase role="callout_bug"><co id="quickbook1co" linkends="quickbook1" /></phrase><!--quickbook-escape-postfix-->
+    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo-bar&quot;</phrase><phrase role="special">;</phrase> <phrase role="callout_bug"><co id="quickbook1co" linkends="quickbook1" /></phrase>
 <phrase role="special">}</phrase>
 </programlisting>
           </para>
-          <para>
-            <calloutlist><callout arearefs="quickbook0co" id="quickbook0"><para> The <emphasis>Mythical</emphasis> FooBar. See <ulink url="http://en.wikipedia.org/wiki/Foobar">Foobar
-            for details</ulink> </para></callout><callout arearefs="quickbook1co" id="quickbook1"><para> return 'em, foo-bar man! </para></callout></calloutlist>
-          </para>
+          <calloutlist>
+            <callout arearefs="quickbook0co" id="quickbook0">
+              <para>
+                The <emphasis>Mythical</emphasis> FooBar. See <ulink url="http://en.wikipedia.org/wiki/Foobar">Foobar
+                for details</ulink>
+              </para>
+            </callout>
+            <callout arearefs="quickbook1co" id="quickbook1">
+              <para>
+                return 'em, foo-bar man!
+              </para>
+            </callout>
+          </calloutlist>
         </para>
         <para>
           Checkout <ulink url="../../test/stub.cpp">stub.cpp</ulink> to see the actual

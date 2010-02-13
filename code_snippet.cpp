@@ -35,16 +35,18 @@ namespace quickbook
     void code_snippet_actions::process_action::operator()(callout const& x, unused_type, unused_type) const
     {
         using detail::callout_id;
-        actions.code += "``'''";
-        actions.code += std::string("<phrase role=\"") + x.role + "\">";
-        actions.code += "<co id=\"";
-        actions.code += actions.doc_id + boost::lexical_cast<std::string>(callout_id + actions.callouts.size()) + "co\" ";
-        actions.code += "linkends=\"";
-        actions.code += actions.doc_id + boost::lexical_cast<std::string>(callout_id + actions.callouts.size()) + "\" />";
-        actions.code += "</phrase>";
-        actions.code += "'''``";
 
-        actions.callouts.push_back(x.content);
+        callout_source item;
+        item.identifier = actions.doc_id + boost::lexical_cast<std::string>(callout_id + actions.callouts.size());
+        item.body = template_value(x.position, x.content);
+
+        actions.code += "``[[callout]";
+        actions.code += x.role;
+        actions.code += " ";
+        actions.code += item.identifier;
+        actions.code += "]``";
+
+        actions.callouts.push_back(item);
     }
 
     void code_snippet_actions::process_action::operator()(escaped_comment const& x, unused_type, unused_type) const
@@ -80,31 +82,13 @@ namespace quickbook
                 actions.snippet += actions.source_type;
                 actions.snippet += "```\n" + actions.code + "```\n\n";
             }
-
-            if(actions.callouts.size() > 0)
-            {
-              actions.snippet += "'''<calloutlist>'''";
-              for (size_t i = 0; i < actions.callouts.size(); ++i)
-              {
-                  actions.snippet += "'''<callout arearefs=\"";
-                  actions.snippet += actions.doc_id + boost::lexical_cast<std::string>(callout_id + i) + "co\" ";
-                  actions.snippet += "id=\"";
-                  actions.snippet += actions.doc_id + boost::lexical_cast<std::string>(callout_id + i) + "\">";
-                  actions.snippet += "'''";
-
-                  actions.snippet += "'''<para>'''";
-                  actions.snippet += actions.callouts[i];
-                  actions.snippet += "\n";
-                  actions.snippet += "'''</para>'''";
-                  actions.snippet += "'''</callout>'''";
-              }
-              actions.snippet += "'''</calloutlist>'''";
-            }
         }
 
         std::vector<std::string> empty_params;
-        actions.storage.push_back(define_template(
-            x.identifier, empty_params, template_value(x.position, actions.snippet)));
+        define_template d(x.identifier, empty_params,
+            template_value(x.position, actions.snippet));
+        d.callouts = actions.callouts;
+        actions.storage.push_back(d);
 
         callout_id += actions.callouts.size();
         actions.callouts.clear();

@@ -35,6 +35,24 @@ namespace quickbook
         std::string content;
     };
 
+    struct callout_link {
+        std::string role;
+        std::string identifier;
+    };
+
+    struct callout_source {
+        std::string identifier;
+        template_value body;
+    };
+    
+    struct callout_item {
+        std::string identifier;
+        std::string content;
+    };
+    
+    typedef std::vector<callout_source> callouts;
+    typedef std::vector<callout_item> callout_list;
+
     struct define_template
     {
         define_template() {}    
@@ -51,6 +69,7 @@ namespace quickbook
         std::string id;
         std::vector<std::string> params;
         template_value body;
+        quickbook::callouts callouts;
     };
 
     struct call_template {

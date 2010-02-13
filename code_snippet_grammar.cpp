@@ -182,6 +182,7 @@ namespace quickbook
 
         inline_callout =
                 "/*<"
+            >>  position
             >>  *(qi::char_ - ">*/")
             >>  ">*/"
             >>  qi::attr("callout_bug")
@@ -189,6 +190,7 @@ namespace quickbook
 
         line_callout =
                 "/*<<"
+            >>  position
             >>  *(qi::char_ - ">>*/")
             >>  ">>*/"
             >>  qi::omit[*qi::space]

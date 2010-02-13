@@ -76,6 +76,12 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, content)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::callout_link,
+    (std::string, role)
+    (std::string, identifier)
+)
+
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
@@ -101,6 +107,7 @@ namespace quickbook
         qi::rule<iterator, quickbook::formatted()> escape_markup;
         qi::rule<iterator> comment;
         qi::rule<iterator> dummy_block;
+        qi::rule<iterator, quickbook::callout_link()> callout_link;
         qi::rule<iterator, quickbook::cond_phrase()> cond_phrase;
         qi::rule<iterator, std::string()> macro_identifier;
         qi::rule<iterator, quickbook::image()> image, image_1_4, image_1_5;
@@ -167,7 +174,8 @@ namespace quickbook
 
         phrase_markup =
             (   '['
-            >>  (   cond_phrase                     
+            >>  (   callout_link
+                |   cond_phrase
                 |   image
                 |   url
                 |   link
@@ -272,6 +280,15 @@ namespace quickbook
 
         dummy_block =
             '[' >> *(dummy_block | (qi::char_ - ']')) >> ']'
+            ;
+
+        // Don't use this, it's meant to be private.
+        callout_link =
+                "[callout]"
+            >>  *~qi::char_(' ')
+            >>  ' '
+            >>  *~qi::char_(']')
+            >>  qi::attr(nothing())
             ;
 
         cond_phrase =

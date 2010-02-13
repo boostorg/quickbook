@@ -318,6 +318,35 @@ namespace quickbook
         state.phrase << std::string(x.mark == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
     }
 
+    void boostbook_encoder::operator()(quickbook::state& state, callout_link const& x) const
+    {
+        state.phrase
+            << "<phrase role=\"" << x.role << "\">"
+            << "<co id=\"" << x.identifier << "co\""
+            << " linkends=\"" << x.identifier << "\""
+            << " />"
+            << "</phrase>";
+    }
+
+    void boostbook_encoder::operator()(quickbook::state& state, callout_list const& x) const
+    {
+        state.phrase
+            << "<calloutlist>";
+
+        BOOST_FOREACH(callout_item const& c, x)
+        {
+            state.phrase
+                << "<callout arearefs=\"" << c.identifier << "co\""
+                << " id=\"" << c.identifier << "\""
+                << ">"
+                << c.content
+                << "</callout>";
+        }
+
+        state.phrase
+            << "</calloutlist>";
+    }
+
     void boostbook_encoder::operator()(quickbook::state& state, code_token const& x) const
     {
         std::string type = x.type;
