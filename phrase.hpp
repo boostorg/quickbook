@@ -25,13 +25,6 @@ namespace quickbook
         std::string mode;
     };
     
-    struct call_template {
-        file_position position;
-        bool escape;
-        template_symbol const* symbol;
-        std::vector<std::string> args;
-    };
-
     struct anchor {
         std::string id;
     };

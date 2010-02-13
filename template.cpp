@@ -25,19 +25,16 @@ namespace quickbook
         template_symbol(
                 std::string const& identifier,
                 std::vector<std::string> const& params,
-                std::string const& body,
-                file_position const& position,
+                template_value const& body,
                 template_scope const* parent)
            : identifier(identifier)
            , params(params)
            , body(body)
-           , position(position)
            , parent(parent) {}
     
         std::string identifier;
         std::vector<std::string> params;
-        std::string body;
-        file_position position;
+        template_value body;
         template_scope const* parent;
     };
 
@@ -124,7 +121,6 @@ namespace quickbook
             definition.id,
             definition.params,
             definition.body,
-            definition.position,
             parent ? parent : &top_scope());
 
         scopes.front().symbols.add(ts.identifier.c_str(), ts);
@@ -202,7 +198,7 @@ namespace quickbook
         }
     
         bool break_arguments(
-            std::vector<std::string>& args
+            std::vector<template_value>& args
           , std::vector<std::string> const& params
           , file_position const& pos
         )
@@ -223,15 +219,22 @@ namespace quickbook
                     // recursively until we have all the expected number of
                     // arguments, or if there are no more spaces left.
 
-                    std::string& str = args.back();
-                    std::string::size_type l_pos = find_first_seperator(str);
+                    template_value& str = args.back();
+                    std::string::size_type l_pos = find_first_seperator(str.content);
                     if (l_pos == std::string::npos)
                         break;
-                    std::string first(str.begin(), str.begin()+l_pos);
-                    std::string::size_type r_pos = str.find_first_not_of(" \t\r\n", l_pos);
+                    template_value first(
+                        str.position,
+                        std::string(str.content.begin(), str.content.begin() + l_pos)
+                        );
+                    std::string::size_type r_pos = str.content.find_first_not_of(" \t\r\n", l_pos);
                     if (r_pos == std::string::npos)
                         break;
-                    std::string second(str.begin()+r_pos, str.end());
+                    // TODO: Work out position?
+                    template_value second(
+                        str.position,
+                        std::string(str.content.begin()+r_pos, str.content.end())
+                    );
                     str = first;
                     args.push_back(second);
                 }
@@ -253,23 +256,22 @@ namespace quickbook
 
         std::pair<bool, std::vector<std::string>::const_iterator>
         get_arguments(
-            std::vector<std::string>& args
+            std::vector<template_value>& args
           , std::vector<std::string> const& params
           , template_scope const& scope
           , file_position const& pos
           , quickbook::state& state
         )
         {
-            std::vector<std::string>::const_iterator arg = args.begin();
+            std::vector<template_value>::const_iterator arg = args.begin();
             std::vector<std::string>::const_iterator tpl = params.begin();
+            std::vector<std::string> empty_params;
 
             // Store each of the argument passed in as local templates:
             while (arg != args.end())
             {
-                std::vector<std::string> empty_params;
-
                 if (!state.templates.add(
-                        define_template(*tpl, empty_params, *arg, pos),
+                        define_template(*tpl, empty_params, *arg),
                         &scope))
                 {
                     detail::outerr(pos.file,pos.line)
@@ -372,7 +374,7 @@ namespace quickbook
             if (qbk_version_n >= 105)
                 state.templates.set_parent_scope(*x.symbol->parent);
 
-            std::vector<std::string> args = x.args;
+            std::vector<template_value> args = x.args;
     
             ///////////////////////////////////
             // Break the arguments
@@ -402,13 +404,13 @@ namespace quickbook
             ///////////////////////////////////
             // parse the template body:
 
-            if (!parse_template(x.symbol->body, result, x.symbol->position, x.escape, state))
+            if (!parse_template(x.symbol->body.content, result, x.symbol->body.position, x.escape, state))
             {
                 detail::outerr(x.position.file,x.position.line)
-                    //<< "Expanding template:" << x.symbol->identifier << std::endl
+                    << "Expanding template:" << x.symbol->identifier << std::endl
                     << std::endl
                     << "------------------begin------------------" << std::endl
-                    << x.symbol->body
+                    << x.symbol->body.content
                     << "------------------end--------------------" << std::endl
                     << std::endl;
                 state.pop(); // restore the state

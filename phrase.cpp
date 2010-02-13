@@ -67,7 +67,13 @@ BOOST_FUSION_ADAPT_STRUCT(
     (quickbook::file_position, position)
     (bool, escape)
     (quickbook::template_symbol const*, symbol)
-    (std::vector<std::string>, args)
+    (std::vector<quickbook::template_value>, args)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::template_value,
+    (quickbook::file_position, position)
+    (std::string, content)
 )
 
 namespace quickbook
@@ -111,11 +117,10 @@ namespace quickbook
         qi::symbols<char, formatted_type> format_symbol;
         qi::rule<iterator, quickbook::formatted()> footnote;
         qi::rule<iterator, quickbook::call_template()> call_template;
-        qi::rule<iterator, std::vector<std::string>() > template_args;
-        qi::rule<iterator, std::string()> template_arg_1_4;
+        qi::rule<iterator, std::vector<quickbook::template_value>()> template_args;
+        qi::rule<iterator, quickbook::template_value()> template_arg_1_4;
         qi::rule<iterator> brackets_1_4;
-        qi::rule<iterator, std::string()> template_arg_1_5;
-        qi::rule<iterator> template_inner_arg_1_5;
+        qi::rule<iterator, quickbook::template_value()> template_arg_1_5;
         qi::rule<iterator> brackets_1_5;
         qi::rule<iterator, quickbook::break_()> break_;
         qi::rule<iterator> space, blank, eol, phrase_end, hard_space;
@@ -402,23 +407,21 @@ namespace quickbook
             qi::eps(qbk_since(105u)) >> -(template_arg_1_5 % "..");
 
         template_arg_1_4 =
-            qi::raw[+(brackets_1_4 | (qi::char_ - (qi::lit("..") | ']')))]
+            position >>
+            qi::raw[+(brackets_1_4 | ~qi::char_(']') - "..")]
             ;
 
         brackets_1_4 =
-            '[' >> +template_arg_1_4 >> ']'
+            '[' >> +(brackets_1_4 | ~qi::char_(']') - "..") >> ']'
             ;
 
         template_arg_1_5 =
-            qi::raw[+(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit("..") | '[' | ']')))]
-            ;
-
-        template_inner_arg_1_5 =
-            +(brackets_1_5 | ('\\' >> qi::char_) | (qi::char_ - (qi::lit('[') | ']')))
+            position >>
+            qi::raw[+(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
             ;
 
         brackets_1_5 =
-            '[' >> +template_inner_arg_1_5 >> ']'
+            '[' >> +(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]")) >> ']'
             ;
 
         break_ =

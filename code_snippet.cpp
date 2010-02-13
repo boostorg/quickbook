@@ -104,7 +104,7 @@ namespace quickbook
 
         std::vector<std::string> empty_params;
         actions.storage.push_back(define_template(
-            x.identifier, empty_params, actions.snippet, x.position));
+            x.identifier, empty_params, template_value(x.position, actions.snippet)));
 
         callout_id += actions.callouts.size();
         actions.callouts.clear();

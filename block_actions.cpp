@@ -155,7 +155,7 @@ namespace quickbook
     nothing process(quickbook::state& state, define_template const& x)
     {
         if(!state.templates.add(x)) {
-            detail::outerr(x.position.file, x.position.line)
+            detail::outerr(x.body.position.file, x.body.position.line)
                 << "Template Redefinition: " << x.id << std::endl;
             ++state.error_count;
         }
@@ -354,7 +354,7 @@ namespace quickbook
         {
             if (!state.templates.add(definition))
             {
-                detail::outerr(definition.position.file, definition.position.line)
+                detail::outerr(definition.body.position.file, definition.body.position.line)
                     << "Template Redefinition: " << definition.id << std::endl;
                 ++state.error_count;
             }

@@ -71,8 +71,13 @@ BOOST_FUSION_ADAPT_STRUCT(
     quickbook::define_template,
     (std::string, id)
     (std::vector<std::string>, params)
+    (quickbook::template_value, body)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::template_value,
     (quickbook::file_position, position)
-    (std::string, body)
+    (std::string, content)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -138,7 +143,7 @@ namespace quickbook
         qi::rule<iterator, quickbook::include()> include;
         qi::rule<iterator, quickbook::import()> import;
         qi::rule<iterator, quickbook::define_template()> define_template;
-        qi::rule<iterator, std::string()> template_body;
+        qi::rule<iterator, quickbook::template_value()> template_body;
         qi::rule<iterator> template_body_recurse;
         qi::rule<iterator, quickbook::code()> code;
         qi::rule<iterator> code_line;
@@ -385,12 +390,12 @@ namespace quickbook
                 >>  space
                 >>  ']'
                 )
-            >>  position
             >>  template_body
             ;
 
         template_body =
-            qi::raw[template_body_recurse]
+                position
+            >>  qi::raw[template_body_recurse]
             ;
 
         template_body_recurse =

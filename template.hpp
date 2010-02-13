@@ -20,6 +20,21 @@ namespace quickbook
 {
     namespace qi = boost::spirit::qi;
 
+    struct template_value
+    {
+        template_value() {}
+        template_value(
+            quickbook::file_position position,
+            std::string const& content)
+        :
+            position(position),
+            content(content)
+        {}
+    
+        quickbook::file_position position;
+        std::string content;
+    };
+
     struct define_template
     {
         define_template() {}    
@@ -27,16 +42,22 @@ namespace quickbook
         define_template(
             std::string id,
             std::vector<std::string> params,
-            std::string body,
-            quickbook::file_position position)
+            template_value body
+            )
         :
-            id(id), params(params), body(body), position(position)
+            id(id), params(params), body(body)
         {}
 
         std::string id;
         std::vector<std::string> params;
-        std::string body;
-        quickbook::file_position position;
+        template_value body;
+    };
+
+    struct call_template {
+        file_position position;
+        bool escape;
+        template_symbol const* symbol;
+        std::vector<template_value> args;
     };
 
     struct template_scope;
