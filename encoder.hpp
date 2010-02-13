@@ -34,41 +34,41 @@ namespace quickbook
     struct encoder {
         void operator()(quickbook::state&, nothing) {}
     
-        virtual void operator()(quickbook::state&, doc_info const&) const = 0;
-        virtual void operator()(quickbook::state&, doc_info_post const&) const = 0;
+        virtual void operator()(quickbook::state&, doc_info const&) = 0;
+        virtual void operator()(quickbook::state&, doc_info_post const&) = 0;
     
         // Note: char is a plain quickbook character, string is an encoded
         // boostbook string. Oops.
-        virtual void operator()(quickbook::state&, char) const = 0;
-        virtual void operator()(quickbook::state&, std::string const&) const = 0;
-        virtual void operator()(quickbook::state&, anchor const&) const = 0;
-        virtual void operator()(quickbook::state&, link const&) const = 0;
-        virtual void operator()(quickbook::state&, formatted const&) const = 0;
-        virtual void operator()(quickbook::state&, break_ const&) const = 0;
-        virtual void operator()(quickbook::state&, image2 const&) const = 0;
+        virtual void operator()(quickbook::state&, char) = 0;
+        virtual void operator()(quickbook::state&, std::string const&) = 0;
+        virtual void operator()(quickbook::state&, anchor const&) = 0;
+        virtual void operator()(quickbook::state&, link const&) = 0;
+        virtual void operator()(quickbook::state&, formatted const&) = 0;
+        virtual void operator()(quickbook::state&, break_ const&) = 0;
+        virtual void operator()(quickbook::state&, image2 const&) = 0;
     
-        virtual void operator()(quickbook::state&, hr) const = 0;
-        virtual void operator()(quickbook::state&, begin_section2 const&) const = 0;
-        virtual void operator()(quickbook::state&, end_section2 const&) const = 0;
-        virtual void operator()(quickbook::state&, heading2 const&) const = 0;
-        virtual void operator()(quickbook::state&, variablelist const&) const = 0;
-        virtual void operator()(quickbook::state&, table2 const&) const = 0;
-        virtual void operator()(quickbook::state&, xinclude2 const&) const = 0;
-        virtual void operator()(quickbook::state&, list2 const&) const = 0;
-        virtual void operator()(quickbook::state&, callout_link const&) const = 0;
-        virtual void operator()(quickbook::state&, callout_list const&) const = 0;
+        virtual void operator()(quickbook::state&, hr) = 0;
+        virtual void operator()(quickbook::state&, begin_section2 const&) = 0;
+        virtual void operator()(quickbook::state&, end_section2 const&) = 0;
+        virtual void operator()(quickbook::state&, heading2 const&) = 0;
+        virtual void operator()(quickbook::state&, variablelist const&) = 0;
+        virtual void operator()(quickbook::state&, table2 const&) = 0;
+        virtual void operator()(quickbook::state&, xinclude2 const&) = 0;
+        virtual void operator()(quickbook::state&, list2 const&) = 0;
+        virtual void operator()(quickbook::state&, callout_link const&) = 0;
+        virtual void operator()(quickbook::state&, callout_list const&) = 0;
     
-        virtual void operator()(quickbook::state&, code_token const&) const = 0;
+        virtual void operator()(quickbook::state&, code_token const&) = 0;
     
-        virtual std::string encode(std::string const&) const = 0;
-        virtual std::string encode(char) const = 0;
-        virtual std::string encode(char const*) const = 0;
+        virtual std::string encode(std::string const&) = 0;
+        virtual std::string encode(char) = 0;
+        virtual std::string encode(char const*) = 0;
     };
 
     struct encode_action
     {
         encode_action(quickbook::state& state,
-            quickbook::encoder const& encoder)
+            quickbook::encoder& encoder)
             : state(state), encoder(encoder) {}
       
         template <typename T>
@@ -77,7 +77,7 @@ namespace quickbook
         }
 
         quickbook::state& state;
-        quickbook::encoder const& encoder;
+        quickbook::encoder& encoder;
     };
 }
 

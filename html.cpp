@@ -23,17 +23,20 @@ namespace quickbook
         return r;
     }
 
-    std::string html_encoder::encode(std::string const& x) const {
+    std::string html_encoder::encode(std::string const& x)
+    {
         return encode_impl(x.begin(), x.end());
     }
 
-    std::string html_encoder::encode(char const* x) const {
+    std::string html_encoder::encode(char const* x)
+    {
         char const* end = x;
         while(*end) ++end;
         return encode_impl(x, end);
     }
 
-    std::string html_encoder::encode(char c) const {
+    std::string html_encoder::encode(char c)
+    {
         return encode_impl(&c, &c + 1);
     }
 
@@ -101,21 +104,23 @@ namespace quickbook
         } initialize_instance;
     }
 
-    void html_encoder::operator()(quickbook::state& state, std::string const& x) const
+    void html_encoder::operator()(quickbook::state& state, std::string const& x)
     {
         state.phrase << x;
     }
 
-    void html_encoder::operator()(quickbook::state& state, char x) const
+    void html_encoder::operator()(quickbook::state& state, char x)
     {
         state.phrase << encode(x);
     }
 
-    void html_encoder::operator()(quickbook::state& state, anchor const& x) const {
+    void html_encoder::operator()(quickbook::state& state, anchor const& x)
+    {
         state.phrase << "<a id=\"" << encode(x.id) << "\"/>\n";
     }
 
-    void html_encoder::operator()(quickbook::state& state, link const& x) const {
+    void html_encoder::operator()(quickbook::state& state, link const& x)
+    {
         html_markup m = markup_map.at(x.type);
         if(*m.pre) {
             state.phrase << m.pre;
@@ -129,17 +134,20 @@ namespace quickbook
         }
     }
 
-    void html_encoder::operator()(quickbook::state& state, formatted const& x) const {
+    void html_encoder::operator()(quickbook::state& state, formatted const& x)
+    {
         html_markup m = markup_map.at(x.type);
         state.phrase << m.pre << x.content << m.post;
     }
 
-    void html_encoder::operator()(quickbook::state& state, break_ const& x) const {
+    void html_encoder::operator()(quickbook::state& state, break_ const& x)
+    {
         html_markup m = markup_map.at("break");
         state.phrase << m.pre;
     }
 
-    void html_encoder::operator()(quickbook::state& state, image2 const& x) const {
+    void html_encoder::operator()(quickbook::state& state, image2 const& x)
+    {
         std::map<std::string, char const*> translate;
         translate["alt"] = "alt";
         translate["fileref"] = "src";
@@ -166,11 +174,13 @@ namespace quickbook
         state.phrase << "/>";
     }
 
-    void html_encoder::operator()(quickbook::state& state, hr) const {
+    void html_encoder::operator()(quickbook::state& state, hr)
+    {
         state.phrase << markup_map.at("hr").pre;
     }
 
-    void html_encoder::operator()(quickbook::state& state, begin_section2 const& x) const {
+    void html_encoder::operator()(quickbook::state& state, begin_section2 const& x)
+    {
         // TODO: Should this be stored in the 'token', or at least have a nicer interface.
         int level = state.section_level + 1;
         if (level > 6) level = 6; 
@@ -194,11 +204,13 @@ namespace quickbook
         }
     }
 
-    void html_encoder::operator()(quickbook::state& state, end_section2 const& x) const {
+    void html_encoder::operator()(quickbook::state& state, end_section2 const& x)
+    {
         state.phrase << "</section>";
     }
 
-    void html_encoder::operator()(quickbook::state& state, heading2 const& x) const {
+    void html_encoder::operator()(quickbook::state& state, heading2 const& x)
+    {
         state.phrase
             << "<h" << x.level << " id=\"" << x.id << "\">"
             ;
@@ -213,7 +225,7 @@ namespace quickbook
         state.phrase << "</h" << x.level << ">";
     }
 
-    void html_encoder::operator()(quickbook::state& state, variablelist const& x) const
+    void html_encoder::operator()(quickbook::state& state, variablelist const& x)
     {
         // TODO: What should I do for the title?
         state.phrase << "<p>";
@@ -235,7 +247,7 @@ namespace quickbook
         state.phrase << "</dl>\n";
     }
 
-    void html_encoder::operator()(quickbook::state& state, table2 const& x) const
+    void html_encoder::operator()(quickbook::state& state, table2 const& x)
     {
         if (x.title)
         {
@@ -281,13 +293,13 @@ namespace quickbook
         state.phrase << "</table>\n";
     }
 
-    void html_encoder::operator()(quickbook::state& state, xinclude2 const& x) const
+    void html_encoder::operator()(quickbook::state& state, xinclude2 const& x)
     {
         // TODO: ?????
         //state.phrase << "\n<xi:include href=\"" << x.path << "\" />\n";
     }
 
-    void html_encoder::operator()(quickbook::state& state, list2 const& x) const
+    void html_encoder::operator()(quickbook::state& state, list2 const& x)
     {
         state.phrase << std::string(x.mark == '#' ? "<ol>\n" : "<ul>\n");
 
@@ -302,7 +314,7 @@ namespace quickbook
         state.phrase << std::string(x.mark == '#' ? "\n</ol>" : "\n</ul>");
     }
 
-    void html_encoder::operator()(quickbook::state& state, callout_link const& x) const
+    void html_encoder::operator()(quickbook::state& state, callout_link const& x)
     {
         state.phrase
             << "<span"
@@ -318,7 +330,7 @@ namespace quickbook
             ;
     }
 
-    void html_encoder::operator()(quickbook::state& state, callout_list const& x) const
+    void html_encoder::operator()(quickbook::state& state, callout_list const& x)
     {
         state.phrase
             << "<dl class=\"calloutlist\">";
@@ -342,7 +354,7 @@ namespace quickbook
             << "</ol>";
     }
 
-    void html_encoder::operator()(quickbook::state& state, code_token const& x) const
+    void html_encoder::operator()(quickbook::state& state, code_token const& x)
     {
         std::string type = x.type;
         if(type == "space") {
@@ -356,7 +368,7 @@ namespace quickbook
         }
     }
 
-    void html_encoder::operator()(quickbook::state& state, doc_info const& info) const
+    void html_encoder::operator()(quickbook::state& state, doc_info const& info)
     {
         // if we're ignoring the document info, we're done.
         if (info.ignore) return;
@@ -461,7 +473,7 @@ namespace quickbook
             ;
     }
 
-    void html_encoder::operator()(quickbook::state& state, doc_info_post const& x) const
+    void html_encoder::operator()(quickbook::state& state, doc_info_post const& x)
     {
         // if we're ignoring the document info, do nothing.
         if (x.info.ignore) return;
