@@ -37,6 +37,7 @@ namespace quickbook
         , outdir(outdir_)
         , macro()
         , section_level(0)
+        , min_section_level(0)
         , section_id()
         , qualified_section_id()
         , source_mode("c++")
@@ -67,6 +68,7 @@ namespace quickbook
               , outdir
               , macro
               , section_level
+              , min_section_level
               , section_id
               , qualified_section_id
               , source_mode
@@ -84,6 +86,7 @@ namespace quickbook
           , outdir
           , macro
           , section_level
+          , min_section_level
           , section_id
           , qualified_section_id
           , source_mode

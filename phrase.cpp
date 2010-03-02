@@ -16,6 +16,7 @@
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_matches.hpp>
+#include <boost/spirit/include/qi_uint.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
@@ -82,6 +83,11 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, identifier)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::unicode_char,
+    (std::string, value)
+)
+
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
@@ -101,10 +107,12 @@ namespace quickbook
         qi::rule<iterator, quickbook::code()> code_block;
         qi::rule<iterator, quickbook::code()> inline_code;
         qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> > simple_format;
+        qi::rule<iterator> simple_phrase_end;
         qi::rule<iterator> escape;        
         qi::rule<iterator, quickbook::break_()> escape_break;
         qi::rule<iterator, quickbook::formatted()> escape_punct;
         qi::rule<iterator, quickbook::formatted()> escape_markup;
+        qi::rule<iterator, quickbook::unicode_char()> escape_unicode;
         qi::rule<iterator> comment;
         qi::rule<iterator> dummy_block;
         qi::rule<iterator, quickbook::callout_link()> callout_link;
@@ -234,8 +242,8 @@ namespace quickbook
                         (   qi::graph               // qi::graph must follow qi::lit(qi::_r1)
                         >>  *(  qi::char_ -
                                 (   (qi::graph >> qi::lit(qi::_a))
-                                |   phrase_end      // Make sure that we don't go
-                                )                   // past a single block
+                                |   simple_phrase_end // Make sure that we don't go
+                                )                     // past a single block
                             )
                         >>  qi::graph               // qi::graph must precede qi::lit(qi::_r1)
                         >>  &(  qi::char_(qi::_a)
@@ -247,10 +255,13 @@ namespace quickbook
             >> qi::omit[qi::char_(qi::_a)]
             ;
 
+        simple_phrase_end = '[' | phrase_end;
+
         escape =
             (   escape_break
-            |   "\\ "                               // ignore an escaped char
+            |   "\\ "                               // ignore an escaped char            
             |   escape_punct
+            |   escape_unicode
             |   escape_markup                       
             )                                       [actions.process]
             ;
@@ -272,6 +283,12 @@ namespace quickbook
             >>  qi::attr("escape")
             >>  *(qi::char_ - "'''")
             >>  "'''"
+            ;
+
+        escape_unicode =
+                "\\u"
+            >>  qi::raw[qi::repeat(1,4)[qi::hex]]
+            >>  qi::attr(nothing())
             ;
 
         comment =

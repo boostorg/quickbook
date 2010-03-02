@@ -79,16 +79,18 @@ namespace quickbook
 
     end_section2 process(quickbook::state& state, end_section const& x)
     {
-        --state.section_level;
-        if (state.section_level < 0)
+        if (state.section_level <= state.min_section_level)
         {
             detail::outerr(x.position.file,x.position.line)
                 << "Mismatched [endsect] near column " << x.position.column << ".\n";
             ++state.error_count;
             
-            // $$$ TODO: somehow fail parse else BOOST_ASSERT(std::string::npos != n)
-            // $$$ below will assert.
+            // TODO: Return something else?
+            return end_section2();
         }
+
+        --state.section_level;
+
         if (state.section_level == 0)
         {
             state.qualified_section_id.clear();
@@ -97,8 +99,8 @@ namespace quickbook
         {
             std::string::size_type const n =
                 state.qualified_section_id.find_last_of('.');
-            BOOST_ASSERT(std::string::npos != n);
-            state.qualified_section_id.erase(n, std::string::npos);
+            if(std::string::npos != n)
+                state.qualified_section_id.erase(n, std::string::npos);
         }
         
         return end_section2();
@@ -125,16 +127,16 @@ namespace quickbook
         {
             r.id = state.section_id + "." +
                 detail::make_identifier(
-                    x.content.raw.begin(),
-                    x.content.raw.end());
+                    x.content.content.begin(),
+                    x.content.content.end());
         }
         else // version 1.3 and above
         {
             r.linkend = r.id = fully_qualified_id(
                 state.doc_id, state.qualified_section_id,
                 detail::make_identifier(
-                    x.content.raw.begin(),
-                    x.content.raw.end()));
+                    x.content.content.begin(),
+                    x.content.content.end()));
 
         }
 

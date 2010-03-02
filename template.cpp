@@ -383,6 +383,10 @@ namespace quickbook
         std::string result;
         state.push(); // scope the state
         {
+            // Store the current section level so that we can ensure that
+            // [section] and [endsect] tags in the template are balanced.
+            state.min_section_level = state.section_level;
+
             // Quickbook 1.4-: When expanding the tempalte continue to use the
             //                 current scope (the dynamic scope).
             // Quickbook 1.5+: Use the scope the template was defined in
@@ -433,6 +437,16 @@ namespace quickbook
                 --state.template_depth;
                 ++state.error_count;
                 return "";
+            }
+
+            if (state.section_level != state.min_section_level)
+            {
+                detail::outerr(x.position.file,x.position.line)
+                    << "Mismatched sections in template " << x.symbol->identifier << std::endl;
+                state.pop(); // restore the actions' states
+                --state.template_depth;
+                ++state.error_count;
+                return ""; 
             }
         }
 

@@ -118,6 +118,26 @@ namespace quickbook
         state.phrase << encode(x);
     }
 
+    void html_encoder::operator()(quickbook::state& state, unicode_char const& x)
+    {
+        std::string::const_iterator first = x.value.begin(), last = x.value.end();
+        while(first != last && *first == '0') ++first;
+
+        // Just ignore \u0000
+        // Maybe I should issue a warning?
+        if(first == last) return;
+        
+        std::string hex_digits(first, last);
+        
+        if(hex_digits.size() == 2 && *first > '0' && *first <= '7') {
+            using namespace std;
+            (*this)(state, strtol(hex_digits.c_str(), 0, 16));
+        }
+        else {
+            state.phrase << "&#x" << hex_digits << ";";
+        }
+    }
+
     void html_encoder::operator()(quickbook::state& state, anchor const& x)
     {
         state.phrase << "<a id=\"" << encode(x.id) << "\"/>\n";

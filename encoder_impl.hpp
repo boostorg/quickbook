@@ -14,6 +14,7 @@ namespace quickbook
         // Note: char is a plain quickbook character, string is an encoded
         // boostbook string. Oops.
         virtual void operator()(quickbook::state&, char);
+        virtual void operator()(quickbook::state&, unicode_char const&);
         virtual void operator()(quickbook::state&, std::string const&);
         virtual void operator()(quickbook::state&, anchor const&);
         virtual void operator()(quickbook::state&, link const&);
@@ -49,6 +50,7 @@ namespace quickbook
         // Note: char is a plain quickbook character, string is an encoded
         // html string. Oops.
         virtual void operator()(quickbook::state&, char);
+        virtual void operator()(quickbook::state&, unicode_char const&);
         virtual void operator()(quickbook::state&, std::string const&);
         virtual void operator()(quickbook::state&, anchor const&);
         virtual void operator()(quickbook::state&, link const&);

@@ -56,6 +56,10 @@ namespace quickbook
         std::string image_filename;
         attribute_map attributes;
     };
+    
+    struct unicode_char {
+        std::string value;
+    };
 }
 
 #endif // BOOST_SPIRIT_QUICKBOOK_PHRASE_HPP

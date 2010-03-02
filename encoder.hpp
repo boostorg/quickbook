@@ -40,6 +40,7 @@ namespace quickbook
         // Note: char is a plain quickbook character, string is an encoded
         // boostbook string. Oops.
         virtual void operator()(quickbook::state&, char) = 0;
+        virtual void operator()(quickbook::state&, unicode_char const&) = 0;
         virtual void operator()(quickbook::state&, std::string const&) = 0;
         virtual void operator()(quickbook::state&, anchor const&) = 0;
         virtual void operator()(quickbook::state&, link const&) = 0;
