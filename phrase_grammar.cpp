@@ -27,6 +27,7 @@
 #include "template.hpp"
 #include "parse_utils.hpp"
 #include "misc_rules.hpp"
+#include "rule_store.hpp"
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::anchor,
@@ -101,43 +102,8 @@ namespace quickbook
         quickbook::actions& actions;
         bool& no_eols;
 
-        qi::rule<iterator, std::string()> phrase;
-        qi::rule<iterator> common;
-        qi::rule<iterator> macro;
-        qi::rule<iterator> phrase_markup;
-        qi::rule<iterator, quickbook::code()> code_block;
-        qi::rule<iterator, quickbook::code()> inline_code;
-        qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> > simple_format;
-        qi::rule<iterator> simple_phrase_end;
-        qi::rule<iterator> escape;        
-        qi::rule<iterator, quickbook::break_()> escape_break;
-        qi::rule<iterator, quickbook::formatted()> escape_punct;
-        qi::rule<iterator, quickbook::formatted()> escape_markup;
-        qi::rule<iterator, quickbook::unicode_char()> escape_unicode;
-        qi::rule<iterator, quickbook::callout_link()> callout_link;
-        qi::rule<iterator, quickbook::cond_phrase()> cond_phrase;
-        qi::rule<iterator, quickbook::image()> image, image_1_4, image_1_5;
-        qi::rule<iterator, std::string()> image_filename;
-        qi::rule<iterator, quickbook::image::attribute_map()> image_attributes;
-        qi::rule<iterator, std::pair<std::string, std::string>()> image_attribute;
-        qi::rule<iterator, std::string()> image_attribute_key, image_attribute_value;
-        qi::rule<iterator, quickbook::link()> url;
-        qi::rule<iterator, quickbook::link()> link;
-        qi::symbols<char, formatted_type> link_symbol;
-        qi::rule<iterator, quickbook::anchor()> anchor;
-        qi::symbols<char, quickbook::source_mode> source_mode;
-        qi::rule<iterator, quickbook::formatted()> formatted;
-        qi::symbols<char, formatted_type> format_symbol;
-        qi::rule<iterator, quickbook::formatted()> footnote;
-        qi::rule<iterator, quickbook::call_template()> call_template;
-        qi::rule<iterator, std::vector<quickbook::template_value>()> template_args;
-        qi::rule<iterator, quickbook::template_value()> template_arg_1_4;
-        qi::rule<iterator> brackets_1_4;
-        qi::rule<iterator, quickbook::template_value()> template_arg_1_5;
-        qi::rule<iterator> brackets_1_5;
-        qi::rule<iterator, quickbook::break_()> break_;
-        qi::rule<iterator> phrase_end;
-        
+        rule_store store_;
+        qi::rule<iterator> common;        
     };
 
     phrase_grammar::phrase_grammar(quickbook::actions& actions, bool& no_eols)
@@ -152,6 +118,26 @@ namespace quickbook
     phrase_grammar::rules::rules(quickbook::actions& actions, bool& no_eols)
         : actions(actions), no_eols(no_eols)
     {
+        qi::rule<iterator, std::string()>& phrase = store_.create();
+        qi::rule<iterator>& macro = store_.create();
+        qi::rule<iterator>& phrase_markup = store_.create();
+        qi::rule<iterator, quickbook::code()>& code_block = store_.create();
+        qi::rule<iterator, quickbook::code()>& inline_code = store_.create();
+        qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> >& simple_format = store_.create();
+        qi::rule<iterator>& escape = store_.create();
+        qi::rule<iterator, quickbook::callout_link()>& callout_link = store_.create();
+        qi::rule<iterator, quickbook::cond_phrase()>& cond_phrase = store_.create();
+        qi::rule<iterator, quickbook::image()>& image = store_.create();
+        qi::rule<iterator, quickbook::link()>& url = store_.create();
+        qi::rule<iterator, quickbook::link()>& link = store_.create();
+        qi::rule<iterator, quickbook::anchor()>& anchor = store_.create();
+        qi::symbols<char, quickbook::source_mode>& source_mode = store_.create();
+        qi::rule<iterator, quickbook::formatted()>& formatted = store_.create();
+        qi::rule<iterator, quickbook::formatted()>& footnote = store_.create();
+        qi::rule<iterator, quickbook::call_template()>& call_template = store_.create();
+        qi::rule<iterator, quickbook::break_()>& break_ = store_.create();
+        qi::rule<iterator>& phrase_end = store_.create();
+
         phrase =
                 qi::eps                         [actions.phrase_push]        
             >> *(   common
@@ -227,6 +213,8 @@ namespace quickbook
             >>  qi::attr(false)
             ;
 
+        qi::rule<iterator>& simple_phrase_end = store_.create();
+
         simple_format %=
                 qi::char_("*/_=")               [qi::_a = qi::_1]
             >>  qi::raw
@@ -253,6 +241,11 @@ namespace quickbook
             ;
 
         simple_phrase_end = '[' | phrase_end;
+
+        qi::rule<iterator, quickbook::break_()>& escape_break = store_.create();
+        qi::rule<iterator, quickbook::formatted()>& escape_punct = store_.create();
+        qi::rule<iterator, quickbook::formatted()>& escape_markup = store_.create();
+        qi::rule<iterator, quickbook::unicode_char()>& escape_unicode = store_.create();
 
         escape =
             (   escape_break
@@ -303,6 +296,14 @@ namespace quickbook
             >>  macro_identifier
             >>  -phrase
             ;
+
+        qi::rule<iterator, quickbook::image()>& image_1_4 = store_.create();
+        qi::rule<iterator, quickbook::image()>& image_1_5 = store_.create();
+        qi::rule<iterator, std::string()>& image_filename = store_.create();
+        qi::rule<iterator, quickbook::image::attribute_map()>& image_attributes = store_.create();
+        qi::rule<iterator, std::pair<std::string, std::string>()>& image_attribute = store_.create();
+        qi::rule<iterator, std::string()>& image_attribute_key = store_.create();
+        qi::rule<iterator, std::string()>& image_attribute_value = store_.create();
 
         image =
             (qi::eps(qbk_since(105u)) >> image_1_5) |
@@ -355,6 +356,8 @@ namespace quickbook
                 )
             ;
 
+        qi::symbols<char, formatted_type>& link_symbol = store_.create();
+
         link =
                 link_symbol
             >>  hard_space
@@ -389,6 +392,8 @@ namespace quickbook
             ("teletype", quickbook::source_mode("teletype"))
             ;
 
+        qi::symbols<char, formatted_type>& format_symbol = store_.create();
+
         formatted = format_symbol >> blank >> phrase;
 
         format_symbol.add
@@ -409,6 +414,12 @@ namespace quickbook
             ;
 
         // Template call
+
+        qi::rule<iterator, std::vector<quickbook::template_value>()>& template_args = store_.create();
+        qi::rule<iterator, quickbook::template_value()>& template_arg_1_4 = store_.create();
+        qi::rule<iterator>& brackets_1_4 = store_.create();
+        qi::rule<iterator, quickbook::template_value()>& template_arg_1_5 = store_.create();
+        qi::rule<iterator>& brackets_1_5 = store_.create();
 
         call_template =
                 position

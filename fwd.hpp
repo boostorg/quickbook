@@ -28,6 +28,8 @@ namespace quickbook
 
     struct collector;
     struct string_stream;
+
+    struct rule_store;
  
     typedef boost::spirit::classic::position_iterator<
         std::string::const_iterator> iterator;
