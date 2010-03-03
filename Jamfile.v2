@@ -29,9 +29,11 @@ exe quickbook
     collector.cpp
     template.cpp
     phrase_grammar.cpp
+    phrase_markup_grammar.cpp
     phrase_actions.cpp
     phrase_image.cpp
     block_grammar.cpp
+    block_markup_grammar.cpp
     block_actions.cpp
     block_list.cpp
     doc_info_grammar.cpp
