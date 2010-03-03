@@ -41,9 +41,12 @@ namespace quickbook
         collector               phrase;
         encoder_ptr             encoder;
 
-    // state
-        fs::path                filename;
         fs::path                outdir;
+
+    // file state
+        fs::path                filename;
+
+    // scope state
         macro_symbols           macro;
         int                     section_level;
         int                     min_section_level;
@@ -52,9 +55,7 @@ namespace quickbook
         std::string             source_mode;
 
         typedef boost::tuple<
-            fs::path
-          , fs::path
-          , macro_symbols
+            macro_symbols
           , int
           , int
           , std::string

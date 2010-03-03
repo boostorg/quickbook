@@ -64,9 +64,7 @@ namespace quickbook
     {
         state_stack.push(
             boost::make_tuple(
-                filename
-              , outdir
-              , macro
+                macro
               , section_level
               , min_section_level
               , section_id
@@ -82,9 +80,7 @@ namespace quickbook
     void state::pop()
     {
         boost::tie(
-            filename
-          , outdir
-          , macro
+            macro
           , section_level
           , min_section_level
           , section_id
