@@ -14,25 +14,13 @@
 
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/spirit/include/qi_core.hpp>
+#include <boost/spirit/include/qi_nonterminal.hpp>
 #include <string>
 
 namespace quickbook
 {
     namespace spirit = boost::spirit;
     namespace ph = boost::phoenix;
-
-    struct get_position_impl
-    {
-        template <typename Range, typename Context>
-        void operator()(Range const& it, Context& c, bool& x) const {
-            boost::spirit::_val(it, c, x) = it.begin().get_position();
-        }
-    };
-
-    namespace {
-        get_position_impl get_position;
-    }
 
     // member_assign - action to assign the attribute to a member of the
     //                 rule's attributte.

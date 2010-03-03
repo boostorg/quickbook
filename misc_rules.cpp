@@ -12,7 +12,6 @@
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
 #include "misc_rules.hpp"
-#include "parse_utils.hpp"
 
 namespace quickbook
 {
@@ -26,6 +25,14 @@ namespace quickbook
     qi::rule<iterator> blank;
     qi::rule<iterator> eol;
     qi::rule<iterator, file_position()> position;
+
+    struct get_position
+    {
+        template <typename Range, typename Context>
+        void operator()(Range const& it, Context& c, bool& x) const {
+            boost::spirit::_val(it, c, x) = it.begin().get_position();
+        }
+    };
 
     void init_misc_rules() {
         macro_identifier =
@@ -59,6 +66,6 @@ namespace quickbook
             ;
     
         position =
-            qi::raw[qi::eps] [get_position];
+            qi::raw[qi::eps] [get_position()];
     }
 }
