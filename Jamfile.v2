@@ -28,17 +28,17 @@ exe quickbook
     post_process.cpp
     collector.cpp
     template.cpp
-    phrase.cpp
+    phrase_grammar.cpp
     phrase_actions.cpp
     phrase_image.cpp
-    block.cpp
+    block_grammar.cpp
     block_actions.cpp
     block_list.cpp
-    doc_info.cpp
+    doc_info_grammar.cpp
     doc_info_actions.cpp
-    code_snippet.cpp
+    code_snippet_actions.cpp
     code_snippet_grammar.cpp
-    syntax_highlight.cpp
+    syntax_highlight_grammar.cpp
     boostbook.cpp
     html.cpp
     encoder_impl.cpp
