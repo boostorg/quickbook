@@ -25,28 +25,20 @@ namespace quickbook
         template_symbol(
                 std::string const& identifier,
                 std::vector<std::string> const& params,
-                template_value const& body,
-                template_scope const* parent)
-           : identifier(identifier)
-           , params(params)
-           , body(body)
-           , parent(parent) {}
-
-        template_symbol(
-                std::string const& identifier,
-                std::vector<std::string> const& params,
+                bool is_block,
                 template_value const& body,
                 quickbook::callouts const& callouts,
                 template_scope const* parent)
            : identifier(identifier)
            , params(params)
+           , is_block(is_block)
            , body(body)
            , callouts(callouts)
            , parent(parent) {}
 
-    
         std::string identifier;
         std::vector<std::string> params;
+        bool is_block;
         template_value body;
         quickbook::callouts callouts;
         template_scope const* parent;
@@ -131,9 +123,17 @@ namespace quickbook
             return false;
         }
 
+        std::string::const_iterator
+            iter = definition.body.content.begin(),
+            end = definition.body.content.end();
+        while (iter != end && ((*iter == ' ') || (*iter == '\t')))
+            ++iter; // skip spaces and tabs
+        bool is_block = (iter != end) && ((*iter == '\r') || (*iter == '\n'));
+
         template_symbol ts(
             definition.id,
             definition.params,
+            is_block,
             definition.body,
             definition.callouts,
             parent ? parent : &top_scope());
@@ -300,7 +300,8 @@ namespace quickbook
         }
 
         bool parse_template(
-            std::string body
+            bool is_block
+          , std::string body
           , std::string& result
           , file_position const& template_pos
           , bool template_escape
@@ -312,12 +313,6 @@ namespace quickbook
             // a newline, then we regard it as a block, otherwise, we parse
             // it as a phrase.
             
-            body.reserve(body.size() + 2);
-
-            std::string::const_iterator iter = body.begin();
-            while (iter != body.end() && ((*iter == ' ') || (*iter == '\t')))
-                ++iter; // skip spaces and tabs
-            bool is_block = (iter != body.end()) && ((*iter == '\r') || (*iter == '\n'));
             bool r = false;
 
             if (template_escape)
@@ -348,11 +343,16 @@ namespace quickbook
                 //  ensure that we have enough trailing newlines to eliminate
                 //  the need to check for end of file in the grammar.
                 body += "\n\n";
-                while (iter != body.end() && ((*iter == '\r') || (*iter == '\n')))
-                    ++iter; // skip initial newlines
-                iterator first(iter, body.end(), state.filename.native_file_string().c_str());
+
+                iterator first(body.begin(), body.end(), state.filename.native_file_string().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
+
+                while (first != last && ((*first == ' ') || (*first == '\t')))
+                    ++first; // skip spaces and tabs
+                while (first != last && ((*first == '\r') || (*first == '\n')))
+                    ++first; // skip initial newlines
+
                 r = boost::spirit::qi::parse(first, last, block_p) && first == last;
                 state.phrase.swap(result);
             }
@@ -424,7 +424,7 @@ namespace quickbook
             ///////////////////////////////////
             // parse the template body:
 
-            if (!parse_template(x.symbol->body.content, result, x.symbol->body.position, x.escape, state))
+            if (!parse_template(x.symbol->is_block, x.symbol->body.content, result, x.symbol->body.position, x.escape, state))
             {
                 detail::outerr(x.position.file,x.position.line)
                     << "Expanding template:" << x.symbol->identifier << std::endl
@@ -459,24 +459,18 @@ namespace quickbook
                 callout_item item;
                 item.identifier = c.identifier;
                 
-                std::size_t pos = c.body.content.find_first_not_of(" \t\n\r");
-                if(pos != std::string::npos) {
-                    std::string content = "\n";
-                    content.append(c.body.content, pos, c.body.content.size() - pos);
+                state.push();
+                // TODO: adjust the position?
+                bool r = parse_template(true, c.body.content, item.content, c.body.position, false, state);
+                state.pop();
 
-                    state.push();
-                    // TODO: adjust the position?
-                    bool r = parse_template(content, item.content, c.body.position, false, state);
-                    state.pop();
-
-                    if(!r)
-                    {
-                        detail::outerr(c.body.position.file, c.body.position.line)
-                            << "Error expanding callout."
-                            << std::endl;
-                        ++state.error_count;
-                        return "";
-                    }
+                if(!r)
+                {
+                    detail::outerr(c.body.position.file, c.body.position.line)
+                        << "Error expanding callout."
+                        << std::endl;
+                    ++state.error_count;
+                    return "";
                 }
 
                 list.push_back(item);
