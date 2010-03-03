@@ -26,6 +26,7 @@
 #include "actions.hpp"
 #include "template.hpp"
 #include "parse_utils.hpp"
+#include "misc_rules.hpp"
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::anchor,
@@ -113,11 +114,8 @@ namespace quickbook
         qi::rule<iterator, quickbook::formatted()> escape_punct;
         qi::rule<iterator, quickbook::formatted()> escape_markup;
         qi::rule<iterator, quickbook::unicode_char()> escape_unicode;
-        qi::rule<iterator> comment;
-        qi::rule<iterator> dummy_block;
         qi::rule<iterator, quickbook::callout_link()> callout_link;
         qi::rule<iterator, quickbook::cond_phrase()> cond_phrase;
-        qi::rule<iterator, std::string()> macro_identifier;
         qi::rule<iterator, quickbook::image()> image, image_1_4, image_1_5;
         qi::rule<iterator, std::string()> image_filename;
         qi::rule<iterator, quickbook::image::attribute_map()> image_attributes;
@@ -138,8 +136,7 @@ namespace quickbook
         qi::rule<iterator, quickbook::template_value()> template_arg_1_5;
         qi::rule<iterator> brackets_1_5;
         qi::rule<iterator, quickbook::break_()> break_;
-        qi::rule<iterator> space, blank, eol, phrase_end, hard_space;
-        qi::rule<iterator, file_position()> position;
+        qi::rule<iterator> phrase_end;
         
     };
 
@@ -291,14 +288,6 @@ namespace quickbook
             >>  qi::attr(nothing())
             ;
 
-        comment =
-            "[/" >> *(dummy_block | (qi::char_ - ']')) >> ']'
-            ;
-
-        dummy_block =
-            '[' >> *(dummy_block | (qi::char_ - ']')) >> ']'
-            ;
-
         // Don't use this, it's meant to be private.
         callout_link =
                 "[callout]"
@@ -313,10 +302,6 @@ namespace quickbook
             >>  blank
             >>  macro_identifier
             >>  -phrase
-            ;
-
-        macro_identifier =
-            +(qi::char_ - (qi::space | ']'))
             ;
 
         image =
@@ -464,29 +449,12 @@ namespace quickbook
             >>  qi::attr(nothing())
             ;
 
-        space =
-            *(qi::space | comment)
-            ;
-
-        blank =
-            *(qi::blank | comment)
-            ;
-
-        eol = blank >> qi::eol
-            ;
-
         phrase_end =
             ']' |
             qi::eps(ph::ref(no_eols)) >>
                 eol >> eol                      // Make sure that we don't go
             ;                                   // past a single block, except
                                                 // when preformatted.
-
-        hard_space =
-            !(qi::alnum | '_') >> space
-            ;                                   // must not be preceded by
-                                                // alpha-numeric or underscore
-         position = qi::raw[qi::eps] [get_position];
     }
 
     struct simple_phrase_grammar::rules
@@ -496,7 +464,7 @@ namespace quickbook
         quickbook::actions& actions;
         bool unused;
         phrase_grammar common;
-        qi::rule<iterator> phrase, comment, dummy_block;
+        qi::rule<iterator> phrase;
     };
 
     simple_phrase_grammar::simple_phrase_grammar(quickbook::actions& actions)
@@ -514,14 +482,6 @@ namespace quickbook
             |   comment
             |   (qi::char_ - ']')               [actions.process]
             )
-            ;
-
-        comment =
-            "[/" >> *(dummy_block | (qi::char_ - ']')) >> ']'
-            ;
-
-        dummy_block =
-            '[' >> *(dummy_block | (qi::char_ - ']')) >> ']'
             ;
     }
 }

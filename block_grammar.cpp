@@ -24,6 +24,7 @@
 #include "actions.hpp"
 #include "parse_utils.hpp"
 #include "code.hpp"
+#include "misc_rules.hpp"
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::paragraph,
@@ -160,13 +161,9 @@ namespace quickbook
         qi::rule<iterator, quickbook::formatted()> inside_paragraph2;
         qi::rule<iterator, std::string()> phrase_attr;
         qi::rule<iterator> phrase_end;
-        qi::rule<iterator> comment, dummy_block;
         qi::rule<iterator, boost::optional<std::string>()> element_id;
         qi::rule<iterator, std::string()> element_id_part;
-        qi::rule<iterator, std::string()> macro_identifier;
         qi::rule<iterator, std::string()> template_id;
-        qi::rule<iterator> hard_space, space, blank, eol;
-        qi::rule<iterator, file_position()> position;
         qi::rule<iterator> error;
     };
 
@@ -521,14 +518,6 @@ namespace quickbook
             ']' | qi::eps(ph::ref(no_eols)) >> eol >> eol
             ;
 
-        comment =
-            "[/" >> *(dummy_block | (qi::char_ - ']')) >> ']'
-            ;
-
-        dummy_block =
-            '[' >> *(dummy_block | (qi::char_ - ']')) >> ']'
-            ;
-
         // Identifiers
 
         element_id =
@@ -546,34 +535,10 @@ namespace quickbook
 
         element_id_part = +(qi::alnum | qi::char_('_'));
 
-        macro_identifier =
-            +(qi::char_ - (qi::space | ']'))
-            ;
-
         template_id
             =   (qi::alpha | '_') >> *(qi::alnum | '_')
             |   qi::repeat(1)[qi::punct - qi::char_("[]")]
             ;
-
-        // Used after an identifier that must not be immediately
-        // followed by an alpha-numeric character or underscore.
-        hard_space =
-            !(qi::alnum | '_') >> space
-            ;
-
-        space =
-            *(qi::space | comment)
-            ;
-
-        blank =
-            *(qi::blank | comment)
-            ;
-
-        eol = blank >> qi::eol
-            ;
-
-        position =
-            qi::raw[qi::eps] [get_position];
 
         error =
             qi::raw[qi::eps] [actions.error];

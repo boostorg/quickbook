@@ -13,6 +13,7 @@
 #include "actions.hpp"
 #include "state.hpp"
 #include "parse_utils.hpp"
+#include "misc_rules.hpp"
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
@@ -60,7 +61,6 @@ namespace quickbook
         phrase_grammar common;
         qi::symbols<char> doc_types;
         qi::rule<iterator, doc_info()> doc_info_details;
-        qi::rule<iterator> comment, space, hard_space;
         qi::rule<iterator, std::pair<unsigned, unsigned>()> quickbook_version;
         qi::rule<iterator, std::string()> phrase, doc_version, doc_id, doc_dirname, doc_category, doc_last_revision, doc_source_mode, doc_purpose, doc_license;
         qi::rule<iterator, std::pair<std::vector<unsigned int>, std::string>()> doc_copyright;
@@ -180,18 +180,6 @@ namespace quickbook
                 |  qi::string("teletype")
                 )
             ;
-
-        comment =
-            "[/" >> *(qi::char_ - ']') >> ']'
-            ;
-
-        space =
-            *(qi::space | comment)
-            ;
-
-        hard_space =
-            !(qi::alnum | '_') >> space     // must not be preceded by
-            ;                               // alpha-numeric or underscore
 
         phrase =
                 qi::eps                     [actions.phrase_push]

@@ -158,9 +158,17 @@ namespace quickbook
 //  Main program
 //
 ///////////////////////////////////////////////////////////////////////////
+
+namespace quickbook
+{
+    void init_misc_rules();
+}
+
 int
 main(int argc, char* argv[])
 {
+    quickbook::init_misc_rules();
+
     try
     {
         using boost::program_options::options_description;

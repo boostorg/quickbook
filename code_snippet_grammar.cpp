@@ -15,18 +15,11 @@
 #include "code_snippet_types.hpp"
 #include "grammars.hpp"
 #include "parse_utils.hpp"
+#include "misc_rules.hpp"
 
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
-
-    namespace
-    {
-        // Shared rules
-        
-        qi::rule<iterator, file_position()>
-            position = qi::raw[qi::eps] [get_position];
-    }
 
     struct python_code_snippet_grammar::rules
     {
