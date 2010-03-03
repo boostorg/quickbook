@@ -14,7 +14,6 @@
 #include "fwd.hpp"
 #include "code_snippet_types.hpp"
 #include "grammars.hpp"
-#include "parse_utils.hpp"
 #include "misc_rules.hpp"
 
 namespace quickbook
