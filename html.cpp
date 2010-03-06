@@ -106,6 +106,13 @@ namespace quickbook
                 }
             }
         } initialize_instance;
+
+        html_markup get_markup(std::string const& x) {
+            std::map<std::string, html_markup>::const_iterator
+                pos = markup_map.find(x);
+            BOOST_ASSERT(pos != markup_map.end());
+            return pos->second;
+        }
     }
 
     void html_encoder::operator()(quickbook::state& state, std::string const& x)
@@ -145,7 +152,7 @@ namespace quickbook
 
     void html_encoder::operator()(quickbook::state& state, link const& x)
     {
-        html_markup m = markup_map.at(x.type);
+        html_markup m = get_markup(x.type);
         if(*m.pre) {
             state.phrase << m.pre;
             state.phrase << encode(x.destination);
@@ -174,14 +181,14 @@ namespace quickbook
                 ;
         }
         else {
-            html_markup m = markup_map.at(x.type);
+            html_markup m = get_markup(x.type);
             state.phrase << m.pre << x.content << m.post;
         }
     }
 
     void html_encoder::operator()(quickbook::state& state, break_ const& x)
     {
-        html_markup m = markup_map.at("break");
+        html_markup m = get_markup("break");
         state.phrase << m.pre;
     }
 
@@ -215,7 +222,7 @@ namespace quickbook
 
     void html_encoder::operator()(quickbook::state& state, hr)
     {
-        state.phrase << markup_map.at("hr").pre;
+        state.phrase << get_markup("hr").pre;
     }
 
     void html_encoder::operator()(quickbook::state& state, begin_section2 const& x)
@@ -277,7 +284,7 @@ namespace quickbook
 
         state.phrase << "<dl>\n";
 
-        html_markup m = markup_map.at("varlistentry");
+        html_markup m = get_markup("varlistentry");
 
         for(std::vector<varlistentry>::const_iterator
             it = x.entries.begin(); it != x.entries.end(); ++it)
@@ -310,7 +317,7 @@ namespace quickbook
             state.phrase << ">\n";
         }
 
-        html_markup m = markup_map.at("row");
+        html_markup m = get_markup("row");
 
         if (x.head)
         {

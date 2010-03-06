@@ -106,6 +106,13 @@ namespace quickbook
                 }
             }
         } initialize_instance;
+        
+        boostbook_markup get_markup(std::string const& x) {
+            std::map<std::string, boostbook_markup>::const_iterator
+                pos = markup_map.find(x);
+            BOOST_ASSERT(pos != markup_map.end());
+            return pos->second;
+        }
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, std::string const& x)
@@ -147,7 +154,7 @@ namespace quickbook
 
     void boostbook_encoder::operator()(quickbook::state& state, link const& x)
     {
-        boostbook_markup m = markup_map.at(x.type);
+        boostbook_markup m = get_markup(x.type);
         state.phrase << m.pre;
         state.phrase << encode(x.destination);
         state.phrase << "\">";
@@ -157,13 +164,13 @@ namespace quickbook
 
     void boostbook_encoder::operator()(quickbook::state& state, formatted const& x)
     {
-        boostbook_markup m = markup_map.at(x.type);
+        boostbook_markup m = get_markup(x.type);
         state.phrase << m.pre << x.content << m.post;
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, break_ const& x)
     {
-        boostbook_markup m = markup_map.at("break");
+        boostbook_markup m = get_markup("break");
         state.phrase << m.pre;
     }
 
@@ -203,7 +210,7 @@ namespace quickbook
 
     void boostbook_encoder::operator()(quickbook::state& state, hr)
     {
-        state.phrase << markup_map.at("hr").pre;
+        state.phrase << get_markup("hr").pre;
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, begin_section2 const& x)
@@ -260,7 +267,7 @@ namespace quickbook
         state.phrase << encode(x.title);
         state.phrase << "</title>\n";
 
-        boostbook_markup m = markup_map.at("varlistentry");
+        boostbook_markup m = get_markup("varlistentry");
 
         for(std::vector<varlistentry>::const_iterator
             it = x.entries.begin(); it != x.entries.end(); ++it)
@@ -297,7 +304,7 @@ namespace quickbook
         // used the last count that was calculated.
         state.phrase << "<tgroup cols=\"" << x.cols << "\">\n";
 
-        boostbook_markup m = markup_map.at("row");
+        boostbook_markup m = get_markup("row");
 
         if (x.head)
         {

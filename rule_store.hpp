@@ -16,6 +16,7 @@
 
 #include <deque>
 #include <boost/assert.hpp>
+#include <utility>
 
 namespace quickbook
 {
@@ -29,7 +30,7 @@ namespace quickbook
         struct scoped_void
         {
             void* ptr_;
-            void (*del_)(void* x);
+            void (*del_)(void*);
             
             scoped_void() : ptr_(0), del_(0) {}
             scoped_void(scoped_void const& src) : ptr_(0), del_(0) {
@@ -39,13 +40,9 @@ namespace quickbook
                 if(ptr_) del_(ptr_);
             }
             
-            template <typename T>
-            T* instantiate() {
-                T* obj;
-            
-                del_ = &delete_impl<T>;
-                ptr_ = obj = new T();
-                return obj;
+            void store(void* ptr, void (*del)(void* x)) {
+                ptr = ptr_;
+                del = del_;
             }
         private:
             scoped_void& operator=(scoped_void const&);
@@ -61,15 +58,19 @@ namespace quickbook
             
             template <typename T>
             operator T&() {
+                std::auto_ptr<T> obj(new T());
+                T& ref = *obj;
                 s.store_.push_back(detail::scoped_void());
-                return *s.store_.back().instantiate<T>();
+                s.store_.back().store(obj.release(), &detail::delete_impl<T>);
+                return ref;
             }
         };
 
         rule_store() {}
 
         instantiate create() {
-            return instantiate(*this);
+            instantiate i(*this);
+            return i;
         }
 
         std::deque<detail::scoped_void> store_;
