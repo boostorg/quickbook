@@ -146,13 +146,15 @@ namespace quickbook
         qi::rule<iterator, quickbook::break_()>& escape_break = store_.create();
         qi::rule<iterator, quickbook::formatted()>& escape_punct = store_.create();
         qi::rule<iterator, quickbook::formatted()>& escape_markup = store_.create();
-        qi::rule<iterator, quickbook::unicode_char()>& escape_unicode = store_.create();
+        qi::rule<iterator, quickbook::unicode_char()>& escape_unicode16 = store_.create();
+        qi::rule<iterator, quickbook::unicode_char()>& escape_unicode32 = store_.create();
 
         escape =
             (   escape_break
             |   "\\ "                               // ignore an escaped char            
             |   escape_punct
-            |   escape_unicode
+            |   escape_unicode16
+            |   escape_unicode32
             |   escape_markup                       
             )                                       [actions.process]
             ;
@@ -176,9 +178,15 @@ namespace quickbook
             >>  "'''"
             ;
 
-        escape_unicode =
+        escape_unicode16 =
                 "\\u"
-            >>  qi::raw[qi::repeat(1,4)[qi::hex]]
+            >>  qi::raw[qi::repeat(4)[qi::xdigit]]
+            >>  qi::attr(nothing())
+            ;
+
+        escape_unicode32 =
+                "\\U"
+            >>  qi::raw[qi::repeat(8)[qi::xdigit]]
             >>  qi::attr(nothing())
             ;
 
