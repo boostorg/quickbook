@@ -41,6 +41,27 @@ namespace quickbook
     bool debug_mode; // for quickbook developers only
     bool ms_errors = false; // output errors/warnings as if for VS
     std::vector<std::string> include_path;
+    std::vector<std::string> preset_defines;
+
+    ///////////////////////////////////////////////////////////////////////////
+    //
+    //  Parse the macros passed as command line parameters
+    //
+    ///////////////////////////////////////////////////////////////////////////
+
+    static void set_macros(quickbook_grammar& g)
+    {
+        for(std::vector<std::string>::const_iterator
+                it = preset_defines.begin(),
+                end = preset_defines.end();
+                it != end; ++it)
+        {
+            iterator first(it->begin(), it->end(), "command line parameter");
+            iterator last(it->end(), it->end());
+
+            parse(first, last, g.command_line_macro);
+        }
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     //
@@ -68,6 +89,7 @@ namespace quickbook
         doc_info info;
         actions actor(state_);
         quickbook_grammar g(actor);
+        set_macros(g);
         bool success = parse(first, last, g.doc_info, info);
 
         if (success || ignore_docinfo)
@@ -98,12 +120,6 @@ namespace quickbook
             ++state_.error_count;
         }
         
-        if(state_.error_count)
-        {
-            detail::outerr(filein_)
-                << "Error count: " << actor.state_.error_count << ".\n";
-        }
-
         return state_.error_count ? 1 : 0;
     }
 
@@ -116,6 +132,13 @@ namespace quickbook
             detail::outwarn(filein_)
                 << "Warning missing [endsect] detected at end of file."
                 << std::endl;
+
+        if(state.error_count)
+        {
+            detail::outerr(filein_)
+                << "Error count: " << state.error_count << ".\n";
+        }
+
         return r;
     }
 
@@ -194,6 +217,7 @@ main(int argc, char* argv[])
             ("debug", "debug mode (for developers)")
             ("ms-errors", "use Microsoft Visual Studio style error & warn message format")
             ("include-path,I", value< std::vector<quickbook::detail::input_path> >(), "include path")
+            ("define,D", value< std::vector<std::string> >(), "define macro")
             ("boostbook", "generate boostbook (default)")
             ("html", "generate html")
         ;
@@ -267,6 +291,12 @@ main(int argc, char* argv[])
                     std::vector<quickbook::detail::input_path> >();
             quickbook::include_path
                 = std::vector<std::string>(paths.begin(), paths.end());
+        }
+
+        if (vm.count("define"))
+        {
+            quickbook::preset_defines
+                = vm["define"].as<std::vector<std::string> >();
         }
 
         if (vm.count("input-file"))

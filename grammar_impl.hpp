@@ -36,6 +36,7 @@ namespace quickbook
         // block
         qi::rule<iterator> block_start;
         qi::rule<iterator> block_markup;
+        qi::rule<iterator> command_line_macro;
 
         // doc_info
         qi::rule<iterator, quickbook::doc_info()> doc_info_details;

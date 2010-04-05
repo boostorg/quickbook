@@ -145,5 +145,24 @@ namespace quickbook
             "variablelist", "import", "template", "warning", "caution",
             "important", "note", "tip", ":"
             ;
+
+        // Parse command line macro definition. This is more here out of
+        // convenience than anything.
+
+        qi::rule<iterator, quickbook::def_macro>& command_line_macro_parse = store_.create();
+
+        command_line_macro = command_line_macro_parse [actions.process];
+
+        command_line_macro_parse =
+                space
+            >>  macro_identifier
+            >>  space
+            >>  (   '='
+                >>  space
+                >>  simple_phrase
+                >>  space
+                )
+                |   qi::attr("")
+            ;
     }
 }

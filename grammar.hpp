@@ -28,6 +28,7 @@ namespace quickbook
         boost::scoped_ptr<impl> impl_;
 
     public:
+        qi::grammar<iterator> command_line_macro;
         qi::grammar<iterator> phrase;
         qi::grammar<iterator> simple_phrase;
         qi::grammar<iterator> block;

@@ -175,14 +175,14 @@ namespace quickbook
 
         escape_unicode16 =
                 "\\u"
-            >>  qi::raw[qi::repeat(4)[qi::xdigit]]
-            >>  qi::attr(nothing())
+            >   qi::raw[qi::repeat(4)[qi::xdigit]]
+            >   qi::attr(nothing())
             ;
 
         escape_unicode32 =
                 "\\U"
-            >>  qi::raw[qi::repeat(8)[qi::xdigit]]
-            >>  qi::attr(nothing())
+            >   qi::raw[qi::repeat(8)[qi::xdigit]]
+            >   qi::attr(nothing())
             ;
 
         phrase_end =
