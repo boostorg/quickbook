@@ -16,7 +16,8 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
-#include "block_grammar.hpp"
+#include "grammar_impl.hpp"
+#include "block.hpp"
 #include "template.hpp"
 #include "actions.hpp"
 #include "code.hpp"
@@ -98,7 +99,7 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
-    void block_grammar::rules::init_block_markup()
+    void quickbook_grammar::impl::init_block_markup()
     {
         qi::rule<iterator, quickbook::begin_section()>& begin_section = store_.create();
         qi::rule<iterator, quickbook::end_section()>& end_section = store_.create();

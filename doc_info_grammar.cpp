@@ -8,12 +8,6 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "doc_info.hpp"
-#include "grammars.hpp"
-#include "actions.hpp"
-#include "state.hpp"
-#include "parse_utils.hpp"
-#include "misc_rules.hpp"
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
@@ -25,6 +19,12 @@
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/fusion/include/reverse_view.hpp>
+#include "doc_info.hpp"
+#include "grammar_impl.hpp"
+#include "actions.hpp"
+#include "state.hpp"
+#include "parse_utils.hpp"
+#include "misc_rules.hpp"
 
 namespace quickbook
 {
@@ -52,38 +52,25 @@ namespace quickbook
         qbk_version_n = (qbk_major_version * 100) + qbk_minor_version;
     }
 
-    struct doc_info_grammar::rules
+    void quickbook_grammar::impl::init_doc_info()
     {
-        rules(quickbook::actions& actions);
-
-        quickbook::actions& actions;
-        bool unused;
-        phrase_grammar common;
-        qi::symbols<char> doc_types;
-        qi::rule<iterator, doc_info()> doc_info_details;
-        qi::rule<iterator, std::pair<unsigned, unsigned>()> quickbook_version;
-        qi::rule<iterator, std::string()> phrase;
-        qi::rule<iterator, raw_source()> doc_version, doc_id, doc_dirname, doc_category, doc_last_revision;
-        qi::rule<iterator, std::string()> doc_source_mode; // TODO: raw_source
-        qi::rule<iterator, doc_info::variant_string()> doc_purpose, doc_license;
-        qi::rule<iterator, std::pair<std::vector<unsigned int>, std::string>()> doc_copyright;
-        qi::rule<iterator, std::vector<std::pair<std::string, std::string> >()> doc_authors;
+        qi::symbols<char>& doc_types = store_.create();
+        qi::rule<iterator, std::pair<unsigned, unsigned>()>& quickbook_version = store_.create();
+        qi::rule<iterator, std::string()>& phrase = store_.create();
+        qi::rule<iterator, raw_source()>& doc_version = store_.create();
+        qi::rule<iterator, raw_source()>& doc_id = store_.create();
+        qi::rule<iterator, raw_source()>& doc_dirname = store_.create();
+        qi::rule<iterator, raw_source()>& doc_category = store_.create();
+        qi::rule<iterator, raw_source()>& doc_last_revision = store_.create();
+        qi::rule<iterator, std::string()>& doc_source_mode = store_.create(); // TODO: raw_source
+        qi::rule<iterator, doc_info::variant_string()>& doc_purpose = store_.create();
+        qi::rule<iterator, doc_info::variant_string()>& doc_license = store_.create();
+        qi::rule<iterator, std::pair<std::vector<unsigned int>, std::string>()>& doc_copyright = store_.create();
+        qi::rule<iterator, std::vector<std::pair<std::string, std::string> >()>& doc_authors = store_.create();
         qi::rule<iterator, boost::fusion::reverse_view<
-                std::pair<std::string, std::string> >()> doc_author;
-        qi::rule<iterator, quickbook::raw_string()> raw_phrase;
-    };
+                std::pair<std::string, std::string> >()>& doc_author = store_.create();
+        qi::rule<iterator, quickbook::raw_string()>& raw_phrase = store_.create();
 
-    doc_info_grammar::doc_info_grammar(quickbook::actions& actions)
-            : doc_info_grammar::base_type(start)
-            , rules_pimpl(new rules(actions))
-            , start(rules_pimpl->doc_info_details) {}
-
-    doc_info_grammar::~doc_info_grammar() {}
-
-
-    doc_info_grammar::rules::rules(quickbook::actions& actions)
-            : actions(actions), unused(false), common(actions, unused)
-    {
         typedef qi::uint_parser<int, 10, 1, 2>  uint2_t;
 
         doc_types =

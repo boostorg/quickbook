@@ -13,7 +13,8 @@
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
-#include "block_grammar.hpp"
+#include "grammar_impl.hpp"
+#include "block.hpp"
 #include "template.hpp"
 #include "actions.hpp"
 #include "code.hpp"
@@ -37,25 +38,15 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
-    block_grammar::block_grammar(quickbook::actions& actions_)
-        : block_grammar::base_type(start, "block")
-        , rules_pimpl(new rules(actions_))
-        , start(rules_pimpl->start_) {}
-
-    block_grammar::~block_grammar() {}
-
-    block_grammar::rules::rules(quickbook::actions& actions_)
-        : actions(actions_), no_eols(true), common(actions, no_eols)
+    void quickbook_grammar::impl::init_block()
     {
-        init_block_markup();
-
         qi::rule<iterator>& blocks = store_.create();
         qi::rule<iterator, quickbook::code()>& code = store_.create();
         qi::rule<iterator, quickbook::list()>& list = store_.create();
         qi::rule<iterator, quickbook::hr()>& hr = store_.create();
         qi::rule<iterator, quickbook::paragraph()>& paragraph = store_.create();
 
-        start_ =
+        block_start =
             blocks >> blank
             ;
 

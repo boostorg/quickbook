@@ -13,8 +13,8 @@
 #include <boost/spirit/include/qi_string.hpp>
 #include <boost/spirit/include/qi_directive.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+#include "grammar.hpp"
 #include "actions.hpp"
-#include "grammars.hpp"
 #include "phrase.hpp"
 #include "utils.hpp"
 #include "syntax_highlight.hpp"
@@ -36,11 +36,10 @@ namespace quickbook
             : actions(actions) {}
 
         void operator()(boost::iterator_range<iterator> escaped, unused_type, unused_type) const {
-            bool unused;
-            phrase_grammar common(actions, unused);   
+            quickbook_grammar g(actions);
             iterator first = escaped.begin(), last = escaped.end();
             while(first != last) {
-                if(!qi::parse(first, last, common)) {
+                if(!qi::parse(first, last, g.phrase)) {
                     actions.process(*first);
                     ++first;
                 }

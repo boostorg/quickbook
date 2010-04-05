@@ -68,7 +68,7 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
-    void phrase_grammar::rules::init_phrase_markup()
+    void quickbook_grammar::impl::init_phrase_markup()
     {
         qi::rule<iterator, quickbook::callout_link()>& callout_link = store_.create();
         qi::rule<iterator, quickbook::cond_phrase()>& cond_phrase = store_.create();

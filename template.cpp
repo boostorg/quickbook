@@ -10,7 +10,7 @@
 #include <boost/spirit/include/qi_symbols.hpp>
 #include "template.hpp"
 #include "phrase_actions.hpp"
-#include "grammars.hpp"
+#include "grammar.hpp"
 #include "state.hpp"
 #include "utils.hpp"
 
@@ -325,19 +325,19 @@ namespace quickbook
             else if (!is_block)
             {
                 quickbook::actions actions(state);
-                simple_phrase_grammar phrase_p(actions);
+                quickbook_grammar g(actions);
 
                 //  do a phrase level parse
                 iterator first(body.begin(), body.end(), state.filename.native_file_string().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
-                r = boost::spirit::qi::parse(first, last, phrase_p) && first == last;
+                r = boost::spirit::qi::parse(first, last, g.simple_phrase) && first == last;
                 state.phrase.swap(result);
             }
             else
             {
                 quickbook::actions actions(state);
-                block_grammar block_p(actions);
+                quickbook_grammar g(actions);
 
                 //  do a block level parse
                 //  ensure that we have enough trailing newlines to eliminate
@@ -353,7 +353,7 @@ namespace quickbook
                 while (first != last && ((*first == '\r') || (*first == '\n')))
                     ++first; // skip initial newlines
 
-                r = boost::spirit::qi::parse(first, last, block_p) && first == last;
+                r = boost::spirit::qi::parse(first, last, g.block) && first == last;
                 state.phrase.swap(result);
             }
             

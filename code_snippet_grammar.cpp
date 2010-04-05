@@ -13,7 +13,7 @@
 #include <boost/spirit/include/qi_attr.hpp>
 #include "fwd.hpp"
 #include "code_snippet_types.hpp"
-#include "grammars.hpp"
+#include "code_snippet_grammar.hpp"
 #include "misc_rules.hpp"
 
 namespace quickbook

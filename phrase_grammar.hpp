@@ -9,29 +9,8 @@
 =============================================================================*/
 
 #include <boost/fusion/include/adapt_struct.hpp>
-#include "grammars.hpp"
+#include "grammar_impl.hpp"
 #include "phrase.hpp"
-#include "rule_store.hpp"
-
-namespace quickbook
-{
-    namespace qi = boost::spirit::qi;
-
-    struct phrase_grammar::rules
-    {
-        rules(quickbook::actions& actions, bool& no_eols);
-    
-        quickbook::actions& actions;
-        bool& no_eols;
-
-        rule_store store_;
-        qi::rule<iterator> common;        
-        qi::rule<iterator, std::string()> phrase;
-        qi::rule<iterator> phrase_markup;
-        
-        void init_phrase_markup();
-    };
-}
 
 BOOST_FUSION_ADAPT_STRUCT( 
  quickbook::break_,

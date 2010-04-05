@@ -15,7 +15,7 @@
 #include "actions.hpp"
 #include "state.hpp"
 #include "quickbook.hpp"
-#include "grammars.hpp"
+#include "code_snippet_grammar.hpp"
 #include "code_snippet_types.hpp"
 #include "utils.hpp"
 

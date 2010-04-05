@@ -36,26 +36,21 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
-    phrase_grammar::phrase_grammar(quickbook::actions& actions, bool& no_eols)
-        : phrase_grammar::base_type(start, "phrase")
-        , rules_pimpl(new rules(actions, no_eols))
+    void quickbook_grammar::impl::init_phrase()
     {
-        start = rules_pimpl->common;
-    }
-
-    phrase_grammar::~phrase_grammar() {}
-
-    phrase_grammar::rules::rules(quickbook::actions& actions, bool& no_eols)
-        : actions(actions), no_eols(no_eols)
-    {
-        init_phrase_markup();
-
         qi::rule<iterator>& macro = store_.create();
         qi::rule<iterator, quickbook::code()>& code_block = store_.create();
         qi::rule<iterator, quickbook::code()>& inline_code = store_.create();
         qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> >& simple_format = store_.create();
         qi::rule<iterator>& escape = store_.create();
         qi::rule<iterator>& phrase_end = store_.create();
+
+        simple_phrase =
+           *(   common
+            |   comment
+            |   (qi::char_ - ']')               [actions.process]
+            )
+            ;
 
         phrase =
                 qi::eps                         [actions.phrase_push]        
@@ -196,33 +191,5 @@ namespace quickbook
                 eol >> eol                      // Make sure that we don't go
             ;                                   // past a single block, except
                                                 // when preformatted.
-    }
-
-    struct simple_phrase_grammar::rules
-    {
-        rules(quickbook::actions& actions);
-
-        quickbook::actions& actions;
-        bool unused;
-        phrase_grammar common;
-        qi::rule<iterator> phrase;
-    };
-
-    simple_phrase_grammar::simple_phrase_grammar(quickbook::actions& actions)
-        : simple_phrase_grammar::base_type(start, "simple_phrase")
-        , rules_pimpl(new rules(actions))
-        , start(rules_pimpl->phrase) {}
-
-    simple_phrase_grammar::~simple_phrase_grammar() {}
-
-    simple_phrase_grammar::rules::rules(quickbook::actions& actions)
-        : actions(actions), unused(false), common(actions, unused)
-    {
-        phrase =
-           *(   common
-            |   comment
-            |   (qi::char_ - ']')               [actions.process]
-            )
-            ;
     }
 }

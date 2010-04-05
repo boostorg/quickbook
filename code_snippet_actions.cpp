@@ -16,7 +16,7 @@
 #include <iterator>
 #include <boost/lexical_cast.hpp>
 #include "utils.hpp"
-#include "grammars.hpp"
+#include "grammar.hpp"
 #include "code_snippet_types.hpp"
 #include "template.hpp"
 

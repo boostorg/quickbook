@@ -28,6 +28,7 @@ exe quickbook
     post_process.cpp
     collector.cpp
     template.cpp
+    grammar.cpp
     phrase_grammar.cpp
     phrase_markup_grammar.cpp
     phrase_actions.cpp

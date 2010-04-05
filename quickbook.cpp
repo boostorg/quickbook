@@ -20,7 +20,7 @@
 #include "quickbook.hpp"
 #include "state.hpp"
 #include "actions.hpp"
-#include "grammars.hpp"
+#include "grammar.hpp"
 #include "post_process.hpp"
 #include "utils.hpp"
 #include "input_path.hpp"
@@ -67,8 +67,8 @@ namespace quickbook
 
         doc_info info;
         actions actor(state_);
-        doc_info_grammar l(actor);
-        bool success = parse(first, last, l, info);
+        quickbook_grammar g(actor);
+        bool success = parse(first, last, g.doc_info, info);
 
         if (success || ignore_docinfo)
         {
@@ -78,8 +78,7 @@ namespace quickbook
 
             actor.process(info);
 
-            block_grammar g(actor);
-            success = parse(first, last, g);
+            success = parse(first, last, g.block);
             if (success && first == last)
             {
                 actor.process(doc_info_post(info));
