@@ -320,7 +320,17 @@ namespace quickbook
         std::swap(state.filename, filein);
 
         // save the doc info strings
-        std::swap(state.doc_id, doc_id);
+        if(qbk_version_n >= 106) {
+            doc_id = state.doc_id;
+        }
+        else {
+            std::swap(state.doc_id, doc_id);
+        }
+        
+        // save the version info
+        unsigned qbk_major_version_store = qbk_major_version;
+        unsigned qbk_minor_version_store = qbk_minor_version;
+        unsigned qbk_version_n_store = qbk_version_n;
 
         // scope the macros
         macro_symbols macro = state.macro;
@@ -342,6 +352,13 @@ namespace quickbook
         std::swap(state.filename, filein);
 
         std::swap(state.doc_id, doc_id);
+
+        if(qbk_version_n >= 106 || qbk_version_n_store >= 106)
+        {
+            qbk_major_version = qbk_major_version_store;
+            qbk_minor_version = qbk_minor_version_store;
+            qbk_version_n = qbk_version_n_store;
+        }
 
         // restore the macros
         state.macro = macro;
