@@ -482,12 +482,12 @@ namespace quickbook
             ;
         }
 
-        if (!info.doc_license.empty())
+        if (!boost::apply_visitor(empty_visitor(), info.doc_license))
         {
             state.phrase
                 << "<legalnotice>\n"
                 << "<para>\n"
-                << info.doc_license
+                << boost::apply_visitor(encode_raw_visitor(*this), info.doc_license)
                 << "\n"
                 << "</para>\n"
                 << "</legalnotice>\n"
@@ -495,11 +495,11 @@ namespace quickbook
             ;
         }
 
-        if (!info.doc_purpose.empty())
+        if (!boost::apply_visitor(empty_visitor(), info.doc_purpose))
         {
             state.phrase
                 << "<" << info.doc_type << "purpose>\n"
-                << info.doc_purpose
+                << boost::apply_visitor(encode_raw_visitor(*this), info.doc_purpose)
                 << "</" << info.doc_type << "purpose>\n"
                 << "\n"
             ;

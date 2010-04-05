@@ -440,7 +440,7 @@ namespace quickbook
             ;
 
         if(!info.doc_authors.empty() || !info.doc_copyrights.empty() ||
-            !info.doc_license.empty())
+            !boost::apply_visitor(empty_visitor(), info.doc_license))
         {
 
             state.phrase << "<dl>\n";
@@ -510,12 +510,12 @@ namespace quickbook
                 }
             }
     
-            if (!info.doc_license.empty())
+            if (!boost::apply_visitor(empty_visitor(), info.doc_license))
             {
                 state.phrase
                     << "<dt>License:</dt>\n"
                     << "<dd>"
-                    << info.doc_license
+                    << boost::apply_visitor(encode_raw_visitor(*this), info.doc_license)
                     << "</dd>\n"
                 ;
             }

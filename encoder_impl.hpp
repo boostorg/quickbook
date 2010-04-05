@@ -102,4 +102,28 @@ namespace quickbook
         typedef std::vector<footnote> footnotes;
         std::stack<footnotes> footnote_stack;
     };
+
+    struct empty_visitor {
+        typedef bool result_type;
+    
+        template <typename T>
+        bool operator()(T const& x) const {
+            return x.empty();
+        }
+    };
+    
+    struct encode_raw_visitor {
+        typedef std::string result_type;
+
+        encoder& encoder_;
+        encode_raw_visitor(encoder& e) : encoder_(e) {}
+        
+        std::string operator()(raw_string const& x) const {
+            return encoder_.encode(x);
+        }
+
+        std::string operator()(std::string const& x) const {
+            return x;
+        }
+    };
 }

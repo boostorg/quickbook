@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <boost/variant/variant.hpp>
 #include "fwd.hpp"
 #include "strings.hpp"
 
@@ -25,6 +26,8 @@ namespace quickbook
         typedef std::vector<copyright_entry> copyright_list;
         typedef std::pair<std::string, std::string> author;
         typedef std::vector<author> author_list;
+        typedef boost::variant<raw_string, std::string> variant_string;
+        enum variant_string_enum { raw_string_type, string_type };
 
         std::string             doc_type;
         raw_string              doc_title;
@@ -32,10 +35,10 @@ namespace quickbook
         raw_string              doc_id;
         raw_string              doc_dirname;
         copyright_list          doc_copyrights;
-        std::string             doc_purpose;
+        variant_string          doc_purpose;
         raw_string              doc_category;
         author_list             doc_authors;
-        std::string             doc_license;
+        variant_string          doc_license;
         raw_string              doc_last_revision;
         bool                    ignore;
     };

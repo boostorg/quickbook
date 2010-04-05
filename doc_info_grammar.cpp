@@ -65,11 +65,12 @@ namespace quickbook
         qi::rule<iterator, std::string()> phrase;
         qi::rule<iterator, raw_source()> doc_version, doc_id, doc_dirname, doc_category, doc_last_revision;
         qi::rule<iterator, std::string()> doc_source_mode; // TODO: raw_source
-        qi::rule<iterator, std::string()> doc_purpose, doc_license;
+        qi::rule<iterator, doc_info::variant_string()> doc_purpose, doc_license;
         qi::rule<iterator, std::pair<std::vector<unsigned int>, std::string>()> doc_copyright;
         qi::rule<iterator, std::vector<std::pair<std::string, std::string> >()> doc_authors;
         qi::rule<iterator, boost::fusion::reverse_view<
                 std::pair<std::string, std::string> >()> doc_author;
+        qi::rule<iterator, quickbook::raw_string()> raw_phrase;
     };
 
     doc_info_grammar::doc_info_grammar(quickbook::actions& actions)
@@ -148,7 +149,7 @@ namespace quickbook
         doc_purpose =
                 "purpose" >> hard_space
             >>  (
-                    qi::eps(qbk_before(103)) >> qi::raw[phrase] |
+                    qi::eps(qbk_before(103)) >> raw_phrase |
                     qi::eps(qbk_since(103)) >> phrase
                 )
             ;
@@ -168,11 +169,10 @@ namespace quickbook
         doc_license =
                 "license" >> hard_space
             >>  (
-                    qi::eps(qbk_before(103)) >> qi::raw[phrase] |
+                    qi::eps(qbk_before(103)) >> raw_phrase |
                     qi::eps(qbk_since(103)) >> phrase
                 )
             ;
-
 
         doc_source_mode =
                 "source-mode" >> hard_space
@@ -181,6 +181,10 @@ namespace quickbook
                 |  qi::string("python")
                 |  qi::string("teletype")
                 )
+            ;
+
+        raw_phrase =
+                qi::raw[phrase]             [qi::_val = qi::_1]
             ;
 
         phrase =
