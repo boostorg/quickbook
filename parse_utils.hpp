@@ -34,6 +34,11 @@ namespace quickbook
             (ph::bind(mem_ptr_, spirit::_val) = attrib)(attrib, context, pass);
         }
         
+        template <typename Attrib, typename Context>
+        void operator()(Attrib& attrib, Context& context, bool& pass) const {
+            (ph::bind(mem_ptr_, spirit::_val) = attrib)(attrib, context, pass);
+        }
+
         Member Struct::*mem_ptr_;
     };
     

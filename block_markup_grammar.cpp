@@ -30,7 +30,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::begin_section,
-    (boost::optional<std::string>, id)
+    (boost::optional<quickbook::raw_string>, id)
     (quickbook::title, content)
 )
 
@@ -72,7 +72,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::table,
-    (boost::optional<std::string>, id)
+    (boost::optional<quickbook::raw_string>, id)
     (std::string, title)
     (std::vector<quickbook::table_row>, rows)
 )
@@ -89,7 +89,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     quickbook::include,
-    (boost::optional<std::string>, id)
+    (boost::optional<quickbook::raw_string>, id)
     (std::string, path)
 )
 
@@ -117,7 +117,7 @@ namespace quickbook
         qi::rule<iterator, std::string()>& inside_paragraph = store_.create();
         qi::rule<iterator, std::string()>& phrase_attr = store_.create();
         qi::rule<iterator>& phrase_end = store_.create();
-        qi::rule<iterator, boost::optional<std::string>()>& element_id = store_.create();
+        qi::rule<iterator, boost::optional<raw_string>()>& element_id = store_.create();
         qi::rule<iterator>& error = store_.create();
 
         block_markup =
@@ -299,16 +299,21 @@ namespace quickbook
             >>  qi::attr(nothing())
             ;
 
+        qi::rule<iterator, raw_string()>& include_id = store_.create();
+
         include =
                 "include"
             >>  hard_space
             >>  -(
                     ':'
-                >>  *((qi::alnum | '_') - qi::space)
+                >>  include_id
                 >>  space
                 )
             >>  *(qi::char_ - phrase_end)
             ;
+
+        include_id = qi::raw[*((qi::alnum | '_') - qi::space)]
+                                            [qi::_val = qi::_1];
 
         import =
                 "import"
@@ -396,7 +401,7 @@ namespace quickbook
 
         // Identifiers
 
-        qi::rule<iterator, std::string()>& element_id_part = store_.create();
+        qi::rule<iterator, raw_string()>& element_id_part = store_.create();
 
         element_id =
             (   ':'
@@ -411,7 +416,8 @@ namespace quickbook
             | qi::eps
             ;
 
-        element_id_part = +(qi::alnum | qi::char_('_'));
+        element_id_part = qi::raw[+(qi::alnum | qi::char_('_'))]
+                                                [qi::_val = qi::_1];
 
         error =
             qi::raw[qi::eps] [actions.error];

@@ -13,6 +13,8 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include "fwd.hpp"
+#include "strings.hpp"
 
 namespace quickbook
 {
@@ -25,16 +27,16 @@ namespace quickbook
         typedef std::vector<author> author_list;
 
         std::string             doc_type;
-        std::string             doc_title;
-        std::string             doc_version;
-        std::string             doc_id;
-        std::string             doc_dirname;
+        raw_string              doc_title;
+        raw_string              doc_version;
+        raw_string              doc_id;
+        raw_string              doc_dirname;
         copyright_list          doc_copyrights;
         std::string             doc_purpose;
-        std::string             doc_category;
+        raw_string              doc_category;
         author_list             doc_authors;
         std::string             doc_license;
-        std::string             doc_last_revision;
+        raw_string              doc_last_revision;
         bool                    ignore;
     };
     

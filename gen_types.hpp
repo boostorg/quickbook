@@ -30,9 +30,9 @@ namespace quickbook
     };
     
     struct begin_section2 {
-        std::string id;
+        raw_string id;
         std::string content;
-        std::string linkend;
+        raw_string linkend;
     };
 
     struct end_section2 {
@@ -41,14 +41,14 @@ namespace quickbook
     struct heading2
     {
         int level;
-        std::string id;
+        raw_string id;
         std::string content;
-        std::string linkend;
+        raw_string linkend;
     };
 
     struct table2
     {
-        boost::optional<std::string> id;
+        boost::optional<raw_string> id;
         boost::optional<std::string> title;
         int cols;
         boost::optional<table_row> head;

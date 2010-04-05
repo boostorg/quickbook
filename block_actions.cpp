@@ -22,15 +22,16 @@
 namespace quickbook
 {
     namespace {
-        std::string fully_qualified_id(std::string const& library_id,
-            std::string const& qualified_section_id,
-            std::string const& section_id)
+        raw_string fully_qualified_id(raw_string const& library_id,
+            raw_string const& qualified_section_id,
+            raw_string const& section_id)
         {
-            std::string id = library_id;
-            if(!id.empty() && !qualified_section_id.empty()) id += '.';
-            id += qualified_section_id;
-            if(!id.empty() && !section_id.empty()) id += '.';
-            id += section_id;
+            raw_string id;
+            id.value = library_id.value;
+            if(!id.empty() && !qualified_section_id.empty()) id.value += '.';
+            id.value += qualified_section_id.value;
+            if(!id.empty() && !section_id.empty()) id.value += '.';
+            id.value += section_id.value;
             return id;
         }
     }
@@ -46,30 +47,32 @@ namespace quickbook
     begin_section2 process(quickbook::state& state, begin_section const& x)
     {
         // TODO: This uses the generated title.
-        state.section_id = x.id ? *x.id :
+        state.section_id.value = x.id ?
+            x.id->value :
             detail::make_identifier(
                 x.content.raw.begin(),
                 x.content.raw.end());
 
         if (state.section_level != 0) {
-            state.qualified_section_id += '.';
+            state.qualified_section_id.value += '.';
         }
         else {
             BOOST_ASSERT(state.qualified_section_id.empty());
         }
 
-        state.qualified_section_id += state.section_id;
+        state.qualified_section_id.value += state.section_id.value;
         ++state.section_level;
 
         begin_section2 r;
 
         if (qbk_version_n < 103) // version 1.2 and below
         {
-            r.id = state.doc_id + "." + state.section_id;
+            r.id.value = state.doc_id.value + "." + state.section_id.value;
         }
         else // version 1.3 and above
         {
-            r.linkend = r.id = state.doc_id + "." + state.qualified_section_id;
+            r.linkend.value = r.id.value =
+                state.doc_id.value + "." + state.qualified_section_id.value;
         }
         
         r.content = x.content.content;
@@ -93,14 +96,14 @@ namespace quickbook
 
         if (state.section_level == 0)
         {
-            state.qualified_section_id.clear();
+            state.qualified_section_id.value.clear();
         }
         else
         {
             std::string::size_type const n =
-                state.qualified_section_id.find_last_of('.');
+                state.qualified_section_id.value.find_last_of('.');
             if(std::string::npos != n)
-                state.qualified_section_id.erase(n, std::string::npos);
+                state.qualified_section_id.value.erase(n, std::string::npos);
         }
         
         return end_section2();
@@ -125,18 +128,20 @@ namespace quickbook
 
         if (!new_style) // version 1.2 and below
         {
-            r.id = state.section_id + "." +
+            r.id.value = state.section_id.value + "." +
                 detail::make_identifier(
                     x.content.content.begin(),
                     x.content.content.end());
         }
         else // version 1.3 and above
         {
-            r.linkend = r.id = fully_qualified_id(
-                state.doc_id, state.qualified_section_id,
-                detail::make_identifier(
+            raw_string id;
+            id.value = detail::make_identifier(
                     x.content.content.begin(),
-                    x.content.content.end()));
+                    x.content.content.end());
+        
+            r.linkend = r.id = fully_qualified_id(
+                state.doc_id, state.qualified_section_id, id);
 
         }
 
@@ -177,9 +182,11 @@ namespace quickbook
                     state.qualified_section_id, *x.id);
             }
             else if(r.title) {
+                raw_string id;
+                id.value = detail::make_identifier(x.title.begin(), x.title.end());
+            
                 r.id = fully_qualified_id(state.doc_id,
-                    state.qualified_section_id,
-                    detail::make_identifier(x.title.begin(), x.title.end()));
+                    state.qualified_section_id, id);
             }
         }
         
@@ -208,7 +215,7 @@ namespace quickbook
           , std::vector<define_template>& storage   // for storing snippets are stored in a
                                                     // vector of define_templates
           , std::string const& extension
-          , std::string const& doc_id)
+          , raw_string const& doc_id)
         {
             std::string code;
             int err = detail::load(file, code);
@@ -307,13 +314,13 @@ namespace quickbook
     nothing process(quickbook::state& state, include const& x)
     {
         fs::path filein = include_search(state.filename.branch_path(), x.path);
-        std::string doc_id;
+        raw_string doc_id;
 
         // swap the filenames
         std::swap(state.filename, filein);
 
         // save the doc info strings
-        state.doc_id.swap(doc_id);
+        std::swap(state.doc_id, doc_id);
 
         // scope the macros
         macro_symbols macro = state.macro;
@@ -334,7 +341,7 @@ namespace quickbook
         // restore the values
         std::swap(state.filename, filein);
 
-        state.doc_id.swap(doc_id);
+        std::swap(state.doc_id, doc_id);
 
         // restore the macros
         state.macro = macro;

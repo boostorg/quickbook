@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE library PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
+<article id="test_that______are_being_escaped_" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
+ xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Test that &amp;, &lt; are being escaped.</title>
+  <articleinfo>
+    <articlepurpose>
+      &amp; should be &amp;amp;, &lt; should &amp;lt;
+    </articlepurpose>
+  </articleinfo>
+  <section id="test_that______are_being_escaped_.escapes___explicitly_written_markup">
+    <title><link linkend="test_that______are_being_escaped_.escapes___explicitly_written_markup">Escapes
+    &amp; explicitly written markup</link></title>
+    <itemizedlist>
+      <listitem>
+        &amp; -&gt; &amp;amp;
+      </listitem>
+      <listitem>
+        &lt; -&gt; &amp;lt;
+      </listitem>
+      <listitem>
+        &gt; -&gt; &amp;gt;
+      </listitem>
+      <listitem>
+        &quot; -&gt; &amp;quot;
+      </listitem>
+    </itemizedlist>
+  </section>
+</article>

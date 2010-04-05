@@ -62,7 +62,10 @@ namespace quickbook
         qi::symbols<char> doc_types;
         qi::rule<iterator, doc_info()> doc_info_details;
         qi::rule<iterator, std::pair<unsigned, unsigned>()> quickbook_version;
-        qi::rule<iterator, std::string()> phrase, doc_version, doc_id, doc_dirname, doc_category, doc_last_revision, doc_source_mode, doc_purpose, doc_license;
+        qi::rule<iterator, std::string()> phrase;
+        qi::rule<iterator, raw_source()> doc_version, doc_id, doc_dirname, doc_category, doc_last_revision;
+        qi::rule<iterator, std::string()> doc_source_mode; // TODO: raw_source
+        qi::rule<iterator, std::string()> doc_purpose, doc_license;
         qi::rule<iterator, std::pair<std::vector<unsigned int>, std::string>()> doc_copyright;
         qi::rule<iterator, std::vector<std::pair<std::string, std::string> >()> doc_authors;
         qi::rule<iterator, boost::fusion::reverse_view<
@@ -90,13 +93,12 @@ namespace quickbook
         
         doc_info_details =
             space
-            >> '[' >> space
-            >> qi::raw[doc_types]           [member_assign(&doc_info::doc_type)]
-            >> hard_space
-            >>  (  *(qi::char_ -
-                    (qi::char_('[') | ']' | qi::eol)
-                    )
-                )                           [member_assign(&doc_info::doc_title)]
+            >>  '[' >> space
+            >>  qi::raw[doc_types]          [member_assign(&doc_info::doc_type)]
+            >>  hard_space
+            >>  qi::raw[
+                    *(qi::char_ - (qi::char_('[') | ']' | qi::eol))
+                ]                           [member_assign(&doc_info::doc_title)]
             >>  quickbook_version           [set_quickbook_version]
             >>
                 *(
@@ -130,11 +132,11 @@ namespace quickbook
             >>  space >> ']'
             );
 
-        doc_version = "version" >> hard_space >> *(qi::char_ - ']');
-        doc_id      = "id"      >> hard_space >> *(qi::char_ - ']');
-        doc_dirname = "dirname" >> hard_space >> *(qi::char_ - ']');
-        doc_category="category" >> hard_space >> *(qi::char_ - ']');
-        doc_last_revision = "last-revision" >> hard_space >> *(qi::char_ - ']');
+        doc_version = "version" >> hard_space >> qi::raw[*(qi::char_ - ']')];
+        doc_id      = "id"      >> hard_space >> qi::raw[*(qi::char_ - ']')];
+        doc_dirname = "dirname" >> hard_space >> qi::raw[*(qi::char_ - ']')];
+        doc_category="category" >> hard_space >> qi::raw[*(qi::char_ - ']')];
+        doc_last_revision = "last-revision" >> hard_space >> qi::raw[*(qi::char_ - ']')];
 
         doc_copyright =
                 "copyright"

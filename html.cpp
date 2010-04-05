@@ -27,6 +27,11 @@ namespace quickbook
         return r;
     }
 
+    std::string html_encoder::encode(raw_string const& x)
+    {
+        return encode_impl(x.begin(), x.end());
+    }
+
     std::string html_encoder::encode(std::string const& x)
     {
         return encode_impl(x.begin(), x.end());
@@ -231,7 +236,7 @@ namespace quickbook
         int level = state.section_level + 1;
         if (level > 6) level = 6; 
     
-        state.phrase << "\n<section id=\"" << x.id << "\">\n";
+        state.phrase << "\n<section id=\"" << encode(x.id) << "\">\n";
         if(x.linkend.empty()) {
             state.phrase
                 << "<h" << level << ">"
@@ -242,7 +247,7 @@ namespace quickbook
         else {
             state.phrase
                 << "<h" << level << " id=\""
-                << x.linkend
+                << encode(x.linkend)
                 << "\">"
                 << x.content
                 << "</h" << level << ">\n"
@@ -262,12 +267,12 @@ namespace quickbook
     void html_encoder::operator()(quickbook::state& state, heading2 const& x)
     {
         state.phrase
-            << "<h" << x.level << " id=\"" << x.id << "\">"
+            << "<h" << x.level << " id=\"" << encode(x.id) << "\">"
             ;
 
         if(!x.linkend.empty()) {
             state.phrase
-                << "<a id=\"" << x.linkend << "\"></a>"
+                << "<a id=\"" << encode(x.linkend) << "\"></a>"
                 ;
         }
         state.phrase << x.content;
@@ -303,7 +308,7 @@ namespace quickbook
         {
             state.phrase << "<table";
             if(x.id)
-                state.phrase << " id=\"" << *x.id << "\"";
+                state.phrase << " id=\"" << encode(*x.id) << "\"";
             state.phrase << ">\n";
             state.phrase << "<caption>";
             state.phrase << encode(*x.title);
@@ -313,7 +318,7 @@ namespace quickbook
         {
             state.phrase << "<table";
             if(x.id)
-                state.phrase << " id=\"" << *x.id << "\"";
+                state.phrase << " id=\"" << encode(*x.id) << "\"";
             state.phrase << ">\n";
         }
 
@@ -426,12 +431,12 @@ namespace quickbook
         state.phrase
             << "<!DOCTYPE html>"
             << "<html><head>"
-            << "<title>" << info.doc_title << "</title>"
+            << "<title>" << encode(info.doc_title) << "</title>"
             << "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">"
             << "</head>"
             << "<body>"
             << "<header>"
-            << "<h1>" << info.doc_title << "</h1>"
+            << "<h1>" << encode(info.doc_title) << "</h1>"
             ;
 
         if(!info.doc_authors.empty() || !info.doc_copyrights.empty() ||
@@ -554,8 +559,8 @@ namespace quickbook
             
             BOOST_FOREACH(footnote const& x, notes) {
                 state.phrase
-                    << "<dt id=\"footnote_" << x.id << "\">"
-                    << "<a href=\"#footnote_ref_" << x.id << "\">"
+                    << "<dt id=\"footnote_" << encode(x.id) << "\">"
+                    << "<a href=\"#footnote_ref_" << encode(x.id) << "\">"
                     << "Footnote"
                     << "</a>"
                     << "</dt>"

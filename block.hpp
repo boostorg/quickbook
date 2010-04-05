@@ -15,6 +15,7 @@
 #include <boost/optional.hpp>
 #include "fwd.hpp"
 #include "parse_types.hpp"
+#include "strings.hpp"
 
 namespace quickbook
 {
@@ -45,7 +46,7 @@ namespace quickbook
 
     struct begin_section
     {
-        boost::optional<std::string> id;
+        boost::optional<raw_string> id;
         title content;
     };
     
@@ -79,7 +80,7 @@ namespace quickbook
     
     struct table
     {
-        boost::optional<std::string> id;
+        boost::optional<raw_string> id;
         std::string title;
         std::vector<table_row> rows;
     };
@@ -96,7 +97,7 @@ namespace quickbook
     
     struct include
     {
-        boost::optional<std::string> id;
+        boost::optional<raw_string> id;
         std::string path;
     };
 }

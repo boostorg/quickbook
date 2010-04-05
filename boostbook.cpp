@@ -23,6 +23,11 @@ namespace quickbook
         return r;
     }
 
+    std::string boostbook_encoder::encode(raw_string const& x)
+    {
+        return encode_impl(x.begin(), x.end());
+    }
+
     std::string boostbook_encoder::encode(std::string const& x)
     {
         return encode_impl(x.begin(), x.end());
@@ -215,7 +220,7 @@ namespace quickbook
 
     void boostbook_encoder::operator()(quickbook::state& state, begin_section2 const& x)
     {
-        state.phrase << "\n<section id=\"" << x.id << "\">\n";
+        state.phrase << "\n<section id=\"" << encode(x.id) << "\">\n";
         if(x.linkend.empty()) {
             state.phrase
                 << "<title>"
@@ -227,7 +232,7 @@ namespace quickbook
             state.phrase
                 << "<title>"
                 << "<link linkend=\""
-                << x.linkend
+                << encode(x.linkend)
                 << "\">"
                 << x.content
                 << "</link>"
@@ -244,7 +249,7 @@ namespace quickbook
     void boostbook_encoder::operator()(quickbook::state& state, heading2 const& x)
     {
         state.phrase
-            << "<anchor id=\"" << x.id << "\"/>"
+            << "<anchor id=\"" << encode(x.id) << "\"/>"
             << "<bridgehead renderas=\"sect" << x.level << "\">";
 
         if(x.linkend.empty()) {
@@ -252,7 +257,7 @@ namespace quickbook
         }
         else {
             state.phrase
-                << "<link linkend=\"" << x.linkend << "\">"
+                << "<link linkend=\"" << encode(x.linkend) << "\">"
                 << x.content << "</link>";
         }
 
@@ -286,7 +291,7 @@ namespace quickbook
         {
             state.phrase << "<table frame=\"all\"";
             if(x.id)
-                state.phrase << " id=\"" << *x.id << "\"";
+                state.phrase << " id=\"" << encode(*x.id) << "\"";
             state.phrase << ">\n";
             state.phrase << "<title>";
             state.phrase << encode(*x.title);
@@ -296,7 +301,7 @@ namespace quickbook
         {
             state.phrase << "<informaltable frame=\"all\"";
             if(x.id)
-                state.phrase << " id=\"" << *x.id << "\"";
+                state.phrase << " id=\"" << encode(*x.id) << "\"";
             state.phrase << ">\n";
         }
 
@@ -413,20 +418,20 @@ namespace quickbook
         // Document tag
 
         state.phrase
-            << '<' << info.doc_type << " id=\"" << info.doc_id << "\"\n";
+            << '<' << info.doc_type << " id=\"" << encode(info.doc_id) << "\"\n";
         
         if(info.doc_type == "library")
         {
-            state.phrase << " name=\"" << info.doc_title << "\"\n";
+            state.phrase << " name=\"" << encode(info.doc_title) << "\"\n";
         }
 
         if(!info.doc_dirname.empty())
         {
-            state.phrase << " dirname=\"" << info.doc_dirname << "\"\n";
+            state.phrase << " dirname=\"" << encode(info.doc_dirname) << "\"\n";
         }
 
         state.phrase
-            << "last-revision=\"" << info.doc_last_revision << "\""
+            << "last-revision=\"" << encode(info.doc_last_revision) << "\""
             << " xmlns:xi=\"http://www.w3.org/2001/XInclude\"";
 
         state.phrase << ">"; // end document tag.
@@ -434,11 +439,11 @@ namespace quickbook
         // Title tag
 
         std::string title;
-        if(!info.doc_title.empty())
+        if(info.doc_title.begin() != info.doc_title.end())
         {
-            title =  "<title>" + info.doc_title;
+            title =  "<title>" + encode(info.doc_title);
             if (!info.doc_version.empty())
-                title += ' ' + info.doc_version;
+                title += ' ' + info.doc_version.value;
             title += "</title>\n";
         }
 
@@ -504,7 +509,7 @@ namespace quickbook
         {
             state.phrase
                 << "<" << info.doc_type << "category name=\"category:"
-                << info.doc_category
+                << encode(info.doc_category)
                 << "\"></" << info.doc_type << "category>\n"
                 << "\n"
             ;

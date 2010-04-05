@@ -37,7 +37,8 @@ namespace quickbook
         using detail::callout_id;
 
         callout_source item;
-        item.identifier = actions.doc_id + boost::lexical_cast<std::string>(callout_id + actions.callouts.size());
+        item.identifier = std::string(actions.doc_id.begin(), actions.doc_id.end());
+        item.identifier += boost::lexical_cast<std::string>(callout_id + actions.callouts.size());
         item.body = template_value(x.position, x.content);
 
         actions.code += "``[[callout]";

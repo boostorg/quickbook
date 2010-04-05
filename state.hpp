@@ -17,6 +17,7 @@
 #include "collector.hpp"
 #include "template.hpp"
 #include "actions.hpp"
+#include "strings.hpp"
 
 namespace quickbook
 {
@@ -34,8 +35,8 @@ namespace quickbook
 
         static int const max_template_depth = 100;
 
-        std::string             doc_id;
-        std::string             doc_title;
+        raw_string              doc_id;
+        raw_string              doc_title;
 
     // main output stream
         collector               phrase;
@@ -50,16 +51,16 @@ namespace quickbook
         macro_symbols           macro;
         int                     section_level;
         int                     min_section_level;
-        std::string             section_id;
-        std::string             qualified_section_id;
+        raw_string              section_id;
+        raw_string              qualified_section_id;
         std::string             source_mode;
 
         typedef boost::tuple<
             macro_symbols
           , int
           , int
-          , std::string
-          , std::string
+          , raw_string
+          , raw_string
           , std::string>
         state_tuple;
 

@@ -18,6 +18,7 @@
 #include <boost/spirit/include/support_unused.hpp>
 #include "fwd.hpp"
 #include "template.hpp"
+#include "strings.hpp"
 
 namespace quickbook
 {
@@ -65,7 +66,7 @@ namespace quickbook
     struct code_snippet_actions
     {
         code_snippet_actions(std::vector<define_template>& storage,
-                                 std::string const& doc_id,
+                                 raw_string const& doc_id,
                                  char const* source_type)
             : process(*this)
             , output(*this)
@@ -102,7 +103,7 @@ namespace quickbook
         std::string snippet;
         quickbook::callouts callouts;
         std::vector<define_template>& storage;
-        std::string const doc_id;
+        raw_string const doc_id;
         char const* const source_type;
     };
 }

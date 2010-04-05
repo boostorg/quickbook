@@ -20,6 +20,7 @@
 #include "doc_info.hpp"
 #include "gen_types.hpp"
 #include "template.hpp"
+#include "strings.hpp"
 
 namespace quickbook
 {
@@ -61,6 +62,7 @@ namespace quickbook
     
         virtual void operator()(quickbook::state&, code_token const&) = 0;
     
+        virtual std::string encode(raw_string const&) = 0;
         virtual std::string encode(std::string const&) = 0;
         virtual std::string encode(char) = 0;
         virtual std::string encode(char const*) = 0;

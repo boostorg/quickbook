@@ -35,6 +35,8 @@ namespace quickbook
         std::string::const_iterator> iterator;
     typedef boost::spirit::classic::file_position file_position;
     typedef boost::iterator_range<iterator> raw_source;
+    
+    struct raw_string;
 
     // templates
 

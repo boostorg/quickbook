@@ -32,20 +32,6 @@ namespace quickbook
         , error(state.error_count)
     {}
 
-    namespace {
-        std::string fully_qualified_id(std::string const& library_id,
-            std::string const& qualified_section_id,
-            std::string const& section_id)
-        {
-            std::string id = library_id;
-            if(!id.empty() && !qualified_section_id.empty()) id += '.';
-            id += qualified_section_id;
-            if(!id.empty() && !section_id.empty()) id += '.';
-            id += section_id;
-            return id;
-        }
-    }
-
     void error_action::operator()(iterator_range x, unused_type, unused_type) const
     {
         file_position const pos = x.begin().get_position();
