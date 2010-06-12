@@ -108,19 +108,6 @@ namespace quickbook
 
     void quickbook_grammar::impl::init_block_markup()
     {
-        qi::rule<iterator, quickbook::begin_section()>& begin_section = store_.create();
-        qi::rule<iterator, quickbook::end_section()>& end_section = store_.create();
-        qi::rule<iterator, quickbook::heading()>& heading = store_.create();
-        qi::rule<iterator, quickbook::formatted()>& paragraph_block = store_.create();
-        qi::rule<iterator, quickbook::formatted()>& blockquote = store_.create();
-        qi::rule<iterator, quickbook::formatted()>& preformatted = store_.create();
-        qi::rule<iterator, quickbook::def_macro()>& def_macro = store_.create();
-        qi::rule<iterator, quickbook::table()>& table = store_.create();
-        qi::rule<iterator, quickbook::variablelist()>& variablelist = store_.create();
-        qi::rule<iterator, quickbook::xinclude()>& xinclude = store_.create();
-        qi::rule<iterator, quickbook::include()>& include = store_.create();
-        qi::rule<iterator, quickbook::import()>& import = store_.create();
-        qi::rule<iterator, quickbook::define_template()>& define_template = store_.create();
         qi::rule<iterator, quickbook::title()>& title_phrase = store_.create();
         qi::rule<iterator, std::string()>& inside_paragraph = store_.create();
         qi::rule<iterator, std::string()>& phrase_attr = store_.create();
@@ -128,98 +115,118 @@ namespace quickbook
         qi::rule<iterator, boost::optional<raw_string>()>& element_id = store_.create();
         qi::rule<iterator>& error = store_.create();
 
+        qi::rule<iterator, qi::locals<qi::rule<iterator> > >& block_markup_impl = store_.create();
+        qi::symbols<char, qi::rule<iterator> >& block_keyword_rules = store_.create();
+        qi::symbols<char, qi::rule<iterator> >& block_symbol_rules = store_.create();
+
         block_markup =
                 '[' >> space
-            >>  (   begin_section
-                |   end_section
-                |   heading
-                |   paragraph_block
-                |   blockquote
-                |   preformatted
-                |   def_macro
-                |   table
-                |   variablelist
-                |   xinclude
-                |   include
-                |   import
-                |   define_template
-                )                               [actions.process]
+            >>  block_markup_impl
             >>  (   (space >> ']' >> +eol)
                 |   error
                 )
             ;
-        
+
+        block_markup_impl
+            =   (   block_keyword_rules >> !(qi::alnum | '_')
+                |   block_symbol_rules
+                ) [qi::_a = qi::_1]
+                >> lazy(qi::_a)
+                ;
+
+        // Sections
+
+        qi::rule<iterator, quickbook::begin_section()>& begin_section = store_.create();
+        qi::rule<iterator, quickbook::end_section()>& end_section = store_.create();
+        block_keyword_rules.add("section", begin_section[actions.process]);
+        block_keyword_rules.add("endsect", end_section[actions.process]);
+
         begin_section =
-                "section"
-            >>  hard_space
+                space
             >>  element_id
             >>  title_phrase
             ;
 
         end_section =
-                position
-            >>  "endsect"
+                space
+            >>  position
             >>  qi::attr(nothing())
             ;
 
-        qi::symbols<char, int>& heading_symbol = store_.create();
-        heading = heading_symbol >> hard_space >> title_phrase;
+        // Headings
 
-        heading_symbol.add
-            ("h1", 1)
-            ("h2", 2)
-            ("h3", 3)
-            ("h4", 4)
-            ("h5", 5)
-            ("h6", 6)
-            ("heading", -1);
+        qi::rule<iterator, quickbook::heading(int)>& heading = store_.create();
 
-        qi::symbols<char, quickbook::formatted_type>& paragraph_blocks = store_.create();
+        block_keyword_rules.add
+            ("h1", heading(1) [actions.process])
+            ("h2", heading(2) [actions.process])
+            ("h3", heading(3) [actions.process])
+            ("h4", heading(4) [actions.process])
+            ("h5", heading(5) [actions.process])
+            ("h6", heading(6) [actions.process])
+            ("heading", heading(-1) [actions.process]);
+
+        heading = qi::attr(qi::_r1) >> space >> title_phrase;
+        
+        // Paragraph Blocks
+
+        qi::rule<iterator, quickbook::formatted(formatted_type)>& paragraph_block = store_.create();
+
+        block_keyword_rules.add
+            ("blurb", paragraph_block(formatted_type("blurb")) [actions.process])
+            ("warning", paragraph_block(formatted_type("warning")) [actions.process])
+            ("caution", paragraph_block(formatted_type("caution")) [actions.process])
+            ("important", paragraph_block(formatted_type("important")) [actions.process])
+            ("note", paragraph_block(formatted_type("note")) [actions.process])
+            ("tip", paragraph_block(formatted_type("tip")) [actions.process])
+            ;
+
+        block_symbol_rules.add
+            (":", paragraph_block(formatted_type("blockquote")) [actions.process])
+            ;
 
         paragraph_block =
-            paragraph_blocks >> hard_space >> inside_paragraph
+            qi::attr(qi::_r1) >> space >> inside_paragraph
             ;
 
-        paragraph_blocks.add
-            ("blurb", formatted_type("blurb"))
-            ("warning", formatted_type("warning"))
-            ("caution", formatted_type("caution"))
-            ("important", formatted_type("important"))
-            ("note", formatted_type("note"))
-            ("tip", formatted_type("tip"))
-            ;
+        // Preformatted
 
-        blockquote =
-                ':'
-            >>  blank
-            >>  qi::attr(formatted_type("blockquote"))
-            >>  inside_paragraph
-            ;
+        qi::rule<iterator, quickbook::formatted()>& preformatted = store_.create();
 
+        block_keyword_rules.add("pre", preformatted [actions.process]);
+        
         preformatted %=
-                "pre"
-            >>  hard_space                      [ph::ref(no_eols) = false]
+                space                           [ph::ref(no_eols) = false]
             >>  -eol
             >>  qi::attr(formatted_type("preformatted"))
             >>  phrase_attr
             >>  qi::eps                         [ph::ref(no_eols) = true]
             ;
 
+        // Define Macro
+
+        qi::rule<iterator, quickbook::def_macro()>& def_macro = store_.create();
+
+        block_keyword_rules.add("def", def_macro[actions.process]);
+        
         def_macro =
-                "def"
-            >>  hard_space
+                space
             >>  macro_identifier
             >>  blank
             >>  phrase_attr
             ;
 
+        // Table
+
+        qi::rule<iterator, quickbook::table()>& table = store_.create();
         qi::rule<iterator, quickbook::table_row()>& table_row = store_.create();
         qi::rule<iterator, quickbook::table_cell()>& table_cell = store_.create();
         qi::rule<iterator, quickbook::formatted()>& table_cell_body = store_.create();
+        
+        block_keyword_rules.add("table", table[actions.process]);
 
         table =
-                "table"
-            >>  (&(*qi::blank >> qi::eol) | hard_space)
+                (&(*qi::blank >> qi::eol) | space)
             >>  ((qi::eps(qbk_since(105u)) >> element_id) | qi::eps)
             >>  (&(*qi::blank >> qi::eol) | space)
             >>  *(qi::char_ - eol)
@@ -248,15 +255,17 @@ namespace quickbook
             >>  inside_paragraph
             ;
 
+        qi::rule<iterator, quickbook::variablelist()>& variablelist = store_.create();
         qi::rule<iterator, quickbook::varlistentry()>& varlistentry = store_.create();
         qi::rule<iterator, quickbook::formatted()>& varlistterm = store_.create();
         qi::rule<iterator, quickbook::formatted()>& varlistterm_body = store_.create();
         qi::rule<iterator, quickbook::formatted()>& varlistitem = store_.create();
         qi::rule<iterator, quickbook::formatted()>& varlistitem_body = store_.create();
+        
+        block_keyword_rules.add("variablelist", variablelist[actions.process]);
 
         variablelist =
-                "variablelist"
-            >>  (&(*qi::blank >> qi::eol) | hard_space)
+                (&(*qi::blank >> qi::eol) | space)
             >>  *(qi::char_ - eol)
             >>  +eol
             >>  *varlistentry
@@ -299,19 +308,28 @@ namespace quickbook
             >>  inside_paragraph
             ;
 
+        // xinclude
+
+        qi::rule<iterator, quickbook::xinclude()>& xinclude = store_.create();
+
+        block_keyword_rules.add("xinclude", xinclude[actions.process]);
+
         // TODO: Why do these use phrase_end? It doesn't make any sense.
         xinclude =
-                "xinclude"
-            >>  hard_space
+                space
             >>  *(qi::char_ - phrase_end)
             >>  qi::attr(nothing())
             ;
 
+        qi::rule<iterator, quickbook::include()>& include = store_.create();
         qi::rule<iterator, raw_string()>& include_id = store_.create();
+        
+        block_keyword_rules.add("include", include[actions.process]);
+
+        // Include
 
         include =
-                "include"
-            >>  hard_space
+                space
             >>  -(
                     ':'
                 >>  include_id
@@ -323,20 +341,29 @@ namespace quickbook
         include_id = qi::raw[*((qi::alnum | '_') - qi::space)]
                                             [qi::_val = qi::_1];
 
+        // Import
+
+        qi::rule<iterator, quickbook::import()>& import = store_.create();
+
+        block_keyword_rules.add("import", import[actions.process]);
+        
         import =
-                "import"
-            >>  hard_space
+                space
             >>  *(qi::char_ - phrase_end)
             >>  qi::attr(nothing())
             ;
 
+        // Define Template
+
+        qi::rule<iterator, quickbook::define_template()>& define_template = store_.create();
         qi::rule<iterator, quickbook::template_value()>& template_body = store_.create();
         qi::rule<iterator>& template_body_recurse = store_.create();
         qi::rule<iterator, std::string()>& template_id = store_.create();
+        
+        block_keyword_rules.add("template", define_template[actions.process]);
 
         define_template =
-                "template"
-            >>  hard_space
+                space
             >>  template_id
             >>  -(
                     space
