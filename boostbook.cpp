@@ -461,8 +461,8 @@ namespace quickbook
             BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
                 state.phrase
                     << "<author>\n"
-                    << "<firstname>" << author.first << "</firstname>\n"
-                    << "<surname>" << author.second << "</surname>\n"
+                    << "<firstname>" << author.firstname << "</firstname>\n"
+                    << "<surname>" << author.surname << "</surname>\n"
                     << "</author>\n";
             }
             state.phrase << "</authorgroup>\n";
@@ -473,12 +473,12 @@ namespace quickbook
         {
             state.phrase << "<copyright>\n";
 
-            BOOST_FOREACH(unsigned int year, copyright.first) {
+            BOOST_FOREACH(unsigned int year, copyright.years) {
                 state.phrase << "<year>" << year << "</year>\n";
             }
 
             state.phrase
-                << "<holder>" << copyright.second << "</holder>\n"
+                << "<holder>" << copyright.holder << "</holder>\n"
                 << "</copyright>\n"
             ;
         }

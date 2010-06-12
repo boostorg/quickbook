@@ -19,6 +19,7 @@
 #include "doc_info_actions.hpp"
 #include "state.hpp"
 #include "utils.hpp"
+#include <iostream>
 
 namespace quickbook
 {

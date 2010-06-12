@@ -456,9 +456,9 @@ namespace quickbook
                 BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
                     state.phrase
                         << "<dd>"
-                        << author.first
+                        << author.firstname
                         << " "
-                        << author.second
+                        << author.surname
                         << "</dd>\n";
                 }
             }
@@ -476,7 +476,7 @@ namespace quickbook
         
                     unsigned int range_state = 0;
                     unsigned int previous = 0;
-                    BOOST_FOREACH(unsigned int year, copyright.first) {
+                    BOOST_FOREACH(unsigned int year, copyright.years) {
                         switch(range_state) {
                         case 0: // Start
                             state.phrase << year;
@@ -504,7 +504,7 @@ namespace quickbook
         
                     state.phrase
                         << " "
-                        << copyright.second
+                        << copyright.holder
                         << "</dd>\n"
                     ;
                 }

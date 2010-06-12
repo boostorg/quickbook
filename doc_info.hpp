@@ -22,10 +22,16 @@ namespace quickbook
     struct doc_info
     {
         typedef std::vector<unsigned int> copyright_years;
-        typedef std::pair<copyright_years, std::string> copyright_entry;
+        struct copyright_entry {
+            copyright_years years;
+            std::string holder;
+        };
         typedef std::vector<copyright_entry> copyright_list;
         typedef std::vector<raw_string> category_list;
-        typedef std::pair<std::string, std::string> author;
+        struct author {
+            std::string firstname;
+            std::string surname;
+        };
         typedef std::vector<author> author_list;
         typedef boost::variant<raw_string, std::string> variant_string;
         enum variant_string_enum { raw_string_type, string_type };

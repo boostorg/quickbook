@@ -18,8 +18,6 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/spirit/include/phoenix_bind.hpp>
-#include <boost/fusion/include/std_pair.hpp>
-#include <boost/fusion/include/reverse_view.hpp>
 #include "doc_info.hpp"
 #include "grammar_impl.hpp"
 #include "actions.hpp"
@@ -32,31 +30,29 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
     
-    void set_quickbook_version(boost::optional<std::pair<unsigned, unsigned> > version)
+    void set_quickbook_version(boost::fusion::vector<unsigned, unsigned> version)
     {
-        if (version)
-        {
-            qbk_major_version = version->first;
-            qbk_minor_version = version->second;
-        }
-        else
-        {
-            qbk_major_version = 1;
-            qbk_minor_version = 1;
-
-            // TODO:
-            //detail::outwarn(actions.filename.file_string(),1)
-            //    << "Warning: Quickbook version undefined. "
-            //       "Version 1.1 is assumed" << std::endl;
-        }
-
+        qbk_major_version = boost::fusion::at_c<0>(version);
+        qbk_minor_version = boost::fusion::at_c<1>(version);
         qbk_version_n = (qbk_major_version * 100) + qbk_minor_version;
+    }
+    
+    void default_quickbook_version()
+    {
+        qbk_major_version = 1;
+        qbk_minor_version = 1;
+        qbk_version_n = 101;
+
+        // TODO:
+        //detail::outwarn(actions.filename.native_file_string(),1)
+        //    << "Warning: Quickbook version undefined. "
+        //       "Version 1.1 is assumed" << std::endl;
     }
 
     void quickbook_grammar::impl::init_doc_info()
     {
         qi::symbols<char>& doc_types = store_.create();
-        qi::rule<iterator, std::pair<unsigned, unsigned>()>& quickbook_version = store_.create();
+        qi::rule<iterator>& quickbook_version = store_.create();
         qi::rule<iterator, std::string()>& phrase = store_.create();
         qi::rule<iterator, raw_source()>& doc_version = store_.create();
         qi::rule<iterator, raw_source()>& doc_id = store_.create();
@@ -66,10 +62,9 @@ namespace quickbook
         qi::rule<iterator, std::string()>& doc_source_mode = store_.create(); // TODO: raw_source
         qi::rule<iterator, doc_info::variant_string()>& doc_purpose = store_.create();
         qi::rule<iterator, doc_info::variant_string()>& doc_license = store_.create();
-        qi::rule<iterator, std::pair<std::vector<unsigned int>, std::string>()>& doc_copyright = store_.create();
-        qi::rule<iterator, std::vector<std::pair<std::string, std::string> >()>& doc_authors = store_.create();
-        qi::rule<iterator, boost::fusion::reverse_view<
-                std::pair<std::string, std::string> >()>& doc_author = store_.create();
+        qi::rule<iterator, doc_info::copyright_entry()>& doc_copyright = store_.create();
+        qi::rule<iterator, doc_info::author_list()>& doc_authors = store_.create();
+        qi::rule<iterator, doc_info::author()>& doc_author = store_.create();
         qi::rule<iterator, quickbook::raw_string()>& raw_phrase = store_.create();
 
         typedef qi::uint_parser<int, 10, 1, 2>  uint2_t;
@@ -88,7 +83,7 @@ namespace quickbook
             >>  qi::raw[
                     *(qi::char_ - (qi::char_('[') | ']' | qi::eol))
                 ]                           [member_assign(&doc_info::doc_title)]
-            >>  quickbook_version           [set_quickbook_version]
+            >>  quickbook_version
             >>
                 *(
                     space >> '[' >>
@@ -111,15 +106,18 @@ namespace quickbook
             >> space >> ']' >> +qi::eol
             ;
 
-        quickbook_version = -(
-                space >> '['
+        quickbook_version =
+            (   space
+            >>  '['
             >>  "quickbook"
             >>  hard_space
             >>  qi::uint_
             >>  '.' 
             >>  uint2_t()
             >>  space >> ']'
-            );
+            )                               [set_quickbook_version]
+            | qi::eps                       [default_quickbook_version]
+            ;
 
         doc_version = "version" >> hard_space >> qi::raw[*(qi::char_ - ']')];
         doc_id      = "id"      >> hard_space >> qi::raw[*(qi::char_ - ']')];
@@ -130,8 +128,9 @@ namespace quickbook
         doc_copyright =
                 "copyright"
             >>  hard_space
-            >>  +(qi::uint_ >> space)
+            >>  (+(qi::uint_ >> space))     [member_assign(&doc_info::copyright_entry::years)]
             >>  qi::raw[(*(qi::char_ - ']'))]
+                                            [member_assign(&doc_info::copyright_entry::holder)]
             ;
 
         doc_purpose =
@@ -146,9 +145,9 @@ namespace quickbook
                 space
             >>  '['
             >> space
-            >>  (*(qi::char_ - ','))
+            >>  (*(qi::char_ - ','))        [member_assign(&doc_info::author::surname)]
             >>  ',' >> space
-            >>  (*(qi::char_ - ']'))
+            >>  (*(qi::char_ - ']'))        [member_assign(&doc_info::author::firstname)]
             >>  ']'
             ;
 
