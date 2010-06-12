@@ -81,7 +81,7 @@ namespace quickbook
             >>  qi::raw[doc_types]          [member_assign(&doc_info::doc_type)]
             >>  hard_space
             >>  qi::raw[
-                    *(qi::char_ - (qi::char_('[') | ']' | qi::eol))
+                    *(~qi::char_("[]") - qi::eol)
                 ]                           [member_assign(&doc_info::doc_title)]
             >>  quickbook_version
             >>
@@ -119,17 +119,17 @@ namespace quickbook
             | qi::eps                       [default_quickbook_version]
             ;
 
-        doc_version = "version" >> hard_space >> qi::raw[*(qi::char_ - ']')];
-        doc_id      = "id"      >> hard_space >> qi::raw[*(qi::char_ - ']')];
-        doc_dirname = "dirname" >> hard_space >> qi::raw[*(qi::char_ - ']')];
-        doc_category="category" >> hard_space >> qi::raw[*(qi::char_ - ']')];
-        doc_last_revision = "last-revision" >> hard_space >> qi::raw[*(qi::char_ - ']')];
+        doc_version = "version" >> hard_space >> qi::raw[*~qi::char_(']')];
+        doc_id      = "id"      >> hard_space >> qi::raw[*~qi::char_(']')];
+        doc_dirname = "dirname" >> hard_space >> qi::raw[*~qi::char_(']')];
+        doc_category="category" >> hard_space >> qi::raw[*~qi::char_(']')];
+        doc_last_revision = "last-revision" >> hard_space >> qi::raw[*~qi::char_(']')];
 
         doc_copyright =
                 "copyright"
             >>  hard_space
             >>  (+(qi::uint_ >> space))     [member_assign(&doc_info::copyright_entry::years)]
-            >>  qi::raw[(*(qi::char_ - ']'))]
+            >>  qi::raw[*~qi::char_(']')]
                                             [member_assign(&doc_info::copyright_entry::holder)]
             ;
 
@@ -144,10 +144,10 @@ namespace quickbook
         doc_author =
                 space
             >>  '['
-            >> space
-            >>  (*(qi::char_ - ','))        [member_assign(&doc_info::author::surname)]
+            >>  space
+            >>  (*~qi::char_(','))          [member_assign(&doc_info::author::surname)]
             >>  ',' >> space
-            >>  (*(qi::char_ - ']'))        [member_assign(&doc_info::author::firstname)]
+            >>  (*~qi::char_(']'))          [member_assign(&doc_info::author::firstname)]
             >>  ']'
             ;
 
@@ -178,7 +178,7 @@ namespace quickbook
                 qi::eps                     [actions.phrase_push]
             >>  *(   common
                 |   comment
-                |   (qi::char_ - ']')       [actions.process]
+                |   (~qi::char_(']'))       [actions.process]
                 )
             >>  qi::eps                     [actions.phrase_pop]
             ;
