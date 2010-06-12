@@ -12,6 +12,7 @@
 #include <boost/spirit/include/qi_attr.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include "grammar_impl.hpp"
 #include "block.hpp"
@@ -40,6 +41,7 @@ namespace quickbook
 
     void quickbook_grammar::impl::init_block()
     {
+        qi::rule<iterator>& block_markup = store_.create();
         qi::rule<iterator>& blocks = store_.create();
         qi::rule<iterator, quickbook::code()>& code = store_.create();
         qi::rule<iterator, quickbook::list()>& list = store_.create();
@@ -60,6 +62,25 @@ namespace quickbook
             |   eol
             )
             ;
+
+        // Block markup
+
+        qi::rule<iterator, qi::locals<qi::rule<iterator> > >& block_markup_impl = store_.create();
+
+        block_markup =
+                '[' >> space
+            >>  block_markup_impl
+            >>  (   (space >> ']' >> +eol)
+                |   error
+                )
+            ;
+
+        block_markup_impl
+            =   (   block_keyword_rules >> !(qi::alnum | '_')
+                |   block_symbol_rules
+                ) [qi::_a = qi::_1]
+                >> lazy(qi::_a)
+                ;
 
         // Blocks indicated by text layout (indentation, leading characters etc.)
 
@@ -164,5 +185,11 @@ namespace quickbook
                 )
                 |   qi::attr("")
             ;
+
+        // Error
+
+        error =
+            qi::raw[qi::eps] [actions.error];
+
     }
 }

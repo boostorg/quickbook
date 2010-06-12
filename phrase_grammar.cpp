@@ -18,6 +18,7 @@
 #include "phrase_grammar.hpp"
 #include "code.hpp"
 #include "actions.hpp"
+#include "template.hpp"
 #include "misc_rules.hpp"
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -31,6 +32,20 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, value)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::call_template,
+    (quickbook::file_position, position)
+    (bool, escape)
+    (quickbook::template_symbol const*, symbol)
+    (std::vector<quickbook::template_value>, args)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    quickbook::template_value,
+    (quickbook::file_position, position)
+    (std::string, content)
+)
+
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
@@ -39,10 +54,13 @@ namespace quickbook
     void quickbook_grammar::impl::init_phrase()
     {
         qi::rule<iterator>& macro = store_.create();
+        qi::rule<iterator>& phrase_markup = store_.create();
         qi::rule<iterator, quickbook::code()>& code_block = store_.create();
         qi::rule<iterator, quickbook::code()>& inline_code = store_.create();
         qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> >& simple_format = store_.create();
         qi::rule<iterator>& escape = store_.create();
+        qi::rule<iterator, quickbook::call_template()>& call_template = store_.create();
+        qi::rule<iterator, quickbook::break_()>& break_ = store_.create();
         qi::rule<iterator>& phrase_end = store_.create();
 
         simple_phrase =
@@ -75,6 +93,72 @@ namespace quickbook
             (   actions.macro                       // must not be followed by
             >>  !(qi::alpha | '_')                  // alpha or underscore
             )                                       [actions.process]
+            ;
+
+        qi::rule<iterator, qi::locals<qi::rule<iterator> > >& phrase_markup_impl = store_.create();
+
+        phrase_markup =
+            (   '['
+            >>  (   phrase_markup_impl
+                |   call_template   [actions.process]
+                |   break_          [actions.process]
+                )
+            >>  ']'
+            )                                       
+            ;
+
+        phrase_markup_impl
+            =   (   phrase_keyword_rules >> !(qi::alnum | '_')
+                |   phrase_symbol_rules
+                ) [qi::_a = qi::_1]
+                >> lazy(qi::_a)
+                ;
+
+        // Template call
+
+        qi::rule<iterator, std::vector<quickbook::template_value>()>& template_args = store_.create();
+        qi::rule<iterator, quickbook::template_value()>& template_arg_1_4 = store_.create();
+        qi::rule<iterator>& brackets_1_4 = store_.create();
+        qi::rule<iterator, quickbook::template_value()>& template_arg_1_5 = store_.create();
+        qi::rule<iterator>& brackets_1_5 = store_.create();
+
+        call_template =
+                position
+            >>  qi::matches['`']
+            >>  (                                   // Lookup the template name
+                    (&qi::punct >> actions.templates.scope)
+                |   (actions.templates.scope >> hard_space)
+                )
+            >>  template_args
+            >>  &qi::lit(']')
+            ;
+
+        template_args =
+            qi::eps(qbk_before(105u)) >> -(template_arg_1_4 % "..") |
+            qi::eps(qbk_since(105u)) >> -(template_arg_1_5 % "..");
+
+        template_arg_1_4 =
+            position >>
+            qi::raw[+(brackets_1_4 | ~qi::char_(']') - "..")]
+            ;
+
+        brackets_1_4 =
+            '[' >> +(brackets_1_4 | ~qi::char_(']') - "..") >> ']'
+            ;
+
+        template_arg_1_5 =
+            position >>
+            qi::raw[+(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
+            ;
+
+        brackets_1_5 =
+            '[' >> +(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]")) >> ']'
+            ;
+
+        break_ =
+                position
+            >>  "br"
+            >>  qi::attr(nothing())
             ;
 
         code_block =

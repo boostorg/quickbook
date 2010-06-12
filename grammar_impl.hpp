@@ -31,12 +31,15 @@ namespace quickbook
         qi::rule<iterator> common;        
         qi::rule<iterator> simple_phrase;
         qi::rule<iterator, std::string()> phrase;
-        qi::rule<iterator> phrase_markup;
+        qi::symbols<char, qi::rule<iterator> > phrase_keyword_rules;
+        qi::symbols<char, qi::rule<iterator> > phrase_symbol_rules;
         
         // block
         qi::rule<iterator> block_start;
-        qi::rule<iterator> block_markup;
         qi::rule<iterator> command_line_macro;
+        qi::symbols<char, qi::rule<iterator> > block_keyword_rules;
+        qi::symbols<char, qi::rule<iterator> > block_symbol_rules;
+        qi::rule<iterator> error;
 
         // doc_info
         qi::rule<iterator, quickbook::doc_info()> doc_info_details;

@@ -113,26 +113,6 @@ namespace quickbook
         qi::rule<iterator, std::string()>& phrase_attr = store_.create();
         qi::rule<iterator>& phrase_end = store_.create();
         qi::rule<iterator, boost::optional<raw_string>()>& element_id = store_.create();
-        qi::rule<iterator>& error = store_.create();
-
-        qi::rule<iterator, qi::locals<qi::rule<iterator> > >& block_markup_impl = store_.create();
-        qi::symbols<char, qi::rule<iterator> >& block_keyword_rules = store_.create();
-        qi::symbols<char, qi::rule<iterator> >& block_symbol_rules = store_.create();
-
-        block_markup =
-                '[' >> space
-            >>  block_markup_impl
-            >>  (   (space >> ']' >> +eol)
-                |   error
-                )
-            ;
-
-        block_markup_impl
-            =   (   block_keyword_rules >> !(qi::alnum | '_')
-                |   block_symbol_rules
-                ) [qi::_a = qi::_1]
-                >> lazy(qi::_a)
-                ;
 
         // Sections
 
@@ -452,8 +432,5 @@ namespace quickbook
 
         element_id_part = qi::raw[+(qi::alnum | qi::char_('_'))]
                                                 [qi::_val = qi::_1];
-
-        error =
-            qi::raw[qi::eps] [actions.error];
     }
 }
