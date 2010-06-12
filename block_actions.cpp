@@ -36,16 +36,30 @@ namespace quickbook
         }
     }
 
+    block_formatted process(quickbook::state& state, block_formatted const& x)
+    {
+        state.paragraph_output();
+        return x;
+    }
+
     block_formatted process(quickbook::state& state, paragraph const& x)
     {
+        state.paragraph_output();
         block_formatted r;
         r.type="paragraph";
         r.content = x.content;
         return r;
     }
 
+    nothing process(quickbook::state& state, block_separator const&)
+    {
+        state.paragraph_output();
+    }
+
     begin_section2 process(quickbook::state& state, begin_section const& x)
     {
+        state.paragraph_output();
+
         // TODO: This uses the generated title.
         state.section_id.value = x.id ?
             x.id->value :
@@ -82,6 +96,8 @@ namespace quickbook
 
     end_section2 process(quickbook::state& state, end_section const& x)
     {
+        state.paragraph_output();
+
         if (state.section_level <= state.min_section_level)
         {
             detail::outerr(x.position.file,x.position.line)
@@ -110,6 +126,8 @@ namespace quickbook
 
     heading2 process(quickbook::state& state, heading const& x)
     {
+        state.paragraph_output();
+
         heading2 r;
 
         // TODO: Is this right?
@@ -151,6 +169,8 @@ namespace quickbook
 
     nothing process(quickbook::state& state, def_macro const& x)
     {
+        state.paragraph_output();
+
         state.macro.add(
             x.macro_identifier.begin()
           , x.macro_identifier.end()
@@ -160,6 +180,8 @@ namespace quickbook
 
     nothing process(quickbook::state& state, define_template const& x)
     {
+        state.paragraph_output();
+
         if(!state.templates.add(x)) {
             detail::outerr(x.body.position.file, x.body.position.line)
                 << "Template Redefinition: " << x.id << std::endl;
@@ -171,6 +193,8 @@ namespace quickbook
 
     table2 process(quickbook::state& state, table const& x)
     {
+        state.paragraph_output();
+
         table2 r;
 
         if(!x.title.empty()) r.title = x.title;
@@ -205,6 +229,13 @@ namespace quickbook
         r.rows.assign(row, x.rows.end());
 
         return r;
+    }
+
+    variablelist process(quickbook::state& state, variablelist const& x)
+    {
+        state.paragraph_output();
+
+        return x;
     }
 
     namespace
@@ -305,6 +336,8 @@ namespace quickbook
 
     xinclude2 process(quickbook::state& state, xinclude const& x)
     {
+        state.paragraph_output();
+
         xinclude2 r;
         r.path = calculate_relative_path(detail::escape_uri(x.path), state).string();
         return r;
@@ -312,6 +345,8 @@ namespace quickbook
 
     nothing process(quickbook::state& state, include const& x)
     {
+        state.paragraph_output();
+
         fs::path filein = include_search(state.filename.parent_path(), x.path);
         raw_string doc_id;
 
@@ -369,6 +404,8 @@ namespace quickbook
 
     nothing process(quickbook::state& state, import const& x)
     {
+        state.paragraph_output();
+
         fs::path path = include_search(state.filename.parent_path(), x.path);
         std::string ext = path.extension();
         std::vector<define_template> storage;

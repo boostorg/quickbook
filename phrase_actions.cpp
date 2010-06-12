@@ -82,6 +82,8 @@ namespace quickbook
     }
 
     boost::variant<formatted, block_formatted> process(quickbook::state& state, code const& x) {
+        if(x.flow == x.block) state.paragraph_output();
+    
          std::string program = x.content;
     
         if(x.flow == x.block || x.flow == x.inline_block) {

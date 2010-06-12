@@ -65,6 +65,7 @@ namespace quickbook
     template void process_action::operator()<image>(image const&) const;
     template void process_action::operator()<hr>(hr const&) const;
     template void process_action::operator()<paragraph>(paragraph const&) const;
+    template void process_action::operator()<block_separator>(block_separator const&) const;
     template void process_action::operator()<list>(list const&) const;
     template void process_action::operator()<begin_section>(begin_section const&) const;
     template void process_action::operator()<end_section>(end_section const&) const;

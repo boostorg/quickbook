@@ -75,6 +75,9 @@ namespace quickbook
     // push/pop the states and the streams
         void push();
         void pop();
+
+    //
+        void paragraph_output();
     };    
 }
 

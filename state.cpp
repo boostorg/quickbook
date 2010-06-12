@@ -13,6 +13,7 @@
 #include "actions.hpp"
 #include "state.hpp"
 #include "quickbook.hpp"
+#include "block.hpp"
 
 #if (defined(BOOST_MSVC) && (BOOST_MSVC <= 1310))
 #pragma warning(disable:4355)
@@ -94,5 +95,20 @@ namespace quickbook
         phrase.pop();
         block.pop();
         templates.pop();
+    }
+    
+    void state::paragraph_output()
+    {
+        std::string paragraph;
+        phrase.swap(paragraph);
+
+        if(!paragraph.empty()) {
+            actions a(*this);
+            
+            quickbook::paragraph p;
+            p.content = paragraph;
+            
+            a.process(p);
+        }
     }
 }

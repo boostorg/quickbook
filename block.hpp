@@ -33,6 +33,10 @@ namespace quickbook
         std::string content;
     };
     
+    struct block_separator
+    {
+    };
+    
     struct list_item
     {
         file_position position;

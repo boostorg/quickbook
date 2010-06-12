@@ -20,6 +20,7 @@
 #include "code.hpp"
 #include "misc_rules.hpp"
 #include "parse_utils.hpp"
+#include "state.hpp"
 
 namespace quickbook
 {
@@ -33,7 +34,8 @@ namespace quickbook
         qi::rule<iterator, quickbook::code()>& code = store_.create();
         qi::rule<iterator, quickbook::list()>& list = store_.create();
         qi::rule<iterator, quickbook::hr()>& hr = store_.create();
-        qi::rule<iterator, quickbook::paragraph()>& paragraph = store_.create();
+        qi::rule<iterator>& paragraph = store_.create();
+        qi::rule<iterator, quickbook::block_separator()>& block_separator = store_.create();
 
         block_start =
             blocks >> blank
@@ -44,9 +46,9 @@ namespace quickbook
             |   code                            [actions.process]
             |   list                            [actions.process]
             |   hr                              [actions.process]
-            |   comment >> +eol
-            |   paragraph                       [actions.process]
+            |   block_separator                 [actions.process]
             |   eol
+            |   paragraph
             )
             ;
 
@@ -124,27 +126,29 @@ namespace quickbook
             ] >> qi::attr(quickbook::hr())
             ;
 
-        qi::rule<iterator, std::string()>& paragraph_content = store_.create();
         qi::rule<iterator>& paragraph_end = store_.create();
         qi::symbols<>& paragraph_end_markups = store_.create();
 
         paragraph =
-                paragraph_content               [member_assign(&quickbook::paragraph::content)]
-            ;
-
-        paragraph_content =
-                qi::eps                         [actions.phrase_push]
-            >> *(   common
+               +(   common
                 |   (qi::char_ -                // Make sure we don't go past
                         paragraph_end           // a single block.
                     )                           [actions.process]
                 )
-            >>  qi::eps                         [actions.phrase_pop]
-            >>  (&qi::lit('[') | +eol)
             ;
 
         paragraph_end =
-            '[' >> space >> paragraph_end_markups >> hard_space | eol >> *qi::blank >> qi::eol
+            '[' >> space >> paragraph_end_markups >> hard_space | block_separator
+            ;
+
+        // Define block_seperator using qi::eol/qi::blank rather than 'eol'
+        // because we don't want any comments in the blank line.
+
+        block_separator =
+                qi::attr(quickbook::block_separator())
+            >>  qi::omit
+                [   qi::eol >> *qi::blank >> qi::eol
+                ]
             ;
 
         paragraph_end_markups =
@@ -180,20 +184,23 @@ namespace quickbook
 
         // Block contents
 
-        qi::rule<iterator, quickbook::formatted()>& inside_paragraph2 = store_.create();
+        qi::rule<iterator>& inside_paragraph2 = store_.create();
 
         inside_paragraph =
-                qi::eps                             [actions.phrase_push]
-            >>  inside_paragraph2                   [actions.process]
-            >>  *(  +eol
-                >>  inside_paragraph2               [actions.process]
+                qi::eps                             [actions.block_push][actions.phrase_push]
+            >>  (
+                    inside_paragraph2               [actions.process]
+                %   block_separator                 [actions.process]
                 )
-            >>  qi::eps                             [actions.phrase_pop]
+            >>  qi::attr(quickbook::block_separator())
+                                                    [actions.process]
+            >>  qi::eps                             [actions.phrase_pop][actions.block_pop]
             ;
 
         inside_paragraph2 =
-                phrase_attr                         [member_assign(&quickbook::formatted::content)]
-                                                    [member_assign(&quickbook::formatted::type, "paragraph")]
+               *(   common
+                |   (qi::char_ - phrase_end)    [actions.process]
+                )
             ;
 
         phrase_attr =

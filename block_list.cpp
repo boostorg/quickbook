@@ -44,6 +44,8 @@ namespace quickbook
 
     list2 process(quickbook::state& state, quickbook::list const& list)
     {
+        state.paragraph_output();
+
         list::const_iterator it = list.begin(), end = list.end();
         BOOST_ASSERT(it != end);
         
