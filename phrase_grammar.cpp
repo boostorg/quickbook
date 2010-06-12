@@ -11,6 +11,7 @@
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_attr.hpp>
 #include <boost/spirit/include/qi_eoi.hpp>
+#include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include "grammar_impl.hpp"
@@ -37,7 +38,6 @@ namespace quickbook
         qi::rule<iterator>& escape = store_.create();
         qi::rule<iterator, quickbook::call_template()>& call_template = store_.create();
         qi::rule<iterator, quickbook::break_()>& break_ = store_.create();
-        qi::rule<iterator>& phrase_end = store_.create();
 
         simple_phrase =
            *(   common
@@ -258,11 +258,10 @@ namespace quickbook
             >   qi::raw[qi::repeat(8)[qi::xdigit]]  [member_assign(&quickbook::unicode_char::value)]
             ;
 
+        // Make sure that we don't go past a single block, except when
+        // preformatted.
         phrase_end =
-            ']' |
-            qi::eps(ph::ref(no_eols)) >>
-                eol >> eol                      // Make sure that we don't go
-            ;                                   // past a single block, except
-                                                // when preformatted.
+            ']' | qi::eps(ph::ref(no_eols)) >> eol >> *qi::blank >> qi::eol
+            ;
     }
 }

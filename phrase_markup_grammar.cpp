@@ -26,8 +26,6 @@ namespace quickbook
 
     void quickbook_grammar::impl::init_phrase_markup()
     {
-        qi::rule<iterator>& phrase_end = store_.create();
-
         // Callouts
 
         // Don't use this, it's meant to be private.
@@ -52,59 +50,6 @@ namespace quickbook
             >>  macro_identifier            [member_assign(&quickbook::cond_phrase::macro_id)]
             >>  -phrase                     [member_assign(&quickbook::cond_phrase::content)]
             ;
-
-        // Images
-
-        qi::rule<iterator, quickbook::image()>& image = store_.create();
-        qi::rule<iterator, quickbook::image()>& image_1_4 = store_.create();
-        qi::rule<iterator, quickbook::image()>& image_1_5 = store_.create();
-        qi::rule<iterator, std::string()>& image_filename = store_.create();
-        qi::rule<iterator, quickbook::image::attribute_map()>& image_attributes = store_.create();
-        qi::rule<iterator, std::pair<std::string, std::string>()>& image_attribute = store_.create();
-        qi::rule<iterator, std::string()>& image_attribute_key = store_.create();
-        qi::rule<iterator, std::string()>& image_attribute_value = store_.create();
-        
-        phrase_symbol_rules.add("$", image [actions.process]);
-
-        image =
-            (qi::eps(qbk_since(105u)) >> image_1_5) |
-            (qi::eps(qbk_before(105u)) >> image_1_4);
-        
-        image_1_4 =
-                position                            [member_assign(&quickbook::image::position)]
-            >>  blank
-            >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::image::image_filename)]
-            >>  &qi::lit(']')
-            ;
-        
-        image_1_5 =
-                position                            [member_assign(&quickbook::image::position)]
-            >>  blank
-            >>  image_filename                      [member_assign(&quickbook::image::image_filename)]
-            >>  hard_space
-            >>  image_attributes                    [member_assign(&quickbook::image::attributes)]
-            >>  &qi::lit(']')
-            ;
-
-        image_filename = qi::raw[
-                +(qi::char_ - (qi::space | phrase_end | '['))
-            >>  *(
-                    +qi::space
-                >>  +(qi::char_ - (qi::space | phrase_end | '['))
-             )];
-
-        image_attributes = *(image_attribute >> space);
-        
-        image_attribute =
-                '['
-            >>  image_attribute_key                 [member_assign(&std::pair<std::string, std::string>::first)]
-            >>  space
-            >>  image_attribute_value               [member_assign(&std::pair<std::string, std::string>::second)]
-            >>  ']'
-            ;
-            
-        image_attribute_key = *(qi::alnum | '_');
-        image_attribute_value = *(qi::char_ - (phrase_end | '['));
 
         // URL
 
@@ -188,14 +133,5 @@ namespace quickbook
             >>  blank
             >>  phrase                          [member_assign(&quickbook::formatted::content)]
             ;
-
-        // phrase_end
-
-        phrase_end =
-            ']' |
-            qi::eps(ph::ref(no_eols)) >>
-                eol >> eol                      // Make sure that we don't go
-            ;                                   // past a single block, except
-                                                // when preformatted.
     }
 }

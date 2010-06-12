@@ -33,6 +33,7 @@ namespace quickbook
         qi::rule<iterator, std::string()> phrase;
         qi::symbols<char, qi::rule<iterator> > phrase_keyword_rules;
         qi::symbols<char, qi::rule<iterator> > phrase_symbol_rules;
+        qi::rule<iterator> phrase_end;
         
         // block
         qi::rule<iterator> block_start;
@@ -40,6 +41,9 @@ namespace quickbook
         qi::symbols<char, qi::rule<iterator> > block_keyword_rules;
         qi::symbols<char, qi::rule<iterator> > block_symbol_rules;
         qi::rule<iterator> error;
+        qi::rule<iterator, std::string()> phrase_attr;
+        qi::rule<iterator, std::string()> inside_paragraph;
+        qi::rule<iterator, boost::optional<raw_string>()> element_id;
 
         // doc_info
         qi::rule<iterator, quickbook::doc_info()> doc_info_details;
@@ -50,8 +54,12 @@ namespace quickbook
 
         void init_phrase();
         void init_phrase_markup();
+        void init_phrase_image();
         void init_block();
         void init_block_markup();
+        void init_block_section();
+        void init_block_table();
+        void init_block_template();
         void init_doc_info();
     };
 }

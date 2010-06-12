@@ -178,5 +178,57 @@ namespace quickbook
         error =
             qi::raw[qi::eps] [actions.error];
 
+        // Block contents
+
+        qi::rule<iterator, quickbook::formatted()>& inside_paragraph2 = store_.create();
+
+        inside_paragraph =
+                qi::eps                             [actions.phrase_push]
+            >>  inside_paragraph2                   [actions.process]
+            >>  *(  +eol
+                >>  inside_paragraph2               [actions.process]
+                )
+            >>  qi::eps                             [actions.phrase_pop]
+            ;
+
+        inside_paragraph2 =
+                phrase_attr                         [member_assign(&quickbook::formatted::content)]
+                                                    [member_assign(&quickbook::formatted::type, "paragraph")]
+            ;
+
+        phrase_attr =
+                qi::eps                         [actions.phrase_push]        
+            >> *(   common
+                |   comment
+                |   (qi::char_ - phrase_end)    [actions.process]
+                )
+            >>  qi::eps                         [actions.phrase_pop]
+            ;
+
+        // Make sure that we don't go past a single block, except when
+        // preformatted.
+        phrase_end =
+            ']' | qi::eps(ph::ref(no_eols)) >> eol >> *qi::blank >> qi::eol
+            ;
+
+        // Identifiers
+
+        qi::rule<iterator, raw_string()>& element_id_part = store_.create();
+
+        element_id =
+            (   ':'
+            >>  -(qi::eps(qbk_since(105u)) >> space)
+            >>  (
+                    element_id_part
+                |   qi::omit[
+                        qi::raw[qi::eps]        [actions.element_id_warning]
+                    ]
+                )
+            )
+            | qi::eps
+            ;
+
+        element_id_part = qi::raw[+(qi::alnum | qi::char_('_'))]
+                                                [qi::_val = qi::_1];
     }
 }

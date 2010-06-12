@@ -33,10 +33,14 @@ exe quickbook
     grammar.cpp
     phrase_grammar.cpp
     phrase_markup_grammar.cpp
+    phrase_image_grammar.cpp
     phrase_actions.cpp
     phrase_image.cpp
     block_grammar.cpp
     block_markup_grammar.cpp
+    block_template_grammar.cpp
+    block_section_grammar.cpp
+    block_table_grammar.cpp
     block_actions.cpp
     block_list.cpp
     doc_info_grammar.cpp

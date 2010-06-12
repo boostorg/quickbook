@@ -34,8 +34,12 @@ namespace quickbook
     {
         init_phrase();
         init_phrase_markup();
+        init_phrase_image();
         init_block();
         init_block_markup();
+        init_block_section();
+        init_block_table();
+        init_block_template();
         init_doc_info();
     }
 }
