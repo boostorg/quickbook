@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <boost/algorithm/string/join.hpp>
 #include "fwd.hpp"
 #include "collector.hpp"
 #include "quickbook.hpp"
@@ -21,6 +22,27 @@
 
 namespace quickbook
 {
+    namespace 
+    {
+        struct empty_visitor {
+            typedef bool result_type;
+        
+            template <typename T>
+            bool operator()(T const& x) const {
+                return x.empty();
+            }
+        };
+
+        struct clear_visitor {
+            typedef void result_type;
+        
+            template <typename T>
+            void operator()(T& x) const {
+                return x.clear();
+            }
+        };
+    }
+
     doc_info process(quickbook::state& state, doc_info const& x)
     {
         doc_info info = x;
@@ -54,6 +76,34 @@ namespace quickbook
                 current_gm_time
             );
             info.doc_last_revision = strdate;
+        }
+
+        std::vector<std::string> invalid_attributes;
+
+        if (info.doc_type != "library")
+        {
+            if (!boost::apply_visitor(empty_visitor(), info.doc_purpose))
+            {
+                boost::apply_visitor(clear_visitor(), info.doc_purpose);
+                invalid_attributes.push_back("purpose");
+            }
+
+            if (!info.doc_categories.empty())
+            {
+                info.doc_categories.clear();
+                invalid_attributes.push_back("category");
+            }
+        }
+
+        if(!invalid_attributes.empty())
+        {
+            detail::outwarn(state.filename.file_string(),1)
+                << (invalid_attributes.size() > 1 ?
+                    "Invalid attributes" : "Invalid attribute")
+                << " for '" << info.doc_type << "': "
+                << boost::algorithm::join(invalid_attributes, ", ")
+                << "\n"
+                ;
         }
 
         return info;

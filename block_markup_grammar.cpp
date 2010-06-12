@@ -374,8 +374,7 @@ namespace quickbook
         inside_paragraph =
                 qi::eps                             [actions.phrase_push]
             >>  inside_paragraph2                   [actions.process]
-            >>  *(  eol
-                >>  eol
+            >>  *(  +eol
                 >>  inside_paragraph2               [actions.process]
                 )
             >>  qi::eps                             [actions.phrase_pop]
@@ -397,7 +396,7 @@ namespace quickbook
         // Make sure that we don't go past a single block, except when
         // preformatted.
         phrase_end =
-            ']' | qi::eps(ph::ref(no_eols)) >> eol >> eol
+            ']' | qi::eps(ph::ref(no_eols)) >> eol >> *qi::blank >> qi::eol
             ;
 
         // Identifiers

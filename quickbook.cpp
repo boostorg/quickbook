@@ -30,7 +30,7 @@
 #pragma warning(disable:4355)
 #endif
 
-#define QUICKBOOK_VERSION "Quickbook Version 1.5.2"
+#define QUICKBOOK_VERSION "Quickbook Spirit 2 port"
 
 namespace quickbook
 {
@@ -153,7 +153,7 @@ namespace quickbook
     {
         int result = 0;
         std::ofstream fileout(fileout_);
-        fs::path outdir = fs::path(fileout_, fs::native).branch_path();
+        fs::path outdir = fs::path(fileout_).parent_path();
         if (outdir.empty())
             outdir = ".";
         if (pretty_print)
@@ -203,7 +203,7 @@ main(int argc, char* argv[])
         using boost::program_options::positional_options_description;
 
         // First thing, the filesystem should record the current working directory.
-        boost::filesystem::initial_path();
+        boost::filesystem::initial_path<boost::filesystem::path>();
 
         options_description desc("Allowed options");
         desc.add_options()

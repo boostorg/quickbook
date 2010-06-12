@@ -44,7 +44,7 @@ namespace quickbook
             qbk_minor_version = 1;
 
             // TODO:
-            //detail::outwarn(actions.filename.native_file_string(),1)
+            //detail::outwarn(actions.filename.file_string(),1)
             //    << "Warning: Quickbook version undefined. "
             //       "Version 1.1 is assumed" << std::endl;
         }
@@ -95,9 +95,9 @@ namespace quickbook
                       doc_version           [member_assign(&doc_info::doc_version)]
                     | doc_id                [member_assign(&doc_info::doc_id)]
                     | doc_dirname           [member_assign(&doc_info::doc_dirname)]
-                    | doc_copyright         [ph::push_back(ph::bind(&doc_info::doc_copyrights, qi::_val), qi::_1)]
+                    | doc_copyright         [member_push(&doc_info::doc_copyrights)]
                     | doc_purpose           [member_assign(&doc_info::doc_purpose)]
-                    | doc_category          [member_assign(&doc_info::doc_category)]
+                    | doc_category          [member_push(&doc_info::doc_categories)]
                     | doc_authors           [member_assign(&doc_info::doc_authors)]
                     | doc_license           [member_assign(&doc_info::doc_license)]
                     | doc_last_revision     [member_assign(&doc_info::doc_last_revision)]

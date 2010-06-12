@@ -31,6 +31,7 @@ namespace quickbook
         std::string::const_iterator begin() const { return value.begin(); }
         std::string::const_iterator end() const { return value.end(); }
         bool empty() const { return value.empty(); }
+        void clear() { value.clear(); }
     
         std::string value;
     };

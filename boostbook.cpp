@@ -63,14 +63,14 @@ namespace quickbook
             { "h5", "<bridgehead renderas=\"sect5\">", "</bridgehead>" },
             { "h6", "<bridgehead renderas=\"sect6\">", "</bridgehead>" },
             { "blurb", "<sidebar role=\"blurb\">\n", "</sidebar>\n" },
-            { "blockquote", "<blockquote><para>", "</para></blockquote>" },
+            { "blockquote", "<blockquote>", "</blockquote>" },
             { "preformatted", "<programlisting>", "</programlisting>" },
             { "warning", "<warning>", "</warning>" },
             { "caution", "<caution>", "</caution>" },
             { "important", "<important>", "</important>" },
             { "note", "<note>", "</note>" },
             { "tip", "<tip>", "</tip>" },
-            { "list_item", "<listitem>\n", "\n</listitem>" },
+            { "list_item", "<listitem><simpara>\n", "\n</simpara></listitem>" },
             { "bold", "<emphasis role=\"bold\">", "</emphasis>" },
             { "italic", "<emphasis>", "</emphasis>" },
             { "underline", "<emphasis role=\"underline\">", "</emphasis>" },
@@ -354,9 +354,9 @@ namespace quickbook
         for(std::vector<list_item2>::const_iterator
             it = x.items.begin(), end = x.items.end(); it != end; ++it)
         {
-            state.phrase << "<listitem>\n" << it->content;
+            state.phrase << "<listitem><simpara>\n" << it->content;
             if(!it->sublist.items.empty()) (*this)(state, it->sublist);
-            state.phrase << std::string("\n</listitem>");
+            state.phrase << std::string("\n</simpara></listitem>");
         }
 
         state.phrase << std::string(x.mark == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
@@ -365,11 +365,10 @@ namespace quickbook
     void boostbook_encoder::operator()(quickbook::state& state, callout_link const& x)
     {
         state.phrase
-            << "<phrase role=\"" << x.role << "\">"
             << "<co id=\"" << x.identifier << "co\""
             << " linkends=\"" << x.identifier << "\""
             << " />"
-            << "</phrase>";
+            ;
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, callout_list const& x)
@@ -412,7 +411,9 @@ namespace quickbook
 
         state.phrase
             << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            << "<!DOCTYPE library PUBLIC \"-//Boost//DTD BoostBook XML V1.0//EN\""
+            << "<!DOCTYPE "
+            << info.doc_type
+            << " PUBLIC \"-//Boost//DTD BoostBook XML V1.0//EN\""
             << " \"http://www.boost.org/tools/boostbook/dtd/boostbook.dtd\">";
 
         // Document tag
@@ -505,11 +506,11 @@ namespace quickbook
             ;
         }
 
-        if (!info.doc_category.empty())
+        BOOST_FOREACH(raw_string const& category, info.doc_categories)
         {
             state.phrase
                 << "<" << info.doc_type << "category name=\"category:"
-                << encode(info.doc_category)
+                << encode(category)
                 << "\"></" << info.doc_type << "category>\n"
                 << "\n"
             ;

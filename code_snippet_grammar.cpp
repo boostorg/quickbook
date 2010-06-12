@@ -36,8 +36,6 @@ namespace quickbook
             code_elements;
         qi::rule<iterator, std::string()>
             identifier;
-        qi::rule<iterator, quickbook::callout()>
-            inline_callout, line_callout;
         qi::rule<iterator, quickbook::escaped_comment()>
             escaped_comment;
     };  

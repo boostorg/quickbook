@@ -48,9 +48,9 @@ namespace quickbook
         fs::path const img_path(x.image_filename);
         attributes.insert(attribute("fileref", x.image_filename));
         // Note: If there is already an alt attribute this is a no-op.
-        attributes.insert(attribute("alt", fs::basename(img_path)));
+        attributes.insert(attribute("alt", img_path.stem()));
 
-        if(fs::extension(img_path) == ".svg")
+        if(img_path.extension() == ".svg")
         {
            //
            // SVG's need special handling:

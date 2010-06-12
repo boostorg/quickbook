@@ -328,7 +328,7 @@ namespace quickbook
                 quickbook_grammar g(actions);
 
                 //  do a phrase level parse
-                iterator first(body.begin(), body.end(), state.filename.native_file_string().c_str());
+                iterator first(body.begin(), body.end(), state.filename.file_string().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
                 r = boost::spirit::qi::parse(first, last, g.simple_phrase) && first == last;
@@ -344,7 +344,7 @@ namespace quickbook
                 //  the need to check for end of file in the grammar.
                 body += "\n\n";
 
-                iterator first(body.begin(), body.end(), state.filename.native_file_string().c_str());
+                iterator first(body.begin(), body.end(), state.filename.file_string().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
 

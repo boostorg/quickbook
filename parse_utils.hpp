@@ -63,6 +63,54 @@ namespace quickbook
     member_assign_type<Struct, Member> member_assign(Member Struct::*mem_ptr) {
         return member_assign_type<Struct, Member>(mem_ptr);
     }
+
+    // member_push - action to push the attribute to a member of the
+    //               rule's attributte.
+
+    template <typename Struct, typename Member>
+    struct member_push_type {
+        member_push_type(Member Struct::*mem_ptr) : mem_ptr_(mem_ptr) {}
+    
+        template <typename Context>
+        void operator()(Member& attrib, Context& context, bool& pass) const {
+            ph::bind(mem_ptr_, spirit::_val)(attrib, context, pass)
+                .push_back(attrib);
+        }
+        
+        template <typename Attrib, typename Context>
+        void operator()(Attrib& attrib, Context& context, bool& pass) const {
+            ph::bind(mem_ptr_, spirit::_val)(attrib, context, pass)
+                .push_back(typename Member::value_type(attrib));
+        }
+
+        Member Struct::*mem_ptr_;
+    };
+    
+    template <typename Struct>
+    struct member_push_type<Struct, std::vector<std::string> > {
+        member_push_type(std::vector<std::string> Struct::*mem_ptr) : mem_ptr_(mem_ptr) {}
+    
+        template <typename Context>
+        void operator()(std::string& attrib, Context& context, bool& pass) const {
+            ph::bind(mem_ptr_, spirit::_val)(attrib, context, pass)
+                .push_back(attrib);
+        }
+
+        template <typename Attrib, typename Context>
+        void operator()(Attrib& attrib, Context& context, bool& pass) const {
+            ph::bind(mem_ptr_, spirit::_val)(attrib, context, pass)
+                .push_back(std::string(attrib.begin(), attrib.end()));
+        }
+        
+        std::vector<std::string> Struct::*mem_ptr_;
+    };
+    
+    template <typename Struct, typename Member>
+    member_push_type<Struct, Member> member_push(Member Struct::*mem_ptr) {
+        return member_push_type<Struct, Member>(mem_ptr);
+    }
+
+
 }
 
 #endif

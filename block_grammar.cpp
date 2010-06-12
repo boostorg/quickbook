@@ -55,7 +55,7 @@ namespace quickbook
             |   code                            [actions.process]
             |   list                            [actions.process]
             |   hr                              [actions.process]
-            |   comment >> *eol
+            |   comment >> +eol
             |   paragraph                       [actions.process]
             |   eol
             )
@@ -102,7 +102,7 @@ namespace quickbook
            *(   common
             |   (qi::char_ -
                     (   qi::eol >> *qi::blank >> &(qi::char_('*') | '#')
-                    |   (eol >> eol)
+                    |   (eol >> *qi::blank >> qi::eol)
                     )
                 )                               [actions.process]
             )
@@ -136,7 +136,7 @@ namespace quickbook
             ;
 
         paragraph_end =
-            '[' >> space >> paragraph_end_markups >> hard_space | eol >> eol
+            '[' >> space >> paragraph_end_markups >> hard_space | eol >> *qi::blank >> qi::eol
             ;
 
         paragraph_end_markups =

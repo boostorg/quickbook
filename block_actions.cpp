@@ -243,7 +243,7 @@ namespace quickbook
 
         fs::path include_search(fs::path const & current, std::string const & name)
         {
-            fs::path path(name,fs::native);
+            fs::path path(name);
 
             // If the path is relative, try and resolve it.
             if (!path.is_complete())
@@ -257,7 +257,7 @@ namespace quickbook
                 // Search in each of the include path locations.
                 BOOST_FOREACH(std::string const & p, include_path)
                 {
-                    fs::path full(p,fs::native);
+                    fs::path full(p);
                     full /= path;
                     if (fs::exists(full))
                     {
@@ -295,7 +295,7 @@ namespace quickbook
             if (!path.is_complete())
             {
                 fs::path infile = fs::complete(state.filename).normalize();
-                path = (infile.branch_path() / path).normalize();
+                path = (infile.parent_path() / path).normalize();
                 fs::path outdir = fs::complete(state.outdir).normalize();
                 path = path_difference(outdir, path);
             }
@@ -312,7 +312,7 @@ namespace quickbook
 
     nothing process(quickbook::state& state, include const& x)
     {
-        fs::path filein = include_search(state.filename.branch_path(), x.path);
+        fs::path filein = include_search(state.filename.parent_path(), x.path);
         raw_string doc_id;
 
         // swap the filenames
@@ -342,10 +342,10 @@ namespace quickbook
 
         // update the __FILENAME__ macro
         *state.macro.find("__FILENAME__") =
-            quickbook::macro(state.filename.native_file_string());
+            quickbook::macro(state.filename.file_string());
 
         // parse the file
-        quickbook::parse(state.filename.native_file_string().c_str(), state, true);
+        quickbook::parse(state.filename.file_string().c_str(), state, true);
 
         // restore the values
         std::swap(state.filename, filein);
@@ -369,8 +369,8 @@ namespace quickbook
 
     nothing process(quickbook::state& state, import const& x)
     {
-        fs::path path = include_search(state.filename.branch_path(), x.path);
-        std::string ext = fs::extension(path);
+        fs::path path = include_search(state.filename.parent_path(), x.path);
+        std::string ext = path.extension();
         std::vector<define_template> storage;
         state.error_count +=
             load_snippets(path.string(), storage, ext, state.doc_id);
