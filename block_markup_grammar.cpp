@@ -98,6 +98,13 @@ namespace quickbook
 {
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
+    
+    // Workaround for clang:
+    namespace {
+        struct dummmy {
+            qi::rule<iterator, raw_string()> a1;
+        };
+    }
 
     void quickbook_grammar::impl::init_block_markup()
     {

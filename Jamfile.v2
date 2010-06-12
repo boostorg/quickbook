@@ -12,8 +12,10 @@ project quickbook
     : requirements
         <toolset>gcc:<c++-template-depth>300
         <toolset>darwin:<c++-template-depth>300
+        <toolset>clang:<c++-template-depth>300
         <toolset>gcc:<cflags>-g0
         <toolset>darwin:<cflags>-g0
+        <debug-symbols>off
         <warnings>off
     ;
 
