@@ -15,6 +15,7 @@
 #include "code_snippet_types.hpp"
 #include "code_snippet_grammar.hpp"
 #include "misc_rules.hpp"
+#include "parse_utils.hpp"
 
 namespace quickbook
 {
@@ -38,6 +39,8 @@ namespace quickbook
             identifier;
         qi::rule<iterator, quickbook::escaped_comment()>
             escaped_comment;
+        qi::rule<iterator, std::string()>
+            escaped_comment_body;
     };  
 
     python_code_snippet_grammar::python_code_snippet_grammar(actions_type & actions)
@@ -62,10 +65,10 @@ namespace quickbook
             ;
 
         snippet =
-                position
+                position                        [member_assign(&quickbook::code_snippet::position)]
             >>  "#["
             >>  qi::omit[*qi::space]
-            >>  identifier
+            >>  identifier                      [member_assign(&quickbook::code_snippet::identifier)]
             >>  qi::omit[*(code_elements - "#]")]
             >>  "#]"
             ;
@@ -88,19 +91,19 @@ namespace quickbook
                 >> "->\"\"\""
             ;
 
-        escaped_comment =
+        escaped_comment = escaped_comment_body [member_assign(&quickbook::escaped_comment::content)];
+
+        escaped_comment_body =
                     qi::omit[*qi::space >> "#`"]
                 >>  (
                         *(qi::char_ - qi::eol)
                     >>  qi::eol
                     )
-                >>  qi::attr(nothing())
             |       qi::omit[*qi::space >> "\"\"\"`"]
                 >>  (
                         *(qi::char_ - "\"\"\"")
                     )
                 >>  "\"\"\""
-                >>  qi::attr(nothing())
             ;
     }
 
@@ -120,8 +123,12 @@ namespace quickbook
             identifier;
         qi::rule<iterator, quickbook::callout()>
             inline_callout, line_callout;
+        qi::rule<iterator, std::string()>
+            inline_callout_body, line_callout_body;
         qi::rule<iterator, quickbook::escaped_comment()>
             escaped_comment;
+        qi::rule<iterator, std::string()>
+            escaped_comment_body;
     };
 
     cpp_code_snippet_grammar::cpp_code_snippet_grammar(actions_type & actions)
@@ -146,17 +153,17 @@ namespace quickbook
             ;
 
         snippet =
-                position
+                position                        [member_assign(&quickbook::code_snippet::position)]
             >>  "//["
             >>  qi::omit[*qi::space]
-            >>  identifier
+            >>  identifier                      [member_assign(&quickbook::code_snippet::identifier)]
             >>  qi::omit[*(code_elements - "//]")]
             >>  "//]"
             |
-                position
+                position                        [member_assign(&quickbook::code_snippet::position)]
             >>  "/*["
             >>  qi::omit[*qi::space]
-            >>  identifier
+            >>  identifier                      [member_assign(&quickbook::code_snippet::identifier)]
             >>  qi::omit[*qi::space >> "*/"]
             >>  qi::omit[*(code_elements - "/*]*")]
             >>  "/*]*/"
@@ -172,19 +179,26 @@ namespace quickbook
 
         inline_callout =
                 "/*<"
-            >>  position
-            >>  *(qi::char_ - ">*/")
+            >>  position                        [member_assign(&quickbook::callout::position)]
+                                                [member_assign(&quickbook::callout::role, "callout_bug")]
+            >>  inline_callout_body             [member_assign(&quickbook::callout::content)]
             >>  ">*/"
-            >>  qi::attr("callout_bug")
+            ;
+
+        inline_callout_body =
+                *(qi::char_ - ">*/")
             ;
 
         line_callout =
                 "/*<<"
-            >>  position
-            >>  *(qi::char_ - ">>*/")
+            >>  position                        [member_assign(&quickbook::callout::position)]
+            >>  line_callout_body               [member_assign(&quickbook::callout::content)]
             >>  ">>*/"
-            >>  qi::omit[*qi::space]
-            >>  qi::attr("line_callout_bug")
+            >>  qi::omit[*qi::space]            [member_assign(&quickbook::callout::role, "line_callout_bug")]
+            ;
+
+        line_callout_body =
+                *(qi::char_ - ">>*/")
             ;
 
         ignore =
@@ -199,21 +213,21 @@ namespace quickbook
                 >> "->*/"
             ;
 
-        escaped_comment =
+        escaped_comment = escaped_comment_body [member_assign(&quickbook::escaped_comment::content)];
+
+        escaped_comment_body =
                 qi::omit[*qi::space]
             >>  "//`"
             >>  (
                     (*(qi::char_ - qi::eol))
                 >>  qi::eol
                 )
-            >>  qi::attr(nothing())
             |   qi::omit[*qi::space]
             >>  "/*`"
             >>  (
                     *(qi::char_ - "*/")
                 )
             >> "*/"
-            >>  qi::attr(nothing())
             ;
     }
 }

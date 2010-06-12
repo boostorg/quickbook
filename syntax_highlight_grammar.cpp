@@ -12,18 +12,12 @@
 #include <boost/spirit/include/qi_auxiliary.hpp>
 #include <boost/spirit/include/qi_string.hpp>
 #include <boost/spirit/include/qi_directive.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
 #include "grammar.hpp"
 #include "actions.hpp"
 #include "phrase.hpp"
 #include "utils.hpp"
 #include "syntax_highlight.hpp"
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::code_token,
-    (std::string, text)
-    (char const*, type)
-)
+#include "parse_utils.hpp"
 
 namespace quickbook
 {
@@ -89,28 +83,31 @@ namespace quickbook
 
             space
                 =   qi::raw[+qi::space]
-                >>  qi::attr("space");
+                                                        [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "space")]
+                ;
 
             preprocessor
                 =   qi::raw[
                         '#' >> *qi::space
                     >>  ((qi::alpha | '_') >> *(qi::alnum | '_'))
-                    ]
-                >>  qi::attr("preprocessor")
+                    ]                                   [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "preprocessor")]
                 ;
 
             comment
                 =   qi::raw[
                         qi::lit("//") >> *(qi::char_ - qi::eol) >> -qi::eol
                     |   qi::lit("/*") >> *(qi::char_ - "*/") >> -qi::lit("*/")
-                    ]
-                >>  qi::attr("comment")
+                    ]                                   [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "comment")]
                 ;
 
             keyword
                 =   qi::raw[keyword_ >> !(qi::alnum | '_')]
-                >>  qi::attr("keyword")
-                ;   // make sure we recognize whole words only
+                                                        [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "keyword")]
+                ;
 
             keyword_
                 =   "and_eq", "and", "asm", "auto", "bitand", "bitor",
@@ -130,8 +127,9 @@ namespace quickbook
                 ;
 
             special
-                =   +qi::char_("~!%^&*()+={[}]:;,<.>?/|\\-")
-                >>  qi::attr("special")
+                =   (+qi::char_("~!%^&*()+={[}]:;,<.>?/|\\-"))
+                                                        [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "special")]
                 ;
 
             string_char = ('\\' >> qi::char_) | (qi::char_ - '\\');
@@ -140,16 +138,16 @@ namespace quickbook
                 =   qi::raw[
                         -qi::no_case['l']
                     >>  '"' >> *(string_char - '"') >> -qi::lit('"')
-                    ]
-                >>  qi::attr("string")
+                    ]                                   [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "string")]
                 ;
 
             char_ =
                     qi::raw[
                         -qi::no_case['l']
                     >>  '\'' >> *(string_char - '\'') >> -qi::lit('\'')
-                    ]
-                >>  qi::attr("char")
+                    ]                                   [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "char")]
                 ;
 
             number
@@ -161,19 +159,20 @@ namespace quickbook
                         |   qi::long_double
                         )
                     >>  *qi::no_case[qi::char_("ldfu")]
-                    ]
-                >>  qi::attr("number")
+                    ]                                   [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "number")]
                 ;
 
             identifier
                 =   qi::raw[(qi::alpha | '_') >> *(qi::alnum | '_')]
-                >>  qi::attr("identifier")
+                                                        [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "identifier")]
                 ;
             
             // TODO: warn user?
             unexpected
-                =   qi::raw[qi::char_]
-                >>  qi::attr("error")
+                =   qi::raw[qi::char_]                  [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "error")]
                 ;
         }
 
@@ -229,19 +228,21 @@ namespace quickbook
                 ;
 
             space
-                =   qi::raw[+qi::space]
-                >>  qi::attr("space");
+                =   qi::raw[+qi::space]                 [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "space")]
+                ;
 
             comment
                 =   qi::raw[
                         '#' >> *(qi::char_ - qi::eol) >> -qi::eol
-                    ]
-                >>  qi::attr("comment")
+                    ]                                   [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "comment")]
                 ;
 
             keyword
                 =   qi::raw[keyword_ >> !(qi::alnum | '_')]
-                >>  qi::attr("keyword")
+                                                        [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "keyword")]
                 ;   // make sure we recognize whole words only
 
             keyword_
@@ -261,8 +262,9 @@ namespace quickbook
                 ;
 
             special
-                =   +qi::char_("~!%^&*()+={[}]:;,<.>/|\\-")
-                >>  qi::attr("special")
+                =   (+qi::char_("~!%^&*()+={[}]:;,<.>/|\\-"))
+                                                        [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "special")]
                 ;
 
             string_prefix
@@ -273,8 +275,8 @@ namespace quickbook
                 =   qi::raw[
                         -string_prefix
                     >>  (long_string | short_string)
-                    ]
-                >>  qi::attr("string")
+                    ]                                   [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "string")]
                 ;
 
             string_char = ('\\' >> qi::char_) | (qi::char_ - '\\');
@@ -297,19 +299,20 @@ namespace quickbook
                         |   qi::long_double
                         )
                         >>  *qi::no_case[qi::char_("lj")]
-                    ]
-                >>  qi::attr("number")
+                    ]                                   [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "number")]
                 ;
 
             identifier
                 =   qi::raw[(qi::alpha | '_') >> *(qi::alnum | '_')]
-                >>  qi::attr("identifier")
+                                                        [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "identifier")]
                 ;
 
             // TODO: warn user?
             unexpected
-                =   qi::raw[qi::char_]
-                >>  qi::attr("error")
+                =   qi::raw[qi::char_]                  [member_assign(&code_token::text)]
+                                                        [member_assign(&code_token::type, "error")]
                 ;
         }
 

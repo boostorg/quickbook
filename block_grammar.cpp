@@ -13,26 +13,13 @@
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
 #include "grammar_impl.hpp"
 #include "block.hpp"
 #include "template.hpp"
 #include "actions.hpp"
 #include "code.hpp"
 #include "misc_rules.hpp"
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::paragraph,
-    (std::string, content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::list_item,
-    (quickbook::file_position, position)
-    (std::string, indent)
-    (char, mark)
-    (std::string, content)
-)
+#include "parse_utils.hpp"
 
 namespace quickbook
 {
@@ -87,13 +74,11 @@ namespace quickbook
         qi::rule<iterator>& code_line = store_.create();
 
         code =
-                position
-            >>  qi::raw[
-                    code_line
-                >>  *(*eol >> code_line)
-                ]
+                position                                [member_assign(&quickbook::code::position)]
+                                                        [member_assign(&quickbook::code::block, true)]
+            >>  qi::raw[code_line >> *(*eol >> code_line)]
+                                                        [member_assign(&quickbook::code::code)]
             >>  +eol
-            >>  qi::attr(true)
             ;
 
         code_line =
@@ -111,11 +96,11 @@ namespace quickbook
             ;
         
         list_item =
-                position
+                position                                [member_assign(&quickbook::list_item::position)]
+            >>  (*qi::blank)                            [member_assign(&quickbook::list_item::indent)]
+            >>  qi::char_("*#")                         [member_assign(&quickbook::list_item::mark)]
             >>  *qi::blank
-            >>  qi::char_("*#")
-            >>  qi::omit[*qi::blank]
-            >>  list_item_content
+            >>  list_item_content                       [member_assign(&quickbook::list_item::content)]
             ;
 
         list_item_content =
@@ -143,7 +128,9 @@ namespace quickbook
         qi::rule<iterator>& paragraph_end = store_.create();
         qi::symbols<>& paragraph_end_markups = store_.create();
 
-        paragraph = paragraph_content >> qi::attr(nothing());
+        paragraph =
+                paragraph_content               [member_assign(&quickbook::paragraph::content)]
+            ;
 
         paragraph_content =
                 qi::eps                         [actions.phrase_push]

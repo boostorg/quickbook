@@ -11,7 +11,6 @@
 #define BOOST_SPIRIT_QUICKBOOK_CODE_HPP
 
 #include <string>
-#include <boost/fusion/include/adapt_struct.hpp>
 #include "fwd.hpp"
 
 namespace quickbook
@@ -27,12 +26,5 @@ namespace quickbook
         actions& escape_actions,
         std::string& source_mode);
 }
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::code,
-    (quickbook::file_position, position)
-    (std::string, code)
-    (bool, block)
-)
 
 #endif

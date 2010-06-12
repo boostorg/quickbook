@@ -13,38 +13,13 @@
 #include <boost/spirit/include/qi_eoi.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/fusion/include/std_pair.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
-#include "phrase_grammar.hpp"
+#include "grammar_impl.hpp"
+#include "phrase.hpp"
 #include "code.hpp"
 #include "actions.hpp"
 #include "template.hpp"
 #include "misc_rules.hpp"
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::simple_markup,
-    (char, symbol)
-    (std::string, raw_content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::unicode_char,
-    (std::string, value)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::call_template,
-    (quickbook::file_position, position)
-    (bool, escape)
-    (quickbook::template_symbol const*, symbol)
-    (std::vector<quickbook::template_value>, args)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::template_value,
-    (quickbook::file_position, position)
-    (std::string, content)
-)
+#include "parse_utils.hpp"
 
 namespace quickbook
 {
@@ -58,6 +33,7 @@ namespace quickbook
         qi::rule<iterator, quickbook::code()>& code_block = store_.create();
         qi::rule<iterator, quickbook::code()>& inline_code = store_.create();
         qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> >& simple_format = store_.create();
+        qi::rule<iterator, std::string(char)>& simple_format_body = store_.create();
         qi::rule<iterator>& escape = store_.create();
         qi::rule<iterator, quickbook::call_template()>& call_template = store_.create();
         qi::rule<iterator, quickbook::break_()>& break_ = store_.create();
@@ -123,13 +99,13 @@ namespace quickbook
         qi::rule<iterator>& brackets_1_5 = store_.create();
 
         call_template =
-                position
-            >>  qi::matches['`']
+                position                            [member_assign(&quickbook::call_template::position)]
+            >>  qi::matches['`']                    [member_assign(&quickbook::call_template::escape)]
             >>  (                                   // Lookup the template name
                     (&qi::punct >> actions.templates.scope)
                 |   (actions.templates.scope >> hard_space)
-                )
-            >>  template_args
+                )                                   [member_assign(&quickbook::call_template::symbol)]
+            >>  template_args                       [member_assign(&quickbook::call_template::args)]
             >>  &qi::lit(']')
             ;
 
@@ -138,8 +114,9 @@ namespace quickbook
             qi::eps(qbk_since(105u)) >> -(template_arg_1_5 % "..");
 
         template_arg_1_4 =
-            position >>
-            qi::raw[+(brackets_1_4 | ~qi::char_(']') - "..")]
+                position                            [member_assign(&quickbook::template_value::position)]
+            >>  qi::raw[+(brackets_1_4 | ~qi::char_(']') - "..")]
+                                                    [member_assign(&quickbook::template_value::content)]
             ;
 
         brackets_1_4 =
@@ -147,8 +124,9 @@ namespace quickbook
             ;
 
         template_arg_1_5 =
-            position >>
-            qi::raw[+(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
+                position                            [member_assign(&quickbook::template_value::position)]
+            >>  qi::raw[+(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
+                                                    [member_assign(&quickbook::template_value::content)]
             ;
 
         brackets_1_5 =
@@ -156,69 +134,83 @@ namespace quickbook
             ;
 
         break_ =
-                position
+                position                            [member_assign(&quickbook::break_::position)]
             >>  "br"
-            >>  qi::attr(nothing())
             ;
+
+        qi::rule<iterator, std::string()>& code_block1 = store_.create();
+        qi::rule<iterator, std::string()>& code_block2 = store_.create();
+        qi::rule<iterator, std::string()>& inline_code_block = store_.create();
 
         code_block =
                 (
                     "```"
-                >>  position
-                >>  qi::raw[*(qi::char_ - "```")]
+                >>  position                        [member_assign(&quickbook::code::position)]
+                                                    [member_assign(&quickbook::code::block, true)]
+                >>  code_block1                     [member_assign(&quickbook::code::code)]
                 >>  "```"
-                >>  qi::attr(true)
                 )
             |   (
                     "``"
-                >>  position
-                >>  qi::raw[*(qi::char_ - "``")]
+                >>  position                        [member_assign(&quickbook::code::position)]
+                                                    [member_assign(&quickbook::code::block, true)]
+                >>  code_block2                     [member_assign(&quickbook::code::code)]
                 >>  "``"
-                >>  qi::attr(true)
                 )
             ;
 
+        code_block1 = qi::raw[*(qi::char_ - "```")];
+        code_block2 = qi::raw[*(qi::char_ - "``")];
+
         inline_code =
                 '`'
-            >>  position
-            >>  qi::raw
-                [   *(  qi::char_ -
-                        (   '`'
-                        |   (eol >> eol)            // Make sure that we don't go
-                        )                           // past a single block
-                    )
-                    >>  &qi::lit('`')
-                ]
+            >>  position                            [member_assign(&quickbook::code::position)]
+                                                    [member_assign(&quickbook::code::block, false)]
+            >>  inline_code_block                   [member_assign(&quickbook::code::code)]
             >>  '`'
-            >>  qi::attr(false)
+            ;
+
+        inline_code_block =
+            qi::raw
+            [   *(  qi::char_ -
+                    (   '`'
+                    |   (eol >> eol)            // Make sure that we don't go
+                    )                           // past a single block
+                )
+                >>  &qi::lit('`')
+            ]
             ;
 
         qi::rule<iterator>& simple_phrase_end = store_.create();
 
-        simple_format %=
+        simple_format =
                 qi::char_("*/_=")               [qi::_a = qi::_1]
-            >>  qi::raw
+            >>  simple_format_body(qi::_a)      [member_assign(&quickbook::simple_markup::raw_content)]
+            >>  qi::char_(qi::_a)               [member_assign(&quickbook::simple_markup::symbol)]
+            ;
+
+        simple_format_body =
+                qi::raw
                 [   (   (   qi::graph               // A single char. e.g. *c*
-                        >>  &(  qi::char_(qi::_a)
+                        >>  &(  qi::char_(qi::_r1)
                             >>  (qi::space | qi::punct | qi::eoi)
                             )
                         )
                     |
                         (   qi::graph               // qi::graph must follow qi::lit(qi::_r1)
                         >>  *(  qi::char_ -
-                                (   (qi::graph >> qi::lit(qi::_a))
+                                (   (qi::graph >> qi::lit(qi::_r1))
                                 |   simple_phrase_end // Make sure that we don't go
                                 )                     // past a single block
                             )
                         >>  qi::graph               // qi::graph must precede qi::lit(qi::_r1)
-                        >>  &(  qi::char_(qi::_a)
+                        >>  &(  qi::char_(qi::_r1)
                             >>  (qi::space | qi::punct | qi::eoi)
                             )
                         )
                     )
                 ]
-            >> qi::omit[qi::char_(qi::_a)]
-            ;
+                ;
 
         simple_phrase_end = '[' | phrase_end;
 
@@ -239,34 +231,31 @@ namespace quickbook
             ;
         
         escape_break =
-                position
+                position                            [member_assign(&quickbook::break_::position)]
             >>  "\\n"
-            >>  qi::attr(nothing())
             ;
 
         escape_punct =
-                qi::attr(formatted_type(""))
-            >>  '\\'
-            >>  qi::repeat(1)[qi::punct]
+                '\\'
+            >>  qi::repeat(1)[qi::punct]            [member_assign(&quickbook::formatted::content)]
+                                                    [member_assign(&quickbook::formatted::type, "")]
             ;
 
         escape_markup =
                 ("'''" >> -eol)
-            >>  qi::attr("escape")
-            >>  *(qi::char_ - "'''")
+            >>  (*(qi::char_ - "'''"))              [member_assign(&quickbook::formatted::content)]
+                                                    [member_assign(&quickbook::formatted::type, "escape")]
             >>  "'''"
             ;
 
         escape_unicode16 =
                 "\\u"
-            >   qi::raw[qi::repeat(4)[qi::xdigit]]
-            >   qi::attr(nothing())
+            >   qi::raw[qi::repeat(4)[qi::xdigit]]  [member_assign(&quickbook::unicode_char::value)]
             ;
 
         escape_unicode32 =
                 "\\U"
-            >   qi::raw[qi::repeat(8)[qi::xdigit]]
-            >   qi::attr(nothing())
+            >   qi::raw[qi::repeat(8)[qi::xdigit]]  [member_assign(&quickbook::unicode_char::value)]
             ;
 
         phrase_end =

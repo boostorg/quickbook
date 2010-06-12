@@ -11,7 +11,6 @@
 #define BOOST_SPIRIT_QUICKBOOK_PARSE_TYPES_HPP
 
 #include <string>
-#include <boost/fusion/include/adapt_struct.hpp>
 #include "fwd.hpp"
 
 namespace quickbook
@@ -23,11 +22,5 @@ namespace quickbook
         std::string content;
     };
 }
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::formatted,
-    (quickbook::formatted_type, type)
-    (std::string, content)
-)
 
 #endif

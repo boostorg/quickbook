@@ -12,42 +12,12 @@
 #include <boost/spirit/include/qi_symbols.hpp>
 #include <boost/spirit/include/qi_attr.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
-#include <boost/fusion/include/std_pair.hpp>
-#include "phrase_grammar.hpp"
+#include "grammar_impl.hpp"
+#include "phrase.hpp"
 #include "actions.hpp"
 #include "template.hpp"
 #include "misc_rules.hpp"
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::anchor,
-    (std::string, id)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::link,
-    (quickbook::formatted_type, type)
-    (std::string, destination)
-    (std::string, content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::image,
-    (quickbook::file_position, position)
-    (std::string, image_filename)
-    (quickbook::image::attribute_map, attributes)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::cond_phrase,
-    (std::string, macro_id)
-    (std::string, content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::callout_link,
-    (std::string, role)
-    (std::string, identifier)
-)
+#include "parse_utils.hpp"
 
 namespace quickbook
 {
@@ -66,10 +36,9 @@ namespace quickbook
         phrase_symbol_rules.add("[callout]", callout_link [actions.process]);
 
         callout_link =
-                *~qi::char_(' ')
+                (*~qi::char_(' '))          [member_assign(&quickbook::callout_link::role)]
             >>  ' '
-            >>  *~qi::char_(']')
-            >>  qi::attr(nothing())
+            >>  (*~qi::char_(']'))          [member_assign(&quickbook::callout_link::identifier)]
             ;
 
         // Conditional Phrase
@@ -80,8 +49,8 @@ namespace quickbook
 
         cond_phrase =
                 blank
-            >>  macro_identifier
-            >>  -phrase
+            >>  macro_identifier            [member_assign(&quickbook::cond_phrase::macro_id)]
+            >>  -phrase                     [member_assign(&quickbook::cond_phrase::content)]
             ;
 
         // Images
@@ -102,18 +71,18 @@ namespace quickbook
             (qi::eps(qbk_before(105u)) >> image_1_4);
         
         image_1_4 =
-                position
+                position                            [member_assign(&quickbook::image::position)]
             >>  blank
-            >>  *(qi::char_ - phrase_end)
+            >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::image::image_filename)]
             >>  &qi::lit(']')
             ;
         
         image_1_5 =
-                position
+                position                            [member_assign(&quickbook::image::position)]
             >>  blank
-            >>  image_filename
+            >>  image_filename                      [member_assign(&quickbook::image::image_filename)]
             >>  hard_space
-            >>  image_attributes
+            >>  image_attributes                    [member_assign(&quickbook::image::attributes)]
             >>  &qi::lit(']')
             ;
 
@@ -128,9 +97,9 @@ namespace quickbook
         
         image_attribute =
                 '['
-            >>  image_attribute_key
+            >>  image_attribute_key                 [member_assign(&std::pair<std::string, std::string>::first)]
             >>  space
-            >>  image_attribute_value
+            >>  image_attribute_value               [member_assign(&std::pair<std::string, std::string>::second)]
             >>  ']'
             ;
             
@@ -143,10 +112,10 @@ namespace quickbook
         
         phrase_symbol_rules.add("@", url [actions.process]);
 
-        url =   qi::attr("url")
-            >>  *(qi::char_ - (']' | qi::space))
+        url =   (*(qi::char_ - (']' | qi::space)))      [member_assign(&quickbook::link::destination)]
+                                                        [member_assign(&quickbook::link::type, "url")]
             >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
+                |   (hard_space >> phrase)              [member_assign(&quickbook::link::content)]
                 )
             ;
 
@@ -169,11 +138,11 @@ namespace quickbook
             ;
 
         link =
-                qi::attr(qi::_r1)
+                qi::attr(qi::_r1)                       [member_assign(&quickbook::link::type)]
             >>  space
-            >>  *(qi::char_ - (']' | qi::space))
+            >>  (*(qi::char_ - (']' | qi::space)))      [member_assign(&quickbook::link::destination)]
             >>  (   &qi::lit(']')
-                |   (hard_space >> phrase)
+                |   (hard_space >> phrase)              [member_assign(&quickbook::link::content)]
                 )
             ;
 
@@ -185,8 +154,7 @@ namespace quickbook
 
         anchor =
                 blank
-            >>  *(qi::char_ - phrase_end)
-            >>  qi::attr(nothing())
+            >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::anchor::id)]
             ;
 
         // Source Mode
@@ -215,7 +183,11 @@ namespace quickbook
             ("footnote", formatted(formatted_type("footnote")) [actions.process])
             ;
 
-        formatted = qi::attr(qi::_r1) >> blank >> phrase;
+        formatted =
+                qi::attr(qi::_r1)               [member_assign(&quickbook::formatted::type)]
+            >>  blank
+            >>  phrase                          [member_assign(&quickbook::formatted::content)]
+            ;
 
         // phrase_end
 

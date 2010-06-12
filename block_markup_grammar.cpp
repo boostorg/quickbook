@@ -14,85 +14,13 @@
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_fusion.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
 #include "grammar_impl.hpp"
 #include "block.hpp"
 #include "template.hpp"
 #include "actions.hpp"
 #include "code.hpp"
 #include "misc_rules.hpp"
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::title,
-    (quickbook::raw_source, raw)
-    (std::string, content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::begin_section,
-    (boost::optional<quickbook::raw_string>, id)
-    (quickbook::title, content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::end_section,
-    (quickbook::file_position, position)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::heading,
-    (int, level)
-    (quickbook::title, content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::def_macro,
-    (std::string, macro_identifier)
-    (std::string, content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::define_template,
-    (std::string, id)
-    (std::vector<std::string>, params)
-    (quickbook::template_value, body)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::template_value,
-    (quickbook::file_position, position)
-    (std::string, content)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::variablelist,
-    (std::string, title)
-    (std::vector<quickbook::varlistentry>, entries)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::table,
-    (boost::optional<quickbook::raw_string>, id)
-    (std::string, title)
-    (std::vector<quickbook::table_row>, rows)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::xinclude,
-    (std::string, path)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::import,
-    (std::string, path)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::include,
-    (boost::optional<quickbook::raw_string>, id)
-    (std::string, path)
-)
+#include "parse_utils.hpp"
 
 namespace quickbook
 {
@@ -123,14 +51,13 @@ namespace quickbook
 
         begin_section =
                 space
-            >>  element_id
-            >>  title_phrase
+            >>  element_id                          [member_assign(&quickbook::begin_section::id)]
+            >>  title_phrase                        [member_assign(&quickbook::begin_section::content)]
             ;
 
         end_section =
                 space
-            >>  position
-            >>  qi::attr(nothing())
+            >>  position                            [member_assign(&quickbook::end_section::position)]
             ;
 
         // Headings
@@ -146,7 +73,11 @@ namespace quickbook
             ("h6", heading(6) [actions.process])
             ("heading", heading(-1) [actions.process]);
 
-        heading = qi::attr(qi::_r1) >> space >> title_phrase;
+        heading =
+                qi::attr(qi::_r1)                   [member_assign(&quickbook::heading::level)]
+            >>  space
+            >>  title_phrase                        [member_assign(&quickbook::heading::content)]
+                ;
         
         // Paragraph Blocks
 
@@ -166,7 +97,9 @@ namespace quickbook
             ;
 
         paragraph_block =
-            qi::attr(qi::_r1) >> space >> inside_paragraph
+                qi::attr(qi::_r1)                   [member_assign(&quickbook::formatted::type)]
+            >>  space
+            >>  inside_paragraph                    [member_assign(&quickbook::formatted::content)]
             ;
 
         // Preformatted
@@ -175,11 +108,11 @@ namespace quickbook
 
         block_keyword_rules.add("pre", preformatted [actions.process]);
         
-        preformatted %=
+        preformatted =
                 space                           [ph::ref(no_eols) = false]
+                                                [member_assign(&quickbook::formatted::type, "preformatted")]
             >>  -eol
-            >>  qi::attr(formatted_type("preformatted"))
-            >>  phrase_attr
+            >>  phrase_attr                     [member_assign(&quickbook::formatted::content)]
             >>  qi::eps                         [ph::ref(no_eols) = true]
             ;
 
@@ -191,9 +124,9 @@ namespace quickbook
         
         def_macro =
                 space
-            >>  macro_identifier
+            >>  macro_identifier                [member_assign(&quickbook::def_macro::macro_identifier)]
             >>  blank
-            >>  phrase_attr
+            >>  phrase_attr                     [member_assign(&quickbook::def_macro::content)]
             ;
 
         // Table
@@ -207,11 +140,14 @@ namespace quickbook
 
         table =
                 (&(*qi::blank >> qi::eol) | space)
-            >>  ((qi::eps(qbk_since(105u)) >> element_id) | qi::eps)
+            >>  ((
+                    qi::eps(qbk_since(105u))
+                >>  element_id                  [member_assign(&quickbook::table::id)]
+                ) | qi::eps)
             >>  (&(*qi::blank >> qi::eol) | space)
-            >>  *(qi::char_ - eol)
+            >>  (*(qi::char_ - eol))            [member_assign(&quickbook::table::title)]
             >>  +eol
-            >>  *table_row
+            >>  (*table_row)                    [member_assign(&quickbook::table::rows)]
             ;
 
         table_row =
@@ -231,8 +167,8 @@ namespace quickbook
             ;
 
         table_cell_body =
-                qi::attr(formatted_type("cell"))
-            >>  inside_paragraph
+                inside_paragraph                    [member_assign(&quickbook::formatted::content)]
+                                                    [member_assign(&quickbook::formatted::type, "cell")]
             ;
 
         qi::rule<iterator, quickbook::variablelist()>& variablelist = store_.create();
@@ -246,11 +182,11 @@ namespace quickbook
 
         variablelist =
                 (&(*qi::blank >> qi::eol) | space)
-            >>  *(qi::char_ - eol)
+            >>  (*(qi::char_ - eol))                [member_assign(&quickbook::variablelist::title)]
             >>  +eol
-            >>  *varlistentry
+            >>  (*varlistentry)                     [member_assign(&quickbook::variablelist::entries)]
             ;
-
+            
         varlistentry =
                 space
             >>  '['
@@ -271,8 +207,8 @@ namespace quickbook
             ;
 
         varlistterm_body =
-                qi::attr(formatted_type("varlistterm"))
-            >>  phrase_attr
+                phrase_attr                         [member_assign(&quickbook::formatted::content)]
+                                                    [member_assign(&quickbook::formatted::type, "varlistterm")]
             ;
 
         varlistitem =
@@ -284,8 +220,8 @@ namespace quickbook
             ;
 
         varlistitem_body =
-                qi::attr(formatted_type("varlistitem"))
-            >>  inside_paragraph
+                inside_paragraph                    [member_assign(&quickbook::formatted::content)]
+                                                    [member_assign(&quickbook::formatted::type, "varlistitem")]
             ;
 
         // xinclude
@@ -297,8 +233,7 @@ namespace quickbook
         // TODO: Why do these use phrase_end? It doesn't make any sense.
         xinclude =
                 space
-            >>  *(qi::char_ - phrase_end)
-            >>  qi::attr(nothing())
+            >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::xinclude::path)]
             ;
 
         qi::rule<iterator, quickbook::include()>& include = store_.create();
@@ -314,8 +249,8 @@ namespace quickbook
                     ':'
                 >>  include_id
                 >>  space
-                )
-            >>  *(qi::char_ - phrase_end)
+                )                                   [member_assign(&quickbook::include::id)]
+            >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::include::path)]
             ;
 
         include_id = qi::raw[*((qi::alnum | '_') - qi::space)]
@@ -329,13 +264,13 @@ namespace quickbook
         
         import =
                 space
-            >>  *(qi::char_ - phrase_end)
-            >>  qi::attr(nothing())
+            >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::import::path)]
             ;
 
         // Define Template
 
         qi::rule<iterator, quickbook::define_template()>& define_template = store_.create();
+        qi::rule<iterator, std::vector<std::string>()>& define_template_params = store_.create();
         qi::rule<iterator, quickbook::template_value()>& template_body = store_.create();
         qi::rule<iterator>& template_body_recurse = store_.create();
         qi::rule<iterator, std::string()>& template_id = store_.create();
@@ -344,20 +279,22 @@ namespace quickbook
 
         define_template =
                 space
-            >>  template_id
-            >>  -(
-                    space
-                >>  '['
-                >>  *(space >> template_id)
-                >>  space
-                >>  ']'
-                )
-            >>  template_body
+            >>  template_id                         [member_assign(&quickbook::define_template::id)]
+            >>  -define_template_params             [member_assign(&quickbook::define_template::params)]
+            >>  template_body                       [member_assign(&quickbook::define_template::body)]
+            ;
+
+        define_template_params =
+                space
+            >>  '['
+            >>  *(space >> template_id)
+            >>  space
+            >>  ']'
             ;
 
         template_body =
-                position
-            >>  qi::raw[template_body_recurse]
+                position                            [member_assign(&quickbook::template_value::position)]
+            >>  qi::raw[template_body_recurse]      [member_assign(&quickbook::template_value::content)]
             ;
 
         template_body_recurse =
@@ -379,8 +316,8 @@ namespace quickbook
         // possibly to generate an id (based on the raw source).
         title_phrase =
             qi::raw[
-                phrase_attr                     [ph::at_c<1>(qi::_val) = qi::_1]
-            ]                                   [ph::at_c<0>(qi::_val) = qi::_1]
+                phrase_attr                         [member_assign(&quickbook::title::content)]
+            ]                                       [member_assign(&quickbook::title::raw)]
             ;
 
         qi::rule<iterator, quickbook::formatted()>& inside_paragraph2 = store_.create();
@@ -395,8 +332,9 @@ namespace quickbook
             ;
 
         inside_paragraph2 =
-                qi::attr(formatted_type("paragraph"))
-            >>  phrase_attr;
+                phrase_attr                         [member_assign(&quickbook::formatted::content)]
+                                                    [member_assign(&quickbook::formatted::type, "paragraph")]
+            ;
 
         phrase_attr =
                 qi::eps                         [actions.phrase_push]        

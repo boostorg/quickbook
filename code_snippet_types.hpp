@@ -14,7 +14,6 @@
 
 #include <vector>
 #include <string>
-#include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/support_unused.hpp>
 #include "fwd.hpp"
 #include "template.hpp"
@@ -40,24 +39,6 @@ namespace quickbook
         std::string content;
     };
 }
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::code_snippet,
-    (quickbook::file_position, position)
-    (std::string, identifier)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::callout,
-    (quickbook::file_position, position)
-    (std::string, content)
-    (char const*, role)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    quickbook::escaped_comment,
-    (std::string, content)
-)
 
 namespace quickbook
 {

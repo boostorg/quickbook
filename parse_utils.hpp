@@ -13,14 +13,12 @@
 #define BOOST_SPIRIT_QUICKBOOK_AS_STRING_HPP
 
 #include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_bind.hpp>
 #include <boost/spirit/include/qi_nonterminal.hpp>
 #include <string>
 
 namespace quickbook
 {
     namespace spirit = boost::spirit;
-    namespace ph = boost::phoenix;
 
     // member_assign - action to assign the attribute to a member of the
     //                 rule's attributte.
@@ -31,12 +29,12 @@ namespace quickbook
     
         template <typename Context>
         void operator()(Member& attrib, Context& context, bool& pass) const {
-            (ph::bind(mem_ptr_, spirit::_val) = attrib)(attrib, context, pass);
+            &(spirit::_val)(attrib,context,pass)->*mem_ptr_ = attrib;
         }
         
         template <typename Attrib, typename Context>
         void operator()(Attrib& attrib, Context& context, bool& pass) const {
-            (ph::bind(mem_ptr_, spirit::_val) = attrib)(attrib, context, pass);
+            &(spirit::_val)(attrib,context,pass)->*mem_ptr_ = attrib;
         }
 
         Member Struct::*mem_ptr_;
@@ -48,20 +46,40 @@ namespace quickbook
     
         template <typename Context>
         void operator()(std::string& attrib, Context& context, bool& pass) const {
-            (ph::bind(mem_ptr_, spirit::_val) = attrib)(attrib, context, pass);
+            &(spirit::_val)(attrib,context,pass)->*mem_ptr_ = attrib;
         }
 
         template <typename Attrib, typename Context>
         void operator()(Attrib& attrib, Context& context, bool& pass) const {
-            (ph::bind(mem_ptr_, spirit::_val) = std::string(attrib.begin(), attrib.end()))(attrib, context, pass);
+            &(spirit::_val)(attrib,context,pass)->*mem_ptr_ =
+                std::string(attrib.begin(), attrib.end());
         }
         
         std::string Struct::*mem_ptr_;
     };
     
     template <typename Struct, typename Member>
+    struct fixed_member_assign_type {
+        fixed_member_assign_type(Member Struct::*mem_ptr, Member const& m)
+            : mem_ptr_(mem_ptr), m_(m) {}
+    
+        template <typename Attrib, typename Context>
+        void operator()(Attrib& attrib, Context& context, bool& pass) const {
+            &(spirit::_val)(attrib,context,pass)->*mem_ptr_ = m_;
+        }
+
+        Member Struct::*mem_ptr_;
+        Member m_;
+    };
+    
+    template <typename Struct, typename Member>
     member_assign_type<Struct, Member> member_assign(Member Struct::*mem_ptr) {
         return member_assign_type<Struct, Member>(mem_ptr);
+    }
+
+    template <typename Struct, typename Member, typename Value>
+    fixed_member_assign_type<Struct, Member> member_assign(Member Struct::*mem_ptr, Value const& m) {
+        return fixed_member_assign_type<Struct, Member>(mem_ptr, m);
     }
 
     // member_push - action to push the attribute to a member of the
@@ -73,14 +91,13 @@ namespace quickbook
     
         template <typename Context>
         void operator()(Member& attrib, Context& context, bool& pass) const {
-            ph::bind(mem_ptr_, spirit::_val)(attrib, context, pass)
-                .push_back(attrib);
+            (&(spirit::_val)(attrib,context,pass)->*mem_ptr_).push_back(attrib);
         }
         
         template <typename Attrib, typename Context>
         void operator()(Attrib& attrib, Context& context, bool& pass) const {
-            ph::bind(mem_ptr_, spirit::_val)(attrib, context, pass)
-                .push_back(typename Member::value_type(attrib));
+            (&(spirit::_val)(attrib,context,pass)->*mem_ptr_).push_back(
+                typename Member::value_type(attrib));
         }
 
         Member Struct::*mem_ptr_;
@@ -92,14 +109,13 @@ namespace quickbook
     
         template <typename Context>
         void operator()(std::string& attrib, Context& context, bool& pass) const {
-            ph::bind(mem_ptr_, spirit::_val)(attrib, context, pass)
-                .push_back(attrib);
+            (&(spirit::_val)(attrib,context,pass)->*mem_ptr_).push_back(attrib);
         }
 
         template <typename Attrib, typename Context>
         void operator()(Attrib& attrib, Context& context, bool& pass) const {
-            ph::bind(mem_ptr_, spirit::_val)(attrib, context, pass)
-                .push_back(std::string(attrib.begin(), attrib.end()));
+            (&(spirit::_val)(attrib,context,pass)->*mem_ptr_).push_back(
+                std::string(attrib.begin(), attrib.end()));
         }
         
         std::vector<std::string> Struct::*mem_ptr_;
@@ -109,8 +125,6 @@ namespace quickbook
     member_push_type<Struct, Member> member_push(Member Struct::*mem_ptr) {
         return member_push_type<Struct, Member>(mem_ptr);
     }
-
-
 }
 
 #endif
