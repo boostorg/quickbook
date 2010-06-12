@@ -36,9 +36,9 @@ namespace quickbook
         }
     }
 
-    formatted process(quickbook::state& state, paragraph const& x)
+    block_formatted process(quickbook::state& state, paragraph const& x)
     {
-        formatted r;
+        block_formatted r;
         r.type="paragraph";
         r.content = x.content;
         return r;

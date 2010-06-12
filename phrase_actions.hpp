@@ -10,6 +10,7 @@
 #if !defined(BOOST_SPIRIT_QUICKBOOK_PHRASE_ACTIONS_HPP)
 #define BOOST_SPIRIT_QUICKBOOK_PHRASE_ACTIONS_HPP
 
+#include <boost/variant/variant.hpp>
 #include "phrase.hpp"
 #include "code.hpp"
 #include "gen_types.hpp"
@@ -22,7 +23,7 @@ namespace quickbook
     formatted process(quickbook::state&, simple_markup const&);
     std::string process(quickbook::state&, cond_phrase const&);
     break_ process(quickbook::state&, break_ const&);
-    formatted process(quickbook::state&, code const&);
+    boost::variant<formatted, block_formatted> process(quickbook::state&, code const&);
     image2 process(quickbook::state&, image const&);
     std::string process(quickbook::state&, call_template const&);
 }

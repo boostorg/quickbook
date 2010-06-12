@@ -146,14 +146,14 @@ namespace quickbook
                 (
                     "```"
                 >>  position                        [member_assign(&quickbook::code::position)]
-                                                    [member_assign(&quickbook::code::block, true)]
+                                                    [member_assign(&quickbook::code::flow, quickbook::code::inline_block)]
                 >>  code_block1                     [member_assign(&quickbook::code::content)]
                 >>  "```"
                 )
             |   (
                     "``"
                 >>  position                        [member_assign(&quickbook::code::position)]
-                                                    [member_assign(&quickbook::code::block, true)]
+                                                    [member_assign(&quickbook::code::flow, quickbook::code::inline_block)]
                 >>  code_block2                     [member_assign(&quickbook::code::content)]
                 >>  "``"
                 )
@@ -165,7 +165,7 @@ namespace quickbook
         inline_code =
                 '`'
             >>  position                            [member_assign(&quickbook::code::position)]
-                                                    [member_assign(&quickbook::code::block, false)]
+                                                    [member_assign(&quickbook::code::flow, quickbook::code::inline_)]
             >>  inline_code_block                   [member_assign(&quickbook::code::content)]
             >>  '`'
             ;

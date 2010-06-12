@@ -29,7 +29,8 @@ namespace quickbook
         , doc_title()
 
     // main output stream
-        , phrase(out_)
+        , block(out_)
+        , phrase()
         , encoder(encoder)
 
     // state
@@ -74,6 +75,7 @@ namespace quickbook
         );
 
         phrase.push();
+        block.push();
         templates.push();
     }
 
@@ -90,6 +92,7 @@ namespace quickbook
         state_stack.pop();
 
         phrase.pop();
+        block.pop();
         templates.pop();
     }
 }

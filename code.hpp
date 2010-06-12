@@ -16,7 +16,8 @@
 namespace quickbook
 {
     struct code {
-        bool block;
+        enum flow_types { block, inline_block, inline_ };
+        flow_types flow;
         file_position position;
         std::string content;
     };

@@ -16,7 +16,7 @@
 namespace quickbook
 {
     // TODO: Just generate formatted.
-    formatted process(quickbook::state&, paragraph const&);
+    block_formatted process(quickbook::state&, paragraph const&);
     begin_section2 process(quickbook::state&, begin_section const&);
     end_section2 process(quickbook::state&, end_section const&);
     heading2 process(quickbook::state&, heading const&);

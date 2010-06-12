@@ -169,6 +169,8 @@ namespace quickbook
         process_action              process;
         phrase_push_action          phrase_push;
         phrase_pop_action           phrase_pop;
+        phrase_push_action          block_push;
+        phrase_pop_action           block_pop;
         error_action                error;
         element_id_warning_action   element_id_warning;
     };

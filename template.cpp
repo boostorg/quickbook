@@ -354,7 +354,7 @@ namespace quickbook
                     ++first; // skip initial newlines
 
                 r = boost::spirit::qi::parse(first, last, g.block) && first == last;
-                state.phrase.swap(result);
+                state.block.swap(result);
             }
             
             return r;
@@ -481,7 +481,7 @@ namespace quickbook
                 quickbook::actions actions(state);
                 actions.process(list);
             }
-            result += state.phrase.str();
+            result += state.block.str();
             state.pop();
         }
       

@@ -75,7 +75,7 @@ namespace quickbook
 
         code =
                 position                                [member_assign(&quickbook::code::position)]
-                                                        [member_assign(&quickbook::code::block, true)]
+                                                        [member_assign(&quickbook::code::flow, quickbook::code::block)]
             >>  qi::raw[code_line >> *(*eol >> code_line)]
                                                         [member_assign(&quickbook::code::content)]
             >>  +eol
@@ -140,7 +140,7 @@ namespace quickbook
                     )                           [actions.process]
                 )
             >>  qi::eps                         [actions.phrase_pop]
-            >> (&qi::lit('[') | +eol)
+            >>  (&qi::lit('[') | +eol)
             ;
 
         paragraph_end =

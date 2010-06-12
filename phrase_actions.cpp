@@ -81,15 +81,14 @@ namespace quickbook
         return x;
     }
 
-    formatted process(quickbook::state& state, code const& x) {
-        formatted r;
-        r.type = "";
-
+    boost::variant<formatted, block_formatted> process(quickbook::state& state, code const& x) {
          std::string program = x.content;
     
-        if(x.block) {
+        if(x.flow == x.block || x.flow == x.inline_block) {
             // preprocess the code section to remove the initial indentation
             detail::unindent(program);
+            formatted r;
+            r.type = "";
             if (program.size() == 0)
                 return r; // Nothing left to do here. The program is empty.
         }
@@ -109,8 +108,17 @@ namespace quickbook
 
         state.phrase.swap(save);
         
-        r.type = x.block ? "programlisting" : "code";
-        r.content = str;
-        return r;
+        if(x.flow == x.block) {
+            block_formatted r;
+            r.type = "programlisting";
+            r.content = str;
+            return r;
+        }
+        else {
+            formatted r;
+            r.type = x.flow == x.inline_block ? "programlisting" : "code";
+            r.content = str;
+            return r;
+        }
     }
 }

@@ -29,6 +29,8 @@ namespace quickbook
         , process(*this)
         , phrase_push(state.phrase)
         , phrase_pop(state.phrase)
+        , block_push(state.block)
+        , block_pop(state.block)
         , error(state.error_count)
     {}
 

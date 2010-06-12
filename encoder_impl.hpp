@@ -30,6 +30,7 @@ namespace quickbook
         virtual void operator()(quickbook::state&, anchor const&);
         virtual void operator()(quickbook::state&, link const&);
         virtual void operator()(quickbook::state&, formatted const&);
+        virtual void operator()(quickbook::state&, block_formatted const&);
         virtual void operator()(quickbook::state&, break_ const&);
         virtual void operator()(quickbook::state&, image2 const&);
     
@@ -67,6 +68,7 @@ namespace quickbook
         virtual void operator()(quickbook::state&, anchor const&);
         virtual void operator()(quickbook::state&, link const&);
         virtual void operator()(quickbook::state&, formatted const&);
+        virtual void operator()(quickbook::state&, block_formatted const&);
         virtual void operator()(quickbook::state&, break_ const&);
         virtual void operator()(quickbook::state&, image2 const&);
     

@@ -19,6 +19,11 @@
 
 namespace quickbook
 {
+    struct block_formatted {
+        formatted_type type;
+        std::string content;
+    };
+
     struct hr
     {
     };
@@ -27,7 +32,7 @@ namespace quickbook
     {
         std::string content;
     };
-
+    
     struct list_item
     {
         file_position position;
@@ -67,7 +72,7 @@ namespace quickbook
         std::string content;
     };
 
-    typedef std::vector<quickbook::formatted> varlistentry;
+    typedef std::vector<quickbook::block_formatted> varlistentry;
 
     struct variablelist
     {
@@ -75,7 +80,7 @@ namespace quickbook
         std::vector<varlistentry> entries;
     };
 
-    typedef quickbook::formatted table_cell;
+    typedef quickbook::block_formatted table_cell;
     typedef std::vector<table_cell> table_row;
     
     struct table

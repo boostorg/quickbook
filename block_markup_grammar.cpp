@@ -17,7 +17,6 @@
 #include "grammar_impl.hpp"
 #include "block.hpp"
 #include "actions.hpp"
-#include "code.hpp"
 #include "misc_rules.hpp"
 #include "parse_utils.hpp"
 
@@ -37,7 +36,7 @@ namespace quickbook
     {
         // Paragraph Blocks
 
-        qi::rule<iterator, quickbook::formatted(formatted_type)>& paragraph_block = store_.create();
+        qi::rule<iterator, quickbook::block_formatted(formatted_type)>& paragraph_block = store_.create();
 
         block_keyword_rules.add
             ("blurb", paragraph_block(formatted_type("blurb")) [actions.process])
@@ -53,22 +52,22 @@ namespace quickbook
             ;
 
         paragraph_block =
-                qi::attr(qi::_r1)                   [member_assign(&quickbook::formatted::type)]
+                qi::attr(qi::_r1)                   [member_assign(&quickbook::block_formatted::type)]
             >>  space
-            >>  inside_paragraph                    [member_assign(&quickbook::formatted::content)]
+            >>  inside_paragraph                    [member_assign(&quickbook::block_formatted::content)]
             ;
 
         // Preformatted
 
-        qi::rule<iterator, quickbook::formatted()>& preformatted = store_.create();
+        qi::rule<iterator, quickbook::block_formatted()>& preformatted = store_.create();
 
         block_keyword_rules.add("pre", preformatted [actions.process]);
         
         preformatted =
                 space                           [ph::ref(no_eols) = false]
-                                                [member_assign(&quickbook::formatted::type, "preformatted")]
+                                                [member_assign(&quickbook::block_formatted::type, "preformatted")]
             >>  -eol
-            >>  phrase_attr                     [member_assign(&quickbook::formatted::content)]
+            >>  phrase_attr                     [member_assign(&quickbook::block_formatted::content)]
             >>  qi::eps                         [ph::ref(no_eols) = true]
             ;
 

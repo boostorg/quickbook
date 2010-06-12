@@ -54,7 +54,6 @@ namespace quickbook
     
         boostbook_markup markups[] = {
             { "", "", "" },
-            { "comment", "<!--", "-->" },
             { "paragraph", "<para>\n", "</para>\n" },
             { "h1", "<bridgehead renderas=\"sect1\">", "</bridgehead>" },
             { "h2", "<bridgehead renderas=\"sect2\">", "</bridgehead>" },
@@ -173,6 +172,12 @@ namespace quickbook
         state.phrase << m.pre << x.content << m.post;
     }
 
+    void boostbook_encoder::operator()(quickbook::state& state, block_formatted const& x)
+    {
+        boostbook_markup m = get_markup(x.type);
+        state.block << m.pre << x.content << m.post;
+    }
+
     void boostbook_encoder::operator()(quickbook::state& state, break_ const& x)
     {
         boostbook_markup m = get_markup("break");
@@ -215,21 +220,21 @@ namespace quickbook
 
     void boostbook_encoder::operator()(quickbook::state& state, hr)
     {
-        state.phrase << get_markup("hr").pre;
+        state.block << get_markup("hr").pre;
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, begin_section2 const& x)
     {
-        state.phrase << "\n<section id=\"" << encode(x.id) << "\">\n";
+        state.block << "\n<section id=\"" << encode(x.id) << "\">\n";
         if(x.linkend.empty()) {
-            state.phrase
+            state.block
                 << "<title>"
                 << x.content
                 << "</title>\n"
                 ;
         }
         else {
-            state.phrase
+            state.block
                 << "<title>"
                 << "<link linkend=\""
                 << encode(x.linkend)
@@ -243,123 +248,123 @@ namespace quickbook
 
     void boostbook_encoder::operator()(quickbook::state& state, end_section2 const& x)
     {
-        state.phrase << "</section>";
+        state.block << "</section>";
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, heading2 const& x)
     {
-        state.phrase
+        state.block
             << "<anchor id=\"" << encode(x.id) << "\"/>"
             << "<bridgehead renderas=\"sect" << x.level << "\">";
 
         if(x.linkend.empty()) {
-            state.phrase << x.content;
+            state.block << x.content;
         }
         else {
-            state.phrase
+            state.block
                 << "<link linkend=\"" << encode(x.linkend) << "\">"
                 << x.content << "</link>";
         }
 
-        state.phrase << "</bridgehead>";
+        state.block << "</bridgehead>";
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, variablelist const& x)
     {
-        state.phrase << "<variablelist>\n";
+        state.block << "<variablelist>\n";
 
-        state.phrase << "<title>";
-        state.phrase << encode(x.title);
-        state.phrase << "</title>\n";
+        state.block << "<title>";
+        state.block << encode(x.title);
+        state.block << "</title>\n";
 
         boostbook_markup m = get_markup("varlistentry");
 
         for(std::vector<varlistentry>::const_iterator
             it = x.entries.begin(); it != x.entries.end(); ++it)
         {
-            state.phrase << m.pre;
+            state.block << m.pre;
             std::for_each(it->begin(), it->end(), encode_action(state, *this));
-            state.phrase << m.post;
+            state.block << m.post;
         }
 
-        state.phrase << "</variablelist>\n";
+        state.block << "</variablelist>\n";
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, table2 const& x)
     {
         if (x.title)
         {
-            state.phrase << "<table frame=\"all\"";
+            state.block << "<table frame=\"all\"";
             if(x.id)
-                state.phrase << " id=\"" << encode(*x.id) << "\"";
-            state.phrase << ">\n";
-            state.phrase << "<title>";
-            state.phrase << encode(*x.title);
-            state.phrase << "</title>";
+                state.block << " id=\"" << encode(*x.id) << "\"";
+            state.block << ">\n";
+            state.block << "<title>";
+            state.block << encode(*x.title);
+            state.block << "</title>";
         }
         else
         {
-            state.phrase << "<informaltable frame=\"all\"";
+            state.block << "<informaltable frame=\"all\"";
             if(x.id)
-                state.phrase << " id=\"" << encode(*x.id) << "\"";
-            state.phrase << ">\n";
+                state.block << " id=\"" << encode(*x.id) << "\"";
+            state.block << ">\n";
         }
 
         // This is a bit odd for backwards compatability: the old version just
         // used the last count that was calculated.
-        state.phrase << "<tgroup cols=\"" << x.cols << "\">\n";
+        state.block << "<tgroup cols=\"" << x.cols << "\">\n";
 
         boostbook_markup m = get_markup("row");
 
         if (x.head)
         {
-            state.phrase << "<thead>";
-            state.phrase << m.pre;
+            state.block << "<thead>";
+            state.block << m.pre;
             std::for_each(x.head->begin(), x.head->end(), encode_action(state, *this));
-            state.phrase << m.post;
-            state.phrase << "</thead>\n";
+            state.block << m.post;
+            state.block << "</thead>\n";
         }
 
-        state.phrase << "<tbody>\n";
+        state.block << "<tbody>\n";
 
         for(std::vector<table_row>::const_iterator
             it = x.rows.begin(); it != x.rows.end(); ++it)
         {
-            state.phrase << m.pre;
+            state.block << m.pre;
             std::for_each(it->begin(), it->end(), encode_action(state, *this));
-            state.phrase << m.post;
+            state.block << m.post;
         }
 
-        state.phrase << "</tbody>\n" << "</tgroup>\n";
+        state.block << "</tbody>\n" << "</tgroup>\n";
 
         if (x.title)
         {
-            state.phrase << "</table>\n";
+            state.block << "</table>\n";
         }
         else
         {
-            state.phrase << "</informaltable>\n";
+            state.block << "</informaltable>\n";
         }
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, xinclude2 const& x)
     {
-        state.phrase << "\n<xi:include href=\"" << x.path << "\" />\n";
+        state.block << "\n<xi:include href=\"" << x.path << "\" />\n";
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, list2 const& x)
     {
-        state.phrase << std::string(x.mark == '#' ? "<orderedlist>\n" : "<itemizedlist>\n");
+        state.block << std::string(x.mark == '#' ? "<orderedlist>\n" : "<itemizedlist>\n");
 
         for(std::vector<list_item2>::const_iterator
             it = x.items.begin(), end = x.items.end(); it != end; ++it)
         {
-            state.phrase << "<listitem><simpara>\n" << it->content;
+            state.block << "<listitem><simpara>\n" << it->content;
             if(!it->sublist.items.empty()) (*this)(state, it->sublist);
-            state.phrase << std::string("\n</simpara></listitem>");
+            state.block << std::string("\n</simpara></listitem>");
         }
 
-        state.phrase << std::string(x.mark == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
+        state.block << std::string(x.mark == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, callout_link const& x)
@@ -373,12 +378,12 @@ namespace quickbook
 
     void boostbook_encoder::operator()(quickbook::state& state, callout_list const& x)
     {
-        state.phrase
+        state.block
             << "<calloutlist>";
 
         BOOST_FOREACH(callout_item const& c, x)
         {
-            state.phrase
+            state.block
                 << "<callout arearefs=\"" << c.identifier << "co\""
                 << " id=\"" << c.identifier << "\""
                 << ">"
@@ -386,7 +391,7 @@ namespace quickbook
                 << "</callout>";
         }
 
-        state.phrase
+        state.block
             << "</calloutlist>";
     }
 
@@ -409,7 +414,7 @@ namespace quickbook
         // if we're ignoring the document info, we're done.
         if (info.ignore) return;
 
-        state.phrase
+        state.block
             << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             << "<!DOCTYPE "
             << info.doc_type
@@ -418,24 +423,24 @@ namespace quickbook
 
         // Document tag
 
-        state.phrase
+        state.block
             << '<' << info.doc_type << " id=\"" << encode(info.doc_id) << "\"\n";
         
         if(info.doc_type == "library")
         {
-            state.phrase << " name=\"" << encode(info.doc_title) << "\"\n";
+            state.block << " name=\"" << encode(info.doc_title) << "\"\n";
         }
 
         if(!info.doc_dirname.empty())
         {
-            state.phrase << " dirname=\"" << encode(info.doc_dirname) << "\"\n";
+            state.block << " dirname=\"" << encode(info.doc_dirname) << "\"\n";
         }
 
-        state.phrase
+        state.block
             << "last-revision=\"" << encode(info.doc_last_revision) << "\""
             << " xmlns:xi=\"http://www.w3.org/2001/XInclude\"";
 
-        state.phrase << ">"; // end document tag.
+        state.block << ">"; // end document tag.
 
         // Title tag
 
@@ -449,35 +454,35 @@ namespace quickbook
         }
 
         // For 'library', the title comes after the info block.
-        if(info.doc_type != "library") state.phrase << title;
+        if(info.doc_type != "library") state.block << title;
 
         // Info tag
 
-        state.phrase << "<" << info.doc_type << "info>\n";
+        state.block << "<" << info.doc_type << "info>\n";
 
         if(!info.doc_authors.empty())
         {
-            state.phrase << "<authorgroup>\n";
+            state.block << "<authorgroup>\n";
             BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
-                state.phrase
+                state.block
                     << "<author>\n"
                     << "<firstname>" << author.firstname << "</firstname>\n"
                     << "<surname>" << author.surname << "</surname>\n"
                     << "</author>\n";
             }
-            state.phrase << "</authorgroup>\n";
+            state.block << "</authorgroup>\n";
         }
 
         BOOST_FOREACH(doc_info::copyright_entry const& copyright,
             info.doc_copyrights)
         {
-            state.phrase << "<copyright>\n";
+            state.block << "<copyright>\n";
 
             BOOST_FOREACH(unsigned int year, copyright.years) {
-                state.phrase << "<year>" << year << "</year>\n";
+                state.block << "<year>" << year << "</year>\n";
             }
 
-            state.phrase
+            state.block
                 << "<holder>" << copyright.holder << "</holder>\n"
                 << "</copyright>\n"
             ;
@@ -485,7 +490,7 @@ namespace quickbook
 
         if (!boost::apply_visitor(empty_visitor(), info.doc_license))
         {
-            state.phrase
+            state.block
                 << "<legalnotice>\n"
                 << "<para>\n"
                 << boost::apply_visitor(encode_raw_visitor(*this), info.doc_license)
@@ -498,7 +503,7 @@ namespace quickbook
 
         if (!boost::apply_visitor(empty_visitor(), info.doc_purpose))
         {
-            state.phrase
+            state.block
                 << "<" << info.doc_type << "purpose>\n"
                 << boost::apply_visitor(encode_raw_visitor(*this), info.doc_purpose)
                 << "</" << info.doc_type << "purpose>\n"
@@ -508,7 +513,7 @@ namespace quickbook
 
         BOOST_FOREACH(raw_string const& category, info.doc_categories)
         {
-            state.phrase
+            state.block
                 << "<" << info.doc_type << "category name=\"category:"
                 << encode(category)
                 << "\"></" << info.doc_type << "category>\n"
@@ -516,11 +521,11 @@ namespace quickbook
             ;
         }
 
-        state.phrase
+        state.block
             << "</" << info.doc_type << "info>\n"
         ;
 
-        if(info.doc_type == "library") state.phrase << title;
+        if(info.doc_type == "library") state.block << title;
     }
 
     void boostbook_encoder::operator()(quickbook::state& state, doc_info_post const& x)
@@ -530,6 +535,6 @@ namespace quickbook
 
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
-        state.phrase << "</" << x.info.doc_type << ">";
+        state.block << "</" << x.info.doc_type << ">";
     }
 }

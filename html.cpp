@@ -54,11 +54,11 @@ namespace quickbook
             char const* quickbook;
             char const* pre;
             char const* post;
+            bool block;
         };
     
         html_markup markups[] = {
             { "", "", "" },
-            { "comment", "<!--", "-->" },
             { "paragraph", "<p>\n", "</p>\n" },
             { "blurb", "<div class=\"blurb\">\n", "</div>\n" },
             { "blockquote", "<blockquote>", "</blockquote>" },
@@ -191,6 +191,13 @@ namespace quickbook
         }
     }
 
+    void html_encoder::operator()(quickbook::state& state, block_formatted const& x)
+    {
+        std::string type = x.type;
+        html_markup m = get_markup(x.type);
+        state.block << m.pre << x.content << m.post;
+    }
+
     void html_encoder::operator()(quickbook::state& state, break_ const& x)
     {
         html_markup m = get_markup("break");
@@ -227,7 +234,7 @@ namespace quickbook
 
     void html_encoder::operator()(quickbook::state& state, hr)
     {
-        state.phrase << get_markup("hr").pre;
+        state.block << get_markup("hr").pre;
     }
 
     void html_encoder::operator()(quickbook::state& state, begin_section2 const& x)
@@ -236,16 +243,16 @@ namespace quickbook
         int level = state.section_level + 1;
         if (level > 6) level = 6; 
     
-        state.phrase << "\n<section id=\"" << encode(x.id) << "\">\n";
+        state.block << "\n<section id=\"" << encode(x.id) << "\">\n";
         if(x.linkend.empty()) {
-            state.phrase
+            state.block
                 << "<h" << level << ">"
                 << x.content
                 << "</h" << level << ">\n"
                 ;
         }
         else {
-            state.phrase
+            state.block
                 << "<h" << level << " id=\""
                 << encode(x.linkend)
                 << "\">"
@@ -261,91 +268,91 @@ namespace quickbook
     {
         pop_footnotes(state);
 
-        state.phrase << "</section>";
+        state.block << "</section>";
     }
 
     void html_encoder::operator()(quickbook::state& state, heading2 const& x)
     {
-        state.phrase
+        state.block
             << "<h" << x.level << " id=\"" << encode(x.id) << "\">"
             ;
 
         if(!x.linkend.empty()) {
-            state.phrase
+            state.block
                 << "<a id=\"" << encode(x.linkend) << "\"></a>"
                 ;
         }
-        state.phrase << x.content;
+        state.block << x.content;
 
-        state.phrase << "</h" << x.level << ">";
+        state.block << "</h" << x.level << ">";
     }
 
     void html_encoder::operator()(quickbook::state& state, variablelist const& x)
     {
         // TODO: What should I do for the title?
-        state.phrase << "<p>";
-        state.phrase << encode(x.title);
-        state.phrase << "</p>\n";
+        state.block << "<p>";
+        state.block << encode(x.title);
+        state.block << "</p>\n";
 
-        state.phrase << "<dl>\n";
+        state.block << "<dl>\n";
 
         html_markup m = get_markup("varlistentry");
 
         for(std::vector<varlistentry>::const_iterator
             it = x.entries.begin(); it != x.entries.end(); ++it)
         {
-            state.phrase << m.pre;
+            state.block << m.pre;
             std::for_each(it->begin(), it->end(), encode_action(state, *this));
-            state.phrase << m.post;
+            state.block << m.post;
         }
 
-        state.phrase << "</dl>\n";
+        state.block << "</dl>\n";
     }
 
     void html_encoder::operator()(quickbook::state& state, table2 const& x)
     {
         if (x.title)
         {
-            state.phrase << "<table";
+            state.block << "<table";
             if(x.id)
-                state.phrase << " id=\"" << encode(*x.id) << "\"";
-            state.phrase << ">\n";
-            state.phrase << "<caption>";
-            state.phrase << encode(*x.title);
-            state.phrase << "</caption>";
+                state.block << " id=\"" << encode(*x.id) << "\"";
+            state.block << ">\n";
+            state.block << "<caption>";
+            state.block << encode(*x.title);
+            state.block << "</caption>";
         }
         else
         {
-            state.phrase << "<table";
+            state.block << "<table";
             if(x.id)
-                state.phrase << " id=\"" << encode(*x.id) << "\"";
-            state.phrase << ">\n";
+                state.block << " id=\"" << encode(*x.id) << "\"";
+            state.block << ">\n";
         }
 
         html_markup m = get_markup("row");
 
         if (x.head)
         {
-            state.phrase << "<thead>";
-            state.phrase << m.pre;
+            state.block << "<thead>";
+            state.block << m.pre;
             std::for_each(x.head->begin(), x.head->end(), encode_action(state, *this));
-            state.phrase << m.post;
-            state.phrase << "</thead>\n";
+            state.block << m.post;
+            state.block << "</thead>\n";
         }
 
-        state.phrase << "<tbody>\n";
+        state.block << "<tbody>\n";
 
         for(std::vector<table_row>::const_iterator
             it = x.rows.begin(); it != x.rows.end(); ++it)
         {
-            state.phrase << m.pre;
+            state.block << m.pre;
             std::for_each(it->begin(), it->end(), encode_action(state, *this));
-            state.phrase << m.post;
+            state.block << m.post;
         }
 
-        state.phrase << "</tbody>\n";
+        state.block << "</tbody>\n";
 
-        state.phrase << "</table>\n";
+        state.block << "</table>\n";
     }
 
     void html_encoder::operator()(quickbook::state& state, xinclude2 const& x)
@@ -356,17 +363,17 @@ namespace quickbook
 
     void html_encoder::operator()(quickbook::state& state, list2 const& x)
     {
-        state.phrase << std::string(x.mark == '#' ? "<ol>\n" : "<ul>\n");
+        state.block << std::string(x.mark == '#' ? "<ol>\n" : "<ul>\n");
 
         for(std::vector<list_item2>::const_iterator
             it = x.items.begin(), end = x.items.end(); it != end; ++it)
         {
-            state.phrase << "<li>\n" << it->content;
+            state.block << "<li>\n" << it->content;
             if(!it->sublist.items.empty()) (*this)(state, it->sublist);
-            state.phrase << std::string("\n</li>");
+            state.block << std::string("\n</li>");
         }
 
-        state.phrase << std::string(x.mark == '#' ? "\n</ol>" : "\n</ul>");
+        state.block << std::string(x.mark == '#' ? "\n</ol>" : "\n</ul>");
     }
 
     void html_encoder::operator()(quickbook::state& state, callout_link const& x)
@@ -387,13 +394,13 @@ namespace quickbook
 
     void html_encoder::operator()(quickbook::state& state, callout_list const& x)
     {
-        state.phrase
+        state.block
             << "<dl class=\"calloutlist\">";
         unsigned int count = 0;
 
         BOOST_FOREACH(callout_item const& c, x)
         {
-            state.phrase
+            state.block
                 << "<dt id=\"" << c.identifier << "\">"
                 << "<a href=\"#" << c.identifier << "co\">"
                 << "callout " << ++count
@@ -405,7 +412,7 @@ namespace quickbook
                 ;
         }
 
-        state.phrase
+        state.block
             << "</ol>";
     }
 
@@ -428,7 +435,7 @@ namespace quickbook
         // if we're ignoring the document info, we're done.
         if (info.ignore) return;
 
-        state.phrase
+        state.block
             << "<!DOCTYPE html>"
             << "<html><head>"
             << "<title>" << encode(info.doc_title) << "</title>"
@@ -443,18 +450,18 @@ namespace quickbook
             !boost::apply_visitor(empty_visitor(), info.doc_license))
         {
 
-            state.phrase << "<dl>\n";
+            state.block << "<dl>\n";
 
             if(!info.doc_authors.empty())
             {
-                state.phrase
+                state.block
                     << "<dt>"
                     << (info.doc_authors.size() == 1 ? "Author:" :  "Authors:")
                     << "</dt>\n"
                     ;
 
                 BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
-                    state.phrase
+                    state.block
                         << "<dd>"
                         << author.firstname
                         << " "
@@ -465,21 +472,21 @@ namespace quickbook
     
             if(!info.doc_copyrights.empty())
             {
-                state.phrase
+                state.block
                     << "<dt>Copyright:</dt>\n"
                     ;
     
                 BOOST_FOREACH(doc_info::copyright_entry const& copyright,
                     info.doc_copyrights)
                 {
-                    state.phrase << "<dd>&copy; ";
+                    state.block << "<dd>&copy; ";
         
                     unsigned int range_state = 0;
                     unsigned int previous = 0;
                     BOOST_FOREACH(unsigned int year, copyright.years) {
                         switch(range_state) {
                         case 0: // Start
-                            state.phrase << year;
+                            state.block << year;
                             range_state = 1;
                             break;
                         case 1: // Printed a year in last iteration
@@ -487,22 +494,22 @@ namespace quickbook
                                 range_state = 2;
                             }
                             else {
-                                state.phrase << ", " << year;
+                                state.block << ", " << year;
                                 range_state = 1;
                             }
                             break;
                         case 2: // In the middle of a range
                             if(year != previous + 1) {
-                                state.phrase << " - " << previous << ", " << year;
+                                state.block << " - " << previous << ", " << year;
                                 range_state = 1;
                             }
                             break;
                         }
                         previous = year;
                     }
-                    if(range_state == 2) state.phrase << " - " << previous;
+                    if(range_state == 2) state.block << " - " << previous;
         
-                    state.phrase
+                    state.block
                         << " "
                         << copyright.holder
                         << "</dd>\n"
@@ -512,7 +519,7 @@ namespace quickbook
     
             if (!boost::apply_visitor(empty_visitor(), info.doc_license))
             {
-                state.phrase
+                state.block
                     << "<dt>License:</dt>\n"
                     << "<dd>"
                     << boost::apply_visitor(encode_raw_visitor(*this), info.doc_license)
@@ -520,10 +527,10 @@ namespace quickbook
                 ;
             }
 
-            state.phrase << "</dl>\n";
+            state.block << "</dl>\n";
         }
 
-        state.phrase
+        state.block
             << "</header>\n"
             ;
 
@@ -539,7 +546,7 @@ namespace quickbook
 
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
-        state.phrase << "</html>";
+        state.block << "</html>";
     }
 
     void html_encoder::push_footnotes(quickbook::state& state)
@@ -554,11 +561,11 @@ namespace quickbook
         footnote_stack.pop();
         
         if(!notes.empty()) {
-            state.phrase
+            state.block
                 << "<dl class=\"footnotes\">\n";
             
             BOOST_FOREACH(footnote const& x, notes) {
-                state.phrase
+                state.block
                     << "<dt id=\"footnote_" << encode(x.id) << "\">"
                     << "<a href=\"#footnote_ref_" << encode(x.id) << "\">"
                     << "Footnote"
@@ -570,7 +577,7 @@ namespace quickbook
                     ;
             }
 
-            state.phrase
+            state.block
                 << "</dl>\n";
         }
     }

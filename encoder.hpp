@@ -46,6 +46,7 @@ namespace quickbook
         virtual void operator()(quickbook::state&, anchor const&) = 0;
         virtual void operator()(quickbook::state&, link const&) = 0;
         virtual void operator()(quickbook::state&, formatted const&) = 0;
+        virtual void operator()(quickbook::state&, block_formatted const&) = 0;
         virtual void operator()(quickbook::state&, break_ const&) = 0;
         virtual void operator()(quickbook::state&, image2 const&) = 0;
     
@@ -70,6 +71,8 @@ namespace quickbook
 
     struct encode_action
     {
+        typedef void result_type;
+    
         encode_action(quickbook::state& state,
             quickbook::encoder& encoder)
             : state(state), encoder(encoder) {}

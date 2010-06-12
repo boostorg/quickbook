@@ -40,6 +40,7 @@ namespace quickbook
 
     // main output stream
         collector               phrase;
+        collector               block;
         encoder_ptr             encoder;
 
         fs::path                outdir;
