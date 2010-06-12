@@ -18,7 +18,7 @@ namespace quickbook
     struct code {
         bool block;
         file_position position;
-        std::string code;
+        std::string content;
     };
 
     std::string syntax_highlight(

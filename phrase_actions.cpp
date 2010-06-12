@@ -85,7 +85,7 @@ namespace quickbook
         formatted r;
         r.type = "";
 
-         std::string program = x.code;
+         std::string program = x.content;
     
         if(x.block) {
             // preprocess the code section to remove the initial indentation

@@ -77,7 +77,7 @@ namespace quickbook
                 position                                [member_assign(&quickbook::code::position)]
                                                         [member_assign(&quickbook::code::block, true)]
             >>  qi::raw[code_line >> *(*eol >> code_line)]
-                                                        [member_assign(&quickbook::code::code)]
+                                                        [member_assign(&quickbook::code::content)]
             >>  +eol
             ;
 
