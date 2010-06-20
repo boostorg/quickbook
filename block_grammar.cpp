@@ -188,21 +188,6 @@ namespace quickbook
                 )
             ;
 
-        phrase_attr =
-                qi::eps                         [actions.phrase_push]        
-            >> *(   common
-                |   comment
-                |   (qi::char_ - phrase_end)    [actions.process]
-                )
-            >>  qi::eps                         [actions.phrase_pop]
-            ;
-
-        // Make sure that we don't go past a single block, except when
-        // preformatted.
-        phrase_end =
-            ']' | qi::eps(ph::ref(no_eols)) >> eol >> *qi::blank >> qi::eol
-            ;
-
         // Identifiers
 
         qi::rule<iterator, raw_string()>& element_id_part = store_.create();

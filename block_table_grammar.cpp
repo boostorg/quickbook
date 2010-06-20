@@ -112,7 +112,7 @@ namespace quickbook
             ;
 
         varlistterm_body =
-                phrase_attr                         [member_assign(&quickbook::block_formatted::content)]
+                phrase                              [member_assign(&quickbook::block_formatted::content)]
                                                     [member_assign(&quickbook::block_formatted::type, "varlistterm")]
             ;
 

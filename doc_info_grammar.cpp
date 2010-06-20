@@ -53,7 +53,6 @@ namespace quickbook
     {
         qi::symbols<char>& doc_types = store_.create();
         qi::rule<iterator>& quickbook_version = store_.create();
-        qi::rule<iterator, std::string()>& phrase = store_.create();
         qi::rule<iterator, raw_source()>& doc_version = store_.create();
         qi::rule<iterator, raw_source()>& doc_id = store_.create();
         qi::rule<iterator, raw_source()>& doc_dirname = store_.create();
@@ -65,7 +64,9 @@ namespace quickbook
         qi::rule<iterator, doc_info::copyright_entry()>& doc_copyright = store_.create();
         qi::rule<iterator, doc_info::author_list()>& doc_authors = store_.create();
         qi::rule<iterator, doc_info::author()>& doc_author = store_.create();
+
         qi::rule<iterator, quickbook::raw_string()>& raw_phrase = store_.create();
+        qi::rule<iterator, std::string()>& doc_info_phrase = store_.create();
 
         typedef qi::uint_parser<int, 10, 1, 2>  uint2_t;
 
@@ -137,7 +138,7 @@ namespace quickbook
                 "purpose" >> hard_space
             >>  (
                     qi::eps(qbk_before(103)) >> raw_phrase |
-                    qi::eps(qbk_since(103)) >> phrase
+                    qi::eps(qbk_since(103)) >> doc_info_phrase
                 )
             ;
 
@@ -157,7 +158,7 @@ namespace quickbook
                 "license" >> hard_space
             >>  (
                     qi::eps(qbk_before(103)) >> raw_phrase |
-                    qi::eps(qbk_since(103)) >> phrase
+                    qi::eps(qbk_since(103)) >> doc_info_phrase
                 )
             ;
 
@@ -171,10 +172,10 @@ namespace quickbook
             ;
 
         raw_phrase =
-                qi::raw[phrase]             [qi::_val = qi::_1]
+                qi::raw[doc_info_phrase]    [qi::_val = qi::_1]
             ;
 
-        phrase =
+        doc_info_phrase =
                 qi::eps                     [actions.phrase_push]
             >>  *(   common
                 |   comment

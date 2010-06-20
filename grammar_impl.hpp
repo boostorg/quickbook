@@ -42,7 +42,6 @@ namespace quickbook
         qi::symbols<char, qi::rule<iterator> > block_keyword_rules;
         qi::symbols<char, qi::rule<iterator> > block_symbol_rules;
         qi::rule<iterator> error;
-        qi::rule<iterator, std::string()> phrase_attr;
         qi::rule<iterator, std::string()> inside_paragraph;
         qi::rule<iterator, boost::optional<raw_string>()> element_id;
         

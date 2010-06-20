@@ -67,7 +67,7 @@ namespace quickbook
                 space                           [ph::ref(no_eols) = false]
                                                 [member_assign(&quickbook::block_formatted::type, "preformatted")]
             >>  -eol
-            >>  phrase_attr                     [member_assign(&quickbook::block_formatted::content)]
+            >>  phrase                          [member_assign(&quickbook::block_formatted::content)]
             >>  qi::eps                         [ph::ref(no_eols) = true]
             ;
 
@@ -81,7 +81,7 @@ namespace quickbook
                 space
             >>  macro_identifier                [member_assign(&quickbook::def_macro::macro_identifier)]
             >>  blank
-            >>  phrase_attr                     [member_assign(&quickbook::def_macro::content)]
+            >>  phrase                          [member_assign(&quickbook::def_macro::content)]
             ;
 
         // xinclude

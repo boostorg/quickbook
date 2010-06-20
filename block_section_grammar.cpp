@@ -74,7 +74,7 @@ namespace quickbook
 
         title_phrase =
             qi::raw[
-                phrase_attr                         [member_assign(&quickbook::title::content)]
+                phrase                              [member_assign(&quickbook::title::content)]
             ]                                       [member_assign(&quickbook::title::raw)]
             ;
     }
