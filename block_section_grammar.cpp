@@ -24,55 +24,52 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
     
-    // Workaround for clang:
-    namespace {
-        struct dummmy {
-            qi::rule<iterator, raw_string()> a1;
-        };
-    }
+    struct block_section_grammar_local
+    {
+        qi::rule<iterator, quickbook::title()> title_phrase;
+        qi::rule<iterator, quickbook::begin_section()> begin_section;
+        qi::rule<iterator, quickbook::end_section()> end_section;
+        qi::rule<iterator, quickbook::heading(int)> heading;
+    };
 
     void quickbook_grammar::impl::init_block_section()
     {
-        qi::rule<iterator, quickbook::title()>& title_phrase = store_.create();
+        block_section_grammar_local& local = store_.create();
 
         // Sections
 
-        qi::rule<iterator, quickbook::begin_section()>& begin_section = store_.create();
-        qi::rule<iterator, quickbook::end_section()>& end_section = store_.create();
-        block_keyword_rules.add("section", begin_section[actions.process]);
-        block_keyword_rules.add("endsect", end_section[actions.process]);
+        block_keyword_rules.add("section", local.begin_section[actions.process]);
+        block_keyword_rules.add("endsect", local.end_section[actions.process]);
 
-        begin_section =
+        local.begin_section =
                 space
             >>  element_id                          [member_assign(&quickbook::begin_section::id)]
-            >>  title_phrase                        [member_assign(&quickbook::begin_section::content)]
+            >>  local.title_phrase                  [member_assign(&quickbook::begin_section::content)]
             ;
 
-        end_section =
+        local.end_section =
                 space
             >>  position                            [member_assign(&quickbook::end_section::position)]
             ;
 
         // Headings
 
-        qi::rule<iterator, quickbook::heading(int)>& heading = store_.create();
-
         block_keyword_rules.add
-            ("h1", heading(1) [actions.process])
-            ("h2", heading(2) [actions.process])
-            ("h3", heading(3) [actions.process])
-            ("h4", heading(4) [actions.process])
-            ("h5", heading(5) [actions.process])
-            ("h6", heading(6) [actions.process])
-            ("heading", heading(-1) [actions.process]);
+            ("h1", local.heading(1) [actions.process])
+            ("h2", local.heading(2) [actions.process])
+            ("h3", local.heading(3) [actions.process])
+            ("h4", local.heading(4) [actions.process])
+            ("h5", local.heading(5) [actions.process])
+            ("h6", local.heading(6) [actions.process])
+            ("heading", local.heading(-1) [actions.process]);
 
-        heading =
+        local.heading =
                 qi::attr(qi::_r1)                   [member_assign(&quickbook::heading::level)]
             >>  space
-            >>  title_phrase                        [member_assign(&quickbook::heading::content)]
+            >>  local.title_phrase                  [member_assign(&quickbook::heading::content)]
                 ;
 
-        title_phrase =
+        local.title_phrase =
             qi::raw[
                 phrase                              [member_assign(&quickbook::title::content)]
             ]                                       [member_assign(&quickbook::title::raw)]

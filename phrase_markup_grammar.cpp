@@ -24,16 +24,27 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
+    struct phrase_markup_grammar_local
+    {
+        qi::rule<iterator, quickbook::callout_link()> callout_link;
+        qi::rule<iterator, quickbook::cond_phrase()> cond_phrase;
+        qi::rule<iterator, quickbook::link()> url;
+        qi::symbols<char, formatted_type> link_symbol;
+        qi::rule<iterator, quickbook::link(formatted_type)> link;
+        qi::rule<iterator, quickbook::anchor()> anchor;
+        qi::rule<iterator, quickbook::formatted(formatted_type)> formatted;
+    };
+
     void quickbook_grammar::impl::init_phrase_markup()
     {
+        phrase_markup_grammar_local& local = store_.create();
+
         // Callouts
 
-        // Don't use this, it's meant to be private.
-        qi::rule<iterator, quickbook::callout_link()>& callout_link = store_.create();
-        
-        phrase_symbol_rules.add("[callout]", callout_link [actions.process]);
+        // Don't use this, it's meant to be private.        
+        phrase_symbol_rules.add("[callout]", local.callout_link [actions.process]);
 
-        callout_link =
+        local.callout_link =
                 (*~qi::char_(' '))          [member_assign(&quickbook::callout_link::role)]
             >>  ' '
             >>  (*~qi::char_(']'))          [member_assign(&quickbook::callout_link::identifier)]
@@ -41,11 +52,9 @@ namespace quickbook
 
         // Conditional Phrase
 
-        qi::rule<iterator, quickbook::cond_phrase()>& cond_phrase = store_.create();
-        
-        phrase_symbol_rules.add("?", cond_phrase [actions.process]);
+        phrase_symbol_rules.add("?", local.cond_phrase [actions.process]);
 
-        cond_phrase =
+        local.cond_phrase =
                 blank
             >>  macro_identifier            [member_assign(&quickbook::cond_phrase::macro_id)]
             >>  -phrase                     [member_assign(&quickbook::cond_phrase::content)]
@@ -53,36 +62,31 @@ namespace quickbook
 
         // URL
 
-        qi::rule<iterator, quickbook::link()>& url = store_.create();
-        
-        phrase_symbol_rules.add("@", url [actions.process]);
+        phrase_symbol_rules.add("@", local.url [actions.process]);
 
-        url =   (*(qi::char_ - (']' | qi::space)))      [member_assign(&quickbook::link::destination)]
+        local.url
+            =   (*(qi::char_ - (']' | qi::space)))      [member_assign(&quickbook::link::destination)]
                                                         [member_assign(&quickbook::link::type, "url")]
             >>  (   &qi::lit(']')
                 |   (hard_space >> phrase)              [member_assign(&quickbook::link::content)]
                 )
             ;
 
-        qi::symbols<char, formatted_type>& link_symbol = store_.create();
-
         // Link
-
-        qi::rule<iterator, quickbook::link(formatted_type)>& link = store_.create();
         
         phrase_keyword_rules.add
-            ("link", link(formatted_type("link")) [actions.process])
-            ("funcref", link(formatted_type("funcref")) [actions.process])
-            ("classref", link(formatted_type("classref")) [actions.process])
-            ("memberref", link(formatted_type("memberref")) [actions.process])
-            ("enumref", link(formatted_type("enumref")) [actions.process]) 
-            ("macroref", link(formatted_type("macroref")) [actions.process]) 
-            ("headerref", link(formatted_type("headerref")) [actions.process]) 
-            ("conceptref", link(formatted_type("conceptref")) [actions.process])
-            ("globalref", link(formatted_type("globalref")) [actions.process])
+            ("link", local.link(formatted_type("link")) [actions.process])
+            ("funcref", local.link(formatted_type("funcref")) [actions.process])
+            ("classref", local.link(formatted_type("classref")) [actions.process])
+            ("memberref", local.link(formatted_type("memberref")) [actions.process])
+            ("enumref", local.link(formatted_type("enumref")) [actions.process]) 
+            ("macroref", local.link(formatted_type("macroref")) [actions.process]) 
+            ("headerref", local.link(formatted_type("headerref")) [actions.process]) 
+            ("conceptref", local.link(formatted_type("conceptref")) [actions.process])
+            ("globalref", local.link(formatted_type("globalref")) [actions.process])
             ;
 
-        link =
+        local.link =
                 qi::attr(qi::_r1)                       [member_assign(&quickbook::link::type)]
             >>  space
             >>  (*(qi::char_ - (']' | qi::space)))      [member_assign(&quickbook::link::destination)]
@@ -93,11 +97,9 @@ namespace quickbook
 
         // Anchor
 
-        qi::rule<iterator, quickbook::anchor()>& anchor = store_.create();
-        
-        phrase_symbol_rules.add("#", anchor [actions.process]);
+        phrase_symbol_rules.add("#", local.anchor [actions.process]);
 
-        anchor =
+        local.anchor =
                 blank
             >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::anchor::id)]
             ;
@@ -112,23 +114,21 @@ namespace quickbook
 
         // Formatted
 
-        qi::rule<iterator, quickbook::formatted(formatted_type)>& formatted = store_.create();
-
         phrase_symbol_rules.add
-            ("*", formatted(formatted_type("bold")) [actions.process])
-            ("'", formatted(formatted_type("italic")) [actions.process])
-            ("_", formatted(formatted_type("underline")) [actions.process])
-            ("^", formatted(formatted_type("teletype")) [actions.process])
-            ("-", formatted(formatted_type("strikethrough")) [actions.process])
-            ("\"", formatted(formatted_type("quote")) [actions.process])
-            ("~", formatted(formatted_type("replaceable")) [actions.process])
+            ("*", local.formatted(formatted_type("bold")) [actions.process])
+            ("'", local.formatted(formatted_type("italic")) [actions.process])
+            ("_", local.formatted(formatted_type("underline")) [actions.process])
+            ("^", local.formatted(formatted_type("teletype")) [actions.process])
+            ("-", local.formatted(formatted_type("strikethrough")) [actions.process])
+            ("\"", local.formatted(formatted_type("quote")) [actions.process])
+            ("~", local.formatted(formatted_type("replaceable")) [actions.process])
             ;
 
         phrase_keyword_rules.add
-            ("footnote", formatted(formatted_type("footnote")) [actions.process])
+            ("footnote", local.formatted(formatted_type("footnote")) [actions.process])
             ;
 
-        formatted =
+        local.formatted =
                 qi::attr(qi::_r1)               [member_assign(&quickbook::formatted::type)]
             >>  blank
             >>  phrase                          [member_assign(&quickbook::formatted::content)]

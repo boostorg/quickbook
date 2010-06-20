@@ -20,95 +20,96 @@ namespace quickbook
 {
     namespace qi = boost::spirit::qi;
     
+    struct template_grammar_local
+    {
+        qi::rule<iterator, quickbook::define_template()> define_template;
+        qi::rule<iterator, std::vector<std::string>()> define_template_params;
+        qi::rule<iterator, quickbook::template_value()> template_body;
+        qi::rule<iterator> template_body_recurse;
+        qi::rule<iterator, std::string()> template_id;
+        qi::rule<iterator, quickbook::call_template()> call_template;
+        qi::rule<iterator, std::vector<quickbook::template_value>()> template_args;
+        qi::rule<iterator, quickbook::template_value()> template_arg_1_4;
+        qi::rule<iterator> brackets_1_4;
+        qi::rule<iterator, quickbook::template_value()> template_arg_1_5;
+        qi::rule<iterator> brackets_1_5;
+    };
+
     void quickbook_grammar::impl::init_template()
     {
-        // Define Template
-
-        qi::rule<iterator, quickbook::define_template()>& define_template = store_.create();
-        qi::rule<iterator, std::vector<std::string>()>& define_template_params = store_.create();
-        qi::rule<iterator, quickbook::template_value()>& template_body = store_.create();
-        qi::rule<iterator>& template_body_recurse = store_.create();
-        qi::rule<iterator, std::string()>& template_id = store_.create();
+        template_grammar_local& local = store_.create();
         
-        block_keyword_rules.add("template", define_template[actions.process]);
+        block_keyword_rules.add("template", local.define_template[actions.process]);
 
-        define_template =
+        local.define_template =
                 space
-            >>  template_id                         [member_assign(&quickbook::define_template::id)]
-            >>  -define_template_params             [member_assign(&quickbook::define_template::params)]
-            >>  template_body                       [member_assign(&quickbook::define_template::body)]
+            >>  local.template_id                   [member_assign(&quickbook::define_template::id)]
+            >>  -local.define_template_params       [member_assign(&quickbook::define_template::params)]
+            >>  local.template_body                 [member_assign(&quickbook::define_template::body)]
             ;
 
-        define_template_params =
+        local.define_template_params =
                 space
             >>  '['
-            >>  *(space >> template_id)
+            >>  *(space >> local.template_id)
             >>  space
             >>  ']'
             ;
 
-        template_body =
+        local.template_body =
                 position                            [member_assign(&quickbook::template_value::position)]
-            >>  qi::raw[template_body_recurse]      [member_assign(&quickbook::template_value::content)]
+            >>  qi::raw[local.template_body_recurse]
+                                                    [member_assign(&quickbook::template_value::content)]
             ;
 
-        template_body_recurse =
-                *(  ('[' >> template_body_recurse >> ']')
+        local.template_body_recurse =
+                *(  ('[' >> local.template_body_recurse >> ']')
                 |   (qi::char_ - ']')
                 )
             >>  space
             >>  &qi::lit(']')
             ;
 
-        template_id
+        local.template_id
             =   (qi::alpha | '_') >> *(qi::alnum | '_')
             |   qi::repeat(1)[qi::punct - qi::char_("[]")]
             ;
 
-		// Call Template
+		call_template = local.call_template [actions.process];
 
-        qi::rule<iterator, quickbook::call_template()>& call_template_impl = store_.create();
-        qi::rule<iterator, std::vector<quickbook::template_value>()>& template_args = store_.create();
-        qi::rule<iterator, quickbook::template_value()>& template_arg_1_4 = store_.create();
-        qi::rule<iterator>& brackets_1_4 = store_.create();
-        qi::rule<iterator, quickbook::template_value()>& template_arg_1_5 = store_.create();
-        qi::rule<iterator>& brackets_1_5 = store_.create();
-
-		call_template = call_template_impl[actions.process];
-
-        call_template_impl =
+        local.call_template =
                 position                            [member_assign(&quickbook::call_template::position)]
             >>  qi::matches['`']                    [member_assign(&quickbook::call_template::escape)]
             >>  (                                   // Lookup the template name
                     (&qi::punct >> actions.templates.scope)
                 |   (actions.templates.scope >> hard_space)
                 )                                   [member_assign(&quickbook::call_template::symbol)]
-            >>  template_args                       [member_assign(&quickbook::call_template::args)]
+            >>  local.template_args                 [member_assign(&quickbook::call_template::args)]
             >>  &qi::lit(']')
             ;
 
-        template_args =
-            qi::eps(qbk_before(105u)) >> -(template_arg_1_4 % "..") |
-            qi::eps(qbk_since(105u)) >> -(template_arg_1_5 % "..");
+        local.template_args =
+            qi::eps(qbk_before(105u)) >> -(local.template_arg_1_4 % "..") |
+            qi::eps(qbk_since(105u)) >> -(local.template_arg_1_5 % "..");
 
-        template_arg_1_4 =
+        local.template_arg_1_4 =
                 position                            [member_assign(&quickbook::template_value::position)]
-            >>  qi::raw[+(brackets_1_4 | ~qi::char_(']') - "..")]
+            >>  qi::raw[+(local.brackets_1_4 | ~qi::char_(']') - "..")]
                                                     [member_assign(&quickbook::template_value::content)]
             ;
 
-        brackets_1_4 =
-            '[' >> +(brackets_1_4 | ~qi::char_(']') - "..") >> ']'
+        local.brackets_1_4 =
+            '[' >> +(local.brackets_1_4 | ~qi::char_(']') - "..") >> ']'
             ;
 
-        template_arg_1_5 =
+        local.template_arg_1_5 =
                 position                            [member_assign(&quickbook::template_value::position)]
-            >>  qi::raw[+(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
+            >>  qi::raw[+(local.brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
                                                     [member_assign(&quickbook::template_value::content)]
             ;
 
-        brackets_1_5 =
-            '[' >> +(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]")) >> ']'
+        local.brackets_1_5 =
+            '[' >> +(local.brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]")) >> ']'
             ;
     }
 }

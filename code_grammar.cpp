@@ -21,35 +21,41 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
+    struct code_grammar_local
+    {
+        qi::rule<iterator, quickbook::code()> indented_code;
+        qi::rule<iterator> code_line;
+        qi::rule<iterator, quickbook::code()> code_block1;
+        qi::rule<iterator, quickbook::code()> code_block2;
+        qi::rule<iterator, quickbook::code()> inline_code;
+        qi::rule<iterator, std::string()> inline_code_block;
+    };
+
     void quickbook_grammar::impl::init_code()
     {
+        code_grammar_local& local = store_.create();
+    
         // Indented code
     
-        qi::rule<iterator, quickbook::code()>& indented_code_impl = store_.create();
-        qi::rule<iterator>& code_line = store_.create();
+        indented_code = local.indented_code [actions.process];
 
-        indented_code = indented_code_impl [actions.process];
-
-        indented_code_impl =
+        local.indented_code =
                 position                                [member_assign(&quickbook::code::position)]
                                                         [member_assign(&quickbook::code::flow, quickbook::code::block)]
-            >>  qi::raw[code_line >> *(*eol >> code_line)]
+            >>  qi::raw[local.code_line >> *(*eol >> local.code_line)]
                                                         [member_assign(&quickbook::code::content)]
             >>  +eol
             ;
 
-        code_line =
+        local.code_line =
                 qi::char_(" \t")
             >>  *(qi::char_ - eol)
             >>  eol
             ;
 
-        qi::rule<iterator, quickbook::code()>& code_block1 = store_.create();
-        qi::rule<iterator, quickbook::code()>& code_block2 = store_.create();
+        code_block = (local.code_block1 | local.code_block2) [actions.process];
 
-        code_block = (code_block1 | code_block2) [actions.process];
-
-        code_block1
+        local.code_block1
             =   "```"
             >>  position                            [member_assign(&quickbook::code::position)]
                                                     [member_assign(&quickbook::code::flow, quickbook::code::inline_block)]
@@ -57,7 +63,7 @@ namespace quickbook
             >>  "```"
             ;
 
-        code_block2
+        local.code_block2
             =   "``"
             >>  position                            [member_assign(&quickbook::code::position)]
                                                     [member_assign(&quickbook::code::flow, quickbook::code::inline_block)]
@@ -65,20 +71,17 @@ namespace quickbook
             >>  "``"
             ;
 
-        qi::rule<iterator, quickbook::code()>& inline_code_impl = store_.create();
-        qi::rule<iterator, std::string()>& inline_code_block = store_.create();
+        inline_code = local.inline_code [actions.process];
 
-        inline_code = inline_code_impl [actions.process];
-
-        inline_code_impl =
+        local.inline_code =
                 '`'
             >>  position                            [member_assign(&quickbook::code::position)]
                                                     [member_assign(&quickbook::code::flow, quickbook::code::inline_)]
-            >>  inline_code_block                   [member_assign(&quickbook::code::content)]
+            >>  local.inline_code_block             [member_assign(&quickbook::code::content)]
             >>  '`'
             ;
 
-        inline_code_block =
+        local.inline_code_block =
             qi::raw
             [   *(  ~qi::char_('`') -
                     (qi::eol >> *qi::blank >> qi::eol)  // Make sure that we don't go

@@ -48,29 +48,33 @@ namespace quickbook
             << "Warning: Quickbook version undefined. "
                "Version 1.1 is assumed" << std::endl;
     }
+    
+    struct doc_info_grammar_local
+    {
+        qi::symbols<char> doc_types;
+        qi::rule<iterator> quickbook_version;
+        qi::rule<iterator, raw_source()> doc_version;
+        qi::rule<iterator, raw_source()> doc_id;
+        qi::rule<iterator, raw_source()> doc_dirname;
+        qi::rule<iterator, raw_source()> doc_category;
+        qi::rule<iterator, raw_source()> doc_last_revision;
+        qi::rule<iterator, std::string()> doc_source_mode; // TODO: raw_source
+        qi::rule<iterator, doc_info::variant_string()> doc_purpose;
+        qi::rule<iterator, doc_info::variant_string()> doc_license;
+        qi::rule<iterator, doc_info::copyright_entry()> doc_copyright;
+        qi::rule<iterator, doc_info::author_list()> doc_authors;
+        qi::rule<iterator, doc_info::author()> doc_author;
+        qi::rule<iterator, quickbook::raw_string()> raw_phrase;
+        qi::rule<iterator, std::string()> doc_info_phrase;
+    };
 
     void quickbook_grammar::impl::init_doc_info()
     {
-        qi::symbols<char>& doc_types = store_.create();
-        qi::rule<iterator>& quickbook_version = store_.create();
-        qi::rule<iterator, raw_source()>& doc_version = store_.create();
-        qi::rule<iterator, raw_source()>& doc_id = store_.create();
-        qi::rule<iterator, raw_source()>& doc_dirname = store_.create();
-        qi::rule<iterator, raw_source()>& doc_category = store_.create();
-        qi::rule<iterator, raw_source()>& doc_last_revision = store_.create();
-        qi::rule<iterator, std::string()>& doc_source_mode = store_.create(); // TODO: raw_source
-        qi::rule<iterator, doc_info::variant_string()>& doc_purpose = store_.create();
-        qi::rule<iterator, doc_info::variant_string()>& doc_license = store_.create();
-        qi::rule<iterator, doc_info::copyright_entry()>& doc_copyright = store_.create();
-        qi::rule<iterator, doc_info::author_list()>& doc_authors = store_.create();
-        qi::rule<iterator, doc_info::author()>& doc_author = store_.create();
-
-        qi::rule<iterator, quickbook::raw_string()>& raw_phrase = store_.create();
-        qi::rule<iterator, std::string()>& doc_info_phrase = store_.create();
+        doc_info_grammar_local& local = store_.create();
 
         typedef qi::uint_parser<int, 10, 1, 2>  uint2_t;
 
-        doc_types =
+        local.doc_types =
             "book", "article", "library", "chapter", "part"
           , "appendix", "preface", "qandadiv", "qandaset"
           , "reference", "set"
@@ -79,35 +83,36 @@ namespace quickbook
         doc_info_details =
             space
             >>  '[' >> space
-            >>  qi::raw[doc_types]          [member_assign(&doc_info::doc_type)]
+            >>  qi::raw[local.doc_types]    [member_assign(&doc_info::doc_type)]
             >>  hard_space
             >>  qi::raw[
                     *(~qi::char_("[]") - qi::eol)
                 ]                           [member_assign(&doc_info::doc_title)]
-            >>  quickbook_version
+            >>  local.quickbook_version
             >>
                 *(
                     space >> '[' >>
                     (
-                      doc_version           [member_assign(&doc_info::doc_version)]
-                    | doc_id                [member_assign(&doc_info::doc_id)]
-                    | doc_dirname           [member_assign(&doc_info::doc_dirname)]
-                    | doc_copyright         [member_push(&doc_info::doc_copyrights)]
-                    | doc_purpose           [member_assign(&doc_info::doc_purpose)]
-                    | doc_category          [member_push(&doc_info::doc_categories)]
-                    | doc_authors           [member_assign(&doc_info::doc_authors)]
-                    | doc_license           [member_assign(&doc_info::doc_license)]
-                    | doc_last_revision     [member_assign(&doc_info::doc_last_revision)]
+                      local.doc_version     [member_assign(&doc_info::doc_version)]
+                    | local.doc_id          [member_assign(&doc_info::doc_id)]
+                    | local.doc_dirname     [member_assign(&doc_info::doc_dirname)]
+                    | local.doc_copyright   [member_push(&doc_info::doc_copyrights)]
+                    | local.doc_purpose     [member_assign(&doc_info::doc_purpose)]
+                    | local.doc_category    [member_push(&doc_info::doc_categories)]
+                    | local.doc_authors     [member_assign(&doc_info::doc_authors)]
+                    | local.doc_license     [member_assign(&doc_info::doc_license)]
+                    | local.doc_last_revision
+                                            [member_assign(&doc_info::doc_last_revision)]
                       // This has to be set in actions so that source code in phrases use the
                       // correct encoding.
-                    | doc_source_mode       [ph::ref(actions.state_.source_mode) = qi::_1]
+                    | local.doc_source_mode [ph::ref(actions.state_.source_mode) = qi::_1]
                     )
                     >> space >> ']' >> +qi::eol
                 )
             >> space >> ']' >> +qi::eol
             ;
 
-        quickbook_version =
+        local.quickbook_version =
             (   space
             >>  '['
             >>  "quickbook"
@@ -120,13 +125,13 @@ namespace quickbook
             | position                      [default_quickbook_version]
             ;
 
-        doc_version = "version" >> hard_space >> qi::raw[*~qi::char_(']')];
-        doc_id      = "id"      >> hard_space >> qi::raw[*~qi::char_(']')];
-        doc_dirname = "dirname" >> hard_space >> qi::raw[*~qi::char_(']')];
-        doc_category="category" >> hard_space >> qi::raw[*~qi::char_(']')];
-        doc_last_revision = "last-revision" >> hard_space >> qi::raw[*~qi::char_(']')];
+        local.doc_version = "version" >> hard_space >> qi::raw[*~qi::char_(']')];
+        local.doc_id      = "id"      >> hard_space >> qi::raw[*~qi::char_(']')];
+        local.doc_dirname = "dirname" >> hard_space >> qi::raw[*~qi::char_(']')];
+        local.doc_category="category" >> hard_space >> qi::raw[*~qi::char_(']')];
+        local.doc_last_revision = "last-revision" >> hard_space >> qi::raw[*~qi::char_(']')];
 
-        doc_copyright =
+        local.doc_copyright =
                 "copyright"
             >>  hard_space
             >>  (+(qi::uint_ >> space))     [member_assign(&doc_info::copyright_entry::years)]
@@ -134,15 +139,15 @@ namespace quickbook
                                             [member_assign(&doc_info::copyright_entry::holder)]
             ;
 
-        doc_purpose =
+        local.doc_purpose =
                 "purpose" >> hard_space
             >>  (
-                    qi::eps(qbk_before(103)) >> raw_phrase |
-                    qi::eps(qbk_since(103)) >> doc_info_phrase
+                    qi::eps(qbk_before(103)) >> local.raw_phrase |
+                    qi::eps(qbk_since(103)) >> local.doc_info_phrase
                 )
             ;
 
-        doc_author =
+        local.doc_author =
                 space
             >>  '['
             >>  space
@@ -152,17 +157,17 @@ namespace quickbook
             >>  ']'
             ;
 
-        doc_authors = "authors" >> hard_space >> (doc_author % ',') ;
+        local.doc_authors = "authors" >> hard_space >> (local.doc_author % ',') ;
 
-        doc_license =
+        local.doc_license =
                 "license" >> hard_space
             >>  (
-                    qi::eps(qbk_before(103)) >> raw_phrase |
-                    qi::eps(qbk_since(103)) >> doc_info_phrase
+                    qi::eps(qbk_before(103)) >> local.raw_phrase |
+                    qi::eps(qbk_since(103)) >> local.doc_info_phrase
                 )
             ;
 
-        doc_source_mode =
+        local.doc_source_mode =
                 "source-mode" >> hard_space
             >>  (
                    qi::string("c++") 
@@ -171,11 +176,12 @@ namespace quickbook
                 )
             ;
 
-        raw_phrase =
-                qi::raw[doc_info_phrase]    [qi::_val = qi::_1]
+        local.raw_phrase =
+                qi::raw[local.doc_info_phrase]
+                                            [qi::_val = qi::_1]
             ;
 
-        doc_info_phrase =
+        local.doc_info_phrase =
                 qi::eps                     [actions.phrase_push]
             >>  *(   common
                 |   comment

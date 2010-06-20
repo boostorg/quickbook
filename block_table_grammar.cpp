@@ -25,25 +25,29 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
     
-    // Workaround for clang:
-    namespace {
-        struct dummmy {
-            qi::rule<iterator, raw_string()> a1;
-        };
-    }
+    struct block_table_grammar_local
+    {
+        qi::rule<iterator, quickbook::table()> table;
+        qi::rule<iterator, quickbook::table_row()> table_row;
+        qi::rule<iterator, quickbook::table_cell()> table_cell;
+        qi::rule<iterator, quickbook::block_formatted()> table_cell_body;
+        qi::rule<iterator, quickbook::variablelist()> variablelist;
+        qi::rule<iterator, quickbook::varlistentry()> varlistentry;
+        qi::rule<iterator, quickbook::block_formatted()> varlistterm;
+        qi::rule<iterator, quickbook::block_formatted()> varlistterm_body;
+        qi::rule<iterator, quickbook::block_formatted()> varlistitem;
+        qi::rule<iterator, quickbook::block_formatted()> varlistitem_body;
+    };
 
     void quickbook_grammar::impl::init_block_table()
     {
+        block_table_grammar_local& local = store_.create();
+
         // Table
-
-        qi::rule<iterator, quickbook::table()>& table = store_.create();
-        qi::rule<iterator, quickbook::table_row()>& table_row = store_.create();
-        qi::rule<iterator, quickbook::table_cell()>& table_cell = store_.create();
-        qi::rule<iterator, quickbook::block_formatted()>& table_cell_body = store_.create();
         
-        block_keyword_rules.add("table", table[actions.process]);
+        block_keyword_rules.add("table", local.table[actions.process]);
 
-        table =
+        local.table =
                 (&(*qi::blank >> qi::eol) | space)
             >>  ((
                     qi::eps(qbk_since(105u))
@@ -52,79 +56,72 @@ namespace quickbook
             >>  (&(*qi::blank >> qi::eol) | space)
             >>  qi::raw[*(qi::char_ - eol)]     [member_assign(&quickbook::table::title)]
             >>  +eol
-            >>  (*table_row)                    [member_assign(&quickbook::table::rows)]
+            >>  (*local.table_row)              [member_assign(&quickbook::table::rows)]
             ;
 
-        table_row =
+        local.table_row =
                 space
             >>  '['
-            >>  (   *table_cell >> ']' >> space
+            >>  (   *local.table_cell >> ']' >> space
                 |   error >> qi::attr(quickbook::table_row())
                 )
             ;
 
-        table_cell =
+        local.table_cell =
                 space
             >>  '['
-            >>  (   table_cell_body >> ']' >> space
+            >>  (   local.table_cell_body >> ']' >> space
                 |   error >> qi::attr(quickbook::table_cell())
                 )
             ;
 
-        table_cell_body =
+        local.table_cell_body =
                 inside_paragraph                    [member_assign(&quickbook::block_formatted::content)]
                                                     [member_assign(&quickbook::block_formatted::type, "cell")]
             ;
 
-        qi::rule<iterator, quickbook::variablelist()>& variablelist = store_.create();
-        qi::rule<iterator, quickbook::varlistentry()>& varlistentry = store_.create();
-        qi::rule<iterator, quickbook::block_formatted()>& varlistterm = store_.create();
-        qi::rule<iterator, quickbook::block_formatted()>& varlistterm_body = store_.create();
-        qi::rule<iterator, quickbook::block_formatted()>& varlistitem = store_.create();
-        qi::rule<iterator, quickbook::block_formatted()>& varlistitem_body = store_.create();
-        
-        block_keyword_rules.add("variablelist", variablelist[actions.process]);
+        block_keyword_rules.add("variablelist", local.variablelist[actions.process]);
 
-        variablelist =
+        local.variablelist =
                 (&(*qi::blank >> qi::eol) | space)
             >>  qi::raw[*(qi::char_ - eol)]         [member_assign(&quickbook::variablelist::title)]
             >>  +eol
-            >>  (*varlistentry)                     [member_assign(&quickbook::variablelist::entries)]
+            >>  (*local.varlistentry)               [member_assign(&quickbook::variablelist::entries)]
             ;
             
-        varlistentry =
+        local.varlistentry =
                 space
             >>  '['
-            >>  (   varlistterm
-                >>  +varlistitem
+            >>  (   local.varlistterm
+                >>  +local.varlistitem
                 >>  ']'
                 >>  space
                 |   error >> qi::attr(quickbook::varlistentry())
                 )
             ;
 
-        varlistterm =
+        local.varlistterm =
                 space
             >>  '['
-            >>  (   varlistterm_body >> ']' >> space
+            >>  (   local.varlistterm_body >> ']' >> space
                 |   error >> qi::attr(quickbook::block_formatted())
                 )
             ;
 
-        varlistterm_body =
+        local.varlistterm_body =
                 phrase                              [member_assign(&quickbook::block_formatted::content)]
                                                     [member_assign(&quickbook::block_formatted::type, "varlistterm")]
             ;
 
-        varlistitem =
+        local.varlistitem =
                 space
             >>  '['
-            >>  (   varlistitem_body >> ']' >> space
+            >>  (   local.varlistitem_body >> ']' >> space
                 |   error >> qi::attr(quickbook::block_formatted())
                 )
             ;
 
-        varlistitem_body =
+        local.varlistitem_body =
                 inside_paragraph                    [member_assign(&quickbook::block_formatted::content)]
                                                     [member_assign(&quickbook::block_formatted::type, "varlistitem")]
             ;

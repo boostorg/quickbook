@@ -21,59 +21,62 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
-    void quickbook_grammar::impl::init_phrase_image()
+    struct image_grammar_local
     {
-        // Images
+        qi::rule<iterator, quickbook::image()> image;
+        qi::rule<iterator, quickbook::image()> image_1_4;
+        qi::rule<iterator, quickbook::image()> image_1_5;
+        qi::rule<iterator, std::string()> image_filename;
+        qi::rule<iterator, quickbook::image::attribute_map()> image_attributes;
+        qi::rule<iterator, std::pair<std::string, std::string>()> image_attribute;
+        qi::rule<iterator, std::string()> image_attribute_key;
+        qi::rule<iterator, std::string()> image_attribute_value;
+    };
 
-        qi::rule<iterator, quickbook::image()>& image = store_.create();
-        qi::rule<iterator, quickbook::image()>& image_1_4 = store_.create();
-        qi::rule<iterator, quickbook::image()>& image_1_5 = store_.create();
-        qi::rule<iterator, std::string()>& image_filename = store_.create();
-        qi::rule<iterator, quickbook::image::attribute_map()>& image_attributes = store_.create();
-        qi::rule<iterator, std::pair<std::string, std::string>()>& image_attribute = store_.create();
-        qi::rule<iterator, std::string()>& image_attribute_key = store_.create();
-        qi::rule<iterator, std::string()>& image_attribute_value = store_.create();
-        
-        phrase_symbol_rules.add("$", image [actions.process]);
+    void quickbook_grammar::impl::init_phrase_image()
+    {        
+        image_grammar_local& local = store_.create();
 
-        image =
-            (qi::eps(qbk_since(105u)) >> image_1_5) |
-            (qi::eps(qbk_before(105u)) >> image_1_4);
+        phrase_symbol_rules.add("$", local.image [actions.process]);
+
+        local.image =
+            (qi::eps(qbk_since(105u)) >> local.image_1_5) |
+            (qi::eps(qbk_before(105u)) >> local.image_1_4);
         
-        image_1_4 =
+        local.image_1_4 =
                 position                            [member_assign(&quickbook::image::position)]
             >>  blank
             >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::image::image_filename)]
             >>  &qi::lit(']')
             ;
         
-        image_1_5 =
+        local.image_1_5 =
                 position                            [member_assign(&quickbook::image::position)]
             >>  blank
-            >>  image_filename                      [member_assign(&quickbook::image::image_filename)]
+            >>  local.image_filename                [member_assign(&quickbook::image::image_filename)]
             >>  hard_space
-            >>  image_attributes                    [member_assign(&quickbook::image::attributes)]
+            >>  local.image_attributes              [member_assign(&quickbook::image::attributes)]
             >>  &qi::lit(']')
             ;
 
-        image_filename = qi::raw[
+        local.image_filename = qi::raw[
                 +(qi::char_ - (qi::space | phrase_end | '['))
             >>  *(
                     +qi::space
                 >>  +(qi::char_ - (qi::space | phrase_end | '['))
              )];
 
-        image_attributes = *(image_attribute >> space);
+        local.image_attributes = *(local.image_attribute >> space);
         
-        image_attribute =
+        local.image_attribute =
                 '['
-            >>  image_attribute_key                 [member_assign(&std::pair<std::string, std::string>::first)]
+            >>  local.image_attribute_key           [member_assign(&std::pair<std::string, std::string>::first)]
             >>  space
-            >>  image_attribute_value               [member_assign(&std::pair<std::string, std::string>::second)]
+            >>  local.image_attribute_value         [member_assign(&std::pair<std::string, std::string>::second)]
             >>  ']'
             ;
             
-        image_attribute_key = *(qi::alnum | '_');
-        image_attribute_value = *(qi::char_ - (phrase_end | '['));
+        local.image_attribute_key = *(qi::alnum | '_');
+        local.image_attribute_value = *(qi::char_ - (phrase_end | '['));
     }
 }

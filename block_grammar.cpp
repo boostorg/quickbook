@@ -25,46 +25,50 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
+    struct block_grammar_local
+    {
+        qi::rule<iterator> blocks;
+        qi::rule<iterator, qi::locals<qi::rule<iterator> > > block_markup;
+        qi::rule<iterator, qi::rule<iterator>()> block_markup_start;
+        qi::rule<iterator, quickbook::list()> list;
+        qi::rule<iterator, quickbook::list_item()> list_item;
+        qi::rule<iterator, std::string()> list_item_content;
+        qi::rule<iterator, quickbook::hr()> hr;
+        qi::rule<iterator> paragraph;
+        qi::rule<iterator, quickbook::block_separator()> block_separator;
+        qi::rule<iterator, quickbook::def_macro> command_line_macro_parse;
+    };
+
     void quickbook_grammar::impl::init_block()
     {
-        qi::rule<iterator>& block_markup = store_.create();
-        qi::rule<iterator, qi::rule<iterator>()>& block_markup_start = store_.create();
-        qi::rule<iterator>& blocks = store_.create();
-        qi::rule<iterator, quickbook::list()>& list = store_.create();
-        qi::rule<iterator, quickbook::hr()>& hr = store_.create();
-        qi::rule<iterator>& paragraph = store_.create();
-        qi::rule<iterator, quickbook::block_separator()>& block_separator = store_.create();
+        block_grammar_local& local = store_.create();
 
         block_start =
-            blocks >> blank
+            local.blocks >> blank
             ;
 
-        blocks =
-           +(   block_markup
+        local.blocks =
+           +(   local.block_markup
             |   indented_code                   [actions.process]
-            |   list                            [actions.process]
-            |   hr                              [actions.process]
-            |   block_separator                 [actions.process]
+            |   local.list                      [actions.process]
+            |   local.hr                        [actions.process]
+            |   local.block_separator           [actions.process]
             |   eol
-            |   paragraph
+            |   local.paragraph
             )
             ;
 
         // Block markup
 
-        qi::rule<iterator, qi::locals<qi::rule<iterator> > >& block_markup_impl = store_.create();
-
-        block_markup = block_markup_impl;
-
-        block_markup_impl
-            =   block_markup_start              [qi::_a = qi::_1]
+        local.block_markup
+            =   local.block_markup_start        [qi::_a = qi::_1]
             >>  lazy(qi::_a)
             >>  (   (space >> ']' >> +eol)
                 |   error
                 )
             ;
 
-        block_markup_start
+        local.block_markup_start
             =   '['
             >>  space
             >>  (   block_keyword_rules >> !(qi::alnum | '_')
@@ -74,23 +78,20 @@ namespace quickbook
 
         // List
 
-        qi::rule<iterator, quickbook::list_item()>& list_item = store_.create();
-        qi::rule<iterator, std::string()>& list_item_content = store_.create();
-
-        list =
+        local.list =
                 &qi::char_("*#")
-            >>  +list_item
+            >>  +local.list_item
             ;
         
-        list_item =
+        local.list_item =
                 position                                [member_assign(&quickbook::list_item::position)]
             >>  (*qi::blank)                            [member_assign(&quickbook::list_item::indent)]
             >>  qi::char_("*#")                         [member_assign(&quickbook::list_item::mark)]
             >>  *qi::blank
-            >>  list_item_content                       [member_assign(&quickbook::list_item::content)]
+            >>  local.list_item_content                 [member_assign(&quickbook::list_item::content)]
             ;
 
-        list_item_content =
+        local.list_item_content =
             qi::eps[actions.phrase_push] >>
            *(   common
             |   (qi::char_ -
@@ -105,7 +106,7 @@ namespace quickbook
 
         // Horizontol rule
 
-        hr =
+        local.hr =
             qi::omit[
                 "----"
             >>  *(qi::char_ - eol)
@@ -115,9 +116,9 @@ namespace quickbook
 
         // Paragraph
 
-        paragraph =
+        local.paragraph =
                +(   common
-                |   (qi::char_ - (block_separator | block_markup_start))
+                |   (qi::char_ - (local.block_separator | local.block_markup_start))
                                                         [actions.process]
                 )
             ;
@@ -125,7 +126,7 @@ namespace quickbook
         // Define block_separator using qi::eol/qi::blank rather than 'eol'
         // because we don't want any comments in the blank line.
 
-        block_separator =
+        local.block_separator =
                 qi::attr(quickbook::block_separator())
             >>  qi::omit
                 [   qi::eol >> *qi::blank >> qi::eol
@@ -135,11 +136,9 @@ namespace quickbook
         // Parse command line macro definition. This is more here out of
         // convenience than anything.
 
-        qi::rule<iterator, quickbook::def_macro>& command_line_macro_parse = store_.create();
+        command_line_macro = local.command_line_macro_parse [actions.process];
 
-        command_line_macro = command_line_macro_parse [actions.process];
-
-        command_line_macro_parse =
+        local.command_line_macro_parse =
                 space
             >>  macro_identifier
             >>  space
@@ -153,8 +152,7 @@ namespace quickbook
 
         // Error
 
-        error =
-                position                            [actions.error];
+        error = position                            [actions.error];
 
         // Block contents
 
@@ -162,7 +160,7 @@ namespace quickbook
                 qi::eps                             [actions.block_push][actions.phrase_push]
             >>  *(  common
                 |   (qi::char_ - phrase_end)        [actions.process]
-                |   block_separator                 [actions.process]
+                |   local.block_separator           [actions.process]
                 )
             >>  qi::attr(quickbook::block_separator())
                                                     [actions.process]

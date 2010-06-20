@@ -32,26 +32,37 @@ namespace quickbook
         };
     }
 
+    struct block_markup_grammar_local
+    {
+        qi::rule<iterator, quickbook::block_formatted(formatted_type)> paragraph_block;
+        qi::rule<iterator, quickbook::block_formatted()> preformatted;
+        qi::rule<iterator, quickbook::def_macro()> def_macro;
+        qi::rule<iterator, quickbook::xinclude()> xinclude;
+        qi::rule<iterator, quickbook::include()> include;
+        qi::rule<iterator, raw_string()> include_id;
+        qi::rule<iterator, quickbook::import()> import;
+    };
+
     void quickbook_grammar::impl::init_block_markup()
     {
+        block_markup_grammar_local& local = store_.create();
+
         // Paragraph Blocks
 
-        qi::rule<iterator, quickbook::block_formatted(formatted_type)>& paragraph_block = store_.create();
-
         block_keyword_rules.add
-            ("blurb", paragraph_block(formatted_type("blurb")) [actions.process])
-            ("warning", paragraph_block(formatted_type("warning")) [actions.process])
-            ("caution", paragraph_block(formatted_type("caution")) [actions.process])
-            ("important", paragraph_block(formatted_type("important")) [actions.process])
-            ("note", paragraph_block(formatted_type("note")) [actions.process])
-            ("tip", paragraph_block(formatted_type("tip")) [actions.process])
+            ("blurb", local.paragraph_block(formatted_type("blurb")) [actions.process])
+            ("warning", local.paragraph_block(formatted_type("warning")) [actions.process])
+            ("caution", local.paragraph_block(formatted_type("caution")) [actions.process])
+            ("important", local.paragraph_block(formatted_type("important")) [actions.process])
+            ("note", local.paragraph_block(formatted_type("note")) [actions.process])
+            ("tip", local.paragraph_block(formatted_type("tip")) [actions.process])
             ;
 
         block_symbol_rules.add
-            (":", paragraph_block(formatted_type("blockquote")) [actions.process])
+            (":", local.paragraph_block(formatted_type("blockquote")) [actions.process])
             ;
 
-        paragraph_block =
+        local.paragraph_block =
                 qi::attr(qi::_r1)                   [member_assign(&quickbook::block_formatted::type)]
             >>  space
             >>  inside_paragraph                    [member_assign(&quickbook::block_formatted::content)]
@@ -59,11 +70,9 @@ namespace quickbook
 
         // Preformatted
 
-        qi::rule<iterator, quickbook::block_formatted()>& preformatted = store_.create();
-
-        block_keyword_rules.add("pre", preformatted [actions.process]);
+        block_keyword_rules.add("pre", local.preformatted [actions.process]);
         
-        preformatted =
+        local.preformatted =
                 space                           [ph::ref(no_eols) = false]
                                                 [member_assign(&quickbook::block_formatted::type, "preformatted")]
             >>  -eol
@@ -73,11 +82,9 @@ namespace quickbook
 
         // Define Macro
 
-        qi::rule<iterator, quickbook::def_macro()>& def_macro = store_.create();
-
-        block_keyword_rules.add("def", def_macro[actions.process]);
+        block_keyword_rules.add("def", local.def_macro[actions.process]);
         
-        def_macro =
+        local.def_macro =
                 space
             >>  macro_identifier                [member_assign(&quickbook::def_macro::macro_identifier)]
             >>  blank
@@ -86,42 +93,35 @@ namespace quickbook
 
         // xinclude
 
-        qi::rule<iterator, quickbook::xinclude()>& xinclude = store_.create();
-
-        block_keyword_rules.add("xinclude", xinclude[actions.process]);
+        block_keyword_rules.add("xinclude", local.xinclude[actions.process]);
 
         // TODO: Why do these use phrase_end? It doesn't make any sense.
-        xinclude =
+        local.xinclude =
                 space
             >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::xinclude::path)]
             ;
-
-        qi::rule<iterator, quickbook::include()>& include = store_.create();
-        qi::rule<iterator, raw_string()>& include_id = store_.create();
         
-        block_keyword_rules.add("include", include[actions.process]);
+        block_keyword_rules.add("include", local.include[actions.process]);
 
         // Include
 
-        include =
+        local.include =
                 space
             >>  -(
                     ':'
-                >>  include_id
+                >>  local.include_id
                 >>  space
                 )                                   [member_assign(&quickbook::include::id)]
             >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::include::path)]
             ;
 
-        include_id = qi::raw[*(qi::alnum | '_')]    [qi::_val = qi::_1];
+        local.include_id = qi::raw[*(qi::alnum | '_')]    [qi::_val = qi::_1];
 
         // Import
 
-        qi::rule<iterator, quickbook::import()>& import = store_.create();
-
-        block_keyword_rules.add("import", import[actions.process]);
+        block_keyword_rules.add("import", local.import[actions.process]);
         
-        import =
+        local.import =
                 space
             >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::import::path)]
             ;

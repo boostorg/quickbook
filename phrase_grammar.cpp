@@ -26,13 +26,28 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace ph = boost::phoenix;
 
+    struct phrase_grammar_local
+    {
+        qi::rule<iterator> macro;
+        qi::rule<iterator> phrase_markup;
+        qi::rule<iterator, qi::locals<qi::rule<iterator> > > phrase_markup_impl;
+        qi::rule<iterator, quickbook::break_()> break_;
+        qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> > simple_format;
+        qi::rule<iterator, std::string(char)> simple_format_body;
+        qi::rule<iterator, void(char)> simple_format_chars;
+        qi::rule<iterator, void(char)> simple_format_end;
+        qi::rule<iterator> simple_phrase_end;
+        qi::rule<iterator> escape;
+        qi::rule<iterator, quickbook::break_()> escape_break;
+        qi::rule<iterator, quickbook::formatted()> escape_punct;
+        qi::rule<iterator, quickbook::formatted()> escape_markup;
+        qi::rule<iterator, quickbook::unicode_char()> escape_unicode16;
+        qi::rule<iterator, quickbook::unicode_char()> escape_unicode32;
+    };
+
     void quickbook_grammar::impl::init_phrase()
     {
-        qi::rule<iterator>& macro = store_.create();
-        qi::rule<iterator>& phrase_markup = store_.create();
-        qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> >& simple_format = store_.create();
-        qi::rule<iterator>& escape = store_.create();
-        qi::rule<iterator, quickbook::break_()>& break_ = store_.create();
+        phrase_grammar_local& local = store_.create();
 
         simple_phrase =
            *(   common
@@ -49,122 +64,109 @@ namespace quickbook
             ;
 
         common =
-                macro
-            |   phrase_markup
+                local.macro
+            |   local.phrase_markup
             |   code_block                          [actions.process]
             |   inline_code                         [actions.process]
-            |   simple_format                       [actions.process]
-            |   escape
+            |   local.simple_format                 [actions.process]
+            |   local.escape
             |   comment
             ;
 
-         macro =
+         local.macro =
             (   actions.macro                       // must not be followed by
             >>  !(qi::alpha | '_')                  // alpha or underscore
             )                                       [actions.process]
             ;
 
-        qi::rule<iterator, qi::locals<qi::rule<iterator> > >& phrase_markup_impl = store_.create();
-
-        phrase_markup =
+        local.phrase_markup =
             (   '['
-            >>  (   phrase_markup_impl
+            >>  (   local.phrase_markup_impl
                 |   call_template
-                |   break_          [actions.process]
+                |   local.break_                    [actions.process]
                 )
             >>  ']'
             )                                       
             ;
 
-        phrase_markup_impl
+        local.phrase_markup_impl
             =   (   phrase_keyword_rules >> !(qi::alnum | '_')
                 |   phrase_symbol_rules
                 ) [qi::_a = qi::_1]
                 >> lazy(qi::_a)
                 ;
 
-        break_ =
+        local.break_ =
                 position                            [member_assign(&quickbook::break_::position)]
             >>  "br"
             ;
 
-        qi::rule<iterator>& simple_phrase_end = store_.create();
-        qi::rule<iterator, std::string(char)>& simple_format_body = store_.create();
-        qi::rule<iterator, void(char)>& simple_format_chars = store_.create();
-        qi::rule<iterator, void(char)>& simple_format_end = store_.create();
-
-        simple_format
+        local.simple_format
             =   qi::char_("*/_=")               [qi::_a = qi::_1]
-            >>  simple_format_body(qi::_a)      [member_assign(&quickbook::simple_markup::raw_content)]
+            >>  local.simple_format_body(qi::_a)[member_assign(&quickbook::simple_markup::raw_content)]
             >>  qi::char_(qi::_a)               [member_assign(&quickbook::simple_markup::symbol)]
             ;
 
-        simple_format_body
+        local.simple_format_body
             =   qi::raw
                 [   qi::graph
-                >>  (   &simple_format_end(qi::_r1)
-                    |   simple_format_chars(qi::_r1)
+                >>  (   &local.simple_format_end(qi::_r1)
+                    |   local.simple_format_chars(qi::_r1)
                     )
                 ]
             ;
 
-        simple_format_chars
+        local.simple_format_chars
             =   *(  qi::char_ -
                     (   (qi::graph >> qi::lit(qi::_r1))
-                    |   simple_phrase_end       // Make sure that we don't go
+                    |   local.simple_phrase_end // Make sure that we don't go
                     )                           // past a single block
                 )
             >>  qi::graph                       // qi::graph must precede qi::lit(qi::_r1)
-            >>  &simple_format_end(qi::_r1)
+            >>  &local.simple_format_end(qi::_r1)
             ;
 
-        simple_format_end
+        local.simple_format_end
             =   qi::lit(qi::_r1)
             >>  (qi::space | qi::punct | qi::eoi)
             ;
 
-        simple_phrase_end = '[' | phrase_end;
+        local.simple_phrase_end = '[' | phrase_end;
 
-        qi::rule<iterator, quickbook::break_()>& escape_break = store_.create();
-        qi::rule<iterator, quickbook::formatted()>& escape_punct = store_.create();
-        qi::rule<iterator, quickbook::formatted()>& escape_markup = store_.create();
-        qi::rule<iterator, quickbook::unicode_char()>& escape_unicode16 = store_.create();
-        qi::rule<iterator, quickbook::unicode_char()>& escape_unicode32 = store_.create();
-
-        escape =
-            (   escape_break
+        local.escape =
+            (   local.escape_break
             |   "\\ "                               // ignore an escaped char            
-            |   escape_punct
-            |   escape_unicode16
-            |   escape_unicode32
-            |   escape_markup                       
+            |   local.escape_punct
+            |   local.escape_unicode16
+            |   local.escape_unicode32
+            |   local.escape_markup                       
             )                                       [actions.process]
             ;
         
-        escape_break =
+        local.escape_break =
                 position                            [member_assign(&quickbook::break_::position)]
             >>  "\\n"
             ;
 
-        escape_punct =
+        local.escape_punct =
                 '\\'
             >>  qi::repeat(1)[qi::punct]            [member_assign(&quickbook::formatted::content)]
                                                     [member_assign(&quickbook::formatted::type, "")]
             ;
 
-        escape_markup =
+        local.escape_markup =
                 ("'''" >> -eol)
             >>  (*(qi::char_ - "'''"))              [member_assign(&quickbook::formatted::content)]
                                                     [member_assign(&quickbook::formatted::type, "escape")]
             >>  "'''"
             ;
 
-        escape_unicode16 =
+        local.escape_unicode16 =
                 "\\u"
             >   qi::raw[qi::repeat(4)[qi::xdigit]]  [member_assign(&quickbook::unicode_char::value)]
             ;
 
-        escape_unicode32 =
+        local.escape_unicode32 =
                 "\\U"
             >   qi::raw[qi::repeat(8)[qi::xdigit]]  [member_assign(&quickbook::unicode_char::value)]
             ;
