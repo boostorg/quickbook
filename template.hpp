@@ -10,15 +10,18 @@
 #define BOOST_SPIRIT_QUICKBOOK_TEMPLATE_STACK_HPP
 
 #include <string>
-#include <deque>
 #include <vector>
 #include <boost/spirit/include/qi_parse.hpp>
 #include <boost/spirit/home/qi/detail/assign_to.hpp>
+#include <boost/scoped_ptr.hpp>
 #include "fwd.hpp"
 
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
+
+    struct template_scope;
+    struct template_symbol;
 
     struct template_value
     {
@@ -79,13 +82,8 @@ namespace quickbook
         std::vector<template_value> args;
     };
 
-    struct template_scope;
-    struct template_symbol;
-
     struct template_stack
     {
-        typedef std::deque<template_scope> deque;
-
         struct parser : boost::spirit::qi::primitive_parser<parser>
         {
             template <typename Ctx, typename Itr>
@@ -114,7 +112,6 @@ namespace quickbook
         template_symbol const* prefix_find(iterator& first, iterator const& last) const;
         template_symbol const* find(std::string const& symbol) const;
         template_symbol const* find_top_scope(std::string const& symbol) const;
-        template_scope const& top_scope() const;
         // Add the given template symbol to the current scope.
         // If a parent scope isn't supplied, uses the current scope.
         bool add(define_template const&, template_scope const* parent = 0);
@@ -125,11 +122,10 @@ namespace quickbook
         void set_parent_scope(template_scope const&);
 
         parser scope;
+        boost::scoped_ptr<template_scope> top_scope;
 
     private:
-
         friend struct parser;
-        deque scopes;
         
         template_stack(template_stack const&);
         template_stack& operator=(template_stack const&);        

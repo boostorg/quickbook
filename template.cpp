@@ -62,13 +62,13 @@ namespace quickbook
         template_scope() : parent_scope() {}
         template_scope const* parent_scope;
         template_symbols symbols;
+        boost::scoped_ptr<template_scope> next;
     };
 
     template_stack::template_stack()
         : scope(template_stack::parser(*this))
-        , scopes()
+        , top_scope(new template_scope())
     {
-        scopes.push_front(template_scope());
     }
     
     template_stack::~template_stack() {}
@@ -78,7 +78,7 @@ namespace quickbook
         // search all scopes for the longest matching symbol.
         iterator found = first;
         template_symbol const* result = 0;
-        for (template_scope const* i = &*scopes.begin(); i; i = i->parent_scope)
+        for (template_scope const* i = top_scope.get(); i; i = i->parent_scope)
         {
             iterator iter = first;
             template_symbol const* symbol = i->symbols.prefix_find(iter, last);
@@ -94,7 +94,7 @@ namespace quickbook
 
     template_symbol const* template_stack::find(std::string const& symbol) const
     {
-        for (template_scope const* i = &*scopes.begin(); i; i = i->parent_scope)
+        for (template_scope const* i = top_scope.get(); i; i = i->parent_scope)
         {
             if (template_symbol const* ts = i->symbols.find(symbol.c_str()))
                 return ts;
@@ -104,20 +104,14 @@ namespace quickbook
 
     template_symbol const* template_stack::find_top_scope(std::string const& symbol) const
     {
-        return scopes.front().symbols.find(symbol.c_str());
+        return top_scope->symbols.find(symbol.c_str());
     }
 
-    template_scope const& template_stack::top_scope() const
-    {
-        BOOST_ASSERT(!scopes.empty());
-        return scopes.front();
-    }
-        
     bool template_stack::add(
             define_template const& definition,
             template_scope const* parent)
     {
-        BOOST_ASSERT(!scopes.empty());
+        BOOST_ASSERT(top_scope);
 
         if (this->find_top_scope(definition.id)) {
             return false;
@@ -136,28 +130,28 @@ namespace quickbook
             is_block,
             definition.body,
             definition.callouts,
-            parent ? parent : &top_scope());
+            parent ? parent : top_scope.get());
 
-        scopes.front().symbols.add(ts.identifier.c_str(), ts);
+        top_scope->symbols.add(ts.identifier.c_str(), ts);
         
         return true;
     }
 
     void template_stack::push()
     {
-        template_scope const& old_front = scopes.front();
-        scopes.push_front(template_scope());
-        set_parent_scope(old_front);
+        boost::scoped_ptr<template_scope> new_scope(
+            new template_scope());
+        new_scope->parent_scope = top_scope.get();
+
+        new_scope->next.swap(top_scope);
+        new_scope.swap(top_scope);
     }
 
     void template_stack::pop()
     {
-        scopes.pop_front();
-    }
-
-    void template_stack::set_parent_scope(template_scope const& parent)
-    {
-        scopes.front().parent_scope = &parent;
+        boost::scoped_ptr<template_scope> popped_scope;
+        popped_scope.swap(top_scope);
+        popped_scope->next.swap(top_scope);
     }
 
     namespace
@@ -379,7 +373,7 @@ namespace quickbook
         //
         // Note that for quickbook 1.4- this value is just ignored when the
         // arguments are expanded.
-        template_scope const& call_scope = state.templates.top_scope();
+        template_scope const& call_scope = *state.templates.top_scope;
 
         std::string result;
         state.push(); // scope the state
@@ -393,7 +387,7 @@ namespace quickbook
             // Quickbook 1.5+: Use the scope the template was defined in
             //                 (the static scope).
             if (qbk_version_n >= 105)
-                state.templates.set_parent_scope(*x.symbol->parent);
+                state.templates.top_scope->parent_scope = x.symbol->parent;
 
             std::vector<template_value> args = x.args;
     
@@ -497,5 +491,3 @@ namespace quickbook
         return nothing();
     }
 }
-
-

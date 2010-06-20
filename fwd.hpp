@@ -42,7 +42,6 @@ namespace quickbook
 
     struct call_template;
     struct define_template;
-    struct template_symbol;
     
     // encoder
     
