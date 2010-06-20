@@ -354,6 +354,7 @@ namespace quickbook
                     ++first; // skip initial newlines
 
                 r = boost::spirit::qi::parse(first, last, g.block) && first == last;
+                state.paragraph_output();
                 state.block.swap(result);
             }
             
@@ -361,7 +362,7 @@ namespace quickbook
         }
     }
 
-    std::string process(quickbook::state& state, call_template const& x)
+    nothing process(quickbook::state& state, call_template const& x)
     {
         ++state.template_depth;
         if (state.template_depth > state.max_template_depth)
@@ -370,7 +371,7 @@ namespace quickbook
                 << "Infinite loop detected" << std::endl;
             --state.template_depth;
             ++state.error_count;
-            return "";
+            return nothing();
         }
 
         // The template arguments should have the scope that the template was
@@ -403,7 +404,7 @@ namespace quickbook
                 state.pop(); // restore the state
                 --state.template_depth;
                 ++state.error_count;
-                return "";
+                return nothing();
             }
 
             ///////////////////////////////////
@@ -418,7 +419,7 @@ namespace quickbook
             {
                 state.pop(); // restore the state
                 --state.template_depth;
-                return "";
+                return nothing();
             }
 
             ///////////////////////////////////
@@ -436,7 +437,7 @@ namespace quickbook
                 state.pop(); // restore the state
                 --state.template_depth;
                 ++state.error_count;
-                return "";
+                return nothing();
             }
 
             if (state.section_level != state.min_section_level)
@@ -446,7 +447,7 @@ namespace quickbook
                 state.pop(); // restore the actions' states
                 --state.template_depth;
                 ++state.error_count;
-                return ""; 
+                return nothing(); 
             }
         }
 
@@ -470,7 +471,7 @@ namespace quickbook
                         << "Error expanding callout."
                         << std::endl;
                     ++state.error_count;
-                    return "";
+                    return nothing();
                 }
 
                 list.push_back(item);
@@ -484,8 +485,16 @@ namespace quickbook
             result += state.block.str();
             state.pop();
         }
-      
-        return result;
+
+        if(x.symbol->is_block) {
+            state.paragraph_output();
+            state.block << result;
+        }
+        else {
+            state.phrase << result;
+        }
+        
+        return nothing();
     }
 }
 

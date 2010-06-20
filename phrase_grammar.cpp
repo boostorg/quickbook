@@ -110,7 +110,7 @@ namespace quickbook
                 ]
             ;
 
-        simple_format_multiple_char
+        simple_format_chars
             =   *(  qi::char_ -
                     (   (qi::graph >> qi::lit(qi::_r1))
                     |   simple_phrase_end       // Make sure that we don't go

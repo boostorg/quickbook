@@ -25,7 +25,7 @@ namespace quickbook
     break_ process(quickbook::state&, break_ const&);
     boost::variant<formatted, block_formatted> process(quickbook::state&, code const&);
     image2 process(quickbook::state&, image const&);
-    std::string process(quickbook::state&, call_template const&);
+    nothing process(quickbook::state&, call_template const&);
 }
 
 #endif
