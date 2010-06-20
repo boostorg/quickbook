@@ -15,9 +15,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include "grammar_impl.hpp"
 #include "block.hpp"
-#include "template.hpp"
 #include "actions.hpp"
-#include "code.hpp"
 #include "misc_rules.hpp"
 #include "parse_utils.hpp"
 #include "state.hpp"
@@ -31,7 +29,6 @@ namespace quickbook
     {
         qi::rule<iterator>& block_markup = store_.create();
         qi::rule<iterator>& blocks = store_.create();
-        qi::rule<iterator, quickbook::code()>& code = store_.create();
         qi::rule<iterator, quickbook::list()>& list = store_.create();
         qi::rule<iterator, quickbook::hr()>& hr = store_.create();
         qi::rule<iterator>& paragraph = store_.create();
@@ -43,7 +40,7 @@ namespace quickbook
 
         blocks =
            +(   block_markup
-            |   code                            [actions.process]
+            |   indented_code                   [actions.process]
             |   list                            [actions.process]
             |   hr                              [actions.process]
             |   block_separator                 [actions.process]
@@ -71,23 +68,7 @@ namespace quickbook
                 >> lazy(qi::_a)
                 ;
 
-        // Blocks indicated by text layout (indentation, leading characters etc.)
-
-        qi::rule<iterator>& code_line = store_.create();
-
-        code =
-                position                                [member_assign(&quickbook::code::position)]
-                                                        [member_assign(&quickbook::code::flow, quickbook::code::block)]
-            >>  qi::raw[code_line >> *(*eol >> code_line)]
-                                                        [member_assign(&quickbook::code::content)]
-            >>  +eol
-            ;
-
-        code_line =
-                qi::char_(" \t")
-            >>  *(qi::char_ - eol)
-            >>  eol
-            ;
+        // List
 
         qi::rule<iterator, quickbook::list_item()>& list_item = store_.create();
         qi::rule<iterator, std::string()>& list_item_content = store_.create();
@@ -118,6 +99,8 @@ namespace quickbook
             >> qi::eps[actions.phrase_pop]
             ;
 
+        // Horizontol rule
+
         hr =
             qi::omit[
                 "----"
@@ -128,6 +111,8 @@ namespace quickbook
 
         qi::rule<iterator>& paragraph_end = store_.create();
         qi::symbols<>& paragraph_end_markups = store_.create();
+
+        // Paragraph
 
         paragraph =
                +(   common

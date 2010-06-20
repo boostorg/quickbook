@@ -38,11 +38,12 @@ exe quickbook
     phrase_image.cpp
     block_grammar.cpp
     block_markup_grammar.cpp
-    block_template_grammar.cpp
     block_section_grammar.cpp
     block_table_grammar.cpp
     block_actions.cpp
     block_list.cpp
+    template_grammar.cpp
+    code_grammar.cpp
     doc_info_grammar.cpp
     doc_info_actions.cpp
     code_snippet_actions.cpp

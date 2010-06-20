@@ -9,6 +9,7 @@
 =============================================================================*/
 
 #include <boost/spirit/include/qi_core.hpp>
+#include <boost/spirit/include/qi_eps.hpp>
 #include "grammar_impl.hpp"
 #include "template.hpp"
 #include "actions.hpp"
@@ -19,7 +20,7 @@ namespace quickbook
 {
     namespace qi = boost::spirit::qi;
     
-    void quickbook_grammar::impl::init_block_template()
+    void quickbook_grammar::impl::init_template()
     {
         // Define Template
 
@@ -62,6 +63,52 @@ namespace quickbook
         template_id
             =   (qi::alpha | '_') >> *(qi::alnum | '_')
             |   qi::repeat(1)[qi::punct - qi::char_("[]")]
+            ;
+
+		// Call Template
+
+        qi::rule<iterator, quickbook::call_template()>& call_template_impl = store_.create();
+        qi::rule<iterator, std::vector<quickbook::template_value>()>& template_args = store_.create();
+        qi::rule<iterator, quickbook::template_value()>& template_arg_1_4 = store_.create();
+        qi::rule<iterator>& brackets_1_4 = store_.create();
+        qi::rule<iterator, quickbook::template_value()>& template_arg_1_5 = store_.create();
+        qi::rule<iterator>& brackets_1_5 = store_.create();
+
+		call_template = call_template_impl[actions.process];
+
+        call_template_impl =
+                position                            [member_assign(&quickbook::call_template::position)]
+            >>  qi::matches['`']                    [member_assign(&quickbook::call_template::escape)]
+            >>  (                                   // Lookup the template name
+                    (&qi::punct >> actions.templates.scope)
+                |   (actions.templates.scope >> hard_space)
+                )                                   [member_assign(&quickbook::call_template::symbol)]
+            >>  template_args                       [member_assign(&quickbook::call_template::args)]
+            >>  &qi::lit(']')
+            ;
+
+        template_args =
+            qi::eps(qbk_before(105u)) >> -(template_arg_1_4 % "..") |
+            qi::eps(qbk_since(105u)) >> -(template_arg_1_5 % "..");
+
+        template_arg_1_4 =
+                position                            [member_assign(&quickbook::template_value::position)]
+            >>  qi::raw[+(brackets_1_4 | ~qi::char_(']') - "..")]
+                                                    [member_assign(&quickbook::template_value::content)]
+            ;
+
+        brackets_1_4 =
+            '[' >> +(brackets_1_4 | ~qi::char_(']') - "..") >> ']'
+            ;
+
+        template_arg_1_5 =
+                position                            [member_assign(&quickbook::template_value::position)]
+            >>  qi::raw[+(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
+                                                    [member_assign(&quickbook::template_value::content)]
+            ;
+
+        brackets_1_5 =
+            '[' >> +(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]")) >> ']'
             ;
     }
 }

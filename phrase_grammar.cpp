@@ -18,7 +18,6 @@
 #include "phrase.hpp"
 #include "code.hpp"
 #include "actions.hpp"
-#include "template.hpp"
 #include "misc_rules.hpp"
 #include "parse_utils.hpp"
 
@@ -31,12 +30,8 @@ namespace quickbook
     {
         qi::rule<iterator>& macro = store_.create();
         qi::rule<iterator>& phrase_markup = store_.create();
-        qi::rule<iterator, quickbook::code()>& code_block = store_.create();
-        qi::rule<iterator, quickbook::code()>& inline_code = store_.create();
         qi::rule<iterator, quickbook::simple_markup(), qi::locals<char> >& simple_format = store_.create();
-        qi::rule<iterator, std::string(char)>& simple_format_body = store_.create();
         qi::rule<iterator>& escape = store_.create();
-        qi::rule<iterator, quickbook::call_template()>& call_template = store_.create();
         qi::rule<iterator, quickbook::break_()>& break_ = store_.create();
 
         simple_phrase =
@@ -76,7 +71,7 @@ namespace quickbook
         phrase_markup =
             (   '['
             >>  (   phrase_markup_impl
-                |   call_template   [actions.process]
+                |   call_template
                 |   break_          [actions.process]
                 )
             >>  ']'
@@ -90,127 +85,45 @@ namespace quickbook
                 >> lazy(qi::_a)
                 ;
 
-        // Template call
-
-        qi::rule<iterator, std::vector<quickbook::template_value>()>& template_args = store_.create();
-        qi::rule<iterator, quickbook::template_value()>& template_arg_1_4 = store_.create();
-        qi::rule<iterator>& brackets_1_4 = store_.create();
-        qi::rule<iterator, quickbook::template_value()>& template_arg_1_5 = store_.create();
-        qi::rule<iterator>& brackets_1_5 = store_.create();
-
-        call_template =
-                position                            [member_assign(&quickbook::call_template::position)]
-            >>  qi::matches['`']                    [member_assign(&quickbook::call_template::escape)]
-            >>  (                                   // Lookup the template name
-                    (&qi::punct >> actions.templates.scope)
-                |   (actions.templates.scope >> hard_space)
-                )                                   [member_assign(&quickbook::call_template::symbol)]
-            >>  template_args                       [member_assign(&quickbook::call_template::args)]
-            >>  &qi::lit(']')
-            ;
-
-        template_args =
-            qi::eps(qbk_before(105u)) >> -(template_arg_1_4 % "..") |
-            qi::eps(qbk_since(105u)) >> -(template_arg_1_5 % "..");
-
-        template_arg_1_4 =
-                position                            [member_assign(&quickbook::template_value::position)]
-            >>  qi::raw[+(brackets_1_4 | ~qi::char_(']') - "..")]
-                                                    [member_assign(&quickbook::template_value::content)]
-            ;
-
-        brackets_1_4 =
-            '[' >> +(brackets_1_4 | ~qi::char_(']') - "..") >> ']'
-            ;
-
-        template_arg_1_5 =
-                position                            [member_assign(&quickbook::template_value::position)]
-            >>  qi::raw[+(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
-                                                    [member_assign(&quickbook::template_value::content)]
-            ;
-
-        brackets_1_5 =
-            '[' >> +(brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]")) >> ']'
-            ;
-
         break_ =
                 position                            [member_assign(&quickbook::break_::position)]
             >>  "br"
             ;
 
-        qi::rule<iterator, std::string()>& code_block1 = store_.create();
-        qi::rule<iterator, std::string()>& code_block2 = store_.create();
-        qi::rule<iterator, std::string()>& inline_code_block = store_.create();
-
-        code_block =
-                (
-                    "```"
-                >>  position                        [member_assign(&quickbook::code::position)]
-                                                    [member_assign(&quickbook::code::flow, quickbook::code::inline_block)]
-                >>  code_block1                     [member_assign(&quickbook::code::content)]
-                >>  "```"
-                )
-            |   (
-                    "``"
-                >>  position                        [member_assign(&quickbook::code::position)]
-                                                    [member_assign(&quickbook::code::flow, quickbook::code::inline_block)]
-                >>  code_block2                     [member_assign(&quickbook::code::content)]
-                >>  "``"
-                )
-            ;
-
-        code_block1 = qi::raw[*(qi::char_ - "```")];
-        code_block2 = qi::raw[*(qi::char_ - "``")];
-
-        inline_code =
-                '`'
-            >>  position                            [member_assign(&quickbook::code::position)]
-                                                    [member_assign(&quickbook::code::flow, quickbook::code::inline_)]
-            >>  inline_code_block                   [member_assign(&quickbook::code::content)]
-            >>  '`'
-            ;
-
-        inline_code_block =
-            qi::raw
-            [   *(  qi::char_ -
-                    (   '`'
-                    |   (eol >> eol)            // Make sure that we don't go
-                    )                           // past a single block
-                )
-                >>  &qi::lit('`')
-            ]
-            ;
-
         qi::rule<iterator>& simple_phrase_end = store_.create();
+        qi::rule<iterator, std::string(char)>& simple_format_body = store_.create();
+        qi::rule<iterator, void(char)>& simple_format_chars = store_.create();
+        qi::rule<iterator, void(char)>& simple_format_end = store_.create();
 
-        simple_format =
-                qi::char_("*/_=")               [qi::_a = qi::_1]
+        simple_format
+            =   qi::char_("*/_=")               [qi::_a = qi::_1]
             >>  simple_format_body(qi::_a)      [member_assign(&quickbook::simple_markup::raw_content)]
             >>  qi::char_(qi::_a)               [member_assign(&quickbook::simple_markup::symbol)]
             ;
 
-        simple_format_body =
-                qi::raw
-                [   (   (   qi::graph               // A single char. e.g. *c*
-                        >>  &(  qi::char_(qi::_r1)
-                            >>  (qi::space | qi::punct | qi::eoi)
-                            )
-                        )
-                    |
-                        (   qi::graph               // qi::graph must follow qi::lit(qi::_r1)
-                        >>  *(  qi::char_ -
-                                (   (qi::graph >> qi::lit(qi::_r1))
-                                |   simple_phrase_end // Make sure that we don't go
-                                )                     // past a single block
-                            )
-                        >>  qi::graph               // qi::graph must precede qi::lit(qi::_r1)
-                        >>  &(  qi::char_(qi::_r1)
-                            >>  (qi::space | qi::punct | qi::eoi)
-                            )
-                        )
+        simple_format_body
+            =   qi::raw
+                [   qi::graph
+                >>  (   &simple_format_end(qi::_r1)
+                    |   simple_format_chars(qi::_r1)
                     )
                 ]
-                ;
+            ;
+
+        simple_format_multiple_char
+            =   *(  qi::char_ -
+                    (   (qi::graph >> qi::lit(qi::_r1))
+                    |   simple_phrase_end       // Make sure that we don't go
+                    )                           // past a single block
+                )
+            >>  qi::graph                       // qi::graph must precede qi::lit(qi::_r1)
+            >>  &simple_format_end(qi::_r1)
+            ;
+
+        simple_format_end
+            =   qi::lit(qi::_r1)
+            >>  (qi::space | qi::punct | qi::eoi)
+            ;
 
         simple_phrase_end = '[' | phrase_end;
 
