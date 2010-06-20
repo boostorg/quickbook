@@ -24,6 +24,7 @@
 #include "state.hpp"
 #include "parse_utils.hpp"
 #include "misc_rules.hpp"
+#include "utils.hpp"
 
 namespace quickbook
 {
@@ -37,16 +38,15 @@ namespace quickbook
         qbk_version_n = (qbk_major_version * 100) + qbk_minor_version;
     }
     
-    void default_quickbook_version()
+    void default_quickbook_version(file_position pos)
     {
         qbk_major_version = 1;
         qbk_minor_version = 1;
         qbk_version_n = 101;
 
-        // TODO:
-        //detail::outwarn(actions.filename.native_file_string(),1)
-        //    << "Warning: Quickbook version undefined. "
-        //       "Version 1.1 is assumed" << std::endl;
+        detail::outwarn(pos.file)
+            << "Warning: Quickbook version undefined. "
+               "Version 1.1 is assumed" << std::endl;
     }
 
     void quickbook_grammar::impl::init_doc_info()
@@ -117,7 +117,7 @@ namespace quickbook
             >>  uint2_t()
             >>  space >> ']'
             )                               [set_quickbook_version]
-            | qi::eps                       [default_quickbook_version]
+            | position                      [default_quickbook_version]
             ;
 
         doc_version = "version" >> hard_space >> qi::raw[*~qi::char_(']')];
