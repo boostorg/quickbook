@@ -29,6 +29,13 @@ namespace quickbook { namespace detail
         return out_name;
     }
 
+    template <typename Container>
+    inline std::string
+    make_identifier(Container const& x)
+    {
+        return make_identifier(x.begin(), x.end());
+    }
+
     // un-indent a code segment
     void unindent(std::string& program);
 

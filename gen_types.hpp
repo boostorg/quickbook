@@ -49,7 +49,7 @@ namespace quickbook
     struct table2
     {
         boost::optional<raw_string> id;
-        boost::optional<std::string> title;
+        boost::optional<raw_string> title;
         int cols;
         boost::optional<table_row> head;
         std::vector<table_row> rows;

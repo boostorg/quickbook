@@ -50,7 +50,7 @@ namespace quickbook
                 >>  element_id                  [member_assign(&quickbook::table::id)]
                 ) | qi::eps)
             >>  (&(*qi::blank >> qi::eol) | space)
-            >>  (*(qi::char_ - eol))            [member_assign(&quickbook::table::title)]
+            >>  qi::raw[*(qi::char_ - eol)]     [member_assign(&quickbook::table::title)]
             >>  +eol
             >>  (*table_row)                    [member_assign(&quickbook::table::rows)]
             ;
@@ -87,7 +87,7 @@ namespace quickbook
 
         variablelist =
                 (&(*qi::blank >> qi::eol) | space)
-            >>  (*(qi::char_ - eol))                [member_assign(&quickbook::variablelist::title)]
+            >>  qi::raw[*(qi::char_ - eol)]         [member_assign(&quickbook::variablelist::title)]
             >>  +eol
             >>  (*varlistentry)                     [member_assign(&quickbook::variablelist::entries)]
             ;

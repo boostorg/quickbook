@@ -55,8 +55,7 @@ namespace quickbook
             state.doc_title = info.doc_title;
 
         if(info.doc_id.empty())
-            info.doc_id = detail::make_identifier(
-               state.doc_title.begin(),state.doc_title.end());
+            info.doc_id = detail::make_identifier(state.doc_title);
 
         if(state.doc_id.empty())
             state.doc_id = info.doc_id;

@@ -63,9 +63,7 @@ namespace quickbook
         // TODO: This uses the generated title.
         state.section_id.value = x.id ?
             x.id->value :
-            detail::make_identifier(
-                x.content.raw.begin(),
-                x.content.raw.end());
+            detail::make_identifier(x.content.raw);
 
         if (state.section_level != 0) {
             state.qualified_section_id.value += '.';
@@ -146,16 +144,13 @@ namespace quickbook
         if (!new_style) // version 1.2 and below
         {
             r.id.value = state.section_id.value + "." +
-                detail::make_identifier(
-                    x.content.content.begin(),
-                    x.content.content.end());
+                detail::make_identifier(x.content.content);
         }
         else // version 1.3 and above
         {
             raw_string id;
-            id.value = detail::make_identifier(
-                    x.content.content.begin(),
-                    x.content.content.end());
+            id.value = qbk_version_n >= 106 ? detail::make_identifier(x.content.raw) :
+                detail::make_identifier(x.content.content);
         
             r.linkend = r.id = fully_qualified_id(
                 state.doc_id, state.qualified_section_id, id);
@@ -206,7 +201,7 @@ namespace quickbook
             }
             else if(r.title) {
                 raw_string id;
-                id.value = detail::make_identifier(x.title.begin(), x.title.end());
+                id.value = detail::make_identifier(x.title);
             
                 r.id = fully_qualified_id(state.doc_id,
                     state.qualified_section_id, id);

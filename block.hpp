@@ -80,7 +80,7 @@ namespace quickbook
 
     struct variablelist
     {
-        std::string title;
+        raw_string title;
         std::vector<varlistentry> entries;
     };
 
@@ -90,7 +90,7 @@ namespace quickbook
     struct table
     {
         boost::optional<raw_string> id;
-        std::string title;
+        raw_string title;
         std::vector<table_row> rows;
     };
 
