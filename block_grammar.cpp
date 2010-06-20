@@ -28,6 +28,7 @@ namespace quickbook
     void quickbook_grammar::impl::init_block()
     {
         qi::rule<iterator>& block_markup = store_.create();
+        qi::rule<iterator, qi::rule<iterator>()>& block_markup_start = store_.create();
         qi::rule<iterator>& blocks = store_.create();
         qi::rule<iterator, quickbook::list()>& list = store_.create();
         qi::rule<iterator, quickbook::hr()>& hr = store_.create();
@@ -53,20 +54,23 @@ namespace quickbook
 
         qi::rule<iterator, qi::locals<qi::rule<iterator> > >& block_markup_impl = store_.create();
 
-        block_markup =
-                '[' >> space
-            >>  block_markup_impl
+        block_markup = block_markup_impl;
+
+        block_markup_impl
+            =   block_markup_start              [qi::_a = qi::_1]
+            >>  lazy(qi::_a)
             >>  (   (space >> ']' >> +eol)
                 |   error
                 )
             ;
 
-        block_markup_impl
-            =   (   block_keyword_rules >> !(qi::alnum | '_')
+        block_markup_start
+            =   '['
+            >>  space
+            >>  (   block_keyword_rules >> !(qi::alnum | '_')
                 |   block_symbol_rules
-                ) [qi::_a = qi::_1]
-                >> lazy(qi::_a)
-                ;
+                )
+            ;
 
         // List
 
@@ -110,23 +114,21 @@ namespace quickbook
             ;
 
         qi::rule<iterator>& paragraph_end = store_.create();
-        qi::symbols<>& paragraph_end_markups = store_.create();
 
         // Paragraph
 
         paragraph =
                +(   common
-                |   (qi::char_ -                // Make sure we don't go past
-                        paragraph_end           // a single block.
-                    )                           [actions.process]
+                |   (qi::char_ - paragraph_end) [actions.process]
                 )
             ;
 
         paragraph_end =
-            '[' >> space >> paragraph_end_markups >> hard_space | block_separator
+                block_separator
+            |   block_markup_start
             ;
 
-        // Define block_seperator using qi::eol/qi::blank rather than 'eol'
+        // Define block_separator using qi::eol/qi::blank rather than 'eol'
         // because we don't want any comments in the blank line.
 
         block_separator =
@@ -134,13 +136,6 @@ namespace quickbook
             >>  qi::omit
                 [   qi::eol >> *qi::blank >> qi::eol
                 ]
-            ;
-
-        paragraph_end_markups =
-            "section", "endsect", "h1", "h2", "h3", "h4", "h5", "h6",
-            "blurb", ":", "pre", "def", "table", "include", "xinclude",
-            "variablelist", "import", "template", "warning", "caution",
-            "important", "note", "tip", ":"
             ;
 
         // Parse command line macro definition. This is more here out of
