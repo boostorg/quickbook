@@ -34,17 +34,15 @@ namespace quickbook
         , error(state.error_count)
     {}
 
-    void error_action::operator()(iterator_range x, unused_type, unused_type) const
+    void error_action::operator()(file_position pos, unused_type, unused_type) const
     {
-        file_position const pos = x.begin().get_position();
         detail::outerr(pos.file,pos.line)
             << "Syntax Error near column " << pos.column << ".\n";
         ++error_count;
     }
 
-    void element_id_warning_action::operator()(iterator_range x, unused_type, unused_type) const
+    void element_id_warning_action::operator()(file_position pos, unused_type, unused_type) const
     {
-        file_position const pos = x.begin().get_position();
         detail::outwarn(pos.file,pos.line) << "Empty id.\n";        
     }
 

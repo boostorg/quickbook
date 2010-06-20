@@ -15,7 +15,7 @@ namespace quickbook
 {
     struct raw_string {
         raw_string() {}
-        explicit raw_string(raw_source const& x) : value(x.begin(), x.end()) {}
+        raw_string(raw_source const& x) : value(x.begin(), x.end()) {}
         raw_string& operator=(raw_source const& x) {
             value.assign(x.begin(), x.end());
             return *this;

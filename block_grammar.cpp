@@ -97,7 +97,7 @@ namespace quickbook
                     (   qi::eol >> *qi::blank >> &(qi::char_('*') | '#')
                     |   (eol >> *qi::blank >> qi::eol)
                     )
-                )                               [actions.process]
+                )                                   [actions.process]
             )
             >> +eol
             >> qi::eps[actions.phrase_pop]
@@ -113,19 +113,13 @@ namespace quickbook
             ] >> qi::attr(quickbook::hr())
             ;
 
-        qi::rule<iterator>& paragraph_end = store_.create();
-
         // Paragraph
 
         paragraph =
                +(   common
-                |   (qi::char_ - paragraph_end) [actions.process]
+                |   (qi::char_ - (block_separator | block_markup_start))
+                                                        [actions.process]
                 )
-            ;
-
-        paragraph_end =
-                block_separator
-            |   block_markup_start
             ;
 
         // Define block_separator using qi::eol/qi::blank rather than 'eol'
@@ -160,47 +154,31 @@ namespace quickbook
         // Error
 
         error =
-            qi::raw[qi::eps] [actions.error];
+                position                            [actions.error];
 
         // Block contents
 
-        qi::rule<iterator>& inside_paragraph2 = store_.create();
-
         inside_paragraph =
                 qi::eps                             [actions.block_push][actions.phrase_push]
-            >>  (
-                    inside_paragraph2               [actions.process]
-                %   block_separator                 [actions.process]
+            >>  *(  common
+                |   (qi::char_ - phrase_end)        [actions.process]
+                |   block_separator                 [actions.process]
                 )
             >>  qi::attr(quickbook::block_separator())
                                                     [actions.process]
             >>  qi::eps                             [actions.phrase_pop][actions.block_pop]
             ;
 
-        inside_paragraph2 =
-               *(   common
-                |   (qi::char_ - phrase_end)    [actions.process]
-                )
-            ;
-
         // Identifiers
 
-        qi::rule<iterator, raw_string()>& element_id_part = store_.create();
-
         element_id =
-            (   ':'
+            -(  ':'
             >>  -(qi::eps(qbk_since(105u)) >> space)
             >>  (
-                    element_id_part
-                |   qi::omit[
-                        qi::raw[qi::eps]        [actions.element_id_warning]
-                    ]
+                    qi::raw[+(qi::alnum | '_')]     [qi::_val = qi::_1]
+                |   position                        [actions.element_id_warning]
                 )
             )
-            | qi::eps
             ;
-
-        element_id_part = qi::raw[+(qi::alnum | qi::char_('_'))]
-                                                [qi::_val = qi::_1];
     }
 }

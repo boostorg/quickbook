@@ -18,6 +18,7 @@
 #include "utils.hpp"
 #include "syntax_highlight.hpp"
 #include "parse_utils.hpp"
+#include "misc_rules.hpp"
 
 namespace quickbook
 {
@@ -74,11 +75,12 @@ namespace quickbook
                 ;
 
             escape =
-                "``" >> (
-                    (qi::raw[+(qi::char_ - "``")] >> "``")
+                    "``"
+                >>  (   (qi::raw[+(qi::char_ - "``")] >> "``")
                                                         [parse_escaped]
-                    | qi::raw[*qi::char_]               [actions.error]
-                )
+                    |   position                        [actions.error]
+                    >>  *qi::char_ 
+                    )
                 ;
 
             space
@@ -220,11 +222,12 @@ namespace quickbook
                 ;
 
             escape =
-                "``" >> (
-                    (qi::raw[+(qi::char_ - "``")] >> "``")
+                    "``"
+                >>  (   (qi::raw[+(qi::char_ - "``")] >> "``")
                                                         [parse_escaped]
-                    | qi::raw[*qi::char_]               [actions.error]
-                )
+                    |   position                        [actions.error]
+                    >>  *qi::char_
+                    )
                 ;
 
             space
@@ -353,11 +356,12 @@ namespace quickbook
                 ;
 
             escape =
-                "``" >> (
-                    (qi::raw[+(qi::char_ - "``")] >> "``")
-                                            [parse_escaped]
-                    | qi::raw[*qi::char_]   [actions.error]
-                )
+                    "``"
+                >>  (   (qi::raw[+(qi::char_ - "``")] >> "``")
+                                                        [parse_escaped]
+                    |   position                        [actions.error]
+                    >>  *qi::char_
+                    )
                 ;
         }
 

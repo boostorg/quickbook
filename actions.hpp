@@ -77,7 +77,7 @@ namespace quickbook
             int& error_count)
         : error_count(error_count) {}
 
-        void operator()(iterator_range, unused_type, unused_type) const;
+        void operator()(file_position, unused_type, unused_type) const;
 
         int& error_count;
     };
@@ -87,7 +87,7 @@ namespace quickbook
 
     struct element_id_warning_action
     {
-        void operator()(iterator_range, unused_type, unused_type) const;
+        void operator()(file_position, unused_type, unused_type) const;
     };
 
     struct phrase_push_action

@@ -113,8 +113,7 @@ namespace quickbook
             >>  (*(qi::char_ - phrase_end))         [member_assign(&quickbook::include::path)]
             ;
 
-        include_id = qi::raw[*((qi::alnum | '_') - qi::space)]
-                                            [qi::_val = qi::_1];
+        include_id = qi::raw[*(qi::alnum | '_')]    [qi::_val = qi::_1];
 
         // Import
 

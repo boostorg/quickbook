@@ -36,7 +36,6 @@ namespace quickbook
 
         simple_phrase =
            *(   common
-            |   comment
             |   (qi::char_ - ']')               [actions.process]
             )
             ;
@@ -44,7 +43,6 @@ namespace quickbook
         phrase =
                 qi::eps                         [actions.phrase_push]        
             >> *(   common
-                |   comment
                 |   (qi::char_ - phrase_end)    [actions.process]
                 )
             >>  qi::eps                         [actions.phrase_pop]
