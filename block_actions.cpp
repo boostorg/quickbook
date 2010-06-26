@@ -54,6 +54,7 @@ namespace quickbook
     nothing process(quickbook::state& state, block_separator const&)
     {
         state.paragraph_output();
+        return nothing();
     }
 
     begin_section2 process(quickbook::state& state, begin_section const& x)
