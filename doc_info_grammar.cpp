@@ -148,8 +148,7 @@ namespace quickbook
             ;
 
         local.doc_author =
-                space
-            >>  '['
+                '['
             >>  space
             >>  (*~qi::char_(','))          [member_assign(&doc_info::author::surname)]
             >>  ',' >> space
@@ -157,7 +156,12 @@ namespace quickbook
             >>  ']'
             ;
 
-        local.doc_authors = "authors" >> hard_space >> (local.doc_author % ',') ;
+        local.doc_authors
+            =   "authors"
+            >>  hard_space
+            >>  (   (local.doc_author >> space)
+                %   -(qi::char_(',') >> space)
+                );
 
         local.doc_license =
                 "license" >> hard_space

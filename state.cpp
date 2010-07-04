@@ -102,7 +102,19 @@ namespace quickbook
         std::string paragraph;
         phrase.swap(paragraph);
 
-        if(!paragraph.empty()) {
+        // TODO: Use spirit to do this?
+
+        std::string::const_iterator
+            pos = paragraph.begin(),
+            end = paragraph.end();
+
+        while(pos != paragraph.end() && (
+            *pos == ' ' || *pos == '\t' || *pos == '\n' || *pos == '\r'))
+        {
+            ++pos;
+        }
+
+        if(pos != end) {
             actions a(*this);
             
             quickbook::paragraph p;

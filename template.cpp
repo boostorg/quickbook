@@ -326,7 +326,9 @@ namespace quickbook
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
                 r = boost::spirit::qi::parse(first, last, g.simple_phrase) && first == last;
-                state.phrase.swap(result);
+                std::string phrase;
+                state.phrase.swap(phrase);
+                result = phrase;
             }
             else
             {
@@ -349,7 +351,9 @@ namespace quickbook
 
                 r = boost::spirit::qi::parse(first, last, g.block) && first == last;
                 state.paragraph_output();
-                state.block.swap(result);
+                std::string block;
+                state.block.swap(block);
+                result = block;
             }
             
             return r;

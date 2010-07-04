@@ -2063,8 +2063,6 @@ replacement text...
           Hi, my name is James Bond. I am 39 years old. I am a Spy.
         </para>
         <para>
-        </para>
-        <para>
           Hi, my name is Santa Clause. I am 87 years old. I am a Big Red Fatso.
         </para>
         <caution>
@@ -2717,8 +2715,6 @@ for the journey to old age.]]]
 </phrase>    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo&quot;</phrase><phrase role="special">;</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
-        </para>
-        <para>
         </para>
         <para>
           This is the <emphasis role="bold"><emphasis>bar</emphasis></emphasis> function

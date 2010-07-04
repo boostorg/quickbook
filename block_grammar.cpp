@@ -48,7 +48,7 @@ namespace quickbook
             ;
 
         local.blocks =
-           +(   local.block_markup
+           *(   local.block_markup
             |   indented_code                   [actions.process]
             |   local.list                      [actions.process]
             |   local.hr                        [actions.process]
