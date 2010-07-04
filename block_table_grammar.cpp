@@ -9,11 +9,8 @@
 =============================================================================*/
 
 #include <boost/spirit/include/qi_core.hpp>
-#include <boost/spirit/include/qi_attr.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
 #include "grammar_impl.hpp"
 #include "block.hpp"
 #include "actions.hpp"
@@ -30,18 +27,22 @@ namespace quickbook
         qi::rule<iterator, quickbook::table()> table;
         qi::rule<iterator, quickbook::table_row()> table_row;
         qi::rule<iterator, quickbook::table_cell()> table_cell;
-        qi::rule<iterator, quickbook::block_formatted()> table_cell_body;
         qi::rule<iterator, quickbook::variablelist()> variablelist;
         qi::rule<iterator, quickbook::varlistentry()> varlistentry;
         qi::rule<iterator, quickbook::block_formatted()> varlistterm;
-        qi::rule<iterator, quickbook::block_formatted()> varlistterm_body;
         qi::rule<iterator, quickbook::block_formatted()> varlistitem;
-        qi::rule<iterator, quickbook::block_formatted()> varlistitem_body;
+
+        qi::rule<iterator> nested_cell_check;
     };
 
     void quickbook_grammar::impl::init_block_table()
     {
         block_table_grammar_local& local = store_.create();
+
+        // Error checking
+        
+        local.nested_cell_check = &qi::char_("[]");
+        local.nested_cell_check.name("nested cell");
 
         // Table
         
@@ -49,81 +50,70 @@ namespace quickbook
 
         local.table =
                 (&(*qi::blank >> qi::eol) | space)
-            >>  ((
-                    qi::eps(qbk_since(105u))
+            >   -(  qi::eps(qbk_since(105u))
                 >>  element_id                  [member_assign(&quickbook::table::id)]
-                ) | qi::eps)
-            >>  (&(*qi::blank >> qi::eol) | space)
-            >>  qi::raw[*(qi::char_ - eol)]     [member_assign(&quickbook::table::title)]
-            >>  +eol
-            >>  (*local.table_row)              [member_assign(&quickbook::table::rows)]
-            ;
-
-        local.table_row =
-                space
-            >>  '['
-            >>  (   *local.table_cell >> ']' >> space
-                |   error >> qi::attr(quickbook::table_row())
                 )
+            >   (&(*qi::blank >> qi::eol) | space)
+            >   qi::raw[*(qi::char_ - eol)]     [member_assign(&quickbook::table::title)]
+            >   eol
+            >   space
+            >   (*local.table_row)              [member_assign(&quickbook::table::rows)]
             ;
 
-        local.table_cell =
-                space
-            >>  '['
-            >>  (   local.table_cell_body >> ']' >> space
-                |   error >> qi::attr(quickbook::table_cell())
-                )
+        local.table_row
+            =   '['
+            >   space
+            >   local.nested_cell_check
+            >   *local.table_cell
+            >   ']'
+            >   space
             ;
 
-        local.table_cell_body =
-                inside_paragraph                    [member_assign(&quickbook::block_formatted::content)]
+        local.table_cell
+            =   '['
+            >   inside_paragraph                    [member_assign(&quickbook::block_formatted::content)]
                                                     [member_assign(&quickbook::block_formatted::type, "cell")]
+            >   ']'
+            >   space
             ;
+
+        local.table.name("table");
+        local.table_row.name("table_row");
+        local.table_cell.name("table_cell");
 
         block_keyword_rules.add("variablelist", local.variablelist[actions.process]);
 
         local.variablelist =
                 (&(*qi::blank >> qi::eol) | space)
-            >>  qi::raw[*(qi::char_ - eol)]         [member_assign(&quickbook::variablelist::title)]
-            >>  +eol
-            >>  (*local.varlistentry)               [member_assign(&quickbook::variablelist::entries)]
+            >   qi::raw[*(qi::char_ - eol)]         [member_assign(&quickbook::variablelist::title)]
+            >   eol
+            >   space
+            >   (*local.varlistentry)               [member_assign(&quickbook::variablelist::entries)]
             ;
             
-        local.varlistentry =
-                space
-            >>  '['
-            >>  (   local.varlistterm
-                >>  +local.varlistitem
-                >>  ']'
-                >>  space
-                |   error >> qi::attr(quickbook::varlistentry())
-                )
+        local.varlistentry
+            =   '['
+            >   space
+            >   local.varlistterm
+            >   +local.varlistitem
+            >   ']'
+            >   space
             ;
 
-        local.varlistterm =
-                space
-            >>  '['
-            >>  (   local.varlistterm_body >> ']' >> space
-                |   error >> qi::attr(quickbook::block_formatted())
-                )
-            ;
-
-        local.varlistterm_body =
-                phrase                              [member_assign(&quickbook::block_formatted::content)]
+        local.varlistterm
+            =   '['
+            >   phrase                              [member_assign(&quickbook::block_formatted::content)]
                                                     [member_assign(&quickbook::block_formatted::type, "varlistterm")]
+            >   ']'
+            >   space
             ;
 
-        local.varlistitem =
-                space
-            >>  '['
-            >>  (   local.varlistitem_body >> ']' >> space
-                |   error >> qi::attr(quickbook::block_formatted())
-                )
-            ;
-
-        local.varlistitem_body =
-                inside_paragraph                    [member_assign(&quickbook::block_formatted::content)]
+        local.varlistitem
+            =   '['
+            >   inside_paragraph                    [member_assign(&quickbook::block_formatted::content)]
                                                     [member_assign(&quickbook::block_formatted::type, "varlistitem")]
+            >   ']'
+            >   space
             ;
     }
 }
