@@ -78,7 +78,13 @@ namespace quickbook
 
     //
         void paragraph_output();
-    };    
+
+        template <typename T>
+        void encode(T const& x) {
+            const std::type_info &info = typeid(x);
+            (*encoder)(*this, x);
+        }
+    };
 }
 
 #endif // BOOST_SPIRIT_ACTIONS_CLASS_HPP

@@ -360,7 +360,7 @@ namespace quickbook
         }
     }
 
-    nothing process(quickbook::state& state, call_template const& x)
+    void process(quickbook::state& state, call_template const& x)
     {
         ++state.template_depth;
         if (state.template_depth > state.max_template_depth)
@@ -369,7 +369,7 @@ namespace quickbook
                 << "Infinite loop detected" << std::endl;
             --state.template_depth;
             ++state.error_count;
-            return nothing();
+            return;
         }
 
         // The template arguments should have the scope that the template was
@@ -402,7 +402,7 @@ namespace quickbook
                 state.pop(); // restore the state
                 --state.template_depth;
                 ++state.error_count;
-                return nothing();
+                return;
             }
 
             ///////////////////////////////////
@@ -417,7 +417,7 @@ namespace quickbook
             {
                 state.pop(); // restore the state
                 --state.template_depth;
-                return nothing();
+                return;
             }
 
             ///////////////////////////////////
@@ -435,7 +435,7 @@ namespace quickbook
                 state.pop(); // restore the state
                 --state.template_depth;
                 ++state.error_count;
-                return nothing();
+                return;
             }
 
             if (state.section_level != state.min_section_level)
@@ -445,7 +445,7 @@ namespace quickbook
                 state.pop(); // restore the actions' states
                 --state.template_depth;
                 ++state.error_count;
-                return nothing(); 
+                return; 
             }
         }
 
@@ -469,7 +469,7 @@ namespace quickbook
                         << "Error expanding callout."
                         << std::endl;
                     ++state.error_count;
-                    return nothing();
+                    return;
                 }
 
                 list.push_back(item);
@@ -492,6 +492,6 @@ namespace quickbook
             state.phrase << result;
         }
         
-        return nothing();
+        return;
     }
 }

@@ -33,8 +33,6 @@ namespace quickbook
     // push and pop methods.
     
     struct encoder {
-        void operator()(quickbook::state&, nothing) {}
-    
         virtual void operator()(quickbook::state&, doc_info const&) = 0;
         virtual void operator()(quickbook::state&, doc_info_post const&) = 0;
     

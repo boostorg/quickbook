@@ -11,24 +11,23 @@
 #define BOOST_SPIRIT_QUICKBOOK_BLOCK_ACTIONS_HPP
 
 #include "block.hpp"
-#include "gen_types.hpp"
 
 namespace quickbook
 {
-    block_formatted process(quickbook::state&, block_formatted const&);
-    block_formatted process(quickbook::state&, paragraph const&);
-    nothing process(quickbook::state&, block_separator const&);
-    begin_section2 process(quickbook::state&, begin_section const&);
-    end_section2 process(quickbook::state&, end_section const&);
-    heading2 process(quickbook::state&, heading const&);
-    nothing process(quickbook::state&, def_macro const&);
-    nothing process(quickbook::state&, define_template const&);
-    table2 process(quickbook::state&, table const&);
-    variablelist process(quickbook::state&, variablelist const&);
-    xinclude2 process(quickbook::state&, xinclude const&);
-    nothing process(quickbook::state&, import const&);
-    nothing process(quickbook::state&, include const&);
-    list2 process(quickbook::state&, list const&);
+    void process(quickbook::state&, block_formatted const&);
+    void process(quickbook::state&, paragraph const&);
+    void process(quickbook::state&, block_separator const&);
+    void process(quickbook::state&, begin_section const&);
+    void process(quickbook::state&, end_section const&);
+    void process(quickbook::state&, heading const&);
+    void process(quickbook::state&, def_macro const&);
+    void process(quickbook::state&, define_template const&);
+    void process(quickbook::state&, table const&);
+    void process(quickbook::state&, variablelist const&);
+    void process(quickbook::state&, xinclude const&);
+    void process(quickbook::state&, import const&);
+    void process(quickbook::state&, include const&);
+    void process(quickbook::state&, list const&);
 }
 
 #endif

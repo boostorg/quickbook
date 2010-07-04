@@ -10,16 +10,18 @@
 
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include "phrase_actions.hpp"
 #include "phrase.hpp"
 #include "gen_types.hpp"
 #include "state.hpp"
 #include "utils.hpp"
+#include "encoder.hpp"
 
 namespace quickbook
 {
     namespace fs = boost::filesystem;
 
-    image2 process(quickbook::state& state, image const& x)
+    void process(quickbook::state& state, image const& x)
     {
         typedef image2::attribute_map attribute_map;
         typedef attribute_map::value_type attribute;
@@ -113,6 +115,6 @@ namespace quickbook
            }
         }
         
-        return image2(attributes);
+        state.encode(image2(attributes));
     }
 }

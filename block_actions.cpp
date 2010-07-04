@@ -18,6 +18,7 @@
 #include "code_snippet_grammar.hpp"
 #include "code_snippet_types.hpp"
 #include "utils.hpp"
+#include "encoder.hpp"
 
 namespace quickbook
 {
@@ -36,28 +37,27 @@ namespace quickbook
         }
     }
 
-    block_formatted process(quickbook::state& state, block_formatted const& x)
+    void process(quickbook::state& state, block_formatted const& x)
     {
         state.paragraph_output();
-        return x;
+        state.encode(x);
     }
 
-    block_formatted process(quickbook::state& state, paragraph const& x)
+    void process(quickbook::state& state, paragraph const& x)
     {
         state.paragraph_output();
         block_formatted r;
         r.type="paragraph";
         r.content = x.content;
-        return r;
+        state.encode(r);
     }
 
-    nothing process(quickbook::state& state, block_separator const&)
+    void process(quickbook::state& state, block_separator const&)
     {
         state.paragraph_output();
-        return nothing();
     }
 
-    begin_section2 process(quickbook::state& state, begin_section const& x)
+    void process(quickbook::state& state, begin_section const& x)
     {
         state.paragraph_output();
 
@@ -89,11 +89,10 @@ namespace quickbook
         }
         
         r.content = x.content.content;
-        
-        return r;
+        state.encode(r);
     }
 
-    end_section2 process(quickbook::state& state, end_section const& x)
+    void process(quickbook::state& state, end_section const& x)
     {
         state.paragraph_output();
 
@@ -103,8 +102,7 @@ namespace quickbook
                 << "Mismatched [endsect] near column " << x.position.column << ".\n";
             ++state.error_count;
             
-            // TODO: Return something else?
-            return end_section2();
+            return;
         }
 
         --state.section_level;
@@ -119,11 +117,11 @@ namespace quickbook
                 state.qualified_section_id.value.find_last_of('.');
             state.qualified_section_id.value.erase(n, std::string::npos);
         }
-        
-        return end_section2();
+
+        state.encode(end_section2());
     }
 
-    heading2 process(quickbook::state& state, heading const& x)
+    void process(quickbook::state& state, heading const& x)
     {
         state.paragraph_output();
 
@@ -160,10 +158,10 @@ namespace quickbook
 
         r.content = x.content.content;
         
-        return r;
+        state.encode(r);
     }
 
-    nothing process(quickbook::state& state, def_macro const& x)
+    void process(quickbook::state& state, def_macro const& x)
     {
         state.paragraph_output();
 
@@ -171,10 +169,9 @@ namespace quickbook
             x.macro_identifier.begin()
           , x.macro_identifier.end()
           , quickbook::macro(x.content));
-        return nothing();
     }
 
-    nothing process(quickbook::state& state, define_template const& x)
+    void process(quickbook::state& state, define_template const& x)
     {
         state.paragraph_output();
 
@@ -183,11 +180,9 @@ namespace quickbook
                 << "Template Redefinition: " << x.id << std::endl;
             ++state.error_count;
         }
-        
-        return nothing();
     }
 
-    table2 process(quickbook::state& state, table const& x)
+    void process(quickbook::state& state, table const& x)
     {
         state.paragraph_output();
 
@@ -224,14 +219,13 @@ namespace quickbook
 
         r.rows.assign(row, x.rows.end());
 
-        return r;
+        state.encode(r);
     }
 
-    variablelist process(quickbook::state& state, variablelist const& x)
+    void process(quickbook::state& state, variablelist const& x)
     {
         state.paragraph_output();
-
-        return x;
+        state.encode(x);
     }
 
     namespace
@@ -330,16 +324,16 @@ namespace quickbook
         }
     }
 
-    xinclude2 process(quickbook::state& state, xinclude const& x)
+    void process(quickbook::state& state, xinclude const& x)
     {
         state.paragraph_output();
 
         xinclude2 r;
         r.path = calculate_relative_path(detail::escape_uri(x.path), state).string();
-        return r;
+        state.encode(r);
     }
 
-    nothing process(quickbook::state& state, include const& x)
+    void process(quickbook::state& state, include const& x)
     {
         state.paragraph_output();
 
@@ -394,11 +388,9 @@ namespace quickbook
         state.macro = macro;
         // restore the templates
         //~ state.templates = templates; $$$ fixme $$$
-        
-        return nothing();
     }
 
-    nothing process(quickbook::state& state, import const& x)
+    void process(quickbook::state& state, import const& x)
     {
         state.paragraph_output();
 
@@ -417,7 +409,5 @@ namespace quickbook
                 ++state.error_count;
             }
         }
-
-        return nothing();
     }
 }

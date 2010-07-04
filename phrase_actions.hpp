@@ -10,22 +10,20 @@
 #if !defined(BOOST_SPIRIT_QUICKBOOK_PHRASE_ACTIONS_HPP)
 #define BOOST_SPIRIT_QUICKBOOK_PHRASE_ACTIONS_HPP
 
-#include <boost/variant/variant.hpp>
 #include "phrase.hpp"
 #include "code.hpp"
-#include "gen_types.hpp"
 
 namespace quickbook
 {
-    nothing process(quickbook::state&, source_mode const&);
-    std::string process(quickbook::state&, macro const&);
-    link process(quickbook::state&, link const&);
-    formatted process(quickbook::state&, simple_markup const&);
-    std::string process(quickbook::state&, cond_phrase const&);
-    break_ process(quickbook::state&, break_ const&);
-    boost::variant<formatted, block_formatted> process(quickbook::state&, code const&);
-    image2 process(quickbook::state&, image const&);
-    nothing process(quickbook::state&, call_template const&);
+    void process(quickbook::state&, source_mode const&);
+    void process(quickbook::state&, macro const&);
+    void process(quickbook::state&, link const&);
+    void process(quickbook::state&, simple_markup const&);
+    void process(quickbook::state&, cond_phrase const&);
+    void process(quickbook::state&, break_ const&);
+    void process(quickbook::state&, code const&);
+    void process(quickbook::state&, image const&);
+    void process(quickbook::state&, call_template const&);
 }
 
 #endif

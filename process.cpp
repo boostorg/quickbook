@@ -20,35 +20,19 @@
 #include "template.hpp"
 #include "doc_info_actions.hpp"
 #include "encoder.hpp"
-#include <boost/variant/apply_visitor.hpp>
 
 namespace quickbook
 {
-    namespace {
-        template <typename T>
-        inline void encode_impl(state& state_, T const& x)
-        {
-            (*state_.encoder)(state_, x);
-        }
-    
-        template <BOOST_VARIANT_ENUM_PARAMS(typename T)>
-        inline void encode_impl(state& state_, boost::variant<BOOST_VARIANT_ENUM_PARAMS(T)> const& x)
-        {
-            encode_action visitor(state_, *state_.encoder);
-            boost::apply_visitor(visitor, x);
-        }
-    }
-
     template <typename T>
     void process_action::operator()(T const& x) const
     {
-        encode_impl(actions.state_, process(actions.state_, x));
+        process(actions.state_, x);
     }
 
     template <typename T>
-    T const& process(quickbook::state&, T const& x)
+    void process(quickbook::state& state, T const& x)
     {
-        return x;
+        state.encode(x);
     }
 
     template void process_action::operator()<std::string>(std::string const&) const;

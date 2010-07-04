@@ -19,7 +19,7 @@
 #include "doc_info_actions.hpp"
 #include "state.hpp"
 #include "utils.hpp"
-#include <iostream>
+#include "encoder.hpp"
 
 namespace quickbook
 {
@@ -44,7 +44,7 @@ namespace quickbook
         };
     }
 
-    doc_info process(quickbook::state& state, doc_info const& x)
+    void process(quickbook::state& state, doc_info const& x)
     {
         doc_info info = x;
     
@@ -106,6 +106,6 @@ namespace quickbook
                 ;
         }
 
-        return info;
+        state.encode(info);
     }
 }

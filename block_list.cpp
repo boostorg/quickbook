@@ -10,9 +10,13 @@
 
 #include <stack>
 #include <boost/assert.hpp>
+#include "block_actions.hpp"
 #include "state.hpp"
 #include "gen_types.hpp"
 #include "utils.hpp"
+#include "encoder.hpp"
+
+#include <iostream>
 
 namespace quickbook
 {
@@ -42,10 +46,9 @@ namespace quickbook
         int indent;
     };
 
-    list2 process(quickbook::state& state, quickbook::list const& list)
+    void process(quickbook::state& state, quickbook::list const& list)
     {
         state.paragraph_output();
-
         list::const_iterator it = list.begin(), end = list.end();
         BOOST_ASSERT(it != end);
         
@@ -88,6 +91,6 @@ namespace quickbook
             }
         }
 
-        return r;
+        state.encode(r);
     }
 }
