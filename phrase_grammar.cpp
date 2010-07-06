@@ -13,6 +13,7 @@
 #include <boost/spirit/include/qi_eoi.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
+#include <boost/spirit/repository/include/qi_confix.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include "grammar_impl.hpp"
 #include "phrase.hpp"
@@ -24,6 +25,7 @@
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
+    namespace repo = boost::spirit::repository;
     namespace ph = boost::phoenix;
 
     struct phrase_grammar_local
@@ -80,13 +82,11 @@ namespace quickbook
             ;
 
         local.phrase_markup =
-            (   '['
-            >>  (   local.phrase_markup_impl
-                |   call_template
-                |   local.break_                    [actions.process]
-                )
-            >>  ']'
-            )                                       
+            repo::confix('[', ']')
+            [   local.phrase_markup_impl
+            |   call_template
+            |   local.break_                        [actions.process]
+            ]
             ;
 
         local.phrase_markup_impl
@@ -155,10 +155,9 @@ namespace quickbook
             ;
 
         local.escape_markup =
-                ("'''" >> -eol)
-            >>  (*(qi::char_ - "'''"))              [member_assign(&quickbook::formatted::content)]
+            repo::confix("'''" >> -eol, "'''") [*(qi::char_ - "'''")]
+                                                    [member_assign(&quickbook::formatted::content)]
                                                     [member_assign(&quickbook::formatted::type, "escape")]
-            >>  "'''"
             ;
 
         local.escape_unicode16 =

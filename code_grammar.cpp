@@ -10,6 +10,7 @@
 
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eol.hpp>
+#include <boost/spirit/repository/include/qi_confix.hpp>
 #include "grammar_impl.hpp"
 #include "actions.hpp"
 #include "code.hpp"
@@ -19,6 +20,7 @@
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
+    namespace repo = boost::spirit::repository;
     namespace ph = boost::phoenix;
 
     struct code_grammar_local
@@ -56,29 +58,29 @@ namespace quickbook
         code_block = (local.code_block1 | local.code_block2) [actions.process];
 
         local.code_block1
-            =   "```"
-            >>  position                            [member_assign(&quickbook::code::position)]
+            =   repo::confix("```", "```")
+                [   position                        [member_assign(&quickbook::code::position)]
                                                     [member_assign(&quickbook::code::flow, quickbook::code::inline_block)]
-            >>  qi::raw[*(qi::char_ - "```")]       [member_assign(&quickbook::code::content)]
-            >>  "```"
-            ;
+                >>  qi::raw[*(qi::char_ - "```")]   [member_assign(&quickbook::code::content)]
+                ]
+           ;
 
         local.code_block2
-            =   "``"
-            >>  position                            [member_assign(&quickbook::code::position)]
+            =   repo::confix("``", "``")
+                [   position                        [member_assign(&quickbook::code::position)]
                                                     [member_assign(&quickbook::code::flow, quickbook::code::inline_block)]
-            >>  qi::raw[*(qi::char_ - "``")]        [member_assign(&quickbook::code::content)]
-            >>  "``"
+                >>  qi::raw[*(qi::char_ - "``")]    [member_assign(&quickbook::code::content)]
+                ]
             ;
 
         inline_code = local.inline_code [actions.process];
 
-        local.inline_code =
-                '`'
-            >>  position                            [member_assign(&quickbook::code::position)]
+        local.inline_code
+            =   repo::confix('`', '`')
+                [   position                        [member_assign(&quickbook::code::position)]
                                                     [member_assign(&quickbook::code::flow, quickbook::code::inline_)]
-            >>  local.inline_code_block             [member_assign(&quickbook::code::content)]
-            >>  '`'
+                >>  local.inline_code_block         [member_assign(&quickbook::code::content)]
+                ]
             ;
 
         local.inline_code_block =

@@ -95,7 +95,7 @@ namespace quickbook
             qi::eps[actions.phrase_push] >>
            *(   common
             |   (qi::char_ -
-                    (   qi::eol >> *qi::blank >> &(qi::char_('*') | '#')
+                    (   qi::eol >> *qi::blank >> &qi::char_("*#")
                     |   (eol >> *qi::blank >> qi::eol)
                     )
                 )                                   [actions.process]

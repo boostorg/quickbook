@@ -12,6 +12,7 @@
 #include <boost/spirit/include/qi_auxiliary.hpp>
 #include <boost/spirit/include/qi_string.hpp>
 #include <boost/spirit/include/qi_directive.hpp>
+#include <boost/spirit/repository/include/qi_confix.hpp>
 #include "grammar.hpp"
 #include "actions.hpp"
 #include "phrase.hpp"
@@ -23,6 +24,8 @@
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
+    namespace repo = boost::spirit::repository;
+
     using boost::spirit::unused_type;
 
     struct parse_escaped_impl
@@ -99,8 +102,8 @@ namespace quickbook
 
             comment
                 =   qi::raw[
-                        qi::lit("//") >> *(qi::char_ - qi::eol) >> -qi::eol
-                    |   qi::lit("/*") >> *(qi::char_ - "*/") >> -qi::lit("*/")
+                        repo::confix("//", -qi::eol) [*(qi::char_ - qi::eol)]
+                    |   repo::confix("/*", -qi::lit("*/")) [*(qi::char_ - "*/")]
                     ]                                   [member_assign(&code_token::text)]
                                                         [member_assign(&code_token::type, "comment")]
                 ;
@@ -139,7 +142,7 @@ namespace quickbook
             string_
                 =   qi::raw[
                         -qi::no_case['l']
-                    >>  '"' >> *(string_char - '"') >> -qi::lit('"')
+                    >>  repo::confix('"', -qi::lit('"')) [*(string_char - '"')]
                     ]                                   [member_assign(&code_token::text)]
                                                         [member_assign(&code_token::type, "string")]
                 ;
@@ -147,7 +150,7 @@ namespace quickbook
             char_ =
                     qi::raw[
                         -qi::no_case['l']
-                    >>  '\'' >> *(string_char - '\'') >> -qi::lit('\'')
+                    >>  repo::confix('\'', -qi::lit('\'')) [*(string_char - '\'')]
                     ]                                   [member_assign(&code_token::text)]
                                                         [member_assign(&code_token::type, "char")]
                 ;
@@ -285,13 +288,13 @@ namespace quickbook
             string_char = ('\\' >> qi::char_) | (qi::char_ - '\\');
         
             short_string
-                =   qi::lit('\'') >> *(string_char - '\'') >> -qi::lit('\'') |
-                    qi::lit('"') >> *(string_char - '"') >> -qi::lit('"')
+                =   repo::confix('\'', -qi::lit('\'')) [*(string_char - '\'')]
+                |   repo::confix('"', -qi::lit('"')) [*(string_char - '"')]
                 ;
         
             long_string
-                =   qi::lit("'''") >> *(string_char - "'''") >> -qi::lit("'''") |
-                    qi::lit("\"\"\"") >> *(string_char - "\"\"\"") >> -qi::lit("\"\"\"")
+                =   repo::confix("'''", -qi::lit("'''")) [*(string_char - "'''")]
+                |   repo::confix("\"\"\"", -qi::lit("\"\"\"")) [*(string_char - "\"\"\"")]
                 ;
             
             number

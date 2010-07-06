@@ -10,6 +10,7 @@
 
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
+#include <boost/spirit/repository/include/qi_confix.hpp>
 #include "grammar_impl.hpp"
 #include "phrase.hpp"
 #include "actions.hpp"
@@ -19,7 +20,7 @@
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
-    namespace ph = boost::phoenix;
+    namespace repo = boost::spirit::repository;
 
     struct image_grammar_local
     {
@@ -69,11 +70,11 @@ namespace quickbook
         local.image_attributes = *(local.image_attribute >> space);
         
         local.image_attribute =
-                '['
-            >>  local.image_attribute_key           [member_assign(&std::pair<std::string, std::string>::first)]
+                repo::confix('[', ']')
+            [   local.image_attribute_key           [member_assign(&std::pair<std::string, std::string>::first)]
             >>  space
             >>  local.image_attribute_value         [member_assign(&std::pair<std::string, std::string>::second)]
-            >>  ']'
+            ]
             ;
             
         local.image_attribute_key = *(qi::alnum | '_');

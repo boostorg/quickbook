@@ -10,6 +10,7 @@
 
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
+#include <boost/spirit/repository/include/qi_confix.hpp>
 #include "grammar_impl.hpp"
 #include "template.hpp"
 #include "actions.hpp"
@@ -19,6 +20,7 @@
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
+    namespace repo = boost::spirit::repository;
     
     struct template_grammar_local
     {
@@ -50,10 +52,8 @@ namespace quickbook
 
         local.define_template_params =
                 space
-            >>  '['
-            >>  *(space >> local.template_id)
-            >>  space
-            >>  ']'
+            >>  repo::confix('[', ']')
+                    [space >> *(local.template_id >> space)]
             ;
 
         local.template_body =
@@ -63,7 +63,7 @@ namespace quickbook
             ;
 
         local.template_body_recurse =
-                *(  ('[' >> local.template_body_recurse >> ']')
+                *(  repo::confix('[', ']')[local.template_body_recurse]
                 |   (qi::char_ - ']')
                 )
             >>  space
@@ -75,7 +75,7 @@ namespace quickbook
             |   qi::repeat(1)[qi::punct - qi::char_("[]")]
             ;
 
-		call_template = local.call_template [actions.process];
+        call_template = local.call_template [actions.process];
 
         local.call_template =
                 position                            [member_assign(&quickbook::call_template::position)]
@@ -99,7 +99,8 @@ namespace quickbook
             ;
 
         local.brackets_1_4 =
-            '[' >> +(local.brackets_1_4 | ~qi::char_(']') - "..") >> ']'
+            repo::confix('[', ']')
+                [+(local.brackets_1_4 | ~qi::char_(']') - "..")]
             ;
 
         local.template_arg_1_5 =
@@ -109,7 +110,8 @@ namespace quickbook
             ;
 
         local.brackets_1_5 =
-            '[' >> +(local.brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]")) >> ']'
+            repo::confix('[', ']')
+                [+(local.brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]"))]
             ;
     }
 }

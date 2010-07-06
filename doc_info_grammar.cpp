@@ -13,11 +13,11 @@
 #include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_attr_cast.hpp>
+#include <boost/spirit/repository/include/qi_confix.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_fusion.hpp>
-#include <boost/spirit/include/phoenix_bind.hpp>
 #include "doc_info.hpp"
 #include "grammar_impl.hpp"
 #include "actions.hpp"
@@ -29,6 +29,7 @@
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
+    namespace repo = boost::spirit::repository;
     namespace ph = boost::phoenix;
     
     void set_quickbook_version(boost::fusion::vector<unsigned, unsigned> version)
@@ -81,47 +82,39 @@ namespace quickbook
         ;
         
         doc_info_details =
-            space
-            >>  '[' >> space
-            >>  qi::raw[local.doc_types]    [member_assign(&doc_info::doc_type)]
+            repo::confix(space >> '[' >> space, space >> ']' >> +qi::eol)
+            [   qi::raw[local.doc_types]    [member_assign(&doc_info::doc_type)]
             >>  hard_space
             >>  qi::raw[
                     *(~qi::char_("[]") - qi::eol)
                 ]                           [member_assign(&doc_info::doc_title)]
             >>  local.quickbook_version
-            >>
-                *(
-                    space >> '[' >>
-                    (
-                      local.doc_version     [member_assign(&doc_info::doc_version)]
-                    | local.doc_id          [member_assign(&doc_info::doc_id)]
-                    | local.doc_dirname     [member_assign(&doc_info::doc_dirname)]
-                    | local.doc_copyright   [member_push(&doc_info::doc_copyrights)]
-                    | local.doc_purpose     [member_assign(&doc_info::doc_purpose)]
-                    | local.doc_category    [member_push(&doc_info::doc_categories)]
-                    | local.doc_authors     [member_assign(&doc_info::doc_authors)]
-                    | local.doc_license     [member_assign(&doc_info::doc_license)]
-                    | local.doc_last_revision
+            >>  *repo::confix(space >> '[', space >> ']' >> +qi::eol)
+                [   local.doc_version       [member_assign(&doc_info::doc_version)]
+                |   local.doc_id            [member_assign(&doc_info::doc_id)]
+                |   local.doc_dirname       [member_assign(&doc_info::doc_dirname)]
+                |   local.doc_copyright     [member_push(&doc_info::doc_copyrights)]
+                |   local.doc_purpose       [member_assign(&doc_info::doc_purpose)]
+                |   local.doc_category      [member_push(&doc_info::doc_categories)]
+                |   local.doc_authors       [member_assign(&doc_info::doc_authors)]
+                |   local.doc_license       [member_assign(&doc_info::doc_license)]
+                |   local.doc_last_revision
                                             [member_assign(&doc_info::doc_last_revision)]
-                      // This has to be set in actions so that source code in phrases use the
-                      // correct encoding.
-                    | local.doc_source_mode [ph::ref(actions.state_.source_mode) = qi::_1]
-                    )
-                    >> space >> ']' >> +qi::eol
-                )
-            >> space >> ']' >> +qi::eol
+                    // This has to be set in actions so that source code in phrases use the
+                    // correct encoding.
+                |   local.doc_source_mode   [ph::ref(actions.state_.source_mode) = qi::_1]
+                ]
+            ]
             ;
 
         local.quickbook_version =
-            (   space
-            >>  '['
-            >>  "quickbook"
+            repo::confix(space >> '[', space >> ']')
+            [   "quickbook"
             >>  hard_space
             >>  qi::uint_
             >>  '.' 
             >>  uint2_t()
-            >>  space >> ']'
-            )                               [set_quickbook_version]
+            ]                               [set_quickbook_version]
             | position                      [default_quickbook_version]
             ;
 
