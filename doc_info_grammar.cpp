@@ -32,28 +32,10 @@ namespace quickbook
     namespace repo = boost::spirit::repository;
     namespace ph = boost::phoenix;
     
-    void set_quickbook_version(boost::fusion::vector<unsigned, unsigned> version)
-    {
-        qbk_major_version = boost::fusion::at_c<0>(version);
-        qbk_minor_version = boost::fusion::at_c<1>(version);
-        qbk_version_n = (qbk_major_version * 100) + qbk_minor_version;
-    }
-    
-    void default_quickbook_version(file_position pos)
-    {
-        qbk_major_version = 1;
-        qbk_minor_version = 1;
-        qbk_version_n = 101;
-
-        detail::outwarn(pos.file)
-            << "Warning: Quickbook version undefined. "
-               "Version 1.1 is assumed" << std::endl;
-    }
-    
     struct doc_info_grammar_local
     {
         qi::symbols<char> doc_types;
-        qi::rule<iterator> quickbook_version;
+        qi::rule<iterator, version()> quickbook_version;
         qi::rule<iterator, raw_source()> doc_version;
         qi::rule<iterator, raw_source()> doc_id;
         qi::rule<iterator, raw_source()> doc_dirname;
@@ -88,7 +70,7 @@ namespace quickbook
             >>  qi::raw[
                     *(~qi::char_("[]") - qi::eol)
                 ]                           [member_assign(&doc_info::doc_title)]
-            >>  local.quickbook_version
+            >>  local.quickbook_version     [actions.process]
             >>  *repo::confix(space >> '[', space >> ']' >> +qi::eol)
                 [   local.doc_version       [member_assign(&doc_info::doc_version)]
                 |   local.doc_id            [member_assign(&doc_info::doc_id)]
@@ -108,14 +90,14 @@ namespace quickbook
             ;
 
         local.quickbook_version =
-            repo::confix(space >> '[', space >> ']')
-            [   "quickbook"
-            >>  hard_space
-            >>  qi::uint_
-            >>  '.' 
-            >>  uint2_t()
-            ]                               [set_quickbook_version]
-            | position                      [default_quickbook_version]
+                position                    [member_assign(&version::position)]
+            >>  -repo::confix(space >> '[', space >> ']')
+                [   "quickbook"
+                >>  hard_space
+                >>  qi::uint_               [member_assign(&version::major)]
+                >>  '.' 
+                >>  uint2_t()               [member_assign(&version::minor)]
+                ]
             ;
 
         local.doc_version = "version" >> hard_space >> qi::raw[*~qi::char_(']')];

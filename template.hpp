@@ -44,7 +44,7 @@ namespace quickbook
     };
 
     struct callout_source {
-        std::string identifier;
+        std::string role;
         template_value body;
     };
     

@@ -17,6 +17,7 @@
 
 namespace quickbook
 {
+    void process(quickbook::state&, version const&);
     void process(quickbook::state&, doc_info const&);
 }
 

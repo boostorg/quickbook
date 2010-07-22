@@ -8,6 +8,7 @@
 =============================================================================*/
 
 #include <boost/spirit/include/qi_symbols.hpp>
+#include <boost/lexical_cast.hpp>
 #include "template.hpp"
 #include "phrase_actions.hpp"
 #include "grammar.hpp"
@@ -20,6 +21,11 @@
 
 namespace quickbook
 {
+    namespace
+    {
+        int callout_id = 0;
+    }
+
     struct template_symbol
     {
         template_symbol(
@@ -322,7 +328,7 @@ namespace quickbook
                 quickbook_grammar g(actions);
 
                 //  do a phrase level parse
-                iterator first(body.begin(), body.end(), state.filename.file_string().c_str());
+                iterator first(body.begin(), body.end(), state.filename.native().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
                 r = boost::spirit::qi::parse(first, last, g.simple_phrase) && first == last;
@@ -340,7 +346,7 @@ namespace quickbook
                 //  the need to check for end of file in the grammar.
                 body += "\n\n";
 
-                iterator first(body.begin(), body.end(), state.filename.file_string().c_str());
+                iterator first(body.begin(), body.end(), state.filename.native().c_str());
                 first.set_position(template_pos);
                 iterator last(body.end(), body.end());
 
@@ -396,13 +402,44 @@ namespace quickbook
             std::vector<template_value> args = x.args;
     
             ///////////////////////////////////
-            // Break the arguments
-            if (!break_arguments(args, x.symbol->params, x.position))
+            // Initialise the arguments
+            
+            if (!x.symbol->callouts.size())
             {
-                state.pop(); // restore the state
-                --state.template_depth;
-                ++state.error_count;
-                return;
+                // Break the arguments for a template
+            
+                if (!break_arguments(args, x.symbol->params, x.position))
+                {
+                    state.pop(); // restore the state
+                    --state.template_depth;
+                    ++state.error_count;
+                    return;
+                }
+            }
+            else
+            {
+                if (!args.empty())
+                {
+                    detail::outerr(x.position.file, x.position.line)
+                        << "Arguments for code snippet."
+                        <<std::endl;
+                    ++state.error_count;
+
+                    args.clear();
+                }
+
+                BOOST_ASSERT(x.symbol->params.size() == x.symbol->callouts.size());
+                unsigned int size = x.symbol->callouts.size();
+
+                for(unsigned int i = 0; i < size; ++i)
+                {
+                    template_value value;
+                    value.content = "[[callout]" + x.symbol->callouts[i].role + " " +
+                        state.doc_id.value +
+                        boost::lexical_cast<std::string>(callout_id + i) +
+                        "]";
+                    args.push_back(value);
+                }
             }
 
             ///////////////////////////////////
@@ -456,7 +493,8 @@ namespace quickbook
             callout_list list;
             BOOST_FOREACH(callout_source const& c, x.symbol->callouts) {
                 callout_item item;
-                item.identifier = c.identifier;
+                item.identifier = state.doc_id.value +
+                        boost::lexical_cast<std::string>(callout_id++);
                 
                 state.push();
                 // TODO: adjust the position?

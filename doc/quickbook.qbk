@@ -191,19 +191,33 @@ Features include:
 
 [h3 Version 1.5.2 - Boost 1.44.0]
 
-* Generate more valid boostbook (still invalid in a few places).
-* Warn about invalid doc_info members.
-* Support multiple categories in library doc_info.
 * Use the cygwin 1.7 API for better path handling.
-* Fix some corner cases for paragraph detection:
+* Improved boostbook generation:
+  * XML encode the documentation info correctly.
+  * Avoid generating empty paragraphs.
+  * No longer wraps block templates in paragraphs.
+  * Warns if you use invalid doc_info members for docbook document types.
+  * Fixes some other causes of invalid boostbook, although it still
+    generates invalid boostbook in places.
+* Improved grammar:
+  * Supports multiple categories in library doc_info.
+  * No longer requires commas between authors in docinfo.
+  * Allows empty document bodies.
   * A line containing only a comment is no longer interpreted as a
     paragraph break.
   * If a line starts with a comment, interpret it as a paragraph even if it's
     followed by whitespace or a list character.
-  * Don't treat 4+ consecutive blank lines as multiple paragraph breaks.
-* Don't require commas between authors in docinfo.
-* Allow empty document bodies.
-* Less empty paragraphs.
+  * Doesn't treat several consecutive blank lines as multiple paragraph breaks.
+* Fixes duplicate image attribute detection.
+* Fixes using code snippets more than once.
+* Early work on quickbook 1.6, available using the `[quickbook 1.6]` version switch,
+  but liable to change in future versions.
+  * When automatically generating ids for headers, use the quickbook
+    source, rather than the generated docbook.
+  * Fix id generation in included files. It wasn't correctly using the
+    main document's documentation id.
+  * Correctly restore the quickbook version switch after including a file
+    with a different version.
 
 [endsect]
 
@@ -785,6 +799,11 @@ In its absence, version 1.1 is assumed.
 
 =version=, =id=, =dirname=, =copyright=, =purpose=, =category=, =authors=,
 =license=, =last-revision= and =source-mode= are optional information.
+
+=dirname=, =purpose= and =category= are boostbook attributes which are only
+valid for =library= documents. If you use them for other document types,
+quickbook will warn about them, but still use them, generating invalid markup,
+that's just ignored by the style sheets.
 
 =source-type= is a lowercase string setting the initial __source_mode__. If
 the =source-mode= field is omitted, a default value of =c++= will be used.
@@ -1924,7 +1943,7 @@ rebuilds and install a system-wide Quickbook instead:
 
 # Go to Quickbook's source directory (`BOOST_ROOT/tools/quickbook`).
 
-# Build the utility by issuing `bjam --v2`.
+# Build the utility by issuing `bjam`.
 
 # Copy the resulting `quickbook` binary (located under the
   `BOOST_ROOT/bin.v2` hierarchy) to a safe place.  Following our previous
@@ -2014,7 +2033,7 @@ rebuilds:
 
 # Go to Quickbook's source directory (`BOOST_ROOT\tools\quickbook`).
 
-# Build the utility by issuing `bjam --v2`.
+# Build the utility by issuing `bjam`.
 
 # Copy the resulting `quickbook.exe` binary (located under the
   `BOOST_ROOT\bin.v2` hierarchy) to a safe place.  Following our previous
@@ -2065,7 +2084,7 @@ rebuilds:
 
 # Go to Quickbook's source directory (`BOOST_ROOT/tools/quickbook`).
 
-# Build the utility by issuing `bjam --v2`.
+# Build the utility by issuing `bjam`.
 
 # Copy the resulting `quickbook` binary (located under the
   `BOOST_ROOT/bin.v2` hierarchy) to a safe place.  The traditional location is

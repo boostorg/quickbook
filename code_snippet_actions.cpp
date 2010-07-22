@@ -27,25 +27,15 @@ namespace quickbook
         actions.code += x;
     }
 
-    namespace detail
-    {
-        int callout_id = 0;
-    }
-
     void code_snippet_actions::process_action::operator()(callout const& x, unused_type, unused_type) const
     {
-        using detail::callout_id;
-
         callout_source item;
-        item.identifier = std::string(actions.doc_id.begin(), actions.doc_id.end());
-        item.identifier += boost::lexical_cast<std::string>(callout_id + actions.callouts.size());
         item.body = template_value(x.position, x.content);
+        item.role = x.role;
 
-        actions.code += "``[[callout]";
-        actions.code += x.role;
-        actions.code += " ";
-        actions.code += item.identifier;
-        actions.code += "]``";
+        actions.code += "``[[callout" +
+            boost::lexical_cast<std::string>(actions.callouts.size()) +
+            "]]``";
 
         actions.callouts.push_back(item);
     }
@@ -73,7 +63,8 @@ namespace quickbook
 
     void code_snippet_actions::output_action::operator()(code_snippet const& x, unused_type, unused_type) const
     {
-        using detail::callout_id;
+        std::vector<std::string> params;
+
         if (!actions.code.empty())
         {
             detail::unindent(actions.code); // remove all indents
@@ -83,15 +74,21 @@ namespace quickbook
                 actions.snippet += actions.source_type;
                 actions.snippet += "```\n" + actions.code + "```\n\n";
             }
+
+            if(actions.callouts.size() > 0)
+            {
+              for (size_t i = 0; i < actions.callouts.size(); ++i)
+              {
+                  params.push_back("[callout" + boost::lexical_cast<std::string>(i) + "]");
+              }
+            }
         }
 
-        std::vector<std::string> empty_params;
-        define_template d(x.identifier, empty_params,
+        define_template d(x.identifier, params,
             template_value(x.position, actions.snippet));
         d.callouts = actions.callouts;
         actions.storage.push_back(d);
 
-        callout_id += actions.callouts.size();
         actions.callouts.clear();
         actions.code.clear();
         actions.snippet.clear();

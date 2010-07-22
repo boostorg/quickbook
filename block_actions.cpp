@@ -315,9 +315,9 @@ namespace quickbook
             fs::path path(x);
             if (!path.is_complete())
             {
-                fs::path infile = fs::complete(state.filename).normalize();
+                fs::path infile = fs::absolute(state.filename).normalize();
                 path = (infile.parent_path() / path).normalize();
-                fs::path outdir = fs::complete(state.outdir).normalize();
+                fs::path outdir = fs::absolute(state.outdir).normalize();
                 path = path_difference(outdir, path);
             }
             return path;
@@ -367,10 +367,10 @@ namespace quickbook
 
         // update the __FILENAME__ macro
         *state.macro.find("__FILENAME__") =
-            quickbook::macro(state.filename.file_string());
+            quickbook::macro(state.filename.native());
 
         // parse the file
-        quickbook::parse(state.filename.file_string().c_str(), state, true);
+        quickbook::parse(state.filename.native().c_str(), state, true);
 
         // restore the values
         std::swap(state.filename, filein);
@@ -395,7 +395,7 @@ namespace quickbook
         state.paragraph_output();
 
         fs::path path = include_search(state.filename.parent_path(), x.path);
-        std::string ext = path.extension();
+        std::string ext = path.extension().generic_string();
         std::vector<define_template> storage;
         state.error_count +=
             load_snippets(path.string(), storage, ext, state.doc_id);

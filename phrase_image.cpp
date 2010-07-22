@@ -39,18 +39,17 @@ namespace quickbook
                 begin = duplicates.begin(), end = duplicates.end();
                 begin != end; ++begin)
             {
-                detail::outerr(x.position.file, x.position.line)
+                detail::outwarn(x.position.file, x.position.line)
                     << "Duplicate image attribute: "
                     << begin->first
                     << std::endl;
-                ++state.error_count;
             }
         }
     
         fs::path const img_path(x.image_filename);
         attributes.insert(attribute("fileref", x.image_filename));
         // Note: If there is already an alt attribute this is a no-op.
-        attributes.insert(attribute("alt", img_path.stem()));
+        attributes.insert(attribute("alt", img_path.stem().generic_string()));
 
         if(img_path.extension() == ".svg")
         {

@@ -17,6 +17,7 @@ project quickbook
         <toolset>darwin:<cflags>-g0
         <debug-symbols>off
         <warnings>off
+        <define>BOOST_FILESYSTEM_VERSION=3
     ;
 
 exe quickbook

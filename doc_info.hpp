@@ -55,6 +55,15 @@ namespace quickbook
         doc_info_post(doc_info& info) : info(info) {}
         doc_info& info;
     };
+    
+    struct version
+    {
+        version() : major(-1), minor(-1) {}
+    
+        int major;
+        int minor;
+        file_position position;
+    };
 }
 
 #endif // BOOST_SPIRIT_QUICKBOOK_GRAMMARS_HPP

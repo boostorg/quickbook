@@ -66,4 +66,24 @@
       </important>
     </callout>
   </calloutlist>
+  <para>
+    Example 3 (again!):
+  </para>
+  <para>
+    
+<programlisting><phrase role="keyword">int</phrase> <phrase role="identifier">roll_die</phrase><phrase role="special">()</phrase> <phrase role="special">{</phrase>
+  <co id="callout_tests3co" linkends="callout_tests3" /><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">variate_generator</phrase><phrase role="special">&lt;</phrase><phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">mt19937</phrase><phrase role="special">&amp;,</phrase> <phrase role="identifier">boost</phrase><phrase role="special">::</phrase><phrase role="identifier">uniform_int</phrase><phrase role="special">&lt;&gt;</phrase> <phrase role="special">&gt;</phrase> <phrase role="identifier">die</phrase><phrase role="special">(</phrase><phrase role="identifier">gen</phrase><phrase role="special">,</phrase> <phrase role="identifier">dist</phrase><phrase role="special">);</phrase>
+<phrase role="special">}</phrase>
+
+</programlisting>
+  </para>
+  <calloutlist>
+    <callout arearefs="callout_tests3co" id="callout_tests3">
+      <important>
+        <para>
+          test
+        </para>
+      </important>
+    </callout>
+  </calloutlist>
 </article>
