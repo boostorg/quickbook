@@ -9,7 +9,7 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/v3/operations.hpp>
 #include "actions.hpp"
 #include "state.hpp"
 #include "quickbook.hpp"

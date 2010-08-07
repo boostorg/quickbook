@@ -10,7 +10,7 @@
 
 #include <numeric>
 #include <boost/assert.hpp>
-#include <boost/filesystem/convenience.hpp>
+#include <boost/filesystem/v3/convenience.hpp>
 #include "block_actions.hpp"
 #include "actions.hpp"
 #include "state.hpp"

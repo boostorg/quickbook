@@ -12,7 +12,7 @@
 
 #include <stack>
 #include <boost/tuple/tuple.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/v3/path.hpp>
 #include "fwd.hpp"
 #include "collector.hpp"
 #include "template.hpp"

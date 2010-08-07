@@ -8,8 +8,8 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include <boost/filesystem/convenience.hpp>
-#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/v3/convenience.hpp>
+#include <boost/filesystem/v3/fstream.hpp>
 #include "phrase_actions.hpp"
 #include "phrase.hpp"
 #include "gen_types.hpp"
