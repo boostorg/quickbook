@@ -23,19 +23,23 @@ namespace quickbook
     struct template_scope;
     struct template_symbol;
 
-    struct template_value
+    struct template_body
     {
-        template_value() {}
-        template_value(
+        template_body() {}
+        template_body(
+            std::string const& content,
             quickbook::file_position position,
-            std::string const& content)
+            bool is_block
+            )
         :
+            content(content),
             position(position),
-            content(content)
+            is_block(is_block)
         {}
     
-        quickbook::file_position position;
         std::string content;
+        quickbook::file_position position;
+        bool is_block;
     };
 
     struct callout_link {
@@ -45,7 +49,7 @@ namespace quickbook
 
     struct callout_source {
         std::string role;
-        template_value body;
+        template_body body;
     };
     
     struct callout_item {
@@ -63,7 +67,7 @@ namespace quickbook
         define_template(
             std::string id,
             std::vector<std::string> params,
-            template_value body
+            template_body const& body
             )
         :
             id(id), params(params), body(body)
@@ -71,7 +75,7 @@ namespace quickbook
 
         std::string id;
         std::vector<std::string> params;
-        template_value body;
+        template_body body;
         quickbook::callouts callouts;
     };
 
@@ -79,7 +83,7 @@ namespace quickbook
         file_position position;
         bool escape;
         template_symbol const* symbol;
-        std::vector<template_value> args;
+        std::vector<template_body> args;
     };
 
     struct template_stack
@@ -114,7 +118,7 @@ namespace quickbook
         template_symbol const* find_top_scope(std::string const& symbol) const;
         // Add the given template symbol to the current scope.
         // If a parent scope isn't supplied, uses the current scope.
-        bool add(define_template const&, template_scope const* parent = 0);
+        bool add(define_template const&, template_scope const* parent);
         void push();
         void pop();
 

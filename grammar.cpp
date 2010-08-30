@@ -56,8 +56,8 @@ namespace quickbook
         quickbook::actions& actions_;
     };
 
-   quickbook_grammar::quickbook_grammar(quickbook::actions& a)
-        : impl_(new impl(a))
+   quickbook_grammar::quickbook_grammar(quickbook::actions& a, bool skip_initial_spaces)
+        : impl_(new impl(a, skip_initial_spaces))
         , command_line_macro(impl_->command_line_macro, "command_line_macro")
         , phrase(impl_->common, "phrase")
         , simple_phrase(impl_->simple_phrase, "simple_phrase")
@@ -71,7 +71,7 @@ namespace quickbook
     {
     }
 
-    quickbook_grammar::impl::impl(quickbook::actions& a)
+    quickbook_grammar::impl::impl(quickbook::actions& a, bool skip_initial_spaces)
         : actions(a)
         , no_eols(true)
         , store_()
@@ -79,7 +79,7 @@ namespace quickbook
         init_phrase();
         init_phrase_markup();
         init_phrase_image();
-        init_block();
+        init_block(skip_initial_spaces);
         init_block_markup();
         init_block_section();
         init_block_table();

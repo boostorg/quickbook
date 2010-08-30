@@ -167,7 +167,7 @@ namespace quickbook
             ;
 
         inline_callout
-            =   repo::confix("/*<", ">*/")
+            =   repo::confix("/*<" >> *qi::space, ">*/")
                 [   position                    [member_assign(&quickbook::callout::position)]
                                                 [member_assign(&quickbook::callout::role, "callout_bug")]
                 >>  (*(qi::char_ - ">*/"))      [member_assign(&quickbook::callout::content)]
@@ -175,7 +175,7 @@ namespace quickbook
             ;
 
         line_callout
-            =   repo::confix("/*<<", ">>*/" >> *qi::space)
+            =   repo::confix("/*<<" >> *qi::space, ">>*/" >> *qi::space)
                 [   position                    [member_assign(&quickbook::callout::position)]
                                                 [member_assign(&quickbook::callout::role, "line_callout_bug")]
                 >>  (*(qi::char_ - ">>*/"))     [member_assign(&quickbook::callout::content)]

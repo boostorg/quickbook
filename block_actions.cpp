@@ -148,7 +148,9 @@ namespace quickbook
         else // version 1.3 and above
         {
             raw_string id;
-            id.value = qbk_version_n >= 106 ? detail::make_identifier(x.content.raw) :
+            id.value =
+                x.id ? x.id->value :
+                qbk_version_n >= 106 ? detail::make_identifier(x.content.raw) :
                 detail::make_identifier(x.content.content);
         
             r.linkend = r.id = fully_qualified_id(
@@ -175,7 +177,7 @@ namespace quickbook
     {
         state.paragraph_output();
 
-        if(!state.templates.add(x)) {
+        if(!state.templates.add(x, state.templates.top_scope.get())) {
             detail::outerr(x.body.position.file, x.body.position.line)
                 << "Template Redefinition: " << x.id << std::endl;
             ++state.error_count;
@@ -402,7 +404,7 @@ namespace quickbook
 
         BOOST_FOREACH(define_template const& definition, storage)
         {
-            if (!state.templates.add(definition))
+            if (!state.templates.add(definition, state.templates.top_scope.get()))
             {
                 detail::outerr(definition.body.position.file, definition.body.position.line)
                     << "Template Redefinition: " << definition.id << std::endl;

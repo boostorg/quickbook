@@ -67,6 +67,7 @@ namespace quickbook
     struct heading
     {
         int level;
+        boost::optional<raw_string> id;
         title content;
     };
 

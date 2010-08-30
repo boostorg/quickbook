@@ -36,16 +36,26 @@ namespace quickbook
         qi::rule<iterator, quickbook::hr()> hr;
         qi::rule<iterator> paragraph;
         qi::rule<iterator, quickbook::block_separator()> block_separator;
-        qi::rule<iterator, quickbook::def_macro> command_line_macro_parse;
+        qi::rule<iterator, quickbook::def_macro()> command_line_macro_parse;
+        qi::rule<iterator, std::string()> command_line_macro_identifier;
     };
 
-    void quickbook_grammar::impl::init_block()
+    void quickbook_grammar::impl::init_block(bool skip_initial_spaces)
     {
         block_grammar_local& local = store_.create();
 
-        block_start =
-            local.blocks >> blank
-            ;
+        if (skip_initial_spaces)
+        {
+            block_start =
+                *(qi::blank | comment) >> local.blocks >> blank
+                ;
+        }
+        else
+        {
+            block_start =
+                local.blocks >> blank
+                ;
+        }
 
         local.blocks =
            *(   local.block_markup
@@ -53,7 +63,7 @@ namespace quickbook
             |   local.list                      [actions.process]
             |   local.hr                        [actions.process]
             |   local.block_separator           [actions.process]
-            |   eol
+            |   +eol
             |   local.paragraph
             )
             ;
@@ -140,14 +150,17 @@ namespace quickbook
 
         local.command_line_macro_parse =
                 space
-            >>  macro_identifier
+            >>  local.command_line_macro_identifier [member_assign(&quickbook::def_macro::macro_identifier)]
             >>  space
-            >>  (   '='
+            >>  -(  '='
                 >>  space
-                >>  simple_phrase
+                >>  phrase                          [member_assign(&quickbook::def_macro::content)]
                 >>  space
                 )
-                |   qi::attr("")
+            ;
+
+        local.command_line_macro_identifier =
+                +(~qi::char_("=]") - qi::space)
             ;
 
         // Error

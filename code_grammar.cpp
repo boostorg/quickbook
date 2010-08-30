@@ -27,6 +27,7 @@ namespace quickbook
     {
         qi::rule<iterator, quickbook::code()> indented_code;
         qi::rule<iterator> code_line;
+        qi::rule<iterator> blank_line;
         qi::rule<iterator, quickbook::code()> code_block1;
         qi::rule<iterator, quickbook::code()> code_block2;
         qi::rule<iterator, quickbook::code()> inline_code;
@@ -44,15 +45,22 @@ namespace quickbook
         local.indented_code =
                 position                                [member_assign(&quickbook::code::position)]
                                                         [member_assign(&quickbook::code::flow, quickbook::code::block)]
-            >>  qi::raw[local.code_line >> *(*eol >> local.code_line)]
+            >>  qi::raw[
+                    local.code_line
+                >>  *(*local.blank_line >> local.code_line)
+                ]
                                                         [member_assign(&quickbook::code::content)]
-            >>  +eol
+            >>  *eol
             ;
 
         local.code_line =
                 qi::char_(" \t")
             >>  *(qi::char_ - eol)
             >>  eol
+            ;
+
+        local.blank_line =
+            *qi::blank >> qi::eol
             ;
 
         code_block = (local.code_block1 | local.code_block2) [actions.process];

@@ -53,14 +53,14 @@ namespace quickbook
         // doc_info
         qi::rule<iterator, quickbook::doc_info()> doc_info_details;
         
-        impl(quickbook::actions&);
+        impl(quickbook::actions&, bool skip_initial_spaces);
 
     private:
 
         void init_phrase();
         void init_phrase_markup();
         void init_phrase_image();
-        void init_block();
+        void init_block(bool skip_initial_spaces);
         void init_block_markup();
         void init_block_section();
         void init_block_table();

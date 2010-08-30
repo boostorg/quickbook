@@ -283,7 +283,28 @@ namespace quickbook
             it = x.entries.begin(); it != x.entries.end(); ++it)
         {
             state.block << m.pre;
-            std::for_each(it->begin(), it->end(), encode_action(state, *this));
+
+            std::vector<quickbook::block_formatted>::const_iterator
+                it2 = it->begin(), end2 = it->end();
+
+            encode_action encode(state, *this);
+            for(;it2 != end2 && std::string(it2->type) == "varlistterm"; ++it2) {
+                encode(*it2);
+            }
+            
+            if(it2 != end2) {
+                std::string type = "varlistitem";
+                boostbook_markup m2 = get_markup(type);
+                state.block << m2.pre;
+
+                for(;it2 != end2; ++it2) {
+                    BOOST_ASSERT(type == it2->type);
+                    state.block << it2->content;
+                }
+
+                state.block << m2.post;
+            }
+
             state.block << m.post;
         }
 
@@ -359,9 +380,9 @@ namespace quickbook
         for(std::vector<list_item2>::const_iterator
             it = x.items.begin(), end = x.items.end(); it != end; ++it)
         {
-            state.block << "<listitem><simpara>\n" << it->content;
+            state.block << "<listitem><simpara>\n" << it->content << "\n</simpara>";
             if(!it->sublist.items.empty()) (*this)(state, it->sublist);
-            state.block << std::string("\n</simpara></listitem>");
+            state.block << std::string("</listitem>");
         }
 
         state.block << std::string(x.mark == '#' ? "\n</orderedlist>" : "\n</itemizedlist>");

@@ -21,7 +21,7 @@
 
 namespace quickbook
 {
-    namespace
+    namespace detail
     {
         int callout_id = 0;
     }
@@ -31,21 +31,18 @@ namespace quickbook
         template_symbol(
                 std::string const& identifier,
                 std::vector<std::string> const& params,
-                bool is_block,
-                template_value const& body,
+                template_body const& body,
                 quickbook::callouts const& callouts,
                 template_scope const* parent)
            : identifier(identifier)
            , params(params)
-           , is_block(is_block)
            , body(body)
            , callouts(callouts)
            , parent(parent) {}
 
         std::string identifier;
         std::vector<std::string> params;
-        bool is_block;
-        template_value body;
+        template_body body;
         quickbook::callouts callouts;
         template_scope const* parent;
     };
@@ -123,20 +120,12 @@ namespace quickbook
             return false;
         }
 
-        std::string::const_iterator
-            iter = definition.body.content.begin(),
-            end = definition.body.content.end();
-        while (iter != end && ((*iter == ' ') || (*iter == '\t')))
-            ++iter; // skip spaces and tabs
-        bool is_block = (iter != end) && ((*iter == '\r') || (*iter == '\n'));
-
         template_symbol ts(
             definition.id,
             definition.params,
-            is_block,
             definition.body,
             definition.callouts,
-            parent ? parent : top_scope.get());
+            parent);
 
         top_scope->symbols.add(ts.identifier.c_str(), ts);
         
@@ -162,48 +151,53 @@ namespace quickbook
 
     namespace
     {
-        std::string::size_type find_bracket_end(std::string const& str, std::string::size_type pos)
+        iterator find_bracket_end(iterator begin, iterator const& end)
         {
             unsigned int depth = 1;
 
             while(depth > 0) {
-                pos = str.find_first_of("[]\\", pos);
-                if(pos == std::string::npos) return pos;
+                char const* search_chars = "[]\\";
+                begin = std::find_first_of(begin, end, search_chars, search_chars + 3);
+                if(begin == end) return begin;
 
-                if(str[pos] == '\\')
+                if(*begin == '\\')
                 {
-                    pos += 2;
+                    if(++begin == end) return begin;
+                    ++begin;
                 }
                 else
                 {
-                    depth += (str[pos] == '[') ? 1 : -1;
-                    ++pos;
+                    depth += (*begin == '[') ? 1 : -1;
+                    ++begin;
                 }
             }
 
-            return pos;
+            return begin;
         }
 
-        std::string::size_type find_first_seperator(std::string const& str)
+        iterator find_first_seperator(iterator const& begin, iterator const& end)
         {
             if(qbk_version_n < 105) {
-                return str.find_first_of(" \t\r\n");
+                char const* whitespace = " \t\r\n";
+                return std::find_first_of(begin, end, whitespace, whitespace + 4);
             }
             else {
-                std::string::size_type pos = 0;
+                iterator pos = begin;
 
                 while(true)
                 {
-                    pos = str.find_first_of(" \t\r\n\\[", pos);
-                    if(pos == std::string::npos) return pos;
+                    char const* search_chars = " \t\r\n\\[";
+                    pos = std::find_first_of(pos, end, search_chars, search_chars + 6);
+                    if(pos == end) return pos;
 
-                    switch(str[pos])
+                    switch(*pos)
                     {
                     case '[':
-                        pos = find_bracket_end(str, pos + 1);
+                        pos = find_bracket_end(++pos, end);
                         break;
                     case '\\':
-                        pos += 2;
+                        if(++pos == end) return pos;
+                        ++pos;
                         break;
                     default:
                         return pos;
@@ -213,9 +207,9 @@ namespace quickbook
         }
     
         bool break_arguments(
-            std::vector<template_value>& args
+            std::vector<template_body>& args
           , std::vector<std::string> const& params
-          , file_position const& pos
+          , boost::spirit::classic::file_position const& pos
         )
         {
             // Quickbook 1.4-: If there aren't enough parameters seperated by
@@ -227,30 +221,29 @@ namespace quickbook
 
             if (qbk_version_n < 105 || args.size() == 1)
             {
-                while (args.size() < params.size() )
+           
+                while (args.size() < params.size())
                 {
                     // Try to break the last argument at the first space found
                     // and push it into the back of args. Do this
                     // recursively until we have all the expected number of
                     // arguments, or if there are no more spaces left.
 
-                    template_value& str = args.back();
-                    std::string::size_type l_pos = find_first_seperator(str.content);
-                    if (l_pos == std::string::npos)
+                    template_body& body = args.back();
+                    iterator begin(body.content.begin(), body.content.end(), body.position.file);
+                    iterator end(body.content.end(), body.content.end());
+                    
+                    iterator l_pos = find_first_seperator(begin, end);
+                    if (l_pos == end)
                         break;
-                    template_value first(
-                        str.position,
-                        std::string(str.content.begin(), str.content.begin() + l_pos)
-                        );
-                    std::string::size_type r_pos = str.content.find_first_not_of(" \t\r\n", l_pos);
-                    if (r_pos == std::string::npos)
+                    char const* whitespace = " \t\r\n";
+                    char const* whitespace_end = whitespace + 4;
+                    iterator r_pos = l_pos;
+                    while(r_pos != end && std::find(whitespace, whitespace_end, *r_pos) != whitespace_end) ++r_pos;
+                    if (r_pos == end)
                         break;
-                    // TODO: Work out position?
-                    template_value second(
-                        str.position,
-                        std::string(str.content.begin()+r_pos, str.content.end())
-                    );
-                    str = first;
+                    template_body second(std::string(r_pos, end), begin.get_position(), false);
+                    body.content = std::string(begin, l_pos);
                     args.push_back(second);
                 }
             }
@@ -271,16 +264,17 @@ namespace quickbook
 
         std::pair<bool, std::vector<std::string>::const_iterator>
         get_arguments(
-            std::vector<template_value>& args
+            std::vector<template_body>& args
           , std::vector<std::string> const& params
           , template_scope const& scope
           , file_position const& pos
           , quickbook::state& state
         )
         {
-            std::vector<template_value>::const_iterator arg = args.begin();
+            std::vector<template_body>::const_iterator arg = args.begin();
             std::vector<std::string>::const_iterator tpl = params.begin();
             std::vector<std::string> empty_params;
+
 
             // Store each of the argument passed in as local templates:
             while (arg != args.end())
@@ -300,11 +294,9 @@ namespace quickbook
         }
 
         bool parse_template(
-            bool is_block
-          , std::string body
+            template_body const& body
+          , bool escape
           , std::string& result
-          , file_position const& template_pos
-          , bool template_escape
           , quickbook::state& state
         )
         {
@@ -312,57 +304,50 @@ namespace quickbook
             // a phrase? We apply a simple heuristic: if the body starts with
             // a newline, then we regard it as a block, otherwise, we parse
             // it as a phrase.
+            //
+            // Note: this is now done in the grammar.
             
-            bool r = false;
-
-            if (template_escape)
+            if (escape)
             {
                 //  escape the body of the template
                 //  we just copy out the literal body
-                result = body;
-                r = true;
+                result = body.content;
+                return true;
             }
-            else if (!is_block)
+            else if (!body.is_block)
             {
                 quickbook::actions actions(state);
                 quickbook_grammar g(actions);
 
                 //  do a phrase level parse
-                iterator first(body.begin(), body.end(), state.filename.native().c_str());
-                first.set_position(template_pos);
-                iterator last(body.end(), body.end());
-                r = boost::spirit::qi::parse(first, last, g.simple_phrase) && first == last;
+                iterator first(body.content.begin(), body.content.end(), body.position);
+                iterator last(body.content.end(), body.content.end());
+                bool r = boost::spirit::qi::parse(first, last, g.simple_phrase) && first == last;
+                //  do a phrase level parse
                 std::string phrase;
                 state.phrase.swap(phrase);
                 result = phrase;
+                return r;
             }
             else
             {
                 quickbook::actions actions(state);
-                quickbook_grammar g(actions);
+                quickbook_grammar g(actions, true);
 
                 //  do a block level parse
                 //  ensure that we have enough trailing newlines to eliminate
                 //  the need to check for end of file in the grammar.
-                body += "\n\n";
-
-                iterator first(body.begin(), body.end(), state.filename.native().c_str());
-                first.set_position(template_pos);
-                iterator last(body.end(), body.end());
-
-                while (first != last && ((*first == ' ') || (*first == '\t')))
-                    ++first; // skip spaces and tabs
-                while (first != last && ((*first == '\r') || (*first == '\n')))
-                    ++first; // skip initial newlines
-
-                r = boost::spirit::qi::parse(first, last, g.block) && first == last;
+                
+                std::string content = body.content + "\n\n";
+                iterator first(content.begin(), content.end(), body.position);
+                iterator last(content.end(), content.end());
+                bool r = boost::spirit::qi::parse(first, last, g.block) && first == last;
                 state.paragraph_output();
                 std::string block;
                 state.block.swap(block);
                 result = block;
+                return r;                
             }
-            
-            return r;
         }
     }
 
@@ -399,7 +384,7 @@ namespace quickbook
             if (qbk_version_n >= 105)
                 state.templates.top_scope->parent_scope = x.symbol->parent;
 
-            std::vector<template_value> args = x.args;
+            std::vector<template_body> args = x.args;
     
             ///////////////////////////////////
             // Initialise the arguments
@@ -428,17 +413,21 @@ namespace quickbook
                     args.clear();
                 }
 
-                BOOST_ASSERT(x.symbol->params.size() == x.symbol->callouts.size());
-                unsigned int size = x.symbol->callouts.size();
+                unsigned int size = x.symbol->params.size();
 
                 for(unsigned int i = 0; i < size; ++i)
                 {
-                    template_value value;
-                    value.content = "[[callout]" + x.symbol->callouts[i].role + " " +
-                        state.doc_id.value +
-                        boost::lexical_cast<std::string>(callout_id + i) +
-                        "]";
-                    args.push_back(value);
+                    std::string callout_id = state.doc_id.value +
+                        boost::lexical_cast<std::string>(detail::callout_id + i);
+
+                    std::string code;
+                    code += "[[callout]";
+                    code += x.symbol->callouts[i].role;
+                    code += " ";
+                    code += callout_id;
+                    code += "]";
+
+                    args.push_back(template_body(code, x.position, false));
                 }
             }
 
@@ -460,10 +449,12 @@ namespace quickbook
             ///////////////////////////////////
             // parse the template body:
 
-            if (!parse_template(x.symbol->is_block, x.symbol->body.content, result, x.symbol->body.position, x.escape, state))
+            if (!parse_template(x.symbol->body, x.escape, result, state))
             {
                 detail::outerr(x.position.file,x.position.line)
-                    << "Expanding template:" << x.symbol->identifier << std::endl
+                    << "Expanding "
+                    << (x.symbol->body.is_block ? "block" : "phrase")
+                    << " template:" << x.symbol->identifier << std::endl
                     << std::endl
                     << "------------------begin------------------" << std::endl
                     << x.symbol->body.content
@@ -487,29 +478,32 @@ namespace quickbook
         }
 
         state.pop(); // restore the state
-        --state.template_depth;
 
         if(x.symbol->callouts.size()) {
             callout_list list;
             BOOST_FOREACH(callout_source const& c, x.symbol->callouts) {
-                callout_item item;
-                item.identifier = state.doc_id.value +
-                        boost::lexical_cast<std::string>(callout_id++);
-                
+                std::string callout_id = state.doc_id.value +
+                    boost::lexical_cast<std::string>(detail::callout_id++);
+
+                std::string callout_value;
                 state.push();
                 // TODO: adjust the position?
-                bool r = parse_template(true, c.body.content, item.content, c.body.position, false, state);
+                bool r = parse_template(c.body, false, callout_value, state);
                 state.pop();
 
                 if(!r)
                 {
                     detail::outerr(c.body.position.file, c.body.position.line)
-                        << "Error expanding callout."
+                        << "Expanding callout."
                         << std::endl;
+                    --state.template_depth;
                     ++state.error_count;
                     return;
                 }
 
+                callout_item item;
+                item.identifier = callout_id;
+                item.content = callout_value;
                 list.push_back(item);
             }
 
@@ -522,14 +516,14 @@ namespace quickbook
             state.pop();
         }
 
-        if(x.symbol->is_block) {
+        --state.template_depth;
+
+        if(x.symbol->body.is_block) {
             state.paragraph_output();
             state.block << result;
         }
         else {
             state.phrase << result;
         }
-        
-        return;
     }
 }

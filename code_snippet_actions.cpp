@@ -29,14 +29,11 @@ namespace quickbook
 
     void code_snippet_actions::process_action::operator()(callout const& x, unused_type, unused_type) const
     {
+        actions.code += "``[[callout" + boost::lexical_cast<std::string>(actions.callouts.size()) + "]]``";
+
         callout_source item;
-        item.body = template_value(x.position, x.content);
+        item.body = template_body(x.content, x.position, true);
         item.role = x.role;
-
-        actions.code += "``[[callout" +
-            boost::lexical_cast<std::string>(actions.callouts.size()) +
-            "]]``";
-
         actions.callouts.push_back(item);
     }
 
@@ -85,7 +82,7 @@ namespace quickbook
         }
 
         define_template d(x.identifier, params,
-            template_value(x.position, actions.snippet));
+            template_body(actions.snippet, x.position, true));
         d.callouts = actions.callouts;
         actions.storage.push_back(d);
 

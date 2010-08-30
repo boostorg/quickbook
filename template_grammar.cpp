@@ -10,6 +10,7 @@
 
 #include <boost/spirit/include/qi_core.hpp>
 #include <boost/spirit/include/qi_eps.hpp>
+#include <boost/spirit/include/qi_eol.hpp>
 #include <boost/spirit/repository/include/qi_confix.hpp>
 #include "grammar_impl.hpp"
 #include "template.hpp"
@@ -26,14 +27,14 @@ namespace quickbook
     {
         qi::rule<iterator, quickbook::define_template()> define_template;
         qi::rule<iterator, std::vector<std::string>()> define_template_params;
-        qi::rule<iterator, quickbook::template_value()> template_body;
+        qi::rule<iterator, quickbook::template_body()> template_body;
         qi::rule<iterator> template_body_recurse;
         qi::rule<iterator, std::string()> template_id;
         qi::rule<iterator, quickbook::call_template()> call_template;
-        qi::rule<iterator, std::vector<quickbook::template_value>()> template_args;
-        qi::rule<iterator, quickbook::template_value()> template_arg_1_4;
+        qi::rule<iterator, std::vector<quickbook::template_body>()> template_args;
+        qi::rule<iterator, quickbook::template_body()> template_arg_1_4;
         qi::rule<iterator> brackets_1_4;
-        qi::rule<iterator, quickbook::template_value()> template_arg_1_5;
+        qi::rule<iterator, quickbook::template_body()> template_arg_1_5;
         qi::rule<iterator> brackets_1_5;
     };
 
@@ -57,9 +58,11 @@ namespace quickbook
             ;
 
         local.template_body =
-                position                            [member_assign(&quickbook::template_value::position)]
+                position                            [member_assign(&quickbook::template_body::position)]
+            >>  qi::matches[&(*qi::blank >> qi::eol)]
+                                                    [member_assign(&quickbook::template_body::is_block)]
             >>  qi::raw[local.template_body_recurse]
-                                                    [member_assign(&quickbook::template_value::content)]
+                                                    [member_assign(&quickbook::template_body::content)]
             ;
 
         local.template_body_recurse =
@@ -93,9 +96,11 @@ namespace quickbook
             qi::eps(qbk_since(105u)) >> -(local.template_arg_1_5 % "..");
 
         local.template_arg_1_4 =
-                position                            [member_assign(&quickbook::template_value::position)]
+                position                            [member_assign(&quickbook::template_body::position)]
+            >>  qi::matches[&(*qi::blank >> qi::eol)]
+                                                    [member_assign(&quickbook::template_body::is_block)]
             >>  qi::raw[+(local.brackets_1_4 | ~qi::char_(']') - "..")]
-                                                    [member_assign(&quickbook::template_value::content)]
+                                                    [member_assign(&quickbook::template_body::content)]
             ;
 
         local.brackets_1_4 =
@@ -104,9 +109,11 @@ namespace quickbook
             ;
 
         local.template_arg_1_5 =
-                position                            [member_assign(&quickbook::template_value::position)]
+                position                            [member_assign(&quickbook::template_body::position)]
+            >>  qi::matches[&(*qi::blank >> qi::eol)]
+                                                    [member_assign(&quickbook::template_body::is_block)]
             >>  qi::raw[+(local.brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
-                                                    [member_assign(&quickbook::template_value::content)]
+                                                    [member_assign(&quickbook::template_body::content)]
             ;
 
         local.brackets_1_5 =

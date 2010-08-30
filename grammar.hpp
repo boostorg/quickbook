@@ -34,7 +34,7 @@ namespace quickbook
         qi::grammar<iterator> block;
         qi::grammar<iterator, quickbook::doc_info()> doc_info;
 
-        quickbook_grammar(quickbook::actions&);
+        quickbook_grammar(quickbook::actions&, bool skip_initial_spaces = false);
         ~quickbook_grammar();
     };
 }

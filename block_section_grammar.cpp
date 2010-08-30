@@ -44,6 +44,7 @@ namespace quickbook
         local.begin_section =
                 space
             >>  element_id                          [member_assign(&quickbook::begin_section::id)]
+            >>  space
             >>  local.title_phrase                  [member_assign(&quickbook::begin_section::content)]
             ;
 
@@ -66,6 +67,10 @@ namespace quickbook
         local.heading =
                 qi::attr(qi::_r1)                   [member_assign(&quickbook::heading::level)]
             >>  space
+            >>  -(  qi::eps(qbk_since(106u))
+                >>  element_id                      [member_assign(&quickbook::heading::id)]
+                >>  space
+                )
             >>  local.title_phrase                  [member_assign(&quickbook::heading::content)]
                 ;
 
