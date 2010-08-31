@@ -35,6 +35,7 @@ namespace quickbook
         qi::symbols<char, qi::rule<iterator> > phrase_symbol_rules;
         qi::rule<iterator> phrase_end;
         qi::rule<iterator> call_template;
+        qi::rule<iterator> escape;
 
         // block
         qi::rule<iterator> block_start;

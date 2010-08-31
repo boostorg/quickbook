@@ -445,20 +445,20 @@ namespace quickbook
         // Document tag
 
         state.block
-            << '<' << info.doc_type << " id=\"" << encode(info.doc_id) << "\"\n";
+            << '<' << info.doc_type << " id=\"" << info.doc_id.get(106) << "\"\n";
         
         if(info.doc_type == "library")
         {
-            state.block << " name=\"" << encode(info.doc_title) << "\"\n";
+            state.block << " name=\"" << info.doc_title.get(106) << "\"\n";
         }
 
         if(!info.doc_dirname.empty())
         {
-            state.block << " dirname=\"" << encode(info.doc_dirname) << "\"\n";
+            state.block << " dirname=\"" << info.doc_dirname.get(106) << "\"\n";
         }
 
         state.block
-            << "last-revision=\"" << encode(info.doc_last_revision) << "\""
+            << "last-revision=\"" << info.doc_last_revision.get(106) << "\""
             << " xmlns:xi=\"http://www.w3.org/2001/XInclude\"";
 
         state.block << ">"; // end document tag.
@@ -466,11 +466,11 @@ namespace quickbook
         // Title tag
 
         std::string title;
-        if(info.doc_title.begin() != info.doc_title.end())
+        if(!info.doc_title.empty())
         {
-            title =  "<title>" + encode(info.doc_title);
+            title =  "<title>" + info.doc_title.get(106);
             if (!info.doc_version.empty())
-                title += ' ' + info.doc_version.value;
+                title += ' ' + info.doc_version.get(106);
             title += "</title>\n";
         }
 
@@ -487,8 +487,8 @@ namespace quickbook
             BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
                 state.block
                     << "<author>\n"
-                    << "<firstname>" << author.firstname << "</firstname>\n"
-                    << "<surname>" << author.surname << "</surname>\n"
+                    << "<firstname>" << author.firstname.get(106) << "</firstname>\n"
+                    << "<surname>" << author.surname.get(106) << "</surname>\n"
                     << "</author>\n";
             }
             state.block << "</authorgroup>\n";
@@ -504,17 +504,17 @@ namespace quickbook
             }
 
             state.block
-                << "<holder>" << copyright.holder << "</holder>\n"
+                << "<holder>" << copyright.holder.get(106) << "</holder>\n"
                 << "</copyright>\n"
             ;
         }
 
-        if (!boost::apply_visitor(empty_visitor(), info.doc_license))
+        if (!info.doc_license.empty())
         {
             state.block
                 << "<legalnotice>\n"
                 << "<para>\n"
-                << boost::apply_visitor(encode_raw_visitor(*this), info.doc_license)
+                << info.doc_license.get(103)
                 << "\n"
                 << "</para>\n"
                 << "</legalnotice>\n"
@@ -522,21 +522,21 @@ namespace quickbook
             ;
         }
 
-        if (!boost::apply_visitor(empty_visitor(), info.doc_purpose))
+        if (!info.doc_purpose.empty())
         {
             state.block
                 << "<" << info.doc_type << "purpose>\n"
-                << boost::apply_visitor(encode_raw_visitor(*this), info.doc_purpose)
+                << info.doc_purpose.get(103)
                 << "</" << info.doc_type << "purpose>\n"
                 << "\n"
             ;
         }
 
-        BOOST_FOREACH(raw_string const& category, info.doc_categories)
+        BOOST_FOREACH(docinfo_string const& category, info.doc_categories)
         {
             state.block
                 << "<" << info.doc_type << "category name=\"category:"
-                << encode(category)
+                << category.get(106)
                 << "\"></" << info.doc_type << "category>\n"
                 << "\n"
             ;

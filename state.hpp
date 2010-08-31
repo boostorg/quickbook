@@ -35,8 +35,9 @@ namespace quickbook
 
         static int const max_template_depth = 100;
 
-        raw_string              doc_id;
-        raw_string              doc_title;
+        std::string             doc_id;
+        std::string             doc_title;
+        std::string             doc_title_raw;
 
     // main output stream
         collector               phrase;

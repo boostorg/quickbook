@@ -23,12 +23,13 @@
 namespace quickbook
 {
     namespace {
-        raw_string fully_qualified_id(raw_string const& library_id,
+        raw_string fully_qualified_id(
+            std::string const& library_id,
             raw_string const& qualified_section_id,
             raw_string const& section_id)
         {
             raw_string id;
-            id.value = library_id.value;
+            id.value = library_id;
             if(!id.empty() && !qualified_section_id.empty()) id.value += '.';
             id.value += qualified_section_id.value;
             if(!id.empty() && !section_id.empty()) id.value += '.';
@@ -80,12 +81,12 @@ namespace quickbook
 
         if (qbk_version_n < 103) // version 1.2 and below
         {
-            r.id.value = state.doc_id.value + "." + state.section_id.value;
+            r.id.value = state.doc_id + "." + state.section_id.value;
         }
         else // version 1.3 and above
         {
             r.linkend.value = r.id.value =
-                state.doc_id.value + "." + state.qualified_section_id.value;
+                state.doc_id + "." + state.qualified_section_id.value;
         }
         
         r.content = x.content.content;
@@ -237,7 +238,7 @@ namespace quickbook
           , std::vector<define_template>& storage   // for storing snippets are stored in a
                                                     // vector of define_templates
           , std::string const& extension
-          , raw_string const& doc_id)
+          , std::string const& doc_id)
         {
             std::string code;
             int err = detail::load(file, code);
@@ -340,7 +341,7 @@ namespace quickbook
         state.paragraph_output();
 
         fs::path filein = include_search(state.filename.parent_path(), x.path);
-        raw_string doc_id;
+        std::string doc_id;
 
         // swap the filenames
         std::swap(state.filename, filein);
@@ -365,7 +366,7 @@ namespace quickbook
 
         // if an id is specified in this include (as in [include:id foo.qbk])
         // then use it as the doc_id.
-        if (x.id) state.doc_id = *x.id;
+        if (x.id) state.doc_id = x.id->value;
 
         // update the __FILENAME__ macro
         *state.macro.find("__FILENAME__") =

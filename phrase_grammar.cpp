@@ -39,7 +39,6 @@ namespace quickbook
         qi::rule<iterator, void(char)> simple_format_chars;
         qi::rule<iterator, void(char)> simple_format_end;
         qi::rule<iterator> simple_phrase_end;
-        qi::rule<iterator> escape;
         qi::rule<iterator, quickbook::break_()> escape_break;
         qi::rule<iterator, quickbook::formatted()> escape_punct;
         qi::rule<iterator, quickbook::formatted()> escape_markup;
@@ -71,7 +70,7 @@ namespace quickbook
             |   code_block                          [actions.process]
             |   inline_code                         [actions.process]
             |   local.simple_format                 [actions.process]
-            |   local.escape
+            |   escape
             |   comment
             ;
 
@@ -133,7 +132,7 @@ namespace quickbook
 
         local.simple_phrase_end = '[' | phrase_end;
 
-        local.escape =
+        escape =
             (   local.escape_break
             |   "\\ "                               // ignore an escaped char            
             |   local.escape_punct

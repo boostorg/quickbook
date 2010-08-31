@@ -13,40 +13,60 @@
 #include <vector>
 #include <string>
 #include <utility>
-#include <boost/variant/variant.hpp>
 #include "fwd.hpp"
 #include "strings.hpp"
 
 namespace quickbook
 {
+    struct docinfo_string {
+        std::string raw;
+        std::string encoded;
+
+        docinfo_string() : raw(), encoded() {}
+
+        void swap(docinfo_string& x) {
+            raw.swap(x.raw);
+            encoded.swap(x.encoded);
+        }
+
+        void clear() {
+            raw.clear();
+            encoded.clear();
+        }
+
+        bool empty() const {
+            return raw.empty();
+        }
+
+        std::string const& get(unsigned version) const;
+    };
+
     struct doc_info
     {
         typedef std::vector<unsigned int> copyright_years;
         struct copyright_entry {
             copyright_years years;
-            std::string holder;
+            docinfo_string holder;
         };
         typedef std::vector<copyright_entry> copyright_list;
-        typedef std::vector<raw_string> category_list;
+        typedef std::vector<docinfo_string> category_list;
         struct author {
-            std::string firstname;
-            std::string surname;
+            docinfo_string firstname;
+            docinfo_string surname;
         };
         typedef std::vector<author> author_list;
-        typedef boost::variant<raw_string, std::string> variant_string;
-        enum variant_string_enum { raw_string_type, string_type };
 
         std::string             doc_type;
-        raw_string              doc_title;
-        raw_string              doc_version;
-        raw_string              doc_id;
-        raw_string              doc_dirname;
+        docinfo_string          doc_title;
+        docinfo_string          doc_version;
+        docinfo_string          doc_id;
+        docinfo_string          doc_dirname;
         copyright_list          doc_copyrights;
-        variant_string          doc_purpose;
+        docinfo_string          doc_purpose;
         category_list           doc_categories;
         author_list             doc_authors;
-        variant_string          doc_license;
-        raw_string              doc_last_revision;
+        docinfo_string          doc_license;
+        docinfo_string          doc_last_revision;
         bool                    ignore;
     };
     

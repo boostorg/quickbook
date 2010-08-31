@@ -438,18 +438,17 @@ namespace quickbook
         state.block
             << "<!DOCTYPE html>"
             << "<html><head>"
-            << "<title>" << encode(info.doc_title) << "</title>"
+            << "<title>" << encode(info.doc_title.get(106)) << "</title>"
             << "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">"
             << "</head>"
             << "<body>"
             << "<header>"
-            << "<h1>" << encode(info.doc_title) << "</h1>"
+            << "<h1>" << encode(info.doc_title.get(106)) << "</h1>"
             ;
 
         if(!info.doc_authors.empty() || !info.doc_copyrights.empty() ||
-            !boost::apply_visitor(empty_visitor(), info.doc_license))
+            !info.doc_license.empty())
         {
-
             state.block << "<dl>\n";
 
             if(!info.doc_authors.empty())
@@ -463,9 +462,9 @@ namespace quickbook
                 BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
                     state.block
                         << "<dd>"
-                        << author.firstname
+                        << author.firstname.get(106)
                         << " "
-                        << author.surname
+                        << author.surname.get(106)
                         << "</dd>\n";
                 }
             }
@@ -511,18 +510,18 @@ namespace quickbook
         
                     state.block
                         << " "
-                        << copyright.holder
+                        << copyright.holder.get(106)
                         << "</dd>\n"
                     ;
                 }
             }
     
-            if (!boost::apply_visitor(empty_visitor(), info.doc_license))
+            if (!info.doc_license.empty())
             {
                 state.block
                     << "<dt>License:</dt>\n"
                     << "<dd>"
-                    << boost::apply_visitor(encode_raw_visitor(*this), info.doc_license)
+                    << info.doc_license.get(103)
                     << "</dd>\n"
                 ;
             }

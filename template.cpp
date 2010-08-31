@@ -417,7 +417,7 @@ namespace quickbook
 
                 for(unsigned int i = 0; i < size; ++i)
                 {
-                    std::string callout_id = state.doc_id.value +
+                    std::string callout_id = state.doc_id +
                         boost::lexical_cast<std::string>(detail::callout_id + i);
 
                     std::string code;
@@ -482,7 +482,7 @@ namespace quickbook
         if(x.symbol->callouts.size()) {
             callout_list list;
             BOOST_FOREACH(callout_source const& c, x.symbol->callouts) {
-                std::string callout_id = state.doc_id.value +
+                std::string callout_id = state.doc_id +
                     boost::lexical_cast<std::string>(detail::callout_id++);
 
                 std::string callout_value;

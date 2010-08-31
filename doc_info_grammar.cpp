@@ -31,24 +31,30 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace repo = boost::spirit::repository;
     namespace ph = boost::phoenix;
-    
+
     struct doc_info_grammar_local
     {
         qi::symbols<char> doc_types;
         qi::rule<iterator, version()> quickbook_version;
-        qi::rule<iterator, raw_source()> doc_version;
-        qi::rule<iterator, raw_source()> doc_id;
-        qi::rule<iterator, raw_source()> doc_dirname;
-        qi::rule<iterator, raw_source()> doc_category;
-        qi::rule<iterator, raw_source()> doc_last_revision;
+        qi::rule<iterator, docinfo_string()> doc_version;
+        qi::rule<iterator, docinfo_string()> doc_id;
+        qi::rule<iterator, docinfo_string()> doc_dirname;
+        qi::rule<iterator, docinfo_string()> doc_category;
+        qi::rule<iterator, docinfo_string()> doc_last_revision;
         qi::rule<iterator, std::string()> doc_source_mode; // TODO: raw_source
-        qi::rule<iterator, doc_info::variant_string()> doc_purpose;
-        qi::rule<iterator, doc_info::variant_string()> doc_license;
+        qi::rule<iterator, docinfo_string()> doc_purpose;
+        qi::rule<iterator, docinfo_string()> doc_license;
         qi::rule<iterator, doc_info::copyright_entry()> doc_copyright;
         qi::rule<iterator, doc_info::author_list()> doc_authors;
         qi::rule<iterator, doc_info::author()> doc_author;
-        qi::rule<iterator, quickbook::raw_string()> raw_phrase;
-        qi::rule<iterator, std::string()> doc_info_phrase;
+        qi::rule<iterator, docinfo_string()> doc_info_phrase;
+        qi::rule<iterator, docinfo_string()> doc_info_text;
+        qi::rule<iterator, docinfo_string()> doc_info_text_comma;
+        qi::rule<iterator, docinfo_string()> doc_info_title;
+        qi::rule<iterator, std::string()> doc_info_phrase_impl;
+        qi::rule<iterator, std::string()> doc_info_text_impl;
+        qi::rule<iterator, std::string()> doc_info_text_comma_impl;
+        qi::rule<iterator, std::string()> doc_info_title_impl;
     };
 
     void quickbook_grammar::impl::init_doc_info()
@@ -62,14 +68,12 @@ namespace quickbook
           , "appendix", "preface", "qandadiv", "qandaset"
           , "reference", "set"
         ;
-        
+
         doc_info_details =
             repo::confix(space >> '[' >> space, space >> ']' >> +qi::eol)
             [   qi::raw[local.doc_types]    [member_assign(&doc_info::doc_type)]
             >>  hard_space
-            >>  qi::raw[
-                    *(~qi::char_("[]") - qi::eol)
-                ]                           [member_assign(&doc_info::doc_title)]
+            >>  local.doc_info_title        [member_assign(&doc_info::doc_title)]
             >>  local.quickbook_version     [actions.process]
             >>  *repo::confix(space >> '[', space >> ']' >> +qi::eol)
                 [   local.doc_version       [member_assign(&doc_info::doc_version)]
@@ -95,39 +99,36 @@ namespace quickbook
                 [   "quickbook"
                 >>  hard_space
                 >>  qi::uint_               [member_assign(&version::major)]
-                >>  '.' 
+                >>  '.'
                 >>  uint2_t()               [member_assign(&version::minor)]
                 ]
             ;
 
-        local.doc_version = "version" >> hard_space >> qi::raw[*~qi::char_(']')];
-        local.doc_id      = "id"      >> hard_space >> qi::raw[*~qi::char_(']')];
-        local.doc_dirname = "dirname" >> hard_space >> qi::raw[*~qi::char_(']')];
-        local.doc_category="category" >> hard_space >> qi::raw[*~qi::char_(']')];
-        local.doc_last_revision = "last-revision" >> hard_space >> qi::raw[*~qi::char_(']')];
+        local.doc_version = "version" >> hard_space >> local.doc_info_text;
+        local.doc_id      = "id"      >> hard_space >> local.doc_info_text;
+        local.doc_dirname = "dirname" >> hard_space >> local.doc_info_text;
+        local.doc_category="category" >> hard_space >> local.doc_info_text;
+        local.doc_last_revision = "last-revision" >> hard_space >> local.doc_info_text;
 
         local.doc_copyright =
                 "copyright"
             >>  hard_space
             >>  (+(qi::uint_ >> space))     [member_assign(&doc_info::copyright_entry::years)]
-            >>  qi::raw[*~qi::char_(']')]
-                                            [member_assign(&doc_info::copyright_entry::holder)]
+            >>  local.doc_info_text         [member_assign(&doc_info::copyright_entry::holder)]
             ;
 
         local.doc_purpose =
-                "purpose" >> hard_space
-            >>  (
-                    qi::eps(qbk_before(103)) >> local.raw_phrase |
-                    qi::eps(qbk_since(103)) >> local.doc_info_phrase
-                )
+                "purpose"
+            >>  hard_space
+            >>  local.doc_info_phrase
             ;
 
         local.doc_author =
                 '['
             >>  space
-            >>  (*~qi::char_(','))          [member_assign(&doc_info::author::surname)]
+            >>  local.doc_info_text_comma   [member_assign(&doc_info::author::surname)]
             >>  ',' >> space
-            >>  (*~qi::char_(']'))          [member_assign(&doc_info::author::firstname)]
+            >>  local.doc_info_text         [member_assign(&doc_info::author::firstname)]
             >>  ']'
             ;
 
@@ -139,32 +140,75 @@ namespace quickbook
                 );
 
         local.doc_license =
-                "license" >> hard_space
-            >>  (
-                    qi::eps(qbk_before(103)) >> local.raw_phrase |
-                    qi::eps(qbk_since(103)) >> local.doc_info_phrase
-                )
+                "license"
+            >>  hard_space
+            >>  local.doc_info_phrase
             ;
 
         local.doc_source_mode =
                 "source-mode" >> hard_space
             >>  (
-                   qi::string("c++") 
+                   qi::string("c++")
                 |  qi::string("python")
                 |  qi::string("teletype")
                 )
             ;
 
-        local.raw_phrase =
-                qi::raw[local.doc_info_phrase]
-                                            [qi::_val = qi::_1]
+        local.doc_info_phrase =
+            qi::raw[
+                local.doc_info_phrase_impl  [member_assign(&docinfo_string::encoded)]
+            ]                               [member_assign(&docinfo_string::raw)]
             ;
 
-        local.doc_info_phrase =
+        local.doc_info_text =
+            qi::raw[
+                local.doc_info_text_impl    [member_assign(&docinfo_string::encoded)]
+            ]                               [member_assign(&docinfo_string::raw)]
+            ;
+
+        local.doc_info_text_comma =
+            qi::raw[
+                local.doc_info_text_comma_impl
+                                            [member_assign(&docinfo_string::encoded)]
+            ]                               [member_assign(&docinfo_string::raw)]
+            ;
+
+        local.doc_info_title =
+            qi::raw[
+                local.doc_info_title_impl   [member_assign(&docinfo_string::encoded)]
+            ]                               [member_assign(&docinfo_string::raw)]
+            ;
+
+        local.doc_info_phrase_impl =
                 qi::eps                     [actions.phrase_push]
-            >>  *(   common
+            >>  *(  common
                 |   comment
                 |   (~qi::char_(']'))       [actions.process]
+                )
+            >>  qi::eps                     [actions.phrase_pop]
+            ;
+
+        local.doc_info_text_impl =
+                qi::eps                     [actions.phrase_push]
+            >>  *(  escape
+                |   (~qi::char_(']'))       [actions.process]
+                )
+            >>  qi::eps                     [actions.phrase_pop]
+            ;
+
+        local.doc_info_text_comma_impl =
+                qi::eps                     [actions.phrase_push]
+            >>  *(  escape
+                |   (~qi::char_("],"))      [actions.process]
+                )
+            >>  qi::eps                     [actions.phrase_pop]
+            ;
+
+        local.doc_info_title_impl =
+                qi::eps                     [actions.phrase_push]
+            >>  *(  escape
+                |   (~qi::char_("[]") - qi::eol)
+                                            [actions.process]
                 )
             >>  qi::eps                     [actions.phrase_pop]
             ;
