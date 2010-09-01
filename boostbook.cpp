@@ -474,36 +474,33 @@ namespace quickbook
             title += "</title>\n";
         }
 
-        // For 'library', the title comes after the info block.
-        if(info.doc_type != "library") state.block << title;
-
         // Info tag
-
-        state.block << "<" << info.doc_type << "info>\n";
+        
+        std::ostringstream tmp;
 
         if(!info.doc_authors.empty())
         {
-            state.block << "<authorgroup>\n";
+            tmp << "<authorgroup>\n";
             BOOST_FOREACH(doc_info::author const& author, info.doc_authors) {
-                state.block
+                tmp
                     << "<author>\n"
                     << "<firstname>" << author.firstname.get(106) << "</firstname>\n"
                     << "<surname>" << author.surname.get(106) << "</surname>\n"
                     << "</author>\n";
             }
-            state.block << "</authorgroup>\n";
+            tmp << "</authorgroup>\n";
         }
 
         BOOST_FOREACH(doc_info::copyright_entry const& copyright,
             info.doc_copyrights)
         {
-            state.block << "<copyright>\n";
+            tmp << "<copyright>\n";
 
             BOOST_FOREACH(unsigned int year, copyright.years) {
-                state.block << "<year>" << year << "</year>\n";
+                tmp << "<year>" << year << "</year>\n";
             }
 
-            state.block
+            tmp
                 << "<holder>" << copyright.holder.get(106) << "</holder>\n"
                 << "</copyright>\n"
             ;
@@ -511,7 +508,7 @@ namespace quickbook
 
         if (!info.doc_license.empty())
         {
-            state.block
+            tmp
                 << "<legalnotice>\n"
                 << "<para>\n"
                 << info.doc_license.get(103)
@@ -524,7 +521,7 @@ namespace quickbook
 
         if (!info.doc_purpose.empty())
         {
-            state.block
+            tmp
                 << "<" << info.doc_type << "purpose>\n"
                 << info.doc_purpose.get(103)
                 << "</" << info.doc_type << "purpose>\n"
@@ -534,7 +531,7 @@ namespace quickbook
 
         BOOST_FOREACH(docinfo_string const& category, info.doc_categories)
         {
-            state.block
+            tmp
                 << "<" << info.doc_type << "category name=\"category:"
                 << category.get(106)
                 << "\"></" << info.doc_type << "category>\n"
@@ -542,9 +539,19 @@ namespace quickbook
             ;
         }
 
-        state.block
-            << "</" << info.doc_type << "info>\n"
-        ;
+        std::string info_block = tmp.str();
+
+        // For 'library', the title comes after the info block.
+        if(info.doc_type != "library") state.block << title;
+
+        if(!info_block.empty())
+        {
+            state.block
+                << "<" << info.doc_type << "info>\n"
+                << info_block
+                << "</" << info.doc_type << "info>\n"
+                ;
+        }
 
         if(info.doc_type == "library") state.block << title;
     }

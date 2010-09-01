@@ -26,7 +26,7 @@ namespace quickbook
     extern std::vector<std::string> preset_defines;
 
     // forward declarations
-    int parse(char const* filein_, state&, bool ignore_docinfo = false);
+    int parse_file(char const* filein_, state&, bool ignore_docinfo = false);
 }
 
 #endif

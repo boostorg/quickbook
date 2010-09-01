@@ -69,7 +69,7 @@ namespace quickbook
     //
     ///////////////////////////////////////////////////////////////////////////
     int
-    parse(char const* filein_, state& state_, bool ignore_docinfo)
+    parse_file(char const* filein_, state& state_, bool ignore_docinfo)
     {
         using std::cerr;
         using std::vector;
@@ -124,10 +124,10 @@ namespace quickbook
     }
 
     static int
-    parse(char const* filein_, fs::path const& outdir, string_stream& out, std::string const& encoder)
+    parse_document(char const* filein_, fs::path const& outdir, string_stream& out, std::string const& encoder)
     {
         quickbook::state state(filein_, outdir, out, create_encoder(encoder));
-        bool r = parse(filein_, state);
+        bool r = parse_file(filein_, state);
         if (state.section_level != 0)
             detail::outwarn(filein_)
                 << "Warning missing [endsect] detected at end of file."
@@ -143,7 +143,7 @@ namespace quickbook
     }
 
     static int
-    parse(
+    parse_document(
         char const* filein_
       , char const* fileout_
       , int indent
@@ -159,7 +159,7 @@ namespace quickbook
         if (pretty_print)
         {
             string_stream buffer;
-            result = parse(filein_, outdir, buffer, encoder);
+            result = parse_document(filein_, outdir, buffer, encoder);
             if (result == 0)
             {
                 result = post_process(buffer.str(), fileout, indent, linewidth);
@@ -168,7 +168,7 @@ namespace quickbook
         else
         {
             string_stream buffer;
-            result = parse(filein_, outdir, buffer, encoder);
+            result = parse_document(filein_, outdir, buffer, encoder);
             fileout << buffer.str();
         }
         return result;
@@ -320,7 +320,7 @@ main(int argc, char* argv[])
                 << fileout
                 << std::endl;
 
-            return quickbook::parse(filein.c_str(), fileout.c_str(), indent, linewidth, pretty_print, encoder);
+            return quickbook::parse_document(filein.c_str(), fileout.c_str(), indent, linewidth, pretty_print, encoder);
         }
         else
         {

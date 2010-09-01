@@ -373,7 +373,7 @@ namespace quickbook
             quickbook::macro(state.filename.native());
 
         // parse the file
-        quickbook::parse(state.filename.native().c_str(), state, true);
+        quickbook::parse_file(state.filename.native().c_str(), state, true);
 
         // restore the values
         std::swap(state.filename, filein);
