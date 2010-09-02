@@ -50,6 +50,7 @@ namespace quickbook
         fs::path                filename;
 
     // scope state
+        std::size_t             macro_change_depth;
         macro_symbols           macro;
         int                     section_level;
         int                     min_section_level;
@@ -58,15 +59,29 @@ namespace quickbook
         std::string             source_mode;
 
         typedef boost::tuple<
-            macro_symbols
+            std::size_t
           , int
           , int
           , raw_string
           , raw_string
           , std::string>
         state_tuple;
+        
+        // Can't store macro_symbols directly in a container on gcc, because
+        // proto overloads operator&.
+        struct macro_symbols_wrap {
+            macro_symbols_wrap() : symbols() {}
+            explicit macro_symbols_wrap(macro_symbols const& x) : symbols() {
+                symbols = x;
+            }
+            macro_symbols const& get() const { return symbols; }
+            
+            macro_symbols symbols;
+        };
 
         std::stack<state_tuple> state_stack;
+        // Stack macros separately as copying macros is expensive
+        std::stack<macro_symbols_wrap> macro_stack;
 
     // temporary or global state
         int                     template_depth;
@@ -74,6 +89,7 @@ namespace quickbook
         int                     error_count;
 
     // push/pop the states and the streams
+        void copy_macros_for_write();
         void push();
         void pop();
 

@@ -168,6 +168,7 @@ namespace quickbook
     {
         state.paragraph_output();
 
+        state.copy_macros_for_write();
         state.macro.add(
             x.macro_identifier.begin()
           , x.macro_identifier.end()
@@ -361,6 +362,7 @@ namespace quickbook
 
         // scope the macros
         macro_symbols macro = state.macro;
+        std::size_t macro_change_depth = state.macro_change_depth;
         // scope the templates
         //~ template_symbols templates = state.templates; $$$ fixme $$$
 
@@ -389,6 +391,7 @@ namespace quickbook
 
         // restore the macros
         state.macro = macro;
+        state.macro_change_depth = macro_change_depth;
         // restore the templates
         //~ state.templates = templates; $$$ fixme $$$
     }

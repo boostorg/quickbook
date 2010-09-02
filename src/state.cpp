@@ -37,6 +37,7 @@ namespace quickbook
     // state
         , filename(fs::absolute(fs::path(filein_)))
         , outdir(outdir_)
+        , macro_change_depth(0)
         , macro()
         , section_level(0)
         , min_section_level(0)
@@ -66,7 +67,7 @@ namespace quickbook
     {
         state_stack.push(
             boost::make_tuple(
-                macro
+                macro_change_depth
               , section_level
               , min_section_level
               , section_id
@@ -79,11 +80,31 @@ namespace quickbook
         block.push();
         templates.push();
     }
+    
+    // Pushing and popping the macro symbol table is pretty expensive, so
+    // instead implement a sort of 'stack on write'. Call this whenever a
+    // change is made to the macro table, and it'll stack the current macros
+    // if necessary. Would probably be better to implement macros in a less
+    // expensive manner.
+    void state::copy_macros_for_write()
+    {
+        if(macro_change_depth != state_stack.size())
+        {
+            macro_stack.push(macro_symbols_wrap(macro));
+            macro_change_depth = state_stack.size();
+        }
+    }
 
     void state::pop()
     {
+        if(macro_change_depth == state_stack.size())
+        {
+            macro = macro_stack.top().get();
+            macro_stack.pop();
+        }
+
         boost::tie(
-            macro
+            macro_change_depth
           , section_level
           , min_section_level
           , section_id
