@@ -246,7 +246,7 @@ namespace quickbook
             if (err != 0)
                 return err; // return early on error
     
-            iterator first(code.begin(), code.end(), file);
+            iterator first(code.begin(), code.end(), file.c_str());
             iterator last(code.end(), code.end());
     
             size_t fname_len = file.size();

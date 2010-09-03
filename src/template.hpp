@@ -19,6 +19,7 @@
 namespace quickbook
 {
     namespace qi = boost::spirit::qi;
+    namespace cl = boost::spirit::classic;
 
     struct template_scope;
     struct template_symbol;
@@ -33,12 +34,12 @@ namespace quickbook
             )
         :
             content(content),
-            position(position),
+            position(position.file, position.line, position.column),
             is_block(is_block)
         {}
     
         std::string content;
-        quickbook::file_position position;
+        cl::file_position position;
         bool is_block;
     };
 

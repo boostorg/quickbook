@@ -29,9 +29,9 @@ namespace quickbook
 
     struct rule_store;
  
+    typedef boost::spirit::classic::file_position_base<char const*> file_position;
     typedef boost::spirit::classic::position_iterator<
-        std::string::const_iterator> iterator;
-    typedef boost::spirit::classic::file_position file_position;
+        std::string::const_iterator, file_position> iterator;
     typedef boost::iterator_range<iterator> raw_source;
     
     struct raw_string;

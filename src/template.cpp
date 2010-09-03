@@ -209,7 +209,7 @@ namespace quickbook
         bool break_arguments(
             std::vector<template_body>& args
           , std::vector<std::string> const& params
-          , boost::spirit::classic::file_position const& pos
+          , quickbook::file_position const& pos
         )
         {
             // Quickbook 1.4-: If there aren't enough parameters seperated by
@@ -230,7 +230,9 @@ namespace quickbook
                     // arguments, or if there are no more spaces left.
 
                     template_body& body = args.back();
-                    iterator begin(body.content.begin(), body.content.end(), body.position.file);
+                    iterator begin(body.content.begin(), body.content.end(),
+                        file_position(body.position.file.c_str(),
+                            body.position.line, body.position.column));
                     iterator end(body.content.end(), body.content.end());
                     
                     iterator l_pos = find_first_seperator(begin, end);
@@ -242,7 +244,7 @@ namespace quickbook
                     while(r_pos != end && std::find(whitespace, whitespace_end, *r_pos) != whitespace_end) ++r_pos;
                     if (r_pos == end)
                         break;
-                    template_body second(std::string(r_pos, end), begin.get_position(), false);
+                    template_body second(std::string(r_pos, end), r_pos.get_position(), false);
                     body.content = std::string(begin, l_pos);
                     args.push_back(second);
                 }
@@ -320,7 +322,9 @@ namespace quickbook
                 quickbook_grammar g(actions);
 
                 //  do a phrase level parse
-                iterator first(body.content.begin(), body.content.end(), body.position);
+                iterator first(body.content.begin(), body.content.end(),
+                    file_position(body.position.file.c_str(),
+                        body.position.line, body.position.column));
                 iterator last(body.content.end(), body.content.end());
                 bool r = boost::spirit::qi::parse(first, last, g.simple_phrase) && first == last;
                 //  do a phrase level parse
@@ -339,7 +343,9 @@ namespace quickbook
                 //  the need to check for end of file in the grammar.
                 
                 std::string content = body.content + "\n\n";
-                iterator first(content.begin(), content.end(), body.position);
+                iterator first(content.begin(), content.end(),
+                    file_position(body.position.file.c_str(),
+                        body.position.line, body.position.column));
                 iterator last(content.end(), content.end());
                 bool r = boost::spirit::qi::parse(first, last, g.block) && first == last;
                 state.paragraph_output();

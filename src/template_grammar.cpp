@@ -22,7 +22,27 @@ namespace quickbook
 {
     namespace qi = boost::spirit::qi;
     namespace repo = boost::spirit::repository;
-    
+    namespace cl = boost::spirit::classic;
+
+    namespace {
+        // template_body contains cl::file_position (storing the file name in a
+        // std::string). But the grammar uses quickbook::file_position (storing
+        // the file name in a C string for efficiency). So a special action is
+        // needed to set the position.
+        // Better solution: use an intermediate type.
+        // Possibly even better solution: use a custom const string type.
+
+        struct template_body_position_type {
+            template <typename Context>
+            void operator()(quickbook::file_position const& attrib, Context& context, bool& pass) const {
+                (spirit::_val)(attrib,context,pass).position =
+                    cl::file_position(attrib.file, attrib.line, attrib.column);
+            }
+        };
+        
+        template_body_position_type template_body_position;
+    }
+
     struct template_grammar_local
     {
         qi::rule<iterator, quickbook::define_template()> define_template;
@@ -58,7 +78,7 @@ namespace quickbook
             ;
 
         local.template_body =
-                position                            [member_assign(&quickbook::template_body::position)]
+                position                            [template_body_position]
             >>  qi::matches[&(*qi::blank >> qi::eol)]
                                                     [member_assign(&quickbook::template_body::is_block)]
             >>  qi::raw[local.template_body_recurse]
@@ -96,7 +116,7 @@ namespace quickbook
             qi::eps(qbk_since(105u)) >> -(local.template_arg_1_5 % "..");
 
         local.template_arg_1_4 =
-                position                            [member_assign(&quickbook::template_body::position)]
+                position                            [template_body_position]
             >>  qi::matches[&(*qi::blank >> qi::eol)]
                                                     [member_assign(&quickbook::template_body::is_block)]
             >>  qi::raw[+(local.brackets_1_4 | ~qi::char_(']') - "..")]
@@ -109,7 +129,7 @@ namespace quickbook
             ;
 
         local.template_arg_1_5 =
-                position                            [member_assign(&quickbook::template_body::position)]
+                position                            [template_body_position]
             >>  qi::matches[&(*qi::blank >> qi::eol)]
                                                     [member_assign(&quickbook::template_body::is_block)]
             >>  qi::raw[+(local.brackets_1_5 | '\\' >> qi::char_ | ~qi::char_("[]") - "..")]
