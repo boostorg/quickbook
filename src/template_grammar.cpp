@@ -45,6 +45,7 @@ namespace quickbook
 
     struct template_grammar_local
     {
+        qi::rule<iterator> define_template_block;
         qi::rule<iterator, quickbook::define_template()> define_template;
         qi::rule<iterator, std::vector<std::string>()> define_template_params;
         qi::rule<iterator, quickbook::template_body()> template_body;
@@ -62,7 +63,9 @@ namespace quickbook
     {
         template_grammar_local& local = store_.create();
         
-        block_keyword_rules.add("template", local.define_template[actions.process]);
+        block_keyword_rules.add("template", &local.define_template_block);
+
+        local.define_template_block = local.define_template[actions.process];
 
         local.define_template =
                 space

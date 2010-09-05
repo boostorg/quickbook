@@ -28,8 +28,8 @@ namespace quickbook
     struct block_grammar_local
     {
         qi::rule<iterator> blocks;
-        qi::rule<iterator, qi::locals<qi::rule<iterator> > > block_markup;
-        qi::rule<iterator, qi::rule<iterator>()> block_markup_start;
+        qi::rule<iterator, qi::locals<qi::rule<iterator>*> > block_markup;
+        qi::rule<iterator, qi::rule<iterator>*()> block_markup_start;
         qi::rule<iterator, quickbook::list()> list;
         qi::rule<iterator, quickbook::list_item()> list_item;
         qi::rule<iterator, std::string()> list_item_content;
@@ -72,7 +72,7 @@ namespace quickbook
 
         local.block_markup
             =   local.block_markup_start        [qi::_a = qi::_1]
-            >>  lazy(qi::_a)
+            >>  lazy(*qi::_a)
             >>  (   (space >> ']' >> +eol)
                 |   error
                 )
@@ -81,8 +81,8 @@ namespace quickbook
         local.block_markup_start
             =   '['
             >>  space
-            >>  (   block_keyword_rules >> !(qi::alnum | '_')
-                |   block_symbol_rules
+            >>  (   block_keyword_rules [qi::_val = qi::_1] >> !(qi::alnum | '_')
+                |   block_symbol_rules [qi::_val = qi::_1]
                 )
             ;
 

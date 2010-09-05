@@ -24,9 +24,11 @@ namespace quickbook
     
     struct block_table_grammar_local
     {
+        qi::rule<iterator> table_block;
         qi::rule<iterator, quickbook::table()> table;
         qi::rule<iterator, quickbook::table_row()> table_row;
         qi::rule<iterator, quickbook::table_cell()> table_cell;
+        qi::rule<iterator> variablelist_block;
         qi::rule<iterator, quickbook::variablelist()> variablelist;
         qi::rule<iterator, quickbook::varlistentry()> varlistentry;
         qi::rule<iterator, quickbook::block_formatted()> varlistterm;
@@ -46,7 +48,9 @@ namespace quickbook
 
         // Table
         
-        block_keyword_rules.add("table", local.table[actions.process]);
+        block_keyword_rules.add("table", &local.table_block);
+
+        local.table_block = local.table[actions.process];
 
         local.table =
                 (&(*qi::blank >> qi::eol) | space)
@@ -81,7 +85,9 @@ namespace quickbook
         local.table_row.name("table_row");
         local.table_cell.name("table_cell");
 
-        block_keyword_rules.add("variablelist", local.variablelist[actions.process]);
+        block_keyword_rules.add("variablelist", &local.variablelist_block);
+        
+        local.variablelist_block = local.variablelist[actions.process];
 
         local.variablelist =
                 (&(*qi::blank >> qi::eol) | space)

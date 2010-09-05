@@ -29,7 +29,10 @@ namespace quickbook
         qi::rule<iterator, quickbook::title()> title_phrase;
         qi::rule<iterator, quickbook::begin_section()> begin_section;
         qi::rule<iterator, quickbook::end_section()> end_section;
-        qi::rule<iterator, quickbook::heading(int)> heading;
+        qi::rule<iterator, quickbook::heading(int)> heading_impl;
+        
+        qi::rule<iterator> section_block, endsect_block,
+            h1, h2, h3, h4, h5, h6, heading;
     };
 
     void quickbook_grammar::impl::init_block_section()
@@ -38,8 +41,11 @@ namespace quickbook
 
         // Sections
 
-        block_keyword_rules.add("section", local.begin_section[actions.process]);
-        block_keyword_rules.add("endsect", local.end_section[actions.process]);
+        block_keyword_rules.add("section", &local.section_block);
+        block_keyword_rules.add("endsect", &local.endsect_block);
+
+        local.section_block = local.begin_section[actions.process];
+        local.endsect_block = local.end_section[actions.process];
 
         local.begin_section =
                 space
@@ -56,15 +62,23 @@ namespace quickbook
         // Headings
 
         block_keyword_rules.add
-            ("h1", local.heading(1) [actions.process])
-            ("h2", local.heading(2) [actions.process])
-            ("h3", local.heading(3) [actions.process])
-            ("h4", local.heading(4) [actions.process])
-            ("h5", local.heading(5) [actions.process])
-            ("h6", local.heading(6) [actions.process])
-            ("heading", local.heading(-1) [actions.process]);
+            ("h1", &local.h1)
+            ("h2", &local.h2)
+            ("h3", &local.h3)
+            ("h4", &local.h4)
+            ("h5", &local.h5)
+            ("h6", &local.h6)
+            ("heading", &local.heading);
 
-        local.heading =
+        local.h1 = local.heading_impl(1) [actions.process];
+        local.h2 = local.heading_impl(2) [actions.process];
+        local.h3 = local.heading_impl(3) [actions.process];
+        local.h4 = local.heading_impl(4) [actions.process];
+        local.h5 = local.heading_impl(5) [actions.process];
+        local.h6 = local.heading_impl(6) [actions.process];
+        local.heading = local.heading_impl(-1) [actions.process];
+
+        local.heading_impl =
                 qi::attr(qi::_r1)                   [member_assign(&quickbook::heading::level)]
             >>  space
             >>  -(  qi::eps(qbk_since(106u))
