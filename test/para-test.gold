@@ -70,6 +70,17 @@
           </para>
         </listitem>
       </varlistentry>
+      <varlistentry>
+        <term>Another paragraph</term>
+        <listitem>
+          <para>
+            Trailing space after this line.
+          </para>
+          <para>
+            And trailing space after this one.
+          </para>
+        </listitem>
+      </varlistentry>
     </variablelist>
   </section>
 </article>

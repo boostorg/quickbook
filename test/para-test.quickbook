@@ -76,6 +76,12 @@ Lots of newlines round this paragraph.
 
 
 
-Last paragraph.]]]
+Last paragraph.]]
+[[Another paragraph][
+Trailing space after this line.   
+
+And trailing space after this one.   
+]]
+]
 
 [endsect]

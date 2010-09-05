@@ -172,7 +172,7 @@ namespace quickbook
         // Make sure that we don't go past a single block, except when
         // preformatted.
         phrase_end =
-            ']' | qi::eps(ph::ref(no_eols)) >> eol >> *qi::blank >> qi::eol
+            ']' | qi::eps(ph::ref(no_eols)) >> qi::eol >> *qi::blank >> qi::eol
             ;
     }
 }
