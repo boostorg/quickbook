@@ -14,14 +14,16 @@
 
 #include <vector>
 #include <string>
-#include <stack>
 #include <boost/spirit/include/support_unused.hpp>
 #include "fwd.hpp"
 #include "template.hpp"
-#include "strings.hpp"
 
 namespace quickbook
 {
+    using boost::spirit::unused_type;
+    
+    struct code_snippet_state;
+
     struct start_snippet
     {
         file_position position;
@@ -43,69 +45,22 @@ namespace quickbook
     {
         std::string content;
     };
-}
 
-namespace quickbook
-{
-    using boost::spirit::unused_type;
-
-    struct code_snippet_actions
+    struct snippet_actions
     {
-        code_snippet_actions(std::vector<define_template>& storage,
-                                 std::string const& doc_id,
-                                 char const* source_type)
-            : process(*this)
-            , storage(storage)
-            , doc_id(doc_id)
-            , source_type(source_type)
-        {}
+        explicit snippet_actions(code_snippet_state&);
 
-        struct process_action
-        {
-            explicit process_action(code_snippet_actions& a)
-                : actions(a) {}
+        void operator()(char x, unused_type, unused_type) const;
+        void operator()(callout const& x, unused_type, unused_type) const;
+        void operator()(escaped_comment const& x, unused_type, unused_type) const;
+        void operator()(start_snippet const& x, unused_type, unused_type) const;
+        void operator()(end_snippet const& x, unused_type, unused_type) const;
 
-            void operator()(char x, unused_type, unused_type) const;
-            void operator()(callout const& x, unused_type, unused_type) const;
-            void operator()(escaped_comment const& x, unused_type, unused_type) const;
-            void operator()(start_snippet const& x, unused_type, unused_type) const;
-            void operator()(end_snippet const& x, unused_type, unused_type) const;
-
-            code_snippet_actions& actions;
-        };
-
-        void append_code();
-        void close_code();
-
-        struct snippet_data
-        {
-            snippet_data(std::string const& id, int callout_base_id, file_position position)
-                : id(id)
-                , callout_base_id(callout_base_id)
-                , position(position)
-                , content()
-                , start_code(false)
-                , end_code(false)
-            {}
-
-            std::string id;
-            int callout_base_id;
-            file_position position;
-            std::string content;
-            bool start_code;
-            bool end_code;
-            quickbook::callouts callouts;
-        };
-
-        process_action process;
-
-        int callout_id;
-        std::stack<snippet_data> snippet_stack;
-        std::string code;
-        std::vector<define_template>& storage;
-        std::string const doc_id;
-        char const* const source_type;
+        code_snippet_state& state;
     };
+
+    void load_code_snippets(snippet_actions&, std::vector<define_template>&,
+      bool is_python, iterator&, iterator last);
 }
 
 #endif

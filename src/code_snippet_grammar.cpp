@@ -1,5 +1,6 @@
 /*=============================================================================
     Copyright (c) 2006 Joel de Guzman
+    Copyright (c) 2010 Daniel James
     http://spirit.sourceforge.net/
 
     Use, modification and distribution is subject to the Boost Software
@@ -12,12 +13,11 @@
 #include <boost/spirit/include/qi_eps.hpp>
 #include <boost/spirit/include/qi_attr.hpp>
 #include <boost/spirit/repository/include/qi_confix.hpp>
+#include <boost/scoped_ptr.hpp>
 #include "fwd.hpp"
 #include "code_snippet_types.hpp"
-#include "code_snippet_grammar.hpp"
 #include "misc_rules.hpp"
 #include "parse_utils.hpp"
-#include "utils.hpp" // For 'detail::load', rewrite so it isn't used here?
 
 namespace quickbook
 {
@@ -26,9 +26,41 @@ namespace quickbook
     namespace qi = boost::spirit::qi;
     namespace repo = boost::spirit::repository;
 
+    struct python_code_snippet_grammar
+        : qi::grammar<iterator>
+    {
+        typedef snippet_actions actions_type;
+    
+        python_code_snippet_grammar(actions_type& actions);
+        ~python_code_snippet_grammar();
+
+        struct rules;
+        boost::scoped_ptr<rules> rules_pimpl;
+        qi::rule<iterator> start;
+    private:
+        python_code_snippet_grammar(python_code_snippet_grammar const&);
+        python_code_snippet_grammar& operator=(python_code_snippet_grammar const&);
+    };
+
+    struct cpp_code_snippet_grammar
+        : qi::grammar<iterator>
+    {
+        typedef snippet_actions actions_type;
+    
+        cpp_code_snippet_grammar(actions_type& actions);
+        ~cpp_code_snippet_grammar();
+
+        struct rules;
+        boost::scoped_ptr<rules> rules_pimpl;
+        qi::rule<iterator> start;
+    private:
+        cpp_code_snippet_grammar(cpp_code_snippet_grammar const&);
+        cpp_code_snippet_grammar& operator=(cpp_code_snippet_grammar const&);
+    };
+
     struct python_code_snippet_grammar::rules
     {
-        typedef code_snippet_actions actions_type;
+        typedef snippet_actions actions_type;
   
         rules(actions_type & actions);
 
@@ -64,24 +96,13 @@ namespace quickbook
             (qi::alpha | '_') >> *(qi::alnum | '_')
             ;
 
-        /*
-        snippet =
-                position                        [member_assign(&quickbook::code_snippet::position)]
-            >>  repo::confix("#[", "#]")
-                [   *qi::space
-                >>  identifier                  [member_assign(&quickbook::code_snippet::identifier)]
-                >>  *(!qi::lit("#]") >> code_elements)
-                ]
-            ;
-        */
-
         code_elements =
-                start_snippet                   [actions.process]
-            |   end_snippet                     [actions.process]
-            |   escaped_comment                 [actions.process]
+                start_snippet                   [actions]
+            |   end_snippet                     [actions]
+            |   escaped_comment                 [actions]
             |   ignore
-            |   +qi::blank                      [actions.process]
-            |   qi::char_                       [actions.process]
+            |   +qi::blank                      [actions]
+            |   qi::char_                       [actions]
             ;
 
         start_snippet =
@@ -116,7 +137,7 @@ namespace quickbook
 
     struct cpp_code_snippet_grammar::rules
     {
-        typedef code_snippet_actions actions_type;
+        typedef snippet_actions actions_type;
   
         rules(actions_type & actions);
 
@@ -153,14 +174,14 @@ namespace quickbook
             ;
 
         code_elements =
-                start_snippet                   [actions.process]
-            |   end_snippet                     [actions.process]
-            |   escaped_comment                 [actions.process]
+                start_snippet                   [actions]
+            |   end_snippet                     [actions]
+            |   escaped_comment                 [actions]
             |   ignore
-            |   line_callout                    [actions.process]
-            |   inline_callout                  [actions.process]
-            |   +qi::blank                      [actions.process]
-            |   qi::char_                       [actions.process]
+            |   line_callout                    [actions]
+            |   inline_callout                  [actions]
+            |   +qi::blank                      [actions]
+            |   qi::char_                       [actions]
             ;
 
         start_snippet
@@ -216,35 +237,22 @@ namespace quickbook
             ;
     }
 
-    int load_snippets(
-        std::string const& file
+    void load_code_snippets(
+        snippet_actions& actions
       , std::vector<define_template>& storage   // for storing snippets are stored in a
                                                 // vector of define_templates
-      , std::string const& extension
-      , std::string const& doc_id)
+      , bool is_python
+      , iterator& first
+      , iterator last)
     {
-        std::string code;
-        int err = detail::load(file, code);
-        if (err != 0)
-            return err; // return early on error
-
-        iterator first(code.begin(), code.end(), file.c_str());
-        iterator last(code.end(), code.end());
-
-        size_t fname_len = file.size();
-        bool is_python = fname_len >= 3
-            && file[--fname_len]=='y' && file[--fname_len]=='p' && file[--fname_len]=='.';
-        code_snippet_actions a(storage, doc_id, is_python ? "[python]" : "[c++]");
         // TODO: Should I check that parse succeeded?
         if(is_python) {
-            python_code_snippet_grammar g(a);
+            python_code_snippet_grammar g(actions);
             boost::spirit::qi::parse(first, last, g);
         }
         else {
-            cpp_code_snippet_grammar g(a);
+            cpp_code_snippet_grammar g(actions);
             boost::spirit::qi::parse(first, last, g);
         }
-
-        return 0;
     }
 }

@@ -14,19 +14,85 @@
 #include <functional>
 #include <algorithm>
 #include <iterator>
+#include <stack>
 #include <boost/lexical_cast.hpp>
 #include "utils.hpp"
 #include "grammar.hpp"
 #include "code_snippet_types.hpp"
 #include "template.hpp"
 #include "quickbook.hpp"
+#include "utils.hpp"
 
 namespace quickbook
 {
-    void code_snippet_actions::append_code()
+    struct code_snippet_state
+    {
+        code_snippet_state(std::vector<define_template>& storage,
+                                 std::string const& doc_id,
+                                 char const* source_type)
+            : storage(storage)
+            , doc_id(doc_id)
+            , source_type(source_type)
+        {}
+
+        void append_code();
+        void close_code();
+
+        struct snippet_data
+        {
+            snippet_data(std::string const& id, int callout_base_id, file_position position)
+                : id(id)
+                , callout_base_id(callout_base_id)
+                , position(position)
+                , content()
+                , start_code(false)
+                , end_code(false)
+            {}
+
+            std::string id;
+            int callout_base_id;
+            file_position position;
+            std::string content;
+            bool start_code;
+            bool end_code;
+            quickbook::callouts callouts;
+        };
+
+        int callout_id;
+        std::stack<snippet_data> snippet_stack;
+        std::string code;
+        std::vector<define_template>& storage;
+        std::string const doc_id;
+        char const* const source_type;
+    };
+
+    int load_snippets(
+        std::string const& file
+      , std::vector<define_template>& storage   // for storing snippets are stored in a
+                                                // vector of define_templates
+      , std::string const& extension
+      , std::string const& doc_id)
+    {
+        std::string code;
+        int err = detail::load(file, code);
+        if (err != 0)
+            return err; // return early on error
+
+        iterator first(code.begin(), code.end(), file.c_str());
+        iterator last(code.end(), code.end());
+
+        bool is_python = extension == ".py";
+        code_snippet_state state(storage, doc_id, is_python ? "[python]" : "[c++]");
+        snippet_actions actions(state);
+        load_code_snippets(actions, storage, is_python, first, last);
+
+        return 0;
+    }
+
+    void code_snippet_state::append_code()
     {
         if(snippet_stack.empty()) return;
-        snippet_data& snippet = snippet_stack.top();
+        code_snippet_state::snippet_data& snippet = snippet_stack.top();
 
         if (!code.empty())
         {
@@ -50,10 +116,10 @@ namespace quickbook
         }
     }
 
-    void code_snippet_actions::close_code()
+    void code_snippet_state::close_code()
     {
         if(snippet_stack.empty()) return;
-        snippet_data& snippet = snippet_stack.top();
+        code_snippet_state::snippet_data& snippet = snippet_stack.top();
 
         if(snippet.end_code)
         {
@@ -62,30 +128,33 @@ namespace quickbook
         }
     }
 
-    void code_snippet_actions::process_action::operator()(char x, unused_type, unused_type) const
+    snippet_actions::snippet_actions(code_snippet_state& a)
+        : state(a) {}
+
+    void snippet_actions::operator()(char x, unused_type, unused_type) const
     {
-        if(actions.snippet_stack.empty()) return;
-        actions.code += x;
+        if(state.snippet_stack.empty()) return;
+        state.code += x;
     }
 
-    void code_snippet_actions::process_action::operator()(callout const& x, unused_type, unused_type) const
+    void snippet_actions::operator()(callout const& x, unused_type, unused_type) const
     {
-        if(actions.snippet_stack.empty()) return;
-        actions.code += "``[[callout" + boost::lexical_cast<std::string>(actions.callout_id) + "]]``";
+        if(state.snippet_stack.empty()) return;
+        state.code += "``[[callout" + boost::lexical_cast<std::string>(state.callout_id) + "]]``";
      
         callout_source item;
         item.body = template_body(x.content, x.position, true);
         item.role = x.role;
-        actions.snippet_stack.top().callouts.push_back(item);
-        ++actions.callout_id;
+        state.snippet_stack.top().callouts.push_back(item);
+        ++state.callout_id;
     }
 
-    void code_snippet_actions::process_action::operator()(escaped_comment const& x, unused_type, unused_type) const
+    void snippet_actions::operator()(escaped_comment const& x, unused_type, unused_type) const
     {
-        if(actions.snippet_stack.empty()) return;
-        snippet_data& snippet = actions.snippet_stack.top();
-        actions.append_code();
-        actions.close_code();
+        if(state.snippet_stack.empty()) return;
+        code_snippet_state::snippet_data& snippet = state.snippet_stack.top();
+        state.append_code();
+        state.close_code();
         
         std::string temp(x.content);
         detail::unindent(temp); // remove all indents
@@ -95,26 +164,26 @@ namespace quickbook
         }
     }
 
-    void code_snippet_actions::process_action::operator()(start_snippet const& x, unused_type, unused_type) const
+    void snippet_actions::operator()(start_snippet const& x, unused_type, unused_type) const
     {    
-        actions.append_code();
-        actions.snippet_stack.push(snippet_data(x.identifier, actions.callout_id, x.position));
+        state.append_code();
+        state.snippet_stack.push(code_snippet_state::snippet_data(x.identifier, state.callout_id, x.position));
     }
 
-    void code_snippet_actions::process_action::operator()(end_snippet const& x, unused_type, unused_type) const
+    void snippet_actions::operator()(end_snippet const& x, unused_type, unused_type) const
     {
         // TODO: Error?
-        if(actions.snippet_stack.empty()) return;
+        if(state.snippet_stack.empty()) return;
 
-        actions.append_code();
+        state.append_code();
 
-        snippet_data snippet = actions.snippet_stack.top();
-        actions.snippet_stack.pop();
+        code_snippet_state::snippet_data snippet = state.snippet_stack.top();
+        state.snippet_stack.pop();
 
         std::string body;
         if(snippet.start_code) {
             body += "\n\n";
-            body += actions.source_type;
+            body += state.source_type;
             body += "```\n";
         }
         body += snippet.content;
@@ -130,20 +199,20 @@ namespace quickbook
 
         define_template d(snippet.id, params, template_body(body, snippet.position, true));
         d.callouts = snippet.callouts;
-        actions.storage.push_back(d);
+        state.storage.push_back(d);
 
         // Merge the snippet into its parent
 
-        if(!actions.snippet_stack.empty())
+        if(!state.snippet_stack.empty())
         {
-            snippet_data& next = actions.snippet_stack.top();
+            code_snippet_state::snippet_data& next = state.snippet_stack.top();
             if(!snippet.content.empty()) {
                 if(!snippet.start_code) {
-                    actions.close_code();
+                    state.close_code();
                 }
                 else if(!next.end_code) {
                     next.content += "\n\n";
-                    next.content += actions.source_type;
+                    next.content += state.source_type;
                     next.content += "```\n";
                 }
                 
