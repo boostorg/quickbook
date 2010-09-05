@@ -35,8 +35,10 @@ namespace quickbook
 
         qi::rule<iterator>
             start_, ignore;
-        qi::rule<iterator, quickbook::code_snippet()>
-            snippet;
+        qi::rule<iterator, quickbook::start_snippet()>
+            start_snippet;
+        qi::rule<iterator, quickbook::end_snippet()>
+            end_snippet;
         qi::rule<iterator>
             code_elements;
         qi::rule<iterator, std::string()>
@@ -55,16 +57,13 @@ namespace quickbook
     python_code_snippet_grammar::rules::rules(actions_type& actions)
         : actions(actions)
     {
-        start_ =
-            +(  snippet                         [actions.output]
-            |   qi::char_
-            )
-            ;
+        start_ = *code_elements;
 
         identifier =
             (qi::alpha | '_') >> *(qi::alnum | '_')
             ;
 
+        /*
         snippet =
                 position                        [member_assign(&quickbook::code_snippet::position)]
             >>  repo::confix("#[", "#]")
@@ -73,13 +72,27 @@ namespace quickbook
                 >>  *(!qi::lit("#]") >> code_elements)
                 ]
             ;
+        */
 
         code_elements =
-                escaped_comment                 [actions.process]
+                start_snippet                   [actions.process]
+            |   end_snippet                     [actions.process]
+            |   escaped_comment                 [actions.process]
             |   ignore
             |   +qi::blank                      [actions.process]
             |   qi::char_                       [actions.process]
             ;
+
+        start_snippet =
+                position                        [member_assign(&quickbook::start_snippet::position)]
+            >>  "#["
+            >>  *qi::space
+            >>  identifier                      [member_assign(&quickbook::start_snippet::identifier)]
+            ;
+
+        end_snippet =
+                qi::lit("#]")
+            >>  qi::attr(quickbook::end_snippet());
 
         ignore
             =   (   repo::confix(*qi::blank >> "#<-", "#->" >> *qi::blank >> qi::eol)
@@ -110,8 +123,10 @@ namespace quickbook
 
         qi::rule<iterator>
             start_, code_elements, ignore;
-        qi::rule<iterator, quickbook::code_snippet()>
-            snippet;
+        qi::rule<iterator, quickbook::start_snippet()>
+            start_snippet;
+        qi::rule<iterator, quickbook::end_snippet()>
+            end_snippet;
         qi::rule<iterator, std::string()>
             identifier;
         qi::rule<iterator, quickbook::callout()>
@@ -130,40 +145,39 @@ namespace quickbook
     cpp_code_snippet_grammar::rules::rules(actions_type & actions)
         : actions(actions)
     {
-        start_ =
-            +(  snippet                         [actions.output]
-            |   qi::char_
-            )
-            ;
+        start_ = *code_elements;
 
         identifier =
             (qi::alpha | '_') >> *(qi::alnum | '_')
             ;
 
-        snippet
-            =   position                        [member_assign(&quickbook::code_snippet::position)]
-            >>  (   repo::confix("//[", "//]")
-                    [   *qi::space
-                    >>  identifier              [member_assign(&quickbook::code_snippet::identifier)]
-                    >>  *(!qi::lit("//]") >> code_elements)
-                    ]
-                |   repo::confix("/*[", "/*]*/")
-                    [   *qi::space
-                    >>  identifier              [member_assign(&quickbook::code_snippet::identifier)]
-                    >>  *qi::space
-                    >>  "*/"
-                    >>  *(!qi::lit("/*]*/") >> code_elements)
-                    ]
-                )
-            ;
-
         code_elements =
-                escaped_comment                 [actions.process]
+                start_snippet                   [actions.process]
+            |   end_snippet                     [actions.process]
+            |   escaped_comment                 [actions.process]
             |   ignore
             |   line_callout                    [actions.process]
             |   inline_callout                  [actions.process]
             |   +qi::blank                      [actions.process]
             |   qi::char_                       [actions.process]
+            ;
+
+        start_snippet
+            =   position                        [member_assign(&quickbook::start_snippet::position)]
+            >>  (   "//["
+                >>  *qi::space
+                >>  identifier                  [member_assign(&quickbook::start_snippet::identifier)]
+                |   "/*["
+                >>  *qi::space
+                >>  identifier                  [member_assign(&quickbook::start_snippet::identifier)]
+                >>  *qi::space
+                >>  "*/"
+                )
+            ;
+
+        end_snippet =
+                (qi::lit("//]") | qi::lit("/*]*/"))
+            >>  qi::attr(quickbook::end_snippet());
             ;
 
         inline_callout

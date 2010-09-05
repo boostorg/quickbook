@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <string>
+#include <stack>
 #include <boost/spirit/include/support_unused.hpp>
 #include "fwd.hpp"
 #include "template.hpp"
@@ -21,10 +22,14 @@
 
 namespace quickbook
 {
-    struct code_snippet
+    struct start_snippet
     {
         file_position position;
         std::string identifier;
+    };
+
+    struct end_snippet
+    {
     };
     
     struct callout
@@ -50,7 +55,6 @@ namespace quickbook
                                  std::string const& doc_id,
                                  char const* source_type)
             : process(*this)
-            , output(*this)
             , storage(storage)
             , doc_id(doc_id)
             , source_type(source_type)
@@ -64,25 +68,40 @@ namespace quickbook
             void operator()(char x, unused_type, unused_type) const;
             void operator()(callout const& x, unused_type, unused_type) const;
             void operator()(escaped_comment const& x, unused_type, unused_type) const;
+            void operator()(start_snippet const& x, unused_type, unused_type) const;
+            void operator()(end_snippet const& x, unused_type, unused_type) const;
 
             code_snippet_actions& actions;
         };
 
-        struct output_action
-        {
-            explicit output_action(code_snippet_actions& a)
-                : actions(a) {}
-        
-            void operator()(code_snippet const& x, unused_type, unused_type) const;
+        void append_code();
+        void close_code();
 
-            code_snippet_actions& actions;
+        struct snippet_data
+        {
+            snippet_data(std::string const& id, int callout_base_id, file_position position)
+                : id(id)
+                , callout_base_id(callout_base_id)
+                , position(position)
+                , content()
+                , start_code(false)
+                , end_code(false)
+            {}
+
+            std::string id;
+            int callout_base_id;
+            file_position position;
+            std::string content;
+            bool start_code;
+            bool end_code;
+            quickbook::callouts callouts;
         };
 
         process_action process;
-        output_action output;
+
+        int callout_id;
+        std::stack<snippet_data> snippet_stack;
         std::string code;
-        std::string snippet;
-        quickbook::callouts callouts;
         std::vector<define_template>& storage;
         std::string const doc_id;
         char const* const source_type;
