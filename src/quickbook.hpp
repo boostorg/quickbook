@@ -27,6 +27,8 @@ namespace quickbook
 
     // forward declarations
     int parse_file(char const* filein_, state&, bool ignore_docinfo = false);
+    int load_snippets(std::string const& file, std::vector<define_template>& storage,
+        std::string const& extension, std::string const& doc_id);
 }
 
 #endif

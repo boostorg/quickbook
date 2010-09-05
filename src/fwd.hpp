@@ -22,7 +22,6 @@ namespace quickbook
 
     struct state;
     struct actions;
-    struct code_snippet_actions;
 
     struct collector;
     struct string_stream;

@@ -19,6 +19,7 @@
 #include "grammar.hpp"
 #include "code_snippet_types.hpp"
 #include "template.hpp"
+#include "quickbook.hpp"
 
 namespace quickbook
 {

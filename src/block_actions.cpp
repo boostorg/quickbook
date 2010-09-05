@@ -15,8 +15,6 @@
 #include "actions.hpp"
 #include "state.hpp"
 #include "quickbook.hpp"
-#include "code_snippet_grammar.hpp"
-#include "code_snippet_types.hpp"
 #include "utils.hpp"
 #include "encoder.hpp"
 
@@ -234,38 +232,6 @@ namespace quickbook
 
     namespace
     {
-        int load_snippets(
-            std::string const& file
-          , std::vector<define_template>& storage   // for storing snippets are stored in a
-                                                    // vector of define_templates
-          , std::string const& extension
-          , std::string const& doc_id)
-        {
-            std::string code;
-            int err = detail::load(file, code);
-            if (err != 0)
-                return err; // return early on error
-    
-            iterator first(code.begin(), code.end(), file.c_str());
-            iterator last(code.end(), code.end());
-    
-            size_t fname_len = file.size();
-            bool is_python = fname_len >= 3
-                && file[--fname_len]=='y' && file[--fname_len]=='p' && file[--fname_len]=='.';
-            code_snippet_actions a(storage, doc_id, is_python ? "[python]" : "[c++]");
-            // TODO: Should I check that parse succeeded?
-            if(is_python) {
-                python_code_snippet_grammar g(a);
-                boost::spirit::qi::parse(first, last, g);
-            }
-            else {
-                cpp_code_snippet_grammar g(a);
-                boost::spirit::qi::parse(first, last, g);
-            }
-    
-            return 0;
-        }
-
         fs::path include_search(fs::path const & current, std::string const & name)
         {
             fs::path path(name);
