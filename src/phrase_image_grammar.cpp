@@ -61,11 +61,9 @@ namespace quickbook
             ;
 
         local.image_filename = qi::raw[
-                +(qi::char_ - (qi::space | phrase_end | '['))
-            >>  *(
-                    +qi::space
-                >>  +(qi::char_ - (qi::space | phrase_end | '['))
-             )];
+                +(~qi::char_("[]") - (qi::space | phrase_end))
+            %   +qi::space
+            ];
 
         local.image_attributes = *(local.image_attribute >> space);
         
