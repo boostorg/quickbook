@@ -36,6 +36,9 @@
       Four lines before this paragraph.
     </para>
     <para>
+      A couple of spaces in the line before this paragraph.
+    </para>
+    <para>
       Last paragraph.
     </para>
   </section>

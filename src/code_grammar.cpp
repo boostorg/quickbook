@@ -45,23 +45,27 @@ namespace quickbook
         local.indented_code =
                 position                                [member_assign(&quickbook::code::position)]
                                                         [member_assign(&quickbook::code::flow, quickbook::code::block)]
-            >>  qi::raw[
-                    local.code_line
-                >>  *(*local.blank_line >> local.code_line)
-                ]
+            >>  qi::raw[+local.code_line % +local.blank_line]
                                                         [member_assign(&quickbook::code::content)]
             >>  *eol
             ;
 
         local.code_line =
-                qi::char_(" \t")
-            >>  *(qi::char_ - eol)
-            >>  eol
+                qi::blank
+            >>  *(qi::char_ - qi::eol)
+            >   qi::eol
             ;
 
         local.blank_line =
             *qi::blank >> qi::eol
             ;
+
+        indented_code.name("indented code");
+        local.indented_code.name("indented code");
+        local.code_line.name("indented code line");
+        local.blank_line.name("blank line");
+
+        // Code block
 
         code_block = (local.code_block1 | local.code_block2) [actions.process];
 
