@@ -143,6 +143,17 @@ namespace quickbook
                 ]
             ;
 
+        local.paragraph.name("paragraph");
+        local.block_separator.name("block separator");
+
+        // Make sure that we don't go past a single block, except when
+        // preformatted.
+        phrase_end =
+            ']' | qi::eps(ph::ref(no_eols)) >> local.block_separator
+            ;
+
+        phrase_end.name("phrase end");
+
         // Parse command line macro definition. This is more here out of
         // convenience than anything.
 
@@ -153,9 +164,9 @@ namespace quickbook
             >>  local.command_line_macro_identifier [member_assign(&quickbook::def_macro::macro_identifier)]
             >>  space
             >>  -(  '='
-                >>  space
-                >>  phrase                          [member_assign(&quickbook::def_macro::content)]
-                >>  space
+                >   space
+                >   phrase                          [member_assign(&quickbook::def_macro::content)]
+                >   space
                 )
             ;
 

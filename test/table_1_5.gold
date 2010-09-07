@@ -230,5 +230,43 @@
         </tbody>
       </tgroup>
     </table>
+    <table frame="all" id="table_1_5.section1.odd">
+      <title>Odd Formatting</title>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                A
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                B
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                Trailing space
+              </para>
+            </entry>
+            <entry>
+              <para>
+                Trailing space
+              </para>
+              <para>
+                Next paragraph.
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
   </section>
 </article>

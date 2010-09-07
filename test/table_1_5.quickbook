@@ -69,4 +69,17 @@
   ]
 ]
 
+[table:odd Odd Formatting
+    [[A]][[B]]
+    [
+        [
+            Trailing space 
+        ]
+        [
+            Trailing space 
+            
+            Next paragraph.
+        ]
+    ]
+]
 [endsect]

@@ -169,10 +169,11 @@ namespace quickbook
             >   qi::raw[qi::repeat(8)[qi::xdigit]]  [member_assign(&quickbook::unicode_char::value)]
             ;
 
-        // Make sure that we don't go past a single block, except when
-        // preformatted.
-        phrase_end =
-            ']' | qi::eps(ph::ref(no_eols)) >> qi::eol >> *qi::blank >> qi::eol
-            ;
+        escape.name("escape");
+        local.escape_break.name("line break");
+        local.escape_punct.name("escaped punctuation");
+        local.escape_markup.name("escaped markup");
+        local.escape_unicode16.name("escaped 16-bit unicode");
+        local.escape_unicode32.name("escape 32-bit unicode");
     }
 }
