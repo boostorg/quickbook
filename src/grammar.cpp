@@ -65,6 +65,7 @@ namespace quickbook
         , doc_info(impl_->doc_info_details, "doc_info")
     {
         qi::on_error(impl_->block_start, error_handler(a));
+        qi::on_error(impl_->doc_info_details, error_handler(a));
     }
     
     quickbook_grammar::~quickbook_grammar()

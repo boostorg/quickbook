@@ -73,9 +73,9 @@ namespace quickbook
             repo::confix(space >> '[' >> space, space >> ']' >> +qi::eol)
             [   qi::raw[local.doc_types]    [member_assign(&doc_info::doc_type)]
             >>  hard_space
-            >>  local.doc_info_title        [member_assign(&doc_info::doc_title)]
-            >>  local.quickbook_version     [actions.process]
-            >>  *repo::confix(space >> '[', space >> ']' >> +qi::eol)
+            >   local.doc_info_title        [member_assign(&doc_info::doc_title)]
+            >   local.quickbook_version     [actions.process]
+            >   *repo::confix(space >> '[', space >> ']' >> +qi::eol)
                 [   local.doc_version       [member_assign(&doc_info::doc_version)]
                 |   local.doc_id            [member_assign(&doc_info::doc_id)]
                 |   local.doc_dirname       [member_assign(&doc_info::doc_dirname)]
@@ -90,69 +90,91 @@ namespace quickbook
                     // correct encoding.
                 |   local.doc_source_mode   [ph::ref(actions.state_.source_mode) = qi::_1]
                 ]
+            >   &(space >> ']' >> +qi::eol)
             ]
             ;
+
+        doc_info_details.name("documentation information");
 
         local.quickbook_version =
                 position                    [member_assign(&version::position)]
             >>  -repo::confix(space >> '[', space >> ']')
                 [   "quickbook"
-                >>  hard_space
-                >>  qi::uint_               [member_assign(&version::major)]
-                >>  '.'
-                >>  uint2_t()               [member_assign(&version::minor)]
+                >   hard_space
+                >   qi::uint_               [member_assign(&version::major)]
+                >   '.'
+                >   uint2_t()               [member_assign(&version::minor)]
                 ]
             ;
 
-        local.doc_version = "version" >> hard_space >> local.doc_info_text;
-        local.doc_id      = "id"      >> hard_space >> local.doc_info_text;
-        local.doc_dirname = "dirname" >> hard_space >> local.doc_info_text;
-        local.doc_category="category" >> hard_space >> local.doc_info_text;
-        local.doc_last_revision = "last-revision" >> hard_space >> local.doc_info_text;
+        local.quickbook_version.name("quickbook version");
+
+        local.doc_version = "version" >> hard_space > local.doc_info_text;
+        local.doc_id      = "id"      >> hard_space > local.doc_info_text;
+        local.doc_dirname = "dirname" >> hard_space > local.doc_info_text;
+        local.doc_category="category" >> hard_space > local.doc_info_text;
+        local.doc_last_revision = "last-revision" >> hard_space > local.doc_info_text;
+
+        local.doc_version.name("version");
+        local.doc_id.name("document id");
+        local.doc_dirname.name("document dirname");
+        local.doc_category.name("category");
+        local.doc_last_revision.name("document last revision");
 
         local.doc_copyright =
                 "copyright"
             >>  hard_space
-            >>  (+(qi::uint_ >> space))     [member_assign(&doc_info::copyright_entry::years)]
-            >>  local.doc_info_text         [member_assign(&doc_info::copyright_entry::holder)]
+            >   (+(qi::uint_ >> space))     [member_assign(&doc_info::copyright_entry::years)]
+            >   local.doc_info_text         [member_assign(&doc_info::copyright_entry::holder)]
             ;
+
+        local.doc_copyright.name("document copyright");
 
         local.doc_purpose =
                 "purpose"
             >>  hard_space
-            >>  local.doc_info_phrase
+            >   local.doc_info_phrase
             ;
+
+        local.doc_purpose.name("document purpose");
 
         local.doc_author =
                 '['
-            >>  space
-            >>  local.doc_info_text_comma   [member_assign(&doc_info::author::surname)]
-            >>  ',' >> space
-            >>  local.doc_info_text         [member_assign(&doc_info::author::firstname)]
-            >>  ']'
+            >   space
+            >   local.doc_info_text_comma   [member_assign(&doc_info::author::surname)]
+            >   ','
+            >   space
+            >   local.doc_info_text         [member_assign(&doc_info::author::firstname)]
+            >   ']'
             ;
 
         local.doc_authors
             =   "authors"
             >>  hard_space
-            >>  (   (local.doc_author >> space)
-                %   -(qi::char_(',') >> space)
+            >   (   (local.doc_author > space)
+                %   -(qi::char_(',') > space)
                 );
+
+        local.doc_author.name("document author");
+        local.doc_author.name("document authors");
 
         local.doc_license =
                 "license"
             >>  hard_space
-            >>  local.doc_info_phrase
+            >   local.doc_info_phrase
             ;
+
+        local.doc_license.name("document license");
 
         local.doc_source_mode =
                 "source-mode" >> hard_space
-            >>  (
-                   qi::string("c++")
+            >   (  qi::string("c++") 
                 |  qi::string("python")
                 |  qi::string("teletype")
                 )
             ;
+
+        local.doc_source_mode.name("document source mode");
 
         local.doc_info_phrase =
             qi::raw[
@@ -190,10 +212,10 @@ namespace quickbook
 
         local.doc_info_text_impl =
                 qi::eps                     [actions.phrase_push]
-            >>  *(  escape
+            >   *(  escape
                 |   (~qi::char_(']'))       [actions.process]
                 )
-            >>  qi::eps                     [actions.phrase_pop]
+            >   qi::eps                     [actions.phrase_pop]
             ;
 
         local.doc_info_text_comma_impl =
@@ -212,5 +234,14 @@ namespace quickbook
                 )
             >>  qi::eps                     [actions.phrase_pop]
             ;
+
+        local.doc_info_phrase.name("phrase");
+        local.doc_info_text.name("text");
+        local.doc_info_text_comma.name("text");
+        local.doc_info_title.name("title");
+        local.doc_info_phrase_impl.name("phrase");
+        local.doc_info_text_impl.name("text");
+        local.doc_info_text_comma_impl.name("text");
+        local.doc_info_title_impl.name("title");
     }
 }
