@@ -27,7 +27,13 @@
       Single paragraph.
     </para>
     <para>
-      Lots of newlines round this paragraph.
+      Two lines before this paragraph.
+    </para>
+    <para>
+      Three lines before this paragraph.
+    </para>
+    <para>
+      Four lines before this paragraph.
     </para>
     <para>
       Last paragraph.
