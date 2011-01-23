@@ -15,6 +15,7 @@
 #include <cctype>
 #include <boost/ref.hpp>
 #include <boost/assert.hpp>
+#include <boost/filesystem/v3/path.hpp>
 
 namespace quickbook { namespace detail
 {
@@ -63,8 +64,9 @@ namespace quickbook { namespace detail
     // common IDEs. Uses the ms_errors global to determine if VS format
     // or GCC format. Returns the stream to continue ouput of the verbose
     // error message.
-    std::ostream & outerr(std::string const& file, int line = -1);
-    std::ostream & outwarn(std::string const& file, int line = -1);
+    std::ostream & outerr();
+    std::ostream & outerr(boost::filesystem::path const& file, int line = -1);
+    std::ostream & outwarn(boost::filesystem::path const& file, int line = -1);
 
     // load file into memory with extra trailing newlines to eliminate
     //  the need to check for end of file in the grammar.

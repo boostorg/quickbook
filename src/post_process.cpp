@@ -444,7 +444,7 @@ namespace quickbook
             else
             {
                 // fallback!
-                ::quickbook::detail::outerr("")
+                ::quickbook::detail::outerr()
                     << "Warning: Post Processing Failed."
                     << std::endl;
                 out << in;
@@ -455,7 +455,7 @@ namespace quickbook
         catch(...)
         {
             // fallback!
-            ::quickbook::detail::outerr("")
+            ::quickbook::detail::outerr()
                 << "Post Processing Failed."
                 << std::endl;
             out << in;

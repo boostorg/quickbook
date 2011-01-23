@@ -13,7 +13,6 @@
 #include "post_process.hpp"
 #include "utils.hpp"
 #include "input_path.hpp"
-#include <boost/spirit/include/classic_iterator.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem/v3/path.hpp>
 #include <boost/filesystem/v3/operations.hpp>
@@ -49,8 +48,9 @@ namespace quickbook
                 end = preset_defines.end();
                 it != end; ++it)
         {
-            iterator first(it->begin(), it->end(), "command line parameter");
-            iterator last(it->end(), it->end());
+        	// TODO: Set filename in actor???
+            iterator first(it->begin());
+            iterator last(it->end());
 
             cl::parse(first, last, actor.grammar().command_line_macro);
             // TODO: Check result?
@@ -76,8 +76,8 @@ namespace quickbook
             return err;
         }
 
-        iterator first(storage.begin(), storage.end(), filein_);
-        iterator last(storage.end(), storage.end());
+        iterator first(storage.begin());
+        iterator last(storage.end());
 
         cl::parse_info<iterator> info = cl::parse(first, last, actor.grammar().doc_info);
 
@@ -94,8 +94,8 @@ namespace quickbook
 
         if (!info.full)
         {
-            position const pos = info.stop.get_position();
-            detail::outerr(pos.file,pos.line)
+        	file_position const& pos = info.stop.get_position();
+            detail::outerr(actor.filename, pos.line)
                 << "Syntax Error near column " << pos.column << ".\n";
             ++actor.error_count;
         }
@@ -117,7 +117,7 @@ namespace quickbook
 
         if(actor.error_count)
         {
-            detail::outerr(filein_)
+            detail::outerr()
                 << "Error count: " << actor.error_count << ".\n";
         }
 
@@ -291,7 +291,7 @@ main(int argc, char* argv[])
         }
         else
         {
-            quickbook::detail::outerr("") << "Error: No filename given\n\n"
+            quickbook::detail::outerr() << "No filename given\n\n"
                 << desc << std::endl;
             return 1;
         }        
@@ -299,13 +299,13 @@ main(int argc, char* argv[])
 
     catch(std::exception& e)
     {
-        quickbook::detail::outerr("") << "Error: " << e.what() << "\n";
+        quickbook::detail::outerr() << e.what() << "\n";
         return 1;
     }
 
     catch(...)
     {
-        quickbook::detail::outerr("") << "Error: Exception of unknown type caught\n";
+        quickbook::detail::outerr() << "Exception of unknown type caught\n";
         return 1;
     }
 

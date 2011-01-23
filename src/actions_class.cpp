@@ -77,7 +77,7 @@ namespace quickbook
         , suppress(false)
 
     // actions
-        , error(error_count)
+        , error(*this)
         , extract_doc_title(doc_title, phrase, *this)
         , extract_doc_license(doc_license, phrase, *this)
         , extract_doc_purpose(doc_purpose, phrase, *this)
@@ -117,7 +117,7 @@ namespace quickbook
         , plain_char(phrase, *this)
         , raw_char(phrase, *this)
         , escape_unicode(phrase, *this)
-        , attribute(attributes, attribute_name, error_count)
+        , attribute(attributes, attribute_name, *this)
         , image(phrase, attributes, image_fileref, *this)
         , cond_phrase_pre(condition, macro)
         , scoped_cond_phrase(*this)
@@ -192,6 +192,7 @@ namespace quickbook
 
         , begin_section(out, phrase, doc_id, section_id, section_level, qualified_section_id, element_id, *this)
         , end_section(out, section_level, min_section_level, qualified_section_id, error_count, *this)
+        , element_id_warning(*this)
         , xinclude(out, *this)
         , include(*this)
         , import(out, *this)

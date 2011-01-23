@@ -151,33 +151,38 @@ namespace quickbook { namespace detail
         return uri;
     }
 
-    std::ostream& outerr(std::string const& file, int line)
+    std::ostream& outerr()
+    {
+        return std::clog << "Error: ";
+    }
+
+    std::ostream& outerr(boost::filesystem::path const& file, int line)
     {
         if (line >= 0)
         {
             if (ms_errors)
-                return std::clog << file << "(" << line << "): error: ";
+                return std::clog << file.string() << "(" << line << "): error: ";
             else
-                return std::clog << file << ":" << line << ": error: ";
+                return std::clog << file.string() << ":" << line << ": error: ";
         }
         else
         {
-            return std::clog << file << ": error: ";
+            return std::clog << file.string() << ": error: ";
         }
     }
 
-    std::ostream& outwarn(std::string const& file, int line)
+    std::ostream& outwarn(boost::filesystem::path const& file, int line)
     {
         if (line >= 0)
         {
             if (ms_errors)
-                return std::clog << file << "(" << line << "): warning: ";
+                return std::clog << file.string() << "(" << line << "): warning: ";
             else
-                return std::clog << file << ":" << line << ": warning: ";
+                return std::clog << file.string() << ":" << line << ": warning: ";
         }
         else
         {
-            return std::clog << file << ": warning: ";
+            return std::clog << file.string() << ": warning: ";
         }
     }
 
