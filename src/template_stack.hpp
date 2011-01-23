@@ -22,11 +22,13 @@
 
 namespace quickbook
 {
+    namespace fs = boost::filesystem;
+
     struct template_body
     {
         template_body(
                 std::string const& content,
-                boost::filesystem::path const& filename,
+                fs::path const& filename,
                 file_position const& position,
                 bool is_block
             )
@@ -38,7 +40,7 @@ namespace quickbook
         }
 
         std::string content;
-        boost::filesystem::path filename;        
+        fs::path filename;        
         file_position position;
         bool is_block;
     };
@@ -51,7 +53,7 @@ namespace quickbook
                 std::string const& identifier,
                 std::vector<std::string> const& params,
                 std::string const& body,
-                boost::filesystem::path const& filename,
+                fs::path const& filename,
                 file_position const& position,
                 bool is_block,
                 template_scope const* parent = 0)

@@ -142,7 +142,7 @@ namespace quickbook { namespace detail
         return std::clog << "Error: ";
     }
 
-    std::ostream& outerr(boost::filesystem::path const& file, int line)
+    std::ostream& outerr(fs::path const& file, int line)
     {
         if (line >= 0)
         {
@@ -157,7 +157,7 @@ namespace quickbook { namespace detail
         }
     }
 
-    std::ostream& outwarn(boost::filesystem::path const& file, int line)
+    std::ostream& outwarn(fs::path const& file, int line)
     {
         if (line >= 0)
         {
@@ -229,7 +229,7 @@ namespace quickbook { namespace detail
 
     template <class InputIterator, class OutputIterator>
     bool normalize(InputIterator begin, InputIterator end,
-            OutputIterator out, boost::filesystem::path const& filename)
+            OutputIterator out, fs::path const& filename)
     {
         std::string encoding = read_bom(begin, end, out);
 
@@ -254,7 +254,7 @@ namespace quickbook { namespace detail
         return true;
     }
 
-    int load(boost::filesystem::path const& filename, std::string& storage)
+    int load(fs::path const& filename, std::string& storage)
     {
         using std::cerr;
         using std::endl;
@@ -262,7 +262,7 @@ namespace quickbook { namespace detail
         using std::ifstream;
         using std::istream_iterator;
 
-        boost::filesystem::ifstream in(filename, std::ios_base::in);
+        fs::ifstream in(filename, std::ios_base::in);
 
         if (!in)
         {

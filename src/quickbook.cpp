@@ -165,6 +165,8 @@ main(int argc, char* argv[])
 {
     try
     {
+        namespace fs = boost::filesystem;
+
         using boost::program_options::options_description;
         using boost::program_options::variables_map;
         using boost::program_options::store;
@@ -175,7 +177,7 @@ main(int argc, char* argv[])
         using boost::program_options::positional_options_description;
 
         // First thing, the filesystem should record the current working directory.
-        boost::filesystem::initial_path<boost::filesystem::path>();
+        fs::initial_path<fs::path>();
 
         options_description desc("Allowed options");
         desc.add_options()
@@ -257,7 +259,7 @@ main(int argc, char* argv[])
                 = vm["include-path"].as<
                     std::vector<quickbook::detail::input_path> >();
             quickbook::include_path
-                = std::vector<boost::filesystem::path>(paths.begin(), paths.end());
+                = std::vector<fs::path>(paths.begin(), paths.end());
         }
 
         if (vm.count("define"))
@@ -268,9 +270,9 @@ main(int argc, char* argv[])
 
         if (vm.count("input-file"))
         {
-            boost::filesystem::path filein(
+            fs::path filein(
                 vm["input-file"].as<quickbook::detail::input_path>());
-            boost::filesystem::path fileout;
+            fs::path fileout;
 
             if (vm.count("output-file"))
             {

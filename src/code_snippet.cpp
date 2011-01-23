@@ -65,7 +65,7 @@ namespace quickbook
         std::string code;
         std::string id;
         std::vector<template_symbol>& storage;
-        boost::filesystem::path filename;
+        fs::path filename;
         std::string const doc_id;
         char const* const source_type;
     };

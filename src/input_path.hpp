@@ -14,7 +14,11 @@
 #include <boost/any.hpp>
 #include <string>
 
-namespace quickbook { namespace detail
+namespace quickbook
+{
+    namespace fs = boost::filesystem;
+
+namespace detail
 {
     // Use this class with Boost.Program Options to convert paths to the format
     // the Boost.Filesystem expects. This is needed on cygwin to convert cygwin
