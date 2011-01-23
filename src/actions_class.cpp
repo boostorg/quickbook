@@ -19,7 +19,7 @@
 
 namespace quickbook
 {
-    actions::actions(char const* filein_, fs::path const& outdir_, string_stream& out_)
+    actions::actions(fs::path const& filein_, fs::path const& outdir_, string_stream& out_)
         : grammar_()
 
     // header info
@@ -44,7 +44,7 @@ namespace quickbook
         , list_buffer()
 
     // state
-        , filename(fs::absolute(fs::path(filein_)))
+        , filename(fs::absolute(filein_))
         , outdir(outdir_)
         , macro_change_depth(0)
         , macro()

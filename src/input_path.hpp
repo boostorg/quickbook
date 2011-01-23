@@ -9,6 +9,7 @@
 #if !defined(BOOST_QUICKBOOK_DETAIL_INPUT_PATH_HPP)
 #define BOOST_QUICKBOOK_DETAIL_INPUT_PATH_HPP
 
+#include <boost/filesystem/v3/path.hpp>
 #include <vector>
 #include <boost/any.hpp>
 #include <string>
@@ -29,7 +30,7 @@ namespace quickbook { namespace detail
     public:
         explicit input_path(char const* c) : path_(c) {}
         explicit input_path(std::string const& c) : path_(c) {}
-        operator std::string() const { return path_; }
+        operator boost::filesystem::path() const { return boost::filesystem::path(path_); }
 
         friend void validate(boost::any&, const std::vector<std::string>&,
             input_path*, int);

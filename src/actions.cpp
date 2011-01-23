@@ -1338,9 +1338,8 @@ namespace quickbook
                 }
 
                 // Search in each of the include path locations.
-                BOOST_FOREACH(std::string const & p, include_path)
+                BOOST_FOREACH(fs::path full, include_path)
                 {
-                    fs::path full(p);
                     full /= path;
                     if (fs::exists(full))
                     {

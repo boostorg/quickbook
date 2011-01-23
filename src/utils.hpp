@@ -55,9 +55,6 @@ namespace quickbook { namespace detail
     // un-indent a code segment
     void unindent(std::string& program);
 
-    // remove the extension from a filename
-    std::string remove_extension(std::string const& filename);
-
     std::string escape_uri(std::string uri);
 
     // Preformats an error/warning message so that it can be parsed by
@@ -70,7 +67,7 @@ namespace quickbook { namespace detail
 
     // load file into memory with extra trailing newlines to eliminate
     //  the need to check for end of file in the grammar.
-    int load(std::string const& filename, std::string& storage);
+    int load(boost::filesystem::path const& filename, std::string& storage);
 
     // given a file extension, return the type of the source file
     // we'll have an internal database for known file types.

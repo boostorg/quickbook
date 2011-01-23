@@ -16,11 +16,10 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem/v3/path.hpp>
 #include <boost/filesystem/v3/operations.hpp>
+#include <boost/filesystem/v3/fstream.hpp>
 #include <boost/ref.hpp>
 
 #include <stdexcept>
-#include <fstream>
-#include <iostream>
 #include <vector>
 
 #if (defined(BOOST_MSVC) && (BOOST_MSVC <= 1310))
@@ -38,7 +37,7 @@ namespace quickbook
     tm* current_gm_time; // the current UTC time
     bool debug_mode; // for quickbook developers only
     bool ms_errors = false; // output errors/warnings as if for VS
-    std::vector<std::string> include_path;
+    std::vector<fs::path> include_path;
     std::vector<std::string> preset_defines;
 
     static void set_macros(actions& actor)
@@ -48,7 +47,7 @@ namespace quickbook
                 end = preset_defines.end();
                 it != end; ++it)
         {
-        	// TODO: Set filename in actor???
+            // TODO: Set filename in actor???
             iterator first(it->begin());
             iterator last(it->end());
 
@@ -63,7 +62,7 @@ namespace quickbook
     //
     ///////////////////////////////////////////////////////////////////////////
     int
-    parse_file(char const* filein_, actions& actor, bool ignore_docinfo)
+    parse_file(fs::path const& filein_, actions& actor, bool ignore_docinfo)
     {
         using std::cerr;
         using std::vector;
@@ -94,7 +93,7 @@ namespace quickbook
 
         if (!info.full)
         {
-        	file_position const& pos = info.stop.get_position();
+            file_position const& pos = info.stop.get_position();
             detail::outerr(actor.filename, pos.line)
                 << "Syntax Error near column " << pos.column << ".\n";
             ++actor.error_count;
@@ -104,7 +103,7 @@ namespace quickbook
     }
 
     static int
-    parse_document(char const* filein_, fs::path const& outdir, string_stream& out, bool ignore_docinfo = false)
+    parse_document(fs::path const& filein_, fs::path const& outdir, string_stream& out, bool ignore_docinfo = false)
     {
         actions actor(filein_, outdir, out);
 
@@ -126,14 +125,14 @@ namespace quickbook
 
     static int
     parse_document(
-        char const* filein_
-      , char const* fileout_
+        fs::path const& filein_
+      , fs::path const& fileout_
       , int indent
       , int linewidth
       , bool pretty_print)
     {
         int result = 0;
-        fs::path outdir = fs::path(fileout_).parent_path();
+        fs::path outdir = fileout_.parent_path();
         if (outdir.empty())
             outdir = ".";
         string_stream buffer;
@@ -141,7 +140,7 @@ namespace quickbook
 
         if (result == 0)
         {
-            std::ofstream fileout(fileout_);
+            fs::ofstream fileout(fileout_);
 
             if (pretty_print)
             {
@@ -258,7 +257,7 @@ main(int argc, char* argv[])
                 = vm["include-path"].as<
                     std::vector<quickbook::detail::input_path> >();
             quickbook::include_path
-                = std::vector<std::string>(paths.begin(), paths.end());
+                = std::vector<boost::filesystem::path>(paths.begin(), paths.end());
         }
 
         if (vm.count("define"))
@@ -269,9 +268,9 @@ main(int argc, char* argv[])
 
         if (vm.count("input-file"))
         {
-            std::string filein
-                = vm["input-file"].as<quickbook::detail::input_path>();
-            std::string fileout;
+            boost::filesystem::path filein(
+                vm["input-file"].as<quickbook::detail::input_path>());
+            boost::filesystem::path fileout;
 
             if (vm.count("output-file"))
             {
@@ -279,15 +278,15 @@ main(int argc, char* argv[])
             }
             else
             {
-                fileout = quickbook::detail::remove_extension(filein.c_str());
-                fileout += ".xml";
+                fileout = filein;
+                fileout.replace_extension("xml");
             }
 
             std::cout << "Generating Output File: "
-                << fileout
+                << fileout.string() // TODO
                 << std::endl;
 
-            return quickbook::parse_document(filein.c_str(), fileout.c_str(), indent, linewidth, pretty_print);
+            return quickbook::parse_document(filein, fileout, indent, linewidth, pretty_print);
         }
         else
         {

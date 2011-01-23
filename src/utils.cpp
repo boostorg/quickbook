@@ -9,6 +9,7 @@
 =============================================================================*/
 #include "utils.hpp"
 #include <boost/spirit/include/classic_core.hpp>
+#include <boost/filesystem/v3/fstream.hpp>
 
 #include <cctype>
 #include <cstring>
@@ -115,21 +116,6 @@ namespace quickbook { namespace detail
 
             std::string::size_type next = program.find_first_of("\r\n", pos);
             program.erase(pos, (std::min)(indent, next-pos));
-        }
-    }
-
-    // remove the extension from a filename
-    std::string
-    remove_extension(std::string const& filename)
-    {
-        std::string::size_type const n = filename.find_last_of('.');
-        if(std::string::npos == n)
-        {
-            return filename;
-        }
-        else
-        {
-            return std::string(filename.begin(), filename.begin()+n);
         }
     }
 
@@ -243,7 +229,7 @@ namespace quickbook { namespace detail
 
     template <class InputIterator, class OutputIterator>
     bool normalize(InputIterator begin, InputIterator end,
-            OutputIterator out, std::string const& filename)
+            OutputIterator out, boost::filesystem::path const& filename)
     {
         std::string encoding = read_bom(begin, end, out);
 
@@ -268,7 +254,7 @@ namespace quickbook { namespace detail
         return true;
     }
 
-    int load(std::string const& filename, std::string& storage)
+    int load(boost::filesystem::path const& filename, std::string& storage)
     {
         using std::cerr;
         using std::endl;
@@ -276,7 +262,7 @@ namespace quickbook { namespace detail
         using std::ifstream;
         using std::istream_iterator;
 
-        ifstream in(filename.c_str(), std::ios_base::in);
+        boost::filesystem::ifstream in(filename, std::ios_base::in);
 
         if (!in)
         {

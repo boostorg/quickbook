@@ -15,6 +15,7 @@
 #include <time.h>
 #include <vector>
 #include <string>
+#include <boost/filesystem/path.hpp>
 #include "fwd.hpp"
 
 namespace quickbook
@@ -22,10 +23,10 @@ namespace quickbook
     extern tm* current_time; // the current time
     extern tm* current_gm_time; // the current UTC time
     extern bool debug_mode;
-    extern std::vector<std::string> include_path;
+    extern std::vector<boost::filesystem::path> include_path;
     extern std::vector<std::string> preset_defines;
 
-    int parse_file(char const* filein_, actions& actor, bool ignore_docinfo = false);
+    int parse_file(boost::filesystem::path const& filein_, actions& actor, bool ignore_docinfo = false);
 }
 
 #endif
