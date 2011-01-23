@@ -13,16 +13,10 @@
 
 // Everything but cygwin
 
-namespace quickbook { namespace detail
-{
-    void validate(boost::any& v,
-            const std::vector<std::string>& values,
-            input_path*, int)
-    {
-        std::string path
-            = boost::program_options::validators::get_single_string(values);
-
-        v = input_path(path);
+namespace quickbook {
+namespace detail {
+    fs::path native_to_path(fs::path::string_type const& path) {
+        return fs::path(path);
     }
 }}
 
@@ -36,15 +30,10 @@ namespace quickbook { namespace detail
 #include <windows.h>
 #include <sys/cygwin.h>
 
-namespace quickbook { namespace detail
-{
-    void validate(boost::any& v,
-            const std::vector<std::string>& values,
-            input_path*, int)
-    {
-        std::string path
-            = boost::program_options::validators::get_single_string(values);
-
+namespace quickbook {
+namespace detail {
+    fs::path native_to_path(fs::path::string_type const& path) {
+        // TODO: Use unicode version
 #if defined(BOOST_WINDOWS_PATH)
         cygwin_conv_path_t flags = CCP_POSIX_TO_WIN_A | CCP_RELATIVE;
 #elif defined(BOOST_POSIX_PATH)
@@ -56,6 +45,7 @@ namespace quickbook { namespace detail
         ssize_t size = cygwin_conv_path(flags, path.c_str(), NULL, 0);
         
         if (size < 0) {
+            // TODO: Better error.
             throw boost::program_options::validation_error(
                 boost::program_options::validation_error::invalid_option_value);
         }
@@ -67,7 +57,7 @@ namespace quickbook { namespace detail
                 boost::program_options::validation_error::invalid_option_value);
         }
 
-        v = input_path(result.get());
+        return fs::path(result.get());
     }
 }}
 

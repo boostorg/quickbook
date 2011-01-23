@@ -186,11 +186,11 @@ main(int argc, char* argv[])
             ("no-pretty-print", "disable XML pretty printing")
             ("indent", value<int>(), "indent spaces")
             ("linewidth", value<int>(), "line width")
-            ("input-file", value<quickbook::detail::input_path>(), "input file")
-            ("output-file", value<quickbook::detail::input_path>(), "output file")
+            ("input-file", value<fs::path::string_type>(), "input file")
+            ("output-file", value<fs::path::string_type>(), "output file")
             ("debug", "debug mode (for developers)")
             ("ms-errors", "use Microsoft Visual Studio style error & warn message format")
-            ("include-path,I", value< std::vector<quickbook::detail::input_path> >(), "include path")
+            ("include-path,I", value< std::vector<fs::path::string_type> >(), "include path")
             ("define,D", value< std::vector<std::string> >(), "define macro")
         ;
 
@@ -255,9 +255,9 @@ main(int argc, char* argv[])
         
         if (vm.count("include-path"))
         {
-            std::vector<quickbook::detail::input_path> paths
+            std::vector<fs::path::string_type> paths
                 = vm["include-path"].as<
-                    std::vector<quickbook::detail::input_path> >();
+                    std::vector<fs::path::string_type> >();
             quickbook::include_path
                 = std::vector<fs::path>(paths.begin(), paths.end());
         }
@@ -270,13 +270,14 @@ main(int argc, char* argv[])
 
         if (vm.count("input-file"))
         {
+            // TODO: Convert cygwin paths
             fs::path filein(
-                vm["input-file"].as<quickbook::detail::input_path>());
+                vm["input-file"].as<fs::path::string_type>());
             fs::path fileout;
 
             if (vm.count("output-file"))
             {
-                fileout = vm["output-file"].as<quickbook::detail::input_path>();
+                fileout = vm["output-file"].as<fs::path::string_type>();
             }
             else
             {
