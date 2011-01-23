@@ -1414,7 +1414,7 @@ namespace quickbook
         }
 
         // update the __FILENAME__ macro
-        *boost::spirit::classic::find(actions.macro, "__FILENAME__") = actions.filename.string();
+        *boost::spirit::classic::find(actions.macro, "__FILENAME__") = actions.filename.generic_string();
 
         // parse the file
         quickbook::parse_file(actions.filename.string().c_str(), actions, true);
