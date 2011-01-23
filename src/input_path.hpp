@@ -11,6 +11,7 @@
 
 #include <boost/filesystem/v3/path.hpp>
 #include <string>
+#include <stdexcept>
 
 namespace quickbook
 {
@@ -18,15 +19,35 @@ namespace quickbook
 
     namespace detail
     {
-        // Convert paths from the command line, or other native sources to
-        // our internal path type. Mainly used to convert cygwin paths, but
-        // might be useful elsewhere.
-        fs::path native_to_path(fs::path::string_type const&);
+        struct conversion_error : std::runtime_error
+        {
+            conversion_error(char const* m) : std::runtime_error(m) {}
+        };
+
+        // 'generic':   Paths in quickbook source and the generated boostbook.
+        //              Always UTF-8.
+        // 'native':    Paths (or other parameters) from the command line and
+        //              possibly other sources in the future. Wide strings on
+        //              normal windows, UTF-8 for cygwin and other platforms
+        //              (hopefully).
+        // 'path':      Stored as a boost::filesystem::path. Since
+        //              Boost.Filesystem doesn't support cygwin, this
+        //              is always wide on windows. UTF-8 on other
+        //              platforms (again, hopefully).
     
-        // Conversion of filenames to and from genertic utf-8 paths
-        // (such as those used in quickbook and the generated boostbook)
-        fs::path generic_to_path(std::string const&);
+#if defined(_WIN32) && !(defined(__cygwin__) || defined(__CYGWIN__))
+#define QUICKBOOK_WIDE_NATIVE 1
+        typedef std::wstring native_string;
+#else
+#define QUICKBOOK_WIDE_NATIVE 0
+        typedef std::string native_string;
+#endif
+
+        std::string native_to_utf8(native_string const&);
+        fs::path native_to_path(native_string const& x);
+    
         std::string path_to_generic(fs::path const&);
+        fs::path generic_to_path(std::string const&);
     }
 }
 

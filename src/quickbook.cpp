@@ -17,10 +17,17 @@
 #include <boost/filesystem/v3/path.hpp>
 #include <boost/filesystem/v3/operations.hpp>
 #include <boost/filesystem/v3/fstream.hpp>
+#include <boost/range/algorithm.hpp>
 #include <boost/ref.hpp>
 
 #include <stdexcept>
 #include <vector>
+#include <iterator>
+
+#if defined(_WIN32)
+#include <windows.h>
+#include <shellapi.h>
+#endif
 
 #if (defined(BOOST_MSVC) && (BOOST_MSVC <= 1310))
 #pragma warning(disable:4355)
@@ -166,32 +173,42 @@ main(int argc, char* argv[])
     try
     {
         namespace fs = boost::filesystem;
+        namespace po = boost::program_options;
 
         using boost::program_options::options_description;
         using boost::program_options::variables_map;
         using boost::program_options::store;
         using boost::program_options::parse_command_line;
+        using boost::program_options::wcommand_line_parser;
         using boost::program_options::command_line_parser;
         using boost::program_options::notify;
-        using boost::program_options::value;
         using boost::program_options::positional_options_description;
+        
+        using quickbook::detail::native_string;
 
         // First thing, the filesystem should record the current working directory.
         fs::initial_path<fs::path>();
 
         options_description desc("Allowed options");
+
+#if QUICKBOOK_WIDE_NATIVE
+#define PO_VALUE po::wvalue
+#else
+#define PO_VALUE po::value
+#endif
+
         desc.add_options()
             ("help", "produce help message")
             ("version", "print version string")
             ("no-pretty-print", "disable XML pretty printing")
-            ("indent", value<int>(), "indent spaces")
-            ("linewidth", value<int>(), "line width")
-            ("input-file", value<fs::path::string_type>(), "input file")
-            ("output-file", value<fs::path::string_type>(), "output file")
+            ("indent", PO_VALUE<int>(), "indent spaces")
+            ("linewidth", PO_VALUE<int>(), "line width")
+            ("input-file", PO_VALUE<native_string>(), "input file")
+            ("output-file", PO_VALUE<native_string>(), "output file")
             ("debug", "debug mode (for developers)")
             ("ms-errors", "use Microsoft Visual Studio style error & warn message format")
-            ("include-path,I", value< std::vector<fs::path::string_type> >(), "include path")
-            ("define,D", value< std::vector<std::string> >(), "define macro")
+            ("include-path,I", PO_VALUE< std::vector<native_string> >(), "include path")
+            ("define,D", PO_VALUE< std::vector<native_string> >(), "define macro")
         ;
 
         positional_options_description p;
@@ -201,7 +218,23 @@ main(int argc, char* argv[])
         int indent = -1;
         int linewidth = -1;
         bool pretty_print = true;
+
+#if QUICKBOOK_WIDE_NATIVE
+        int wide_argc;
+        LPWSTR* wide_argv = CommandLineToArgvW(GetCommandLineW(), &wide_argc);
+        if (!wide_argv)
+        {
+            quickbook::detail::outerr() << "Error getting argument values." << std::endl;
+            return 1;
+        }
+
+        store(wcommand_line_parser(wide_argc, wide_argv).options(desc).positional(p).run(), vm);
+
+        LocalFree(wide_argv);
+#else
         store(command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+#endif
+
         notify(vm);
 
         if (vm.count("help"))
@@ -253,31 +286,34 @@ main(int argc, char* argv[])
             quickbook::debug_mode = false;
         }
         
+        quickbook::include_path.clear();
         if (vm.count("include-path"))
         {
-            std::vector<fs::path::string_type> paths
-                = vm["include-path"].as<
-                    std::vector<fs::path::string_type> >();
-            quickbook::include_path
-                = std::vector<fs::path>(paths.begin(), paths.end());
+            boost::transform(
+                vm["include-path"].as<std::vector<native_string> >(),
+                std::back_inserter(quickbook::include_path),
+                quickbook::detail::native_to_path);
         }
 
+        quickbook::preset_defines.clear();
         if (vm.count("define"))
         {
-            quickbook::preset_defines
-                = vm["define"].as<std::vector<std::string> >();
+            boost::transform(
+                vm["define"].as<std::vector<native_string> >(),
+                std::back_inserter(quickbook::preset_defines),
+                quickbook::detail::native_to_utf8);
         }
 
         if (vm.count("input-file"))
         {
-            // TODO: Convert cygwin paths
-            fs::path filein(
-                vm["input-file"].as<fs::path::string_type>());
+            fs::path filein = quickbook::detail::native_to_path(
+                vm["input-file"].as<native_string>());
             fs::path fileout;
 
             if (vm.count("output-file"))
             {
-                fileout = vm["output-file"].as<fs::path::string_type>();
+                fileout = quickbook::detail::native_to_path(
+                    vm["output-file"].as<native_string>());
             }
             else
             {
@@ -286,7 +322,7 @@ main(int argc, char* argv[])
             }
 
             std::cout << "Generating Output File: "
-                << fileout.string() // TODO
+                << fileout.string()
                 << std::endl;
 
             return quickbook::parse_document(filein, fileout, indent, linewidth, pretty_print);
