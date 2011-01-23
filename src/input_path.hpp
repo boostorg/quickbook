@@ -22,6 +22,11 @@ namespace quickbook
         // our internal path type. Mainly used to convert cygwin paths, but
         // might be useful elsewhere.
         fs::path native_to_path(fs::path::string_type const&);
+    
+        // Conversion of filenames to and from genertic utf-8 paths
+        // (such as those used in quickbook and the generated boostbook)
+        fs::path generic_to_path(std::string const&);
+        std::string path_to_generic(fs::path const&);
     }
 }
 

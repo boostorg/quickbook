@@ -12,6 +12,7 @@
 #include "markups.hpp"
 #include "quickbook.hpp"
 #include "grammar.hpp"
+#include "input_path.hpp"
 
 #if (defined(BOOST_MSVC) && (BOOST_MSVC <= 1310))
 #pragma warning(disable:4355)
@@ -207,7 +208,7 @@ namespace quickbook
         // turn off __FILENAME__ macro on debug mode = true
         std::string filename_str = debug_mode ?
             std::string("NO_FILENAME_MACRO_GENERATED_IN_DEBUG_MODE") :
-            filename.generic_string();
+            detail::path_to_generic(filename);
 
         // add the predefined macros
         macro.add

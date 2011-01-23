@@ -20,6 +20,7 @@
 #include "markups.hpp"
 #include "actions_class.hpp"
 #include "grammar.hpp"
+#include "input_path.hpp"
 
 namespace quickbook
 {
@@ -506,17 +507,38 @@ namespace quickbook
     {
         if(!actions.output_pre(phrase)) return;
 
-        fs::path const img_path(image_fileref);
-        
+        // Find the file basename and extension.
+        //
+        // Not using Boost.Filesystem because I want to stay in UTF-8.
+        // Need to think about uri encoding.
+
+        std::string::size_type pos;
+        std::string stem,extension;
+
+        pos = image_fileref.rfind('/');
+        stem = pos == std::string::npos ?
+            image_fileref :
+            image_fileref.substr(pos + 1);
+
+        pos = stem.rfind('.');
+        if (pos != std::string::npos)
+        {
+            extension = stem.substr(pos + 1);
+            stem = stem.substr(0, pos);
+        }
+
+        // Extract the alt tag, to use as a text description.
+        // Or if there isn't one, use the stem of the file name.
+        // TODO: IMO if there isn't an alt tag, then the description should
+        //       be empty or missing.
+
         attribute_map::iterator it = attributes.find("alt");
-        std::string alt_text = it != attributes.end() ?
-            it->second :
-            img_path.stem().generic_string();
+        std::string alt_text = it != attributes.end() ? it->second : stem;
         attributes.erase("alt");
 
         attributes.insert(attribute_map::value_type("fileref", image_fileref));
 
-        if(img_path.extension() == ".svg")
+        if(extension == ".svg")
         {
            //
            // SVG's need special handling:
@@ -533,11 +555,12 @@ namespace quickbook
            //
            // Image paths are relative to the html subdirectory:
            //
-           fs::path img;
-           if(img_path.root_path().empty())
-              img = "html" / img_path;  // relative path
-           else
-              img = img_path;   // absolute path
+           // TODO: This seems wrong to me.
+           //
+           fs::path img = detail::generic_to_path(image_fileref);
+           if(img.root_path().empty())
+              img = "html" / img;  // relative path
+
            //
            // Now load the SVG file:
            //
@@ -601,8 +624,8 @@ namespace quickbook
 
         phrase << "></imagedata></imageobject>";
 
-        // Also add a textobject -- use the basename of the image file.
-        // This will mean we get "alt" attributes of the HTML img.
+        // Add a textobject containing the alt tag from earlier.
+        // This will be used for the alt tag in html.
         phrase << "<textobject><phrase>";
         detail::print_string(alt_text, phrase.get());
         phrase << "</phrase></textobject>";
@@ -1301,7 +1324,7 @@ namespace quickbook
     {
         // Given a source file and the current filename, calculate the
         // path to the source file relative to the output directory.
-        fs::path path(std::string(first, last));
+        fs::path path = detail::generic_to_path(std::string(first, last));
         if (!path.is_complete())
         {
             fs::path infile = fs::absolute(actions.filename).normalize();
@@ -1420,7 +1443,8 @@ namespace quickbook
         }
 
         // update the __FILENAME__ macro
-        *boost::spirit::classic::find(actions.macro, "__FILENAME__") = actions.filename.generic_string();
+        *boost::spirit::classic::find(actions.macro, "__FILENAME__")
+            = detail::path_to_generic(actions.filename);
 
         // parse the file
         quickbook::parse_file(actions.filename.string().c_str(), actions, true);

@@ -9,6 +9,22 @@
 #include <boost/program_options.hpp>
 #include "input_path.hpp"
 
+namespace quickbook {
+namespace detail {
+    // TODO: These don't work for unicode strings on windows.
+
+    fs::path generic_to_path(std::string const& x)
+    {
+        return fs::path(x);
+    }
+
+    std::string path_to_generic(fs::path const& x)
+    {
+        return x.generic_string();
+    }
+}
+}
+
 #if !(defined(__cygwin__) || defined(__CYGWIN__))
 
 // Everything but cygwin
