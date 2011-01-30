@@ -325,7 +325,7 @@ main(int argc, char* argv[])
             else
             {
                 fileout = filein;
-                fileout.replace_extension("xml");
+                fileout.replace_extension(".xml");
             }
 
             quickbook::detail::out() << "Generating Output File: "
