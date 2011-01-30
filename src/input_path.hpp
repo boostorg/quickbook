@@ -12,6 +12,7 @@
 #include <boost/filesystem/v3/path.hpp>
 #include <string>
 #include <stdexcept>
+#include <iostream>
 
 namespace quickbook
 {
@@ -48,6 +49,14 @@ namespace quickbook
     
         std::string path_to_generic(fs::path const&);
         fs::path generic_to_path(std::string const&);
+
+        // Preformats an error/warning message so that it can be parsed by
+        // common IDEs. Uses the ms_errors global to determine if VS format
+        // or GCC format. Returns the stream to continue ouput of the verbose
+        // error message.
+        std::ostream & outerr();
+        std::ostream & outerr(fs::path const& file, int line = -1);
+        std::ostream & outwarn(fs::path const& file, int line = -1);
     }
 }
 

@@ -13,6 +13,7 @@
 #include <boost/algorithm/string/join.hpp>
 #include "quickbook.hpp"
 #include "utils.hpp"
+#include "input_path.hpp"
 #include "actions_class.hpp"
 
 namespace quickbook

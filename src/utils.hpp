@@ -11,7 +11,6 @@
 #define BOOST_SPIRIT_QUICKBOOK_UTILS_HPP
 
 #include <string>
-#include <iostream>
 #include <cctype>
 #include <boost/ref.hpp>
 #include <boost/assert.hpp>
@@ -60,14 +59,6 @@ namespace detail
     void unindent(std::string& program);
 
     std::string escape_uri(std::string uri);
-
-    // Preformats an error/warning message so that it can be parsed by
-    // common IDEs. Uses the ms_errors global to determine if VS format
-    // or GCC format. Returns the stream to continue ouput of the verbose
-    // error message.
-    std::ostream & outerr();
-    std::ostream & outerr(fs::path const& file, int line = -1);
-    std::ostream & outwarn(fs::path const& file, int line = -1);
 
     // load file into memory with extra trailing newlines to eliminate
     //  the need to check for end of file in the grammar.

@@ -7,6 +7,7 @@
 =============================================================================*/
 
 #include <boost/program_options.hpp>
+#include <iostream>
 #include "input_path.hpp"
 #include "utils.hpp"
 
@@ -20,6 +21,10 @@
 #include <boost/program_options/errors.hpp>
 #include <sys/cygwin.h>
 #endif
+
+namespace quickbook {
+    extern bool ms_errors;
+}
 
 namespace quickbook {
 namespace detail {
@@ -103,5 +108,40 @@ namespace detail {
 
         return fs::path(result.get());
 #endif
+    }
+
+    std::ostream& outerr()
+    {
+        return std::clog << "Error: ";
+    }
+
+    std::ostream& outerr(fs::path const& file, int line)
+    {
+        if (line >= 0)
+        {
+            if (ms_errors)
+                return std::clog << file.string() << "(" << line << "): error: ";
+            else
+                return std::clog << file.string() << ":" << line << ": error: ";
+        }
+        else
+        {
+            return std::clog << file.string() << ": error: ";
+        }
+    }
+
+    std::ostream& outwarn(fs::path const& file, int line)
+    {
+        if (line >= 0)
+        {
+            if (ms_errors)
+                return std::clog << file.string() << "(" << line << "): warning: ";
+            else
+                return std::clog << file.string() << ":" << line << ": warning: ";
+        }
+        else
+        {
+            return std::clog << file.string() << ": warning: ";
+        }
     }
 }}

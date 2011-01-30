@@ -8,6 +8,7 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 #include "utils.hpp"
+#include "input_path.hpp"
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/filesystem/v3/fstream.hpp>
 
@@ -15,12 +16,8 @@
 #include <cstring>
 #include <stdexcept>
 #include <fstream>
-#include <iostream>
+#include <ostream>
 #include <map>
-
-namespace quickbook {
-    extern bool ms_errors;
-}
 
 namespace quickbook { namespace detail
 {
@@ -135,41 +132,6 @@ namespace quickbook { namespace detail
             }
         }
         return uri;
-    }
-
-    std::ostream& outerr()
-    {
-        return std::clog << "Error: ";
-    }
-
-    std::ostream& outerr(fs::path const& file, int line)
-    {
-        if (line >= 0)
-        {
-            if (ms_errors)
-                return std::clog << file.string() << "(" << line << "): error: ";
-            else
-                return std::clog << file.string() << ":" << line << ": error: ";
-        }
-        else
-        {
-            return std::clog << file.string() << ": error: ";
-        }
-    }
-
-    std::ostream& outwarn(fs::path const& file, int line)
-    {
-        if (line >= 0)
-        {
-            if (ms_errors)
-                return std::clog << file.string() << "(" << line << "): warning: ";
-            else
-                return std::clog << file.string() << ":" << line << ": warning: ";
-        }
-        else
-        {
-            return std::clog << file.string() << ": warning: ";
-        }
     }
 
     // Read the first few bytes in a file to see it starts with a byte order
