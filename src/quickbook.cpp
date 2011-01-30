@@ -71,7 +71,6 @@ namespace quickbook
     int
     parse_file(fs::path const& filein_, actions& actor, bool ignore_docinfo)
     {
-        using std::cerr;
         using std::vector;
         using std::string;
 
@@ -184,14 +183,17 @@ main(int argc, char* argv[])
         using boost::program_options::notify;
         using boost::program_options::positional_options_description;
         
-        using quickbook::detail::native_string;
+        using quickbook::detail::input_string;
 
         // First thing, the filesystem should record the current working directory.
         fs::initial_path<fs::path>();
+        
+        // Setup out output stream.
+        quickbook::detail::initialise_output();
 
         options_description desc("Allowed options");
 
-#if QUICKBOOK_WIDE_NATIVE
+#if QUICKBOOK_WIDE_PATHS
 #define PO_VALUE po::wvalue
 #else
 #define PO_VALUE po::value
@@ -203,12 +205,12 @@ main(int argc, char* argv[])
             ("no-pretty-print", "disable XML pretty printing")
             ("indent", PO_VALUE<int>(), "indent spaces")
             ("linewidth", PO_VALUE<int>(), "line width")
-            ("input-file", PO_VALUE<native_string>(), "input file")
-            ("output-file", PO_VALUE<native_string>(), "output file")
+            ("input-file", PO_VALUE<input_string>(), "input file")
+            ("output-file", PO_VALUE<input_string>(), "output file")
             ("debug", "debug mode (for developers)")
             ("ms-errors", "use Microsoft Visual Studio style error & warn message format")
-            ("include-path,I", PO_VALUE< std::vector<native_string> >(), "include path")
-            ("define,D", PO_VALUE< std::vector<native_string> >(), "define macro")
+            ("include-path,I", PO_VALUE< std::vector<input_string> >(), "include path")
+            ("define,D", PO_VALUE< std::vector<input_string> >(), "define macro")
         ;
 
         positional_options_description p;
@@ -219,7 +221,7 @@ main(int argc, char* argv[])
         int linewidth = -1;
         bool pretty_print = true;
 
-#if QUICKBOOK_WIDE_NATIVE
+#if QUICKBOOK_WIDE_PATHS
         int wide_argc;
         LPWSTR* wide_argv = CommandLineToArgvW(GetCommandLineW(), &wide_argc);
         if (!wide_argv)
@@ -239,13 +241,18 @@ main(int argc, char* argv[])
 
         if (vm.count("help"))
         {
-            std::cout << desc << "\n";
+            std::ostringstream description_text;
+            description_text << desc;
+
+            quickbook::detail::out()
+                << quickbook::detail::utf8(description_text.str()) << "\n";
+
             return 0;
         }
 
         if (vm.count("version"))
         {
-            std::cout << QUICKBOOK_VERSION << std::endl;
+            quickbook::detail::out() << QUICKBOOK_VERSION << std::endl;
             return 0;
         }
 
@@ -290,30 +297,30 @@ main(int argc, char* argv[])
         if (vm.count("include-path"))
         {
             boost::transform(
-                vm["include-path"].as<std::vector<native_string> >(),
+                vm["include-path"].as<std::vector<input_string> >(),
                 std::back_inserter(quickbook::include_path),
-                quickbook::detail::native_to_path);
+                quickbook::detail::input_to_path);
         }
 
         quickbook::preset_defines.clear();
         if (vm.count("define"))
         {
             boost::transform(
-                vm["define"].as<std::vector<native_string> >(),
+                vm["define"].as<std::vector<input_string> >(),
                 std::back_inserter(quickbook::preset_defines),
-                quickbook::detail::native_to_utf8);
+                quickbook::detail::input_to_utf8);
         }
 
         if (vm.count("input-file"))
         {
-            fs::path filein = quickbook::detail::native_to_path(
-                vm["input-file"].as<native_string>());
+            fs::path filein = quickbook::detail::input_to_path(
+                vm["input-file"].as<input_string>());
             fs::path fileout;
 
             if (vm.count("output-file"))
             {
-                fileout = quickbook::detail::native_to_path(
-                    vm["output-file"].as<native_string>());
+                fileout = quickbook::detail::input_to_path(
+                    vm["output-file"].as<input_string>());
             }
             else
             {
@@ -321,23 +328,26 @@ main(int argc, char* argv[])
                 fileout.replace_extension("xml");
             }
 
-            std::cout << "Generating Output File: "
-                << fileout.string()
+            quickbook::detail::out() << "Generating Output File: "
+                << quickbook::detail::path_to_stream(fileout)
                 << std::endl;
 
             return quickbook::parse_document(filein, fileout, indent, linewidth, pretty_print);
         }
         else
         {
+            std::ostringstream description_text;
+            description_text << desc;
+        
             quickbook::detail::outerr() << "No filename given\n\n"
-                << desc << std::endl;
+                << quickbook::detail::utf8(description_text.str()) << std::endl;
             return 1;
         }        
     }
 
     catch(std::exception& e)
     {
-        quickbook::detail::outerr() << e.what() << "\n";
+        quickbook::detail::outerr() << quickbook::detail::utf8(e.what()) << "\n";
         return 1;
     }
 

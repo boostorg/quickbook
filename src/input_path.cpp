@@ -11,12 +11,14 @@
 #include "input_path.hpp"
 #include "utils.hpp"
 
-#if defined(_WIN32)
+#if QUICKBOOK_WIDE_PATHS || QUICKBOOK_WIDE_STREAMS
 #include <boost/scoped_ptr.hpp>
 #include <windows.h>
+#include <io.h>
+#include <fcntl.h>
 #endif
 
-#if (defined(__cygwin__) || defined(__CYGWIN__))
+#if QUICKBOOK_CYGWIN_PATHS
 #include <boost/scoped_array.hpp>
 #include <boost/program_options/errors.hpp>
 #include <sys/cygwin.h>
@@ -28,7 +30,10 @@ namespace quickbook {
 
 namespace quickbook {
 namespace detail {
-#if defined(_WIN32)
+
+// This is used for converting paths to UTF-8 on cygin.
+// Might be better not to use a windows 
+#if QUICKBOOK_WIDE_PATHS || QUICKBOOK_WIDE_STREAMS
     namespace {
         std::string to_utf8(std::wstring const& x)
         {
@@ -57,43 +62,49 @@ namespace detail {
             if (!MultiByteToWideChar(CP_UTF8, 0, x.c_str(), -1, buffer.get(), buffer_count))
                 throw conversion_error("Error converting utf-8 to wide string.");
             
-            return native_string(buffer.get());
+            return std::wstring(buffer.get());
         }
     }
 #endif
 
-    std::string native_to_utf8(native_string const& x)
+#if QUICKBOOK_WIDE_PATHS
+    std::string input_to_utf8(input_string const& x)
     {
-#if QUICKBOOK_WIDE_NATIVE
         return to_utf8(x);
-#else
-        return x;
-#endif
     }
+#else
+    std::string input_to_utf8(input_string const& x)
+    {
+        return x;
+    }
+#endif
 
+#if QUICKBOOK_WIDE_PATHS
     fs::path generic_to_path(std::string const& x)
     {
-#if defined(_WIN32)
         return fs::path(from_utf8(x));
-#else
-        return fs::path(x);
-#endif
     }
 
     std::string path_to_generic(fs::path const& x)
     {
-#if defined(_WIN32)
         return to_utf8(x.generic_wstring());
+    }
 #else
-        return x.generic_string();
-#endif
+    fs::path generic_to_path(std::string const& x)
+    {
+        return fs::path(x);
     }
 
-    fs::path native_to_path(native_string const& path)
+    std::string path_to_generic(fs::path const& x)
     {
-#if !(defined(__cygwin__) || defined(__CYGWIN__))
-        return fs::path(path);
-#else
+        return x.generic_string();
+    }
+
+#endif
+
+#if QUICKBOOK_CYGWIN_PATHS
+    fs::path input_to_path(input_string const& path)
+    {
         cygwin_conv_path_t flags = CCP_POSIX_TO_WIN_W | CCP_RELATIVE;
 
         ssize_t size = cygwin_conv_path(flags, path.c_str(), NULL, 0);
@@ -101,47 +112,135 @@ namespace detail {
         if (size < 0)
             throw conversion_error("Error converting cygwin path to windows.");
 
-        boost::scoped_array<char> result(new char[size]);
+		// TODO: size is in bytes.
+        boost::scoped_array<wchar_t> result(new wchar_t[size]);
 
         if(cygwin_conv_path(flags, path.c_str(), result.get(), size))
             throw conversion_error("Error converting cygwin path to windows.");
 
         return fs::path(result.get());
+    }
+    
+    stream_string path_to_stream(fs::path const& path)
+    {
+        cygwin_conv_path_t flags = CCP_WIN_W_TO_POSIX | CCP_RELATIVE;
+
+        ssize_t size = cygwin_conv_path(flags, path.native().c_str(), NULL, 0);
+        
+        if (size < 0)
+            throw conversion_error("Error converting windows path to cygwin.");
+
+        boost::scoped_array<char> result(new char[size]);
+
+        if(cygwin_conv_path(flags, path.native().c_str(), result.get(), size))
+            throw conversion_error("Error converting windows path to cygwin.");
+
+        return std::string(result.get());
+    }
+#else
+    fs::path input_to_path(input_string const& path)
+    {
+        return fs::path(path);
+    }
+
+#if QUICKBOOK_WIDE_PATHS && !QUICKBOOK_WIDE_STREAMS
+    stream_string path_to_stream(fs::path const& path)
+    {
+        return path.string();
+    }
+#else
+    stream_string path_to_stream(fs::path const& path)
+    {
+        return path.native();
+    }
 #endif
-    }
 
-    std::ostream& outerr()
+#endif // QUICKBOOK_CYGWIN_PATHS
+
+#if QUICKBOOK_WIDE_STREAMS
+
+    void initialise_output()
     {
-        return std::clog << "Error: ";
+    	if (_isatty(_fileno(stdout))) _setmode(_fileno(stdout), _O_U16TEXT);
+    	if (_isatty(_fileno(stderr))) _setmode(_fileno(stderr), _O_U16TEXT);
     }
 
-    std::ostream& outerr(fs::path const& file, int line)
+    void write_utf8(ostream& out, std::string const& x)
+    {
+        out << from_utf8(x);
+    }
+
+    ostream& out()
+    {
+        return std::wcout;
+    }
+
+    namespace
+    {
+        inline ostream& error_stream()
+        {
+            return std::wcerr;
+        }
+    }
+
+#else
+
+    void initialise_output()
+    {
+    }
+
+    void write_utf8(ostream& out, std::string const& x)
+    {
+        out << x;
+    }
+
+    ostream& out()
+    {
+        return std::cout;
+    }
+
+    namespace
+    {
+        inline ostream& error_stream()
+        {
+            return std::clog;
+        }
+    }
+
+#endif
+
+    ostream& outerr()
+    {
+        return error_stream() << "Error: ";
+    }
+
+    ostream& outerr(fs::path const& file, int line)
     {
         if (line >= 0)
         {
             if (ms_errors)
-                return std::clog << file.string() << "(" << line << "): error: ";
+                return error_stream() << path_to_stream(file) << "(" << line << "): error: ";
             else
-                return std::clog << file.string() << ":" << line << ": error: ";
+                return error_stream() << path_to_stream(file) << ":" << line << ": error: ";
         }
         else
         {
-            return std::clog << file.string() << ": error: ";
+            return error_stream() << path_to_stream(file) << ": error: ";
         }
     }
 
-    std::ostream& outwarn(fs::path const& file, int line)
+    ostream& outwarn(fs::path const& file, int line)
     {
         if (line >= 0)
         {
             if (ms_errors)
-                return std::clog << file.string() << "(" << line << "): warning: ";
+                return error_stream() << path_to_stream(file) << "(" << line << "): warning: ";
             else
-                return std::clog << file.string() << ":" << line << ": warning: ";
+                return error_stream() << path_to_stream(file) << ":" << line << ": warning: ";
         }
         else
         {
-            return std::clog << file.string() << ": warning: ";
+            return error_stream() << path_to_stream(file) << ": warning: ";
         }
     }
 }}

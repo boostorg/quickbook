@@ -125,8 +125,8 @@ namespace quickbook
                 detail::outwarn(actions.filename,1)
                     << (invalid_attributes.size() > 1 ?
                         "Invalid attributes" : "Invalid attribute")
-                    << " for '" << actions.doc_type << " document info': "
-                    << boost::algorithm::join(invalid_attributes, ", ")
+                    << " for '" << detail::utf8(actions.doc_type) << " document info': "
+                    << detail::utf8(boost::algorithm::join(invalid_attributes, ", "))
                     << "\n"
                     ;
             }

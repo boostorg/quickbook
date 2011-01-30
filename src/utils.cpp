@@ -196,7 +196,8 @@ namespace quickbook { namespace detail
         std::string encoding = read_bom(begin, end, out);
 
         if(encoding != "UTF-8" && encoding != "") {
-            outerr(filename) << encoding << " is not supported. Please use UTF-8."
+            outerr(filename) << encoding.c_str()
+                << " is not supported. Please use UTF-8."
                 << std::endl;
 
             return false;
@@ -218,7 +219,6 @@ namespace quickbook { namespace detail
 
     int load(fs::path const& filename, std::string& storage)
     {
-        using std::cerr;
         using std::endl;
         using std::ios;
         using std::ifstream;

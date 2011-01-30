@@ -335,7 +335,7 @@ namespace quickbook
 
         detail::outwarn(actions.filename, pos.line)
             << "in column:" << pos.column
-            << ", unexpected character: " << std::string(first, last)
+            << ", unexpected character: " << detail::utf8(first, last)
             << "\n";
 
         // print out an unexpected character
@@ -499,7 +499,7 @@ namespace quickbook
             ).second)
         {
             detail::outwarn(actions.filename, pos.line)
-                << "Repeated attribute: " << attribute_name << ".\n";
+                << "Repeated attribute: " << detail::utf8(attribute_name) << ".\n";
         }
     }
 
@@ -666,7 +666,7 @@ namespace quickbook
         {
             file_position const pos = first.get_position();
             detail::outerr(actions.filename, pos.line)
-                << "Template Redefinition: " << actions.template_identifier << std::endl;
+                << "Template Redefinition: " << detail::utf8(actions.template_identifier) << std::endl;
             ++actions.error_count;
         }
 
@@ -1000,10 +1000,10 @@ namespace quickbook
                 detail::outerr(actions.filename, pos.line)
                     << "Expanding "
                     << (symbol->body.is_block ? "block" : "phrase")
-                    << " template: " << symbol->identifier << std::endl
+                    << " template: " << detail::utf8(symbol->identifier) << std::endl
                     << std::endl
                     << "------------------begin------------------" << std::endl
-                    << symbol->body.content
+                    << detail::utf8(symbol->body.content)
                     << "------------------end--------------------" << std::endl
                     << std::endl;
                 actions.pop(); // restore the actions' states
@@ -1016,7 +1016,7 @@ namespace quickbook
             {
                 file_position const pos = first.get_position();
                 detail::outerr(actions.filename, pos.line)
-                    << "Mismatched sections in template " << identifier << std::endl;
+                    << "Mismatched sections in template " << detail::utf8(identifier) << std::endl;
                 actions.pop(); // restore the actions' states
                 --actions.template_depth;
                 ++actions.error_count;
@@ -1048,7 +1048,7 @@ namespace quickbook
                     detail::outerr(c.filename, c.position.line)
                         << "Expanding callout." << std::endl
                         << "------------------begin------------------" << std::endl
-                        << c.content
+                        << detail::utf8(c.content)
                         << std::endl
                         << "------------------end--------------------" << std::endl
                         ;
@@ -1392,7 +1392,7 @@ namespace quickbook
             if (!actions.templates.add(ts))
             {
                 detail::outerr(ts.body.filename, ts.body.position.line)
-                    << "Template Redefinition: " << tname << std::endl;
+                    << "Template Redefinition: " << detail::utf8(tname) << std::endl;
                 ++actions.error_count;
             }
         }
