@@ -51,9 +51,23 @@ namespace quickbook
         if(!actions.output_pre(phrase)) return;
 
         file_position const pos = first.get_position();
-        detail::outwarn(actions.filename, pos.line)
-            << "in column:" << pos.column << ", "
-            << "[br] and \\n are deprecated" << ".\n";
+        if(*first == '\\')
+        {
+            detail::outwarn(actions.filename, pos.line)
+                << "in column:" << pos.column << ", "
+                << "'\\n' is deprecated, pleases use '[br]' instead" << ".\n";
+        }
+
+        if(!actions.warned_about_breaks)
+        {
+            detail::outwarn(actions.filename, pos.line)
+                << "line breaks generate invalid boostbook"
+                << "    (will only note first occurrence)."
+                << "\n";
+
+            actions.warned_about_breaks = true;
+        }
+            
         phrase << break_mark;
     }
 
@@ -499,9 +513,17 @@ namespace quickbook
         }
     }
 
-    void image_action::operator()(iterator, iterator) const
+    void image_action::operator()(iterator first, iterator) const
     {
         if(!actions.output_pre(phrase)) return;
+
+        if(!fs::portable_posix_name(image_fileref))
+        {
+            detail::outwarn(actions.filename, first.get_position().line)
+                << "Image path isn't portable: "
+                << detail::utf8(image_fileref)
+                << std::endl;
+        }
 
         // Find the file basename and extension.
         //
@@ -511,6 +533,7 @@ namespace quickbook
         std::string::size_type pos;
         std::string stem,extension;
 
+        // TODO: This doesn't work for windows paths
         pos = image_fileref.rfind('/');
         stem = pos == std::string::npos ?
             image_fileref :
@@ -1320,7 +1343,17 @@ namespace quickbook
     {
         // Given a source file and the current filename, calculate the
         // path to the source file relative to the output directory.
-        fs::path path = detail::generic_to_path(std::string(first, last));
+
+        std::string path_text(first, last);
+        if(!fs::portable_posix_name(path_text))
+        {
+            detail::outwarn(actions.filename, first.get_position().line)
+                << "Path isn't portable: "
+                << detail::utf8(path_text)
+                << std::endl;
+        }
+        
+        fs::path path = detail::generic_to_path(path_text);
         if (!path.is_complete())
         {
             fs::path infile = fs::absolute(actions.filename).normalize();
