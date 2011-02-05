@@ -1338,13 +1338,11 @@ namespace quickbook
         return std::accumulate(file, path.end(), result, concat);
     }
 
-    fs::path calculate_relative_path(
-        iterator first, iterator last, quickbook::actions& actions)
+    std::string check_path(iterator first, iterator last,
+        quickbook::actions& actions)
     {
-        // Given a source file and the current filename, calculate the
-        // path to the source file relative to the output directory.
-
         std::string path_text(first, last);
+
         if(!fs::portable_posix_name(path_text))
         {
             detail::outwarn(actions.filename, first.get_position().line)
@@ -1353,7 +1351,15 @@ namespace quickbook
                 << std::endl;
         }
         
-        fs::path path = detail::generic_to_path(path_text);
+        return path_text;
+    }
+
+    fs::path calculate_relative_path(std::string const& name, quickbook::actions& actions)
+    {
+        // Given a source file and the current filename, calculate the
+        // path to the source file relative to the output directory.
+
+        fs::path path = detail::generic_to_path(name);
         if (!path.is_complete())
         {
             fs::path infile = fs::absolute(actions.filename).normalize();
@@ -1368,7 +1374,7 @@ namespace quickbook
     {
         if(!actions.output_pre(out)) return;
 
-        fs::path path = calculate_relative_path(first, last, actions);
+        fs::path path = calculate_relative_path(check_path(first, last, actions), actions);
         out << "\n<xi:include href=\"";
         detail::print_string(detail::escape_uri(path.generic_string()), out.get());
         out << "\" />\n";
@@ -1408,7 +1414,8 @@ namespace quickbook
     {
         if(!actions.output_pre(actions.out)) return;
 
-        fs::path path = include_search(actions.filename.parent_path(), std::string(first,last));
+        fs::path path = include_search(actions.filename.parent_path(),
+            check_path(first, last, actions));
         std::string ext = path.extension().generic_string();
         std::vector<template_symbol> storage;
         actions.error_count +=
@@ -1431,7 +1438,8 @@ namespace quickbook
     {
         if(!actions.output_pre(actions.out)) return;
 
-        fs::path filein = include_search(actions.filename.parent_path(), std::string(first,last));
+        fs::path filein = include_search(actions.filename.parent_path(),
+            check_path(first, last, actions));
         std::string doc_type, doc_id;
         docinfo_string doc_dirname, doc_last_revision;
 
