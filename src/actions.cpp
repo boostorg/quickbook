@@ -1360,7 +1360,7 @@ namespace quickbook
         // path to the source file relative to the output directory.
 
         fs::path path = detail::generic_to_path(name);
-        if (!path.is_complete())
+        if (!path.has_root_directory())
         {
             fs::path infile = fs::absolute(actions.filename).normalize();
             path = (infile.parent_path() / path).normalize();
@@ -1387,7 +1387,7 @@ namespace quickbook
             fs::path path(name);
 
             // If the path is relative, try and resolve it.
-            if (!path.is_complete())
+            if (!path.has_root_directory())
             {
                 // See if it can be found locally first.
                 if (fs::exists(current / path))
