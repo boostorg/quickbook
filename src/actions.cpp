@@ -517,7 +517,7 @@ namespace quickbook
     {
         if(!actions.output_pre(phrase)) return;
 
-        if(!fs::portable_posix_name(image_fileref))
+        if(image_fileref.find('\\') != std::string::npos)
         {
             detail::outwarn(actions.filename, first.get_position().line)
                 << "Image path isn't portable: "
@@ -1343,7 +1343,7 @@ namespace quickbook
     {
         std::string path_text(first, last);
 
-        if(!fs::portable_posix_name(path_text))
+        if(path_text.find('\\') != std::string::npos)
         {
             detail::outwarn(actions.filename, first.get_position().line)
                 << "Path isn't portable: "
@@ -1360,7 +1360,7 @@ namespace quickbook
         // path to the source file relative to the output directory.
 
         fs::path path = detail::generic_to_path(name);
-        if (!path.has_root_directory())
+        if (!path.has_root_directory() && !path.has_root_name())
         {
             fs::path infile = fs::absolute(actions.filename).normalize();
             path = (infile.parent_path() / path).normalize();
@@ -1387,7 +1387,7 @@ namespace quickbook
             fs::path path(name);
 
             // If the path is relative, try and resolve it.
-            if (!path.has_root_directory())
+            if (!path.has_root_directory() && !path.has_root_name())
             {
                 // See if it can be found locally first.
                 if (fs::exists(current / path))
