@@ -16,7 +16,7 @@ namespace quickbook
 {
     struct file_position
     {
-        file_position() : line(0), column(0) {}
+        file_position() : line(1), column(1) {}
         file_position(int l, int c) : line(l), column(c) {}
     
         int line;
@@ -52,12 +52,12 @@ namespace quickbook
     
             if (val == '\r') {
                 ++position_.line;
-                position_.column = 0;           
+                position_.column = 1;
             }
             else if (val == '\n') {
                 if (previous_ != '\r') {
                     ++position_.line;
-                    position_.column = 0;
+                    position_.column = 1;
                 }
             }
             else {
