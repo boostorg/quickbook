@@ -51,7 +51,11 @@ the way a document is interpreted or would break existing documentation.
 
 [section:releases Quickbook Releases]
 
-[heading Version 1.3]
+[heading Version 1.1 - Boost 1.33.0]
+
+* First version to be included in boost.
+
+[heading Version 1.3 - Boost 1.34.0 to 1.34.1]
 
 * Quickbook file inclusion \[include\].
 * Better xml output (pretty layout). Check out the generated XML.
@@ -82,7 +86,7 @@ the way a document is interpreted or would break existing documentation.
 * Post-processor bug fix for escaped XML code that it does not recognize.
 * Replaceable, with the \[~replacement\] syntax.
 
-[heading Version 1.4]
+[heading Version 1.4 - Boost 1.35.0 to 1.40.0]
 
 * Generic Headers
 * Code changes to allow full recursion (i.e. Collectors and push/pop functions)
@@ -103,7 +107,7 @@ the way a document is interpreted or would break existing documentation.
 * Searching of included and imported files in an extensible search path with
   `--include-path` (`-I`) option.
   
-[heading Version 1.5]
+[heading Version 1.5 - Boost 1.41.0 to 1.42.0]
 
 * Support multiple copyright entrys in document info.
 * Improved SVG support.
