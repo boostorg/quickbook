@@ -12,6 +12,7 @@
 
 #include "actions.hpp"
 #include "scoped_parser.hpp"
+#include "values_parse.hpp"
 #include <boost/tuple/tuple.hpp>
 #include <boost/scoped_ptr.hpp>
 
@@ -43,6 +44,8 @@ namespace quickbook
         typedef std::vector<biblioid_item> biblioid_list;
         typedef std::pair<char, int> mark_type;
         static int const max_template_depth = 100;
+
+        value_parser            values;
 
     // header info
         std::string             doc_type;
@@ -118,9 +121,6 @@ namespace quickbook
                                 template_args;
         template_stack          templates;
         int                     error_count;
-        std::string             image_fileref;
-        std::string             attribute_name;
-        attribute_map           attributes;
         string_list             anchors;
         string_list             saved_anchors;
         bool                    no_eols;
@@ -170,7 +170,6 @@ namespace quickbook
         plain_char_action       plain_char;
         raw_char_action         raw_char;
         escape_unicode_action   escape_unicode;
-        attribute_action        attribute;
         image_action            image;
         cond_phrase_action_pre  cond_phrase_pre;
         scoped_parser<cond_phrase_push>

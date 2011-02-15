@@ -500,35 +500,44 @@ namespace quickbook
         }
     }
 
-    void attribute_action::operator()(iterator first, iterator last) const
-    {
-        file_position const pos = first.get_position();
-
-        if (!attributes.insert(
-                attribute_map::value_type(attribute_name, std::string(first, last))
-            ).second)
-        {
-            detail::outwarn(actions.filename, pos.line)
-                << "Repeated attribute: " << detail::utf8(attribute_name) << ".\n";
-        }
-    }
-
-    void image_action::operator()(iterator first, iterator) const
+    void image_action::operator()(iterator, iterator) const
     {
         if(!actions.output_pre(phrase)) return;
 
-        if(image_fileref.find('\\') != std::string::npos)
+        typedef std::map<std::string, value> attribute_map;
+        attribute_map attributes;
+
+        value_consumer values = actions.values.get();
+        attributes["fileref"] = values.consume();
+
+        BOOST_FOREACH(value pair_, values)
         {
-            detail::outwarn(actions.filename, first.get_position().line)
-                << "Image path isn't portable: "
-                << detail::utf8(image_fileref)
-                << std::endl;
+            value_consumer pair = pair_;
+            value name = pair.consume();
+            value value = pair.consume();
+            assert(!pair.is());
+            if(!attributes.insert(std::make_pair(name.get_quickbook(), value)).second)
+            {
+                detail::outwarn(actions.filename, name.get_position().line)
+                    << "Duplicate image attribute: " << name.get_quickbook() << std::endl;
+            }
         }
 
         // Find the file basename and extension.
         //
         // Not using Boost.Filesystem because I want to stay in UTF-8.
         // Need to think about uri encoding.
+
+        std::string image_fileref = attributes["fileref"].get_quickbook();
+
+        if(image_fileref.find('\\') != std::string::npos)
+        {
+            detail::outwarn(actions.filename, attributes["fileref"].get_position().line)
+                << "Image path isn't portable: '"
+                << detail::utf8(image_fileref)
+                << "'"
+                << std::endl;
+        }
 
         std::string::size_type pos;
         std::string stem,extension;
@@ -551,11 +560,10 @@ namespace quickbook
         // TODO: IMO if there isn't an alt tag, then the description should
         //       be empty or missing.
 
-        attribute_map::iterator it = attributes.find("alt");
-        std::string alt_text = it != attributes.end() ? it->second : stem;
+        attribute_map::iterator alt_pos = attributes.find("alt");
+        std::string alt_text = alt_pos != attributes.end() ?
+            alt_pos->second.get_quickbook() : stem;
         attributes.erase("alt");
-
-        attributes.insert(attribute_map::value_type("fileref", image_fileref));
 
         if(extension == ".svg")
         {
@@ -570,7 +578,9 @@ namespace quickbook
            //    a tiny box with scrollbars (Firefox), or else cropped to
            //    fit in a tiny box (IE7).
            //
-           attributes.insert(attribute_map::value_type("format", "SVG"));
+
+           attributes.insert(attribute_map::value_type("format", qbk_value("SVG")));
+
            //
            // Image paths are relative to the html subdirectory:
            //
@@ -605,8 +615,10 @@ namespace quickbook
            b = svg_text.find('\"', a + 1);
            if(a != std::string::npos)
            {
-              attributes.insert(attribute_map::value_type("contentwidth",
-                std::string(svg_text.begin() + a + 1, svg_text.begin() + b)));
+              attributes.insert(std::make_pair(
+                "contentwidth", qbk_value(std::string(
+                    svg_text.begin() + a + 1, svg_text.begin() + b))
+                ));
            }
            a = svg_text.find("height");
            a = svg_text.find('=', a);
@@ -614,8 +626,10 @@ namespace quickbook
            b = svg_text.find('\"', a + 1);
            if(a != std::string::npos)
            {
-              attributes.insert(attribute_map::value_type("contentdepth",
-                std::string(svg_text.begin() + a + 1, svg_text.begin() + b)));
+              attributes.insert(std::make_pair(
+                "contentdepth", qbk_value(std::string(
+                    svg_text.begin() + a + 1, svg_text.begin() + b))
+                ));
            }
         }
 
@@ -623,15 +637,13 @@ namespace quickbook
 
         phrase << "<imageobject><imagedata";
         
-        for(attribute_map::const_iterator
-            attr_first = attributes.begin(), attr_last  = attributes.end();
-            attr_first != attr_last; ++attr_first)
+        BOOST_FOREACH(attribute_map::value_type const& attr, attributes)
         {
-            phrase << " " << attr_first->first << "=\"";
+            phrase << " " << attr.first << "=\"";
 
+            std::string value = attr.second.get_quickbook();
             for(std::string::const_iterator
-                first = attr_first->second.begin(),
-                last  = attr_first->second.end();
+                first = value.begin(), last  = value.end();
                 first != last; ++first)
             {
                 if (*first == '\\' && ++first == last) break;

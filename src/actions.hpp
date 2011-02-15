@@ -64,7 +64,6 @@ namespace quickbook
     }
 
     typedef cl::symbols<std::string> string_symbols;
-    typedef std::map<std::string, std::string> attribute_map;
 
     int load_snippets(std::string const& file, std::vector<template_symbol>& storage,
         std::string const& extension, std::string const& doc_id);
@@ -511,44 +510,19 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct attribute_action
-    {
-        // Handle image attributes
-        
-        attribute_action(
-            attribute_map& attributes
-          , std::string& attribute_name
-          , quickbook::actions& actions)
-        : attributes(attributes)
-        , attribute_name(attribute_name)
-        , actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        attribute_map& attributes;
-        std::string& attribute_name;
-        quickbook::actions& actions;
-    };
-
     struct image_action
     {
         // Handles inline images
 
         image_action(
             collector& phrase
-          , attribute_map& attributes
-          , std::string& image_fileref
           , quickbook::actions& actions)
         : phrase(phrase)
-        , attributes(attributes)
-        , image_fileref(image_fileref)
         , actions(actions) {}
 
         void operator()(iterator first, iterator last) const;
 
         collector& phrase;
-        attribute_map& attributes;
-        std::string& image_fileref;
         quickbook::actions& actions;
     };
 
