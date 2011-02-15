@@ -23,6 +23,52 @@ namespace quickbook
 {
     namespace cl = boost::spirit::classic;
 
+    struct simple_markup_start_parser
+        : public cl::unary< cl::chlit<char>, cl::parser< simple_markup_start_parser > >
+    {
+        typedef simple_markup_start_parser self_t;
+        typedef cl::unary< cl::chlit<char>, cl::parser< simple_markup_start_parser > > base_t;
+
+        template <typename ScannerT>
+        struct result
+        {
+            typedef typename cl::parser_result<cl::chlit<char>, ScannerT>::type type;
+        };
+
+        simple_markup_start_parser(char c)
+            : base_t(cl::ch_p(c))
+        {}
+
+        template <typename ScannerT>
+        typename result<ScannerT>::type parse(ScannerT const &scan) const
+        {
+            typedef typename ScannerT::iterator_t iterator_t;
+            iterator_t save = scan.first;
+
+            typename cl::parser_result<cl::chlit<char>, ScannerT>::type result
+                = this->subject().parse(scan);
+                
+            typename iterator_t::lookback_range lookback = save.lookback();
+
+            if (result && (
+                    lookback.begin() == lookback.end() ||
+                    cl::punct_p.test(*lookback.begin()) ||
+                    cl::space_p.test(*lookback.begin())
+                ))
+            {
+                return scan.create_match(result.length(), cl::nil_t(), save, scan.first);
+            }
+            else {
+                return scan.no_match();
+            }
+        }
+    };
+    
+    simple_markup_start_parser start_parser(char c)
+    {
+        return simple_markup_start_parser(c);
+    }
+
     template <typename Rule, typename Action>
     inline void
     simple_markup(
@@ -33,7 +79,7 @@ namespace quickbook
     )
     {
         simple =
-            mark >>
+            start_parser(mark) >>
             (
                 (
                     cl::graph_p                 // A single char. e.g. *c*
@@ -44,8 +90,11 @@ namespace quickbook
             |
                 (   cl::graph_p >>              // graph_p must follow mark
                     *(cl::anychar_p -
-                        (   (cl::graph_p >> mark) // Make sure that we don't go
-                        |   close                 // past a single block
+                        (   cl::graph_p
+                        >>  mark
+                        >>  (cl::space_p | cl::punct_p | cl::end_p)
+                        |   close               // Make sure that we don't go
+                                                // past a single block
                         )
                     ) >> cl::graph_p            // graph_p must precede mark
                     >> cl::eps_p(mark

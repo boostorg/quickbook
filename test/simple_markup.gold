@@ -10,10 +10,13 @@
       role="underline">underline</emphasis> <literal>teletype</literal>
     </para>
     <para>
-      /all<emphasis>italic</emphasis> * not bold*
+      <emphasis>all/italic</emphasis> * not bold*
     </para>
     <para>
       /not italic <ulink url="http://www.boost.org/"><emphasis role="bold">bold</emphasis></ulink>
+    </para>
+    <para>
+      not_underlined_
     </para>
   </section>
 </article>
