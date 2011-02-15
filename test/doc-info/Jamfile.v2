@@ -12,4 +12,6 @@ import quickbook-testing : quickbook-test quickbook-fail-test ;
 
 test-suite quickbook.test :
     [ quickbook-test empty-attributes ]
+    [ quickbook-test duplicates-1.1 ]
+    [ quickbook-test duplicates-1.5 ]
     ;
