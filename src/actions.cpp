@@ -14,6 +14,8 @@
 #include <boost/filesystem/v3/convenience.hpp>
 #include <boost/filesystem/v3/fstream.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/range/distance.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include "quickbook.hpp"
 #include "actions.hpp"
 #include "utils.hpp"
@@ -71,6 +73,21 @@ namespace quickbook
         }
             
         phrase << break_mark;
+    }
+
+    void error_message_action::operator()(iterator first, iterator last) const
+    {
+        file_position const pos = first.get_position();
+
+        std::string value(first, last);
+        std::string formatted_message = message;
+        boost::replace_all(formatted_message, "%s", value);
+        boost::replace_all(formatted_message, "%c",
+            boost::lexical_cast<std::string>(pos.column));
+
+        detail::outerr(actions.filename, pos.line)
+            << formatted_message << std::endl;
+        ++actions.error_count;
     }
 
     void error_action::operator()(iterator first, iterator /*last*/) const

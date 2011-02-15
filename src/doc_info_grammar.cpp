@@ -46,8 +46,21 @@ namespace quickbook
             doc_info_grammar_local& l;
         };
         
+        struct fallback_attribute_type
+        {
+            fallback_attribute_type(doc_info_grammar_local& l)
+                : l(l)
+            {}
+
+            void operator()(iterator, iterator) const {
+                l.attribute_rule = l.doc_fallback;
+            }
+            
+            doc_info_grammar_local& l;
+        };
+
         cl::rule<scanner>
-                        doc_title, doc_simple, doc_phrase,
+                        doc_title, doc_simple, doc_phrase, doc_fallback,
                         doc_copyright, doc_authors, doc_author,
                         doc_source_mode, doc_biblioid,
                         quickbook_version, char_;
@@ -56,9 +69,11 @@ namespace quickbook
         std::map<value::tag_type, cl::rule<scanner>* > attribute_rules;
         cl::rule<scanner> attribute_rule;
         assign_attribute_type assign_attribute;
+        fallback_attribute_type fallback_attribute;
         
         doc_info_grammar_local()
             : assign_attribute(*this)
+            , fallback_attribute(*this)
         {}
     };
 
@@ -96,9 +111,14 @@ namespace quickbook
             >>  *(
                     space
                 >>  '['
-                >>  local.doc_attributes
+                >>  space
+                >>  (   local.doc_attributes
                                             [local.assign_attribute]
                                             [actions.values.tag]
+                    |   (+(cl::alnum_p | '_' | '-'))
+                                            [local.fallback_attribute]
+                                            [actions.error("Unrecognized document attribute: '%s'.")]
+                    )
                 >>  hard_space
                 >>  local.attribute_rule
                 >>  space
@@ -117,6 +137,10 @@ namespace quickbook
                     >>  uint2_t()           [cl::assign_a(qbk_minor_version)]
                 )
             ;
+
+        // TODO: Clear phrase afterwards?
+
+        local.doc_fallback = (*(~cl::eps_p(']') >> local.char_));
 
         // TODO: Restrictions on doc_id and doc_dirname?
 

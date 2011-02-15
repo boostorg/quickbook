@@ -80,6 +80,21 @@ namespace quickbook
         void failure() {}
     };
 
+    struct error_message_action
+    {
+        // Prints an error message to std::cerr
+
+        error_message_action(quickbook::actions& actions, std::string const& m)
+            : actions(actions)
+            , message(m)
+        {}
+
+        void operator()(iterator, iterator) const;
+
+        quickbook::actions& actions;
+        std::string message;
+    };
+
     struct error_action
     {
         // Prints an error message to std::cerr
@@ -88,6 +103,11 @@ namespace quickbook
         : actions(actions) {}
 
         void operator()(iterator first, iterator /*last*/) const;
+
+        error_message_action operator()(std::string const& message)
+        {
+            return error_message_action(actions, message);
+        }
 
         quickbook::actions& actions;
     };
