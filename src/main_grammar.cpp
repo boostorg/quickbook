@@ -356,10 +356,12 @@ namespace quickbook
             ;
 
         inside_paragraph =
+            actions.scoped_block[
             (*( common
             |   (cl::anychar_p - phrase_end)    [actions.plain_char]
             |   (+eol)                          [actions.inside_paragraph]
             ))                                  [actions.inside_paragraph]
+            ]
             ;
 
         local.phrase_element

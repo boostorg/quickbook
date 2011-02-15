@@ -72,44 +72,12 @@ namespace quickbook
         actions& escape_actions,
         std::string const& source_mode);        
 
-    template <typename Derived, typename DataT = void>
     struct scoped_action_base
     {
         typedef quickbook::actions data_type;
         
-        template <typename T>
-        struct result
-        {
-            typedef cl::match<DataT> type;
-        };
-
-        template <typename T>
-        DataT success(T const&)
-        {
-            return static_cast<Derived*>(this)->success_impl();
-        }
-        
-        void failure() {
-            return static_cast<Derived*>(this)->failure_impl();
-        }
-        
-        void failure_impl() {}
-    };
-
-    struct void_type {};
-
-    template <typename Derived>
-    struct scoped_action_base<Derived, void>
-        : scoped_action_base<Derived, void_type>
-    {
-        template <typename T>
-        void_type success(T const&)
-        {
-            static_cast<Derived*>(this)->success_impl();
-            return void_type();
-        }
-        
-        void success_impl() {}
+        template <typename T> void success(T const&) {}
+        void failure() {}
     };
 
     struct error_action
@@ -136,7 +104,7 @@ namespace quickbook
         , post(post)
         , actions(actions) {}
 
-        void operator()(std::string const&) const;
+        void operator()(iterator, iterator) const;
 
         collector& out;
         std::string pre;
@@ -309,7 +277,7 @@ namespace quickbook
         string_symbols const& macro;
     };
 
-    struct cond_phrase_push : scoped_action_base<cond_phrase_push>
+    struct cond_phrase_push : scoped_action_base
     {
         cond_phrase_push(quickbook::actions&);
         ~cond_phrase_push();
@@ -714,7 +682,7 @@ namespace quickbook
         col_action(collector& phrase, unsigned& span, quickbook::actions& actions)
         : phrase(phrase), span(span), actions(actions) {}
 
-        void operator()(std::string const&) const;
+        void operator()(iterator, iterator) const;
 
         collector& phrase;
         unsigned& span;
@@ -910,16 +878,17 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct scoped_block_push : scoped_action_base<scoped_block_push, std::string>
+    struct scoped_block_push : scoped_action_base
     {
         scoped_block_push(quickbook::actions&);
         ~scoped_block_push();
-        std::string const& success_impl();
+        template <typename T> void success(T const&) { this->success_impl(); }
+        void success_impl();
 
         quickbook::actions& actions;
     };
 
-    struct set_no_eols_scoped : scoped_action_base<set_no_eols_scoped>
+    struct set_no_eols_scoped : scoped_action_base
     {
         set_no_eols_scoped(quickbook::actions&);
         ~set_no_eols_scoped();

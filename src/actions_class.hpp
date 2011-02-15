@@ -104,6 +104,7 @@ namespace quickbook
         std::stack<string_symbols> macro_stack;
 
     // temporary or global state
+        std::string             inside_text;
         std::string             element_id;
         std::string             table_title;
         unsigned                table_span;
@@ -221,7 +222,9 @@ namespace quickbook
         markup_action           end_varlistentry;
         markup_action           start_varlistterm;
         markup_action           end_varlistterm;
+        markup_action           start_varlistitem;
         tagged_action           varlistitem;
+        markup_action           end_varlistitem;
 
         break_action            break_;
         macro_identifier_action macro_identifier;

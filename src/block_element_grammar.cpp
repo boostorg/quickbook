@@ -110,8 +110,7 @@ namespace quickbook
         elements.add("blurb", element_info(element_info::block, &local.blurb));
 
         local.blurb =
-            actions.scoped_block[inside_paragraph]
-                                                [actions.blurb]
+            inside_paragraph                    [actions.blurb]
             ;
 
         elements.add
@@ -119,8 +118,7 @@ namespace quickbook
             ;
 
         local.blockquote =
-            blank >> actions.scoped_block[inside_paragraph]
-                                                [actions.blockquote]
+            blank >> inside_paragraph           [actions.blockquote]
             ;
 
         elements.add
@@ -132,28 +130,23 @@ namespace quickbook
             ;
 
         local.warning =
-            actions.scoped_block[inside_paragraph]
-                                                [actions.warning]
+            inside_paragraph                    [actions.warning]
             ;
 
         local.caution =
-            actions.scoped_block[inside_paragraph]
-                                                [actions.caution]
+            inside_paragraph                    [actions.caution]
             ;
 
         local.important =
-            actions.scoped_block[inside_paragraph]
-                                                [actions.important]
+            inside_paragraph                    [actions.important]
             ;
 
         local.note =
-            actions.scoped_block[inside_paragraph]
-                                                [actions.note]
+            inside_paragraph                    [actions.note]
             ;
 
         local.tip =
-            actions.scoped_block[inside_paragraph]
-                                                [actions.tip]
+            inside_paragraph                    [actions.tip]
             ;
 
         elements.add
@@ -232,11 +225,10 @@ namespace quickbook
             >>
             (
                 (
-                    local.varlistterm
-                    >>  (   actions.scoped_block [+local.varlistitem]
-                                                [actions.varlistitem]
+                    local.varlistterm           [actions.start_varlistitem]
+                    >>  (   +local.varlistitem  [actions.varlistitem]
                         |   cl::eps_p           [actions.error]
-                        )
+                        )                       [actions.end_varlistitem]
                     >>  cl::ch_p(']')           [actions.end_varlistentry]
                     >>  space
                 )
@@ -303,11 +295,9 @@ namespace quickbook
         local.table_cell =
                 space
             >>  cl::ch_p('[')
-            >>  (   actions.scoped_block [
-                        inside_paragraph
-                    >>  cl::ch_p(']')
-                    >>  space
-                    ]                           [actions.cell]
+            >>  (   inside_paragraph
+                >>  cl::ch_p(']')
+                >>  space                       [actions.cell]
                 | cl::eps_p                     [actions.error]
                 )
             ;

@@ -80,11 +80,11 @@ namespace quickbook
         ++actions.error_count;
     }
 
-    void tagged_action::operator()(std::string const& str) const
+    void tagged_action::operator()(iterator, iterator) const
     {
         if(!actions.output_pre(out)) return;
 
-        out << pre << str << post;
+        out << pre << actions.inside_text << post;
     }
 
     void phrase_action::operator()() const
@@ -1249,10 +1249,10 @@ namespace quickbook
         (*this)(*f);
     }
 
-    void col_action::operator()(std::string const& contents) const
+    void col_action::operator()(iterator, iterator) const
     {
         if(actions.suppress) return;
-        phrase << start_cell_ << contents << end_cell_;
+        phrase << start_cell_ << actions.inside_text << end_cell_;
         ++span;
     }
 
@@ -1601,12 +1601,10 @@ namespace quickbook
         actions.out.pop();
     }
 
-    std::string const& scoped_block_push::success_impl()
+    void scoped_block_push::success_impl()
     {
-        // TODO: This should probably return an empty string
-        // if actions.suppress is true.
         actions.inside_paragraph();
-        return actions.out.str();
+        actions.inside_text = actions.out.str();
     }
 
     set_no_eols_scoped::set_no_eols_scoped(quickbook::actions& actions)

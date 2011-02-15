@@ -168,7 +168,9 @@ namespace quickbook
         , end_varlistentry(phrase, end_varlistentry_, *this)
         , start_varlistterm(phrase, start_varlistterm_, *this)
         , end_varlistterm(phrase, end_varlistterm_, *this)
-        , varlistitem(phrase, start_varlistitem_, end_varlistitem_, *this)
+        , start_varlistitem(phrase, start_varlistitem_, *this)
+        , varlistitem(phrase, "", "", *this)
+        , end_varlistitem(phrase, end_varlistitem_, *this)
 
         , break_(phrase, *this)
         , macro_identifier(*this)
