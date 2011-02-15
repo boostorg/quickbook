@@ -758,29 +758,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct docinfo_string {
-        std::string raw;
-        std::string encoded;
-
-        docinfo_string() : raw(), encoded() {}
-
-        void swap(docinfo_string& x) {
-            raw.swap(x.raw);
-            encoded.swap(x.encoded);
-        }
-
-        void clear() {
-            raw.clear();
-            encoded.clear();
-        }
-
-        bool empty() const {
-            return raw.empty();
-        }
-
-        std::string const& get(unsigned version) const;
-    };
-
     void pre(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
     void post(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
 
@@ -798,15 +775,11 @@ namespace quickbook
 
     struct phrase_to_docinfo_action
     {
-        phrase_to_docinfo_action(docinfo_string& out, collector& phrase, quickbook::actions& actions)
-            : out(out)
-            , phrase(phrase)
-            , actions(actions) {}
+        phrase_to_docinfo_action(quickbook::actions& actions)
+            : actions(actions) {}
 
         void operator()(iterator first, iterator last) const;
 
-        docinfo_string& out;
-        collector& phrase;
         quickbook::actions& actions;
     };
 

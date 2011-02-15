@@ -1482,7 +1482,6 @@ namespace quickbook
         fs::path filein = include_search(actions.filename.parent_path(),
             check_path(first, last, actions));
         std::string doc_type, doc_id;
-        docinfo_string doc_dirname, doc_last_revision;
 
         // swap the filenames
         std::swap(actions.filename, filein);
@@ -1491,14 +1490,10 @@ namespace quickbook
         if(qbk_version_n >= 106) {
             doc_type = actions.doc_type;
             doc_id = actions.doc_id;
-            doc_dirname = actions.doc_dirname;
-            doc_last_revision = actions.doc_last_revision;
         }
         else {
             actions.doc_type.swap(doc_type);
             actions.doc_id.swap(doc_id);
-            actions.doc_dirname.swap(doc_dirname);
-            actions.doc_last_revision.swap(doc_last_revision);
         }
         
         // save the source mode and version info (only restored for 1.6+)
@@ -1533,8 +1528,6 @@ namespace quickbook
 
         actions.doc_type.swap(doc_type);
         actions.doc_id.swap(doc_id);
-        actions.doc_dirname.swap(doc_dirname);
-        actions.doc_last_revision.swap(doc_last_revision);
         
         if(qbk_version_n >= 106 || qbk_version_n_store >= 106)
         {
@@ -1562,11 +1555,12 @@ namespace quickbook
 
     void phrase_to_docinfo_action::operator()(iterator first, iterator last) const
     {
-        if(!actions.output_pre(phrase)) return;
+        if(!actions.output_pre(actions.phrase)) return;
 
-        out.encoded.clear();
-        phrase.swap(out.encoded);
-        out.raw = std::string(first, last);
+        std::string encoded;
+        actions.phrase.swap(encoded);
+        actions.values.builder.insert(
+            qbk_bbk_value(first, last, encoded, actions.values.builder.release_tag()));
     }
     
     void phrase_to_value_action::operator()(iterator first, iterator last) const

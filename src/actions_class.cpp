@@ -25,19 +25,12 @@ namespace quickbook
 
         , values()
         , phrase_value(*this)
+        , docinfo_value(*this)
 
     // header info
         , doc_type()
-        , doc_title()
-        , doc_version()
+        , doc_title_qbk()
         , doc_id()
-        , doc_dirname()
-        , doc_copyrights()
-        , doc_purpose()
-        , doc_categories()
-        , doc_authors()
-        , doc_license()
-        , doc_last_revision()
         , include_doc_id()
 
     // main output stream
@@ -73,19 +66,6 @@ namespace quickbook
 
     // actions
         , error(*this)
-        , extract_doc_title(doc_title, phrase, *this)
-        , extract_doc_license(doc_license, phrase, *this)
-        , extract_doc_purpose(doc_purpose, phrase, *this)
-        , extract_doc_version(doc_version, phrase, *this)
-        , extract_doc_id(doc_id_tmp, phrase, *this)
-        , extract_doc_dirname(doc_dirname, phrase, *this)
-        , extract_copyright_second(copyright.second, phrase, *this)
-        , extract_name_second(name.second, phrase, *this)
-        , extract_name_first(name.first, phrase, *this)
-        , extract_doc_last_revision(doc_last_revision, phrase, *this)
-        , extract_doc_category(doc_category, phrase, *this)
-        , extract_doc_biblioid(doc_biblioid.second, phrase, *this)
-        , extract_doc_lang(doc_lang, phrase, *this)
         , scoped_block(*this)
         , code(out, phrase, *this)
         , code_block(phrase, phrase, *this)
