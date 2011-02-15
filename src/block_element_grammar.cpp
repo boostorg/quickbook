@@ -11,6 +11,8 @@
 #include "utils.hpp"
 #include "actions_class.hpp"
 #include "grammar_impl.hpp"
+#include "table_tags.hpp"
+#include "template_tags.hpp"
 #include <boost/spirit/include/classic_assign_actor.hpp>
 #include <boost/spirit/include/classic_if.hpp>
 #include <boost/spirit/include/classic_clear_actor.hpp>
@@ -41,32 +43,23 @@ namespace quickbook
         block_element_grammar_local& local = store_.create();
 
         local.element_id =
-                ':'
-            >>
-                (
-                    cl::if_p(qbk_since(105u)) [space]
-                >>  (+(cl::alnum_p | '_'))      [cl::assign_a(actions.element_id)]
+            !(  ':'
+            >>  (   cl::if_p(qbk_since(105u)) [space]
+                >>  (+(cl::alnum_p | '_'))      [actions.values.entry(general_tags::element_id)]
                 |   cl::eps_p                   [actions.element_id_warning]
-                                                [cl::assign_a(actions.element_id)]
                 )
-            | cl::eps_p                         [cl::assign_a(actions.element_id)]
+            )
             ;
         
         local.element_id_1_5 =
                 cl::if_p(qbk_since(105u)) [
                     local.element_id
                 ]
-                .else_p [
-                    cl::eps_p                   [cl::assign_a(actions.element_id)]
-                ]
                 ;
 
         local.element_id_1_6 =
                 cl::if_p(qbk_since(106u)) [
                     local.element_id
-                ]
-                .else_p [
-                    cl::eps_p                   [cl::assign_a(actions.element_id)]
                 ]
                 ;
 
@@ -104,9 +97,6 @@ namespace quickbook
         local.h5 = space >> local.element_id_1_6 >> space >> local.inner_phrase [actions.h5];
         local.h6 = space >> local.element_id_1_6 >> space >> local.inner_phrase [actions.h6];
         
-        static const bool true_ = true;
-        static const bool false_ = false;
-
         elements.add("blurb", element_info(element_info::block, &local.blurb));
 
         local.blurb =
@@ -183,22 +173,21 @@ namespace quickbook
 
         local.template_ =
                space
-            >> local.template_id                [cl::assign_a(actions.template_identifier)]
-                                                [cl::clear_a(actions.template_info)]
-            >>
+            >> local.template_id                [actions.values.reset][actions.values.entry]
+            >> actions.values.scoped[
             !(
                 space >> '['
                 >> *(
                         space
-                    >>  local.template_id       [cl::push_back_a(actions.template_info)]
+                    >>  local.template_id       [actions.values.entry]
                     )
                 >> space >> ']'
             )
+            ]
             >>  (   cl::eps_p(*cl::blank_p >> cl::eol_p)
-                                                [cl::assign_a(actions.template_block, true_)]
-                |   cl::eps_p                   [cl::assign_a(actions.template_block, false_)]
-                )
-            >>  local.template_body             [actions.template_body]
+                >>  local.template_body         [actions.values.entry(template_tags::block)]
+                |   local.template_body         [actions.values.entry(template_tags::phrase)]
+                )                               [actions.template_body]
             ;
 
         local.template_body =
@@ -213,7 +202,7 @@ namespace quickbook
 
         local.variablelist =
                 (cl::eps_p(*cl::blank_p >> cl::eol_p) | space)
-            >>  (*(cl::anychar_p - eol))        [cl::assign_a(actions.table_title)]
+            >>  (*(cl::anychar_p - eol))        [actions.values.entry(table_tags::title)]
             >>  (+eol)                          [actions.output_pre]
             >>  *local.varlistentry
             >>  cl::eps_p                       [actions.variablelist]
@@ -221,47 +210,40 @@ namespace quickbook
 
         local.varlistentry =
             space
-            >>  cl::ch_p('[')                   [actions.start_varlistentry]
-            >>
-            (
+            >>  cl::ch_p('[')
+            >>  actions.values.scoped
+            [
                 (
-                    local.varlistterm           [actions.start_varlistitem]
-                    >>  (   +local.varlistitem  [actions.varlistitem]
+                    local.varlistterm
+                    >>  (   +local.varlistitem
                         |   cl::eps_p           [actions.error]
-                        )                       [actions.end_varlistitem]
-                    >>  cl::ch_p(']')           [actions.end_varlistentry]
+                        )
+                    >>  cl::ch_p(']')
                     >>  space
                 )
                 | cl::eps_p                     [actions.error]
-            )
+            ]
             ;
 
         local.varlistterm =
             space
-            >>  cl::ch_p('[')                   [actions.start_varlistterm]
-            >>
-            (
-                (
-                    phrase
-                    >>  cl::ch_p(']')           [actions.end_varlistterm]
-                    >>  space
-                )
-                | cl::eps_p                     [actions.error]
-            )
+            >>  cl::ch_p('[')
+            >>  actions.values.save
+                [   phrase
+                >>  cl::ch_p(']')
+                >>  space
+                |   cl::eps_p                   [actions.error]
+                ]                               [actions.phrase_value]                
             ;
 
         local.varlistitem =
             space
             >>  cl::ch_p('[')
-            >>
-            (
-                (
-                    inside_paragraph
-                    >>  cl::ch_p(']')
-                    >>  space
+            >>  (   inside_paragraph
+                >>  cl::ch_p(']')
+                >>  space
+                |   cl::eps_p                   [actions.error]
                 )
-                | cl::eps_p                     [actions.error]
-            )
             ;
 
         elements.add
@@ -272,7 +254,7 @@ namespace quickbook
                 (cl::eps_p(*cl::blank_p >> cl::eol_p) | space)
             >>  local.element_id_1_5
             >>  (cl::eps_p(*cl::blank_p >> cl::eol_p) | space)
-            >>  (*(cl::anychar_p - eol))        [cl::assign_a(actions.table_title)]
+            >>  (*(cl::anychar_p - eol))        [actions.values.entry(table_tags::title)]
             >>  (+eol)                          [actions.output_pre]
             >>  *local.table_row
             >>  cl::eps_p                       [actions.table]
@@ -280,12 +262,12 @@ namespace quickbook
 
         local.table_row =
             space
-            >>  cl::ch_p('[')                   [actions.start_row]
+            >>  cl::ch_p('[')
             >>
             (
                 (
-                    *local.table_cell
-                    >>  cl::ch_p(']')           [actions.end_row]
+                    actions.values.scoped(table_tags::row)[*local.table_cell]
+                    >>  cl::ch_p(']')
                     >>  space
                 )
                 | cl::eps_p                     [actions.error]
@@ -295,9 +277,10 @@ namespace quickbook
         local.table_cell =
                 space
             >>  cl::ch_p('[')
-            >>  (   inside_paragraph
+            >>  (   cl::eps_p                   [actions.values.tag(table_tags::cell)]
+                >>  inside_paragraph
                 >>  cl::ch_p(']')
-                >>  space                       [actions.cell]
+                >>  space
                 | cl::eps_p                     [actions.error]
                 )
             ;

@@ -46,6 +46,7 @@ namespace quickbook
         static int const max_template_depth = 100;
 
         value_parser            values;
+        phrase_to_value_action  phrase_value;
 
     // header info
         std::string             doc_type;
@@ -104,19 +105,11 @@ namespace quickbook
         std::stack<string_symbols> macro_stack;
 
     // temporary or global state
-        std::string             inside_text;
-        std::string             element_id;
-        std::string             table_title;
-        unsigned                table_span;
-        std::string             table_header;
         std::string             macro_id;
         std::stack<mark_type>   list_marks;
         int                     list_indent;
         bool                    condition;
-        std::string             template_identifier;
-        string_list             template_info;
         int                     template_depth;
-        bool                    template_block;
         template_stack          templates;
         int                     error_count;
         string_list             anchors;
@@ -218,13 +211,6 @@ namespace quickbook
         simple_phrase_action    simple_strikethrough;
 
         variablelist_action     variablelist;
-        markup_action           start_varlistentry;
-        markup_action           end_varlistentry;
-        markup_action           start_varlistterm;
-        markup_action           end_varlistterm;
-        markup_action           start_varlistitem;
-        tagged_action           varlistitem;
-        markup_action           end_varlistitem;
 
         break_action            break_;
         macro_identifier_action macro_identifier;
@@ -237,9 +223,6 @@ namespace quickbook
         link_action             link_pre;
         markup_action           link_post;
         table_action            table;
-        start_row_action        start_row;
-        markup_action           end_row;
-        col_action              cell;
         anchor_action           anchor;
 
         begin_section_action    begin_section;

@@ -175,7 +175,6 @@ namespace quickbook
         header_action(
             collector& out,
             collector& phrase,
-            std::string const& element_id,
             std::string const& library_id,
             std::string const& section_id,
             std::string const& qualified_section_id,
@@ -183,7 +182,6 @@ namespace quickbook
             quickbook::actions& actions)
         : out(out)
         , phrase(phrase)
-        , element_id(element_id)
         , library_id(library_id)
         , section_id(section_id)
         , qualified_section_id(qualified_section_id)
@@ -194,7 +192,6 @@ namespace quickbook
 
         collector& out;
         collector& phrase;
-        std::string const& element_id;
         std::string const& library_id;
         std::string const& section_id;
         std::string const& qualified_section_id;
@@ -209,7 +206,6 @@ namespace quickbook
         generic_header_action(
             collector& out,
             collector& phrase,
-            std::string const& element_id,
             std::string const& library_id,
             std::string const& section_id,
             std::string const& qualified_section_id,
@@ -217,7 +213,6 @@ namespace quickbook
             quickbook::actions& actions)
         : out(out)
         , phrase(phrase)
-        , element_id(element_id)
         , library_id(library_id)
         , section_id(section_id)
         , qualified_section_id(qualified_section_id)
@@ -228,7 +223,6 @@ namespace quickbook
 
         collector& out;
         collector& phrase;
-        std::string const& element_id;
         std::string const& library_id;
         std::string const& section_id;
         std::string const& qualified_section_id;
@@ -661,34 +655,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct start_row_action
-    {
-        // Handles table rows
-
-        start_row_action(collector& phrase, unsigned& span, std::string& header, quickbook::actions& actions)
-            : phrase(phrase), span(span), header(header), actions(actions) {}
-
-        void operator()(char) const;
-        void operator()(iterator f, iterator) const;
-
-        collector& phrase;
-        unsigned& span;
-        std::string& header;
-        quickbook::actions& actions;
-    };
-
-    struct col_action
-    {
-        col_action(collector& phrase, unsigned& span, quickbook::actions& actions)
-        : phrase(phrase), span(span), actions(actions) {}
-
-        void operator()(iterator, iterator) const;
-
-        collector& phrase;
-        unsigned& span;
-        quickbook::actions& actions;
-    };
-
     struct begin_section_action
     {
         // Handles begin page
@@ -700,7 +666,6 @@ namespace quickbook
           , std::string& section_id
           , int& section_level
           , std::string& qualified_section_id
-          , std::string& element_id
           , quickbook::actions& actions)
         : out(out)
         , phrase(phrase)
@@ -708,7 +673,6 @@ namespace quickbook
         , section_id(section_id)
         , section_level(section_level)
         , qualified_section_id(qualified_section_id)
-        , element_id(element_id)
         , actions(actions) {}
 
         void operator()(iterator first, iterator last) const;
@@ -719,7 +683,6 @@ namespace quickbook
         std::string& section_id;
         int& section_level;
         std::string& qualified_section_id;
-        std::string& element_id;
         quickbook::actions& actions;
     };
 
@@ -844,6 +807,16 @@ namespace quickbook
 
         docinfo_string& out;
         collector& phrase;
+        quickbook::actions& actions;
+    };
+
+    struct phrase_to_value_action
+    {
+        phrase_to_value_action(quickbook::actions& actions)
+            : actions(actions) {}
+
+        void operator()(iterator first, iterator last) const;
+
         quickbook::actions& actions;
     };
 

@@ -164,6 +164,7 @@ namespace quickbook
             >>  local.element
             >>  cl::eps_p(local.check_element(element_info::in_block))
                                                 [actions.inside_paragraph]
+                                                [actions.values.reset]
             >>  (   local.element_rule
                 >>  (   (space >> ']')
                     |   cl::eps_p               [actions.error]
@@ -357,10 +358,12 @@ namespace quickbook
 
         inside_paragraph =
             actions.scoped_block[
+            actions.values.save[
             (*( common
             |   (cl::anychar_p - phrase_end)    [actions.plain_char]
             |   (+eol)                          [actions.inside_paragraph]
             ))                                  [actions.inside_paragraph]
+            ]
             ]
             ;
 

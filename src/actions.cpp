@@ -22,6 +22,7 @@
 #include "grammar.hpp"
 #include "input_path.hpp"
 #include "template_tags.hpp"
+#include "table_tags.hpp"
 
 namespace quickbook
 {
@@ -84,7 +85,8 @@ namespace quickbook
     {
         if(!actions.output_pre(out)) return;
 
-        out << pre << actions.inside_text << post;
+        value_consumer values = actions.values.get();
+        out << pre << values.consume().get_boostbook() << post;
     }
 
     void phrase_action::operator()() const
@@ -143,6 +145,8 @@ namespace quickbook
 
         std::string str;
         phrase.swap(str);
+        
+        value_consumer values = actions.values.get();
 
         std::string anchor;
 
@@ -154,7 +158,7 @@ namespace quickbook
         else
         {
             std::string id =
-                !element_id.empty() ? element_id :
+                values.is(general_tags::element_id) ? values.consume().get_quickbook() :
                 qbk_version_n >= 106 ? detail::make_identifier(first, last) :
                 detail::make_identifier(str.begin(), str.end());
 
@@ -183,8 +187,10 @@ namespace quickbook
         std::string str;
         phrase.swap(str);
 
+        value_consumer values = actions.values.get();
+
         std::string id =
-            !element_id.empty() ? element_id :
+            values.is(general_tags::element_id) ? values.consume().get_quickbook() :
             qbk_version_n >= 106 ? detail::make_identifier(first, last) :
             detail::make_identifier(str.begin(), str.end());
 
@@ -683,27 +689,37 @@ namespace quickbook
         actions.phrase.pop(); // restore the phrase
     }
 
-    void template_body_action::operator()(iterator first, iterator last) const
+    void template_body_action::operator()(iterator, iterator) const
     {
         if(actions.suppress) return;
-        if (!actions.templates.add(
-            template_symbol(
-                actions.template_identifier,
-                actions.template_info,
-                std::string(first, last),
-                actions.filename,
-                first.get_position(),
-                actions.template_block,
-                &actions.templates.top_scope())))
-        {
-            file_position const pos = first.get_position();
-            detail::outerr(actions.filename, pos.line)
-                << "Template Redefinition: " << detail::utf8(actions.template_identifier) << std::endl;
-            ++actions.error_count;
+
+        value_consumer values = actions.values.get();
+        std::string identifier = values.consume().get_quickbook();
+
+        std::vector<std::string> template_values;
+        BOOST_FOREACH(value const& p, values.consume()) {
+            template_values.push_back(p.get_quickbook());
         }
 
-        actions.template_identifier.clear();
-        actions.template_info.clear();
+        BOOST_ASSERT(values.is(template_tags::block) || values.is(template_tags::phrase));
+        value body = values.consume();
+        BOOST_ASSERT(!values.is());
+    
+        if (!actions.templates.add(
+            template_symbol(
+                identifier,
+                template_values,
+                body.get_quickbook(),
+                actions.filename,
+                body.get_position(),
+                body.get_tag() == template_tags::block,
+                &actions.templates.top_scope())))
+        {
+            file_position const pos = body.get_position();
+            detail::outerr(actions.filename, pos.line)
+                << "Template Redefinition: " << detail::utf8(identifier) << std::endl;
+            ++actions.error_count;
+        }
     }
 
     namespace
@@ -1141,44 +1157,70 @@ namespace quickbook
     {
         if(actions.suppress) return;
 
+        value_consumer values = actions.values.get();
+        std::string title = values.consume(table_tags::title).get_quickbook();
+
         actions.out << "<variablelist>\n";
 
         actions.out << "<title>";
-        std::string::iterator first = actions.table_title.begin();
-        std::string::iterator last = actions.table_title.end();
-        while (first != last)
-            detail::print_char(*first++, actions.out.get());
+        detail::print_string(title, actions.out.get());
         actions.out << "</title>\n";
 
-        std::string str;
-        actions.phrase.swap(str);
-        actions.out << str;
+        BOOST_FOREACH(value_consumer entry, values) {
+            actions.out << start_varlistentry_;
+            
+            if(entry.is()) {
+                actions.out << start_varlistterm_;
+                actions.out << entry.consume().get_boostbook();
+                actions.out << end_varlistterm_;
+            }
+            
+            if(entry.is()) {
+                actions.out << start_varlistitem_;
+                BOOST_FOREACH(value phrase, entry) actions.out << phrase.get_boostbook();
+                actions.out << end_varlistitem_;
+            }
+
+            actions.out << end_varlistentry_;
+        }
 
         actions.out << "</variablelist>\n";
-        actions.table_span = 0;
-        actions.table_header.clear();
-        actions.table_title.clear();
     }
 
     void table_action::operator()(iterator, iterator) const
     {
         if(actions.suppress) return;
 
-        std::string::iterator first = actions.table_title.begin();
-        std::string::iterator last = actions.table_title.end();
-        bool has_title = first != last;
+        value_consumer values = actions.values.get();
+
+        std::string element_id;
+        if(values.is(general_tags::element_id))
+            element_id = values.consume().get_quickbook();
+
+        std::string title = values.consume(table_tags::title).get_quickbook();
+        bool has_title = !title.empty();
         
         std::string table_id;
         if(qbk_version_n >= 105) {
-            if(!actions.element_id.empty()) {
+            if(!element_id.empty()) {
                 table_id = fully_qualified_id(actions.doc_id,
-                    actions.qualified_section_id, actions.element_id);
+                    actions.qualified_section_id, element_id);
             }
             else if(has_title) {
                 table_id = fully_qualified_id(actions.doc_id,
                     actions.qualified_section_id,
-                    detail::make_identifier(first, last));
+                    detail::make_identifier(title.begin(), title.end()));
             }
+        }
+
+        // Emulating the old behaviour which used the width of the final
+        // row for span_count.
+        int row_count = 0;
+        int span_count = 0;
+
+        BOOST_FOREACH(value row, values) {
+            ++row_count;
+            span_count = boost::distance(row);
         }
 
         if (has_title)
@@ -1188,8 +1230,7 @@ namespace quickbook
                 actions.out << " id=\"" << table_id << "\"";
             actions.out << ">\n";
             actions.out << "<title>";
-            while (first != last)
-                detail::print_char(*first++, actions.out.get());
+            detail::print_string(title, actions.out.get());
             actions.out << "</title>";
         }
         else
@@ -1200,18 +1241,26 @@ namespace quickbook
             actions.out << ">\n";
         }
 
-        actions.out << "<tgroup cols=\"" << actions.table_span << "\">\n";
+        actions.out << "<tgroup cols=\"" << span_count << "\">\n";
 
-        if (!actions.table_header.empty())
+        if (row_count > 1)
         {
-            actions.out << "<thead>" << actions.table_header << "</thead>\n";
+            actions.out << "<thead>" << start_row_;
+            BOOST_FOREACH(value cell, values.consume()) {
+                actions.out << start_cell_ << cell.get_boostbook() << end_cell_;
+            }
+            actions.out << end_row_ << "</thead>\n";
         }
 
         actions.out << "<tbody>\n";
 
-        std::string str;
-        actions.phrase.swap(str);
-        actions.out << str;
+        BOOST_FOREACH(value row, values) {
+            actions.out << start_row_;
+            BOOST_FOREACH(value cell, row) {
+                actions.out << start_cell_ << cell.get_boostbook() << end_cell_;
+            }
+            actions.out << end_row_;
+        }
 
         actions.out << "</tbody>\n"
                      << "</tgroup>\n";
@@ -1224,45 +1273,17 @@ namespace quickbook
         {
             actions.out << "</informaltable>\n";
         }
-
-        actions.table_span = 0;
-        actions.table_header.clear();
-        actions.table_title.clear();
-    }
-
-    void start_row_action::operator()(char) const
-    {
-        if (actions.suppress) return;
-
-        // the first row is the header
-        if (header.empty() && !phrase.str().empty())
-        {
-            phrase.swap(header);
-        }
-
-        phrase << start_row_;
-        span = 0;
-    }
-
-    void start_row_action::operator()(iterator f, iterator) const
-    {
-        (*this)(*f);
-    }
-
-    void col_action::operator()(iterator, iterator) const
-    {
-        if(actions.suppress) return;
-        phrase << start_cell_ << actions.inside_text << end_cell_;
-        ++span;
     }
 
     void begin_section_action::operator()(iterator first, iterator last) const
     {    
         if(actions.suppress) return;
 
-        section_id = element_id.empty() ?
-            detail::make_identifier(first, last) :
-            element_id;
+        value_consumer values = actions.values.get();
+
+        section_id = values.is(general_tags::element_id) ?
+            values.consume().get_quickbook() :
+            detail::make_identifier(first, last);
 
         if (section_level != 0)
             qualified_section_id += '.';
@@ -1548,6 +1569,16 @@ namespace quickbook
         out.raw = std::string(first, last);
     }
     
+    void phrase_to_value_action::operator()(iterator first, iterator last) const
+    {
+        if(!actions.output_pre(actions.phrase)) return;
+
+        std::string value;
+        actions.phrase.swap(value);
+        actions.values.builder.insert(
+            bbk_value(value, actions.values.builder.release_tag()));
+    }
+    
     void inner_phrase_action_pre::operator()(iterator, iterator) const
     {
         // TODO: Really?
@@ -1604,7 +1635,8 @@ namespace quickbook
     void scoped_block_push::success_impl()
     {
         actions.inside_paragraph();
-        actions.inside_text = actions.out.str();
+        actions.values.builder.insert(
+            bbk_value(actions.out.str(), actions.values.builder.release_tag()));
     }
 
     set_no_eols_scoped::set_no_eols_scoped(quickbook::actions& actions)
