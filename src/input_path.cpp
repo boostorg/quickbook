@@ -112,7 +112,7 @@ namespace detail {
         if (size < 0)
             throw conversion_error("Error converting cygwin path to windows.");
 
-		// TODO: size is in bytes.
+        // TODO: size is in bytes.
         boost::scoped_array<wchar_t> result(new wchar_t[size]);
 
         if(cygwin_conv_path(flags, path.c_str(), result.get(), size))
@@ -161,8 +161,8 @@ namespace detail {
 
     void initialise_output()
     {
-    	if (_isatty(_fileno(stdout))) _setmode(_fileno(stdout), _O_U16TEXT);
-    	if (_isatty(_fileno(stderr))) _setmode(_fileno(stderr), _O_U16TEXT);
+        if (_isatty(_fileno(stdout))) _setmode(_fileno(stdout), _O_U16TEXT);
+        if (_isatty(_fileno(stderr))) _setmode(_fileno(stderr), _O_U16TEXT);
     }
 
     void write_utf8(ostream& out, std::string const& x)

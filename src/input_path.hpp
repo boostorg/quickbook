@@ -18,10 +18,10 @@
 #if defined(__cygwin__) || defined(__CYGWIN__)
 #   define QUICKBOOK_CYGWIN_PATHS 1
 #elif defined(_WIN32)
-#	define QUICKBOOK_WIDE_PATHS 1
-#	if defined(BOOST_MSVC) && BOOST_MSVC >= 1400
-#   	define QUICKBOOK_WIDE_STREAMS 1
-#	endif
+#   define QUICKBOOK_WIDE_PATHS 1
+#   if defined(BOOST_MSVC) && BOOST_MSVC >= 1400
+#       define QUICKBOOK_WIDE_STREAMS 1
+#   endif
 #endif
 
 #if !defined(QUICKBOOK_WIDE_PATHS)
@@ -75,7 +75,7 @@ namespace quickbook
 
         std::string input_to_utf8(input_string const&);
         fs::path input_to_path(input_string const&);
-		stream_string path_to_stream(fs::path const&);
+        stream_string path_to_stream(fs::path const&);
     
         std::string path_to_generic(fs::path const&);
         fs::path generic_to_path(std::string const&);
