@@ -11,6 +11,10 @@ project quickook/tests/doc-info ;
 import quickbook-testing : quickbook-test quickbook-fail-test ;
 
 test-suite quickbook.test :
+    [ quickbook-test escape-1.6 ]
+    [ quickbook-test encode-1.5 ]
+    [ quickbook-test author1 ]
+    [ quickbook-test author2 ]
     [ quickbook-test empty-attributes ]
     [ quickbook-test duplicates-1.1 ]
     [ quickbook-test duplicates-1.5 ]
