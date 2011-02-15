@@ -640,18 +640,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
     
-    struct template_arg_action
-    {
-        // Handles a template argument
-
-        template_arg_action(quickbook::actions& actions)
-        : actions(actions) {}
-        
-        void operator()(iterator first, iterator last) const;
-
-        quickbook::actions& actions;
-    };
-
     struct do_template_action
     {
         // Handles template substitutions

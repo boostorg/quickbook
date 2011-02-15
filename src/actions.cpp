@@ -21,6 +21,7 @@
 #include "actions_class.hpp"
 #include "grammar.hpp"
 #include "input_path.hpp"
+#include "template_tags.hpp"
 
 namespace quickbook
 {
@@ -903,29 +904,36 @@ namespace quickbook
         int callout_id = 0;
     }
 
-    void template_arg_action::operator()(iterator first, iterator last) const
-    {
-        if(actions.suppress) return;
-
-        actions.template_args.push_back(
-            template_body(
-                std::string(first, last),
-                actions.filename,
-                first.get_position(),
-                actions.template_block));
-    }
-
     void do_template_action::operator()(iterator first, iterator) const
     {
         if(actions.suppress) return;
 
-        // Get the arguments and clear values stored in action.
+        file_position const pos = first.get_position();
+        
+        // Get the arguments
+        value_consumer values = actions.values.get();
+
+        bool template_escape = values.is(template_tags::escape);
+        if(template_escape) values.consume();
+
+        std::string identifier = values.consume(template_tags::identifier).get_quickbook();
 
         std::vector<template_body> args;
-        std::string identifier;
-        std::swap(args, actions.template_args);
-        std::swap(identifier, actions.template_identifier);
-        file_position const pos = first.get_position();
+
+        BOOST_FOREACH(value arg, values)
+        {
+            BOOST_ASSERT(
+                arg.get_tag() == template_tags::block ||
+                arg.get_tag() == template_tags::phrase);
+
+            args.push_back(
+                template_body(
+                    arg.get_quickbook(),
+                    actions.filename,
+                    arg.get_position(),
+                    arg.get_tag() == template_tags::block
+                ));
+        }
 
         ++actions.template_depth;
         if (actions.template_depth > actions.max_template_depth)
@@ -1025,7 +1033,7 @@ namespace quickbook
             ///////////////////////////////////
             // parse the template body:
 
-            if (!parse_template(symbol->body, actions.template_escape, actions))
+            if (!parse_template(symbol->body, template_escape, actions))
             {
                 file_position const pos = first.get_position();
                 detail::outerr(actions.filename, pos.line)

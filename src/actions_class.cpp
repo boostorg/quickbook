@@ -66,7 +66,6 @@ namespace quickbook
         , template_identifier()
         , template_info()
         , template_depth(0)
-        , template_escape(false)
         , templates()
         , error_count(0)
         , anchors()
@@ -176,7 +175,6 @@ namespace quickbook
         , macro_definition(*this)
         , do_macro(phrase, *this)
         , template_body(*this)
-        , template_arg(*this)
         , do_template(*this)
         , url_pre(phrase, url_pre_, *this)
         , url_post(phrase, url_post_, *this)
@@ -237,7 +235,8 @@ namespace quickbook
         out.push();
         phrase.push();
         list_buffer.push();
-        templates.push();        
+        templates.push();
+        values.builder.save();
     }
     
     // Pushing and popping the macro symbol table is pretty expensive, so
@@ -278,6 +277,7 @@ namespace quickbook
         phrase.pop();
         list_buffer.pop();
         templates.pop();
+        values.builder.restore();
     }
     
     quickbook_grammar& actions::grammar() const {
