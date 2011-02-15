@@ -9,6 +9,7 @@
 project test : requirements <debug-symbols>off ;
 
 build-project doc-info ;
+build-project unit ;
 
 import quickbook-testing : quickbook-test quickbook-fail-test ;
 
