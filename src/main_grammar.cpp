@@ -37,6 +37,7 @@ namespace quickbook
 
         simple_markup_start_parser(char c)
             : base_t(cl::ch_p(c))
+            , mark_(c)
         {}
 
         template <typename ScannerT>
@@ -47,14 +48,21 @@ namespace quickbook
 
             typename cl::parser_result<cl::chlit<char>, ScannerT>::type result
                 = this->subject().parse(scan);
-                
-            typename iterator_t::lookback_range lookback = save.lookback();
 
-            if (result && (
-                    lookback.begin() == lookback.end() ||
-                    cl::punct_p.test(*lookback.begin()) ||
-                    cl::space_p.test(*lookback.begin())
-                ))
+            typename iterator_t::lookback_range::iterator
+                lookback_begin = save.lookback().begin(),
+                lookback_end = save.lookback().end();
+            
+            if (lookback_begin != lookback_end) {
+                if (*lookback_begin == mark_)
+                    return scan.no_match();
+
+                if (!cl::punct_p.test(*lookback_begin) &&
+                        !cl::space_p.test(*lookback_begin))
+                    return scan.no_match();
+            }
+                
+            if (result)
             {
                 return scan.create_match(result.length(), cl::nil_t(), save, scan.first);
             }
@@ -62,6 +70,8 @@ namespace quickbook
                 return scan.no_match();
             }
         }
+        
+        char mark_;
     };
     
     simple_markup_start_parser start_parser(char c)
@@ -79,29 +89,25 @@ namespace quickbook
     )
     {
         simple =
-            start_parser(mark) >>
-            (
-                (
-                    cl::graph_p                 // A single char. e.g. *c*
-                    >> cl::eps_p(mark
-                        >> (cl::space_p | cl::punct_p | cl::end_p))
-                                                // space_p, punct_p or end_p
-                )                               // must follow mark
-            |
-                (   cl::graph_p >>              // graph_p must follow mark
-                    *(cl::anychar_p -
-                        (   cl::graph_p
+                start_parser(mark)              // first mark must be preceeded
+                                                // by space or punctuation or the
+                                                // mark character.
+            >>  cl::eps_p(cl::graph_p)          // graph_p must follow first mark
+            >>  (   *(cl::anychar_p -
+                        (   cl::graph_p         // graph_p must precede final mark
                         >>  mark
+                        >>  ~cl::eps_p(mark)    // final mark not be followed by
+                                                // the same character.
                         >>  (cl::space_p | cl::punct_p | cl::end_p)
+                                                // final mark must be followed by
+                                                // space or punctuation
                         |   close               // Make sure that we don't go
                                                 // past a single block
                         )
-                    ) >> cl::graph_p            // graph_p must precede mark
-                    >> cl::eps_p(mark
-                        >> (cl::space_p | cl::punct_p | cl::end_p))
-                                                // space_p, punct_p or end_p
-                )                               // must follow mark
-            )                                   [action]
+                    )
+                    >>  cl::graph_p
+                    >>  cl::eps_p(mark >> (cl::space_p | cl::punct_p | cl::end_p))
+                )                               [action]
             >> mark
             ;
     }
