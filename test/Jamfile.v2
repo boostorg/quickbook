@@ -6,10 +6,14 @@
 #   http://www.boost.org/LICENSE_1_0.txt)
 #
 
-project test : requirements <debug-symbols>off ;
+build-project unit ;
+
+project test
+    : requirements
+        <toolset>msvc:<debug-symbols>off
+    ;
 
 build-project doc-info ;
-build-project unit ;
 
 import quickbook-testing : quickbook-test quickbook-fail-test ;
 
