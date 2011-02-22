@@ -14,10 +14,9 @@
 #include "template_tags.hpp"
 #include "block_tags.hpp"
 #include "parsers.hpp"
+#include "scoped.hpp"
 #include <boost/spirit/include/classic_core.hpp>
-#include <boost/spirit/include/classic_confix.hpp>
 #include <boost/spirit/include/classic_chset.hpp>
-#include <boost/spirit/include/classic_clear_actor.hpp>
 #include <boost/spirit/include/classic_if.hpp>
 #include <boost/spirit/include/classic_loops.hpp>
 #include <boost/spirit/include/phoenix1_primitives.hpp>
@@ -82,24 +81,48 @@ namespace quickbook
             main_grammar_local& l;
         };
 
-        struct check_element_type {
-            check_element_type(main_grammar_local const& l, element_info::context t)
-                : l(l), t(t) {}
+        struct process_element_impl : scoped_action_base {
+            process_element_impl(main_grammar_local& l)
+                : l(l) {}
 
-            bool operator()() const {
-                return l.element_type & t;
+            bool start()
+            {
+                if (!(l.element_type & l.actions_.context))
+                    return false;
+
+                // Save the element type because it might
+                // be overridden by nested markup.
+                element_type_ = l.element_type;
+
+                if (element_type_ & element_info::block)
+                    l.actions_.paragraph();
+
+                l.actions_.values.reset()();
+                
+                return true;
+            }
+            
+            template <typename ResultT, typename ScannerT>
+            bool result(ResultT result, ScannerT const& scan)
+            {
+                if (result || !(l.element_type & element_info::block))
+                    return result;
+
+                l.actions_.error(scan.first, scan.first);
+                return true;
             }
 
-            main_grammar_local const& l;
-            element_info::context t;
+            void success() { l.element_type = element_type_; }
+            void failure() { l.element_type = element_type_; }
+
+            main_grammar_local& l;
+            element_info::type_enum element_type_;
         };
 
         cl::rule<scanner>
                         top_level, blocks, paragraph_separator,
-                        block_element,
                         code, code_line, blank_line, hr,
-                        list, ordered_list, list_item,
-                        phrase_element, extended_phrase_element, element,
+                        list, list_item, element,
                         simple_phrase_end,
                         escape,
                         inline_code, simple_format,
@@ -111,6 +134,7 @@ namespace quickbook
                         template_inner_arg_1_4, brackets_1_4,
                         template_args_1_5, template_arg_1_5, template_arg_1_5_content,
                         template_inner_arg_1_5, brackets_1_5,
+                        break_,
                         command_line_macro_identifier, command_line_phrase,
                         dummy_block
                         ;
@@ -118,21 +142,23 @@ namespace quickbook
         element_info::type_enum element_type;
         cl::rule<scanner> element_rule;
         value::tag_type element_tag;
-        assign_element_type assign_element;
 
-        main_grammar_local()
-            : assign_element(*this) {}
-        
-        check_element_type check_element(element_info::context t) const {
-            return check_element_type(*this, t);
-        }
+        quickbook::actions& actions_;
+        assign_element_type assign_element;
+        scoped_parser<process_element_impl> process_element;
+
+        main_grammar_local(quickbook::actions& actions)
+            : actions_(actions)
+            , assign_element(*this)
+            , process_element(*this)
+            {}
     };
 
     void quickbook_grammar::impl::init_main()
     {
         using detail::var;
 
-        main_grammar_local& local = store_.create();
+        main_grammar_local& local = store_.add(new main_grammar_local(actions));
 
         block_skip_initial_spaces =
             *(cl::blank_p | comment) >> block_start
@@ -142,15 +168,18 @@ namespace quickbook
             local.top_level >> blank
             ;
 
-        local.top_level
-            =   local.blocks
-            >>  *(
-                    local.block_element >> !(+eol >> local.blocks)
+        local.top_level =
+            actions.scoped_context(element_info::in_block)
+            [   local.blocks
+            >>  *(  local.element
+                >>  !(+eol >> local.blocks)
                 |   local.paragraph_separator >> local.blocks
                 |   common
                 |   cl::space_p                 [actions.space_char]
                 |   cl::anychar_p               [actions.plain_char]
-                );
+                )
+            ]
+            ;
 
         local.blocks =
            *(   local.code
@@ -172,20 +201,20 @@ namespace quickbook
             >> +eol
             ;
 
-        local.block_element
-            =   '[' >> space
-            >>  local.element
-            >>  cl::eps_p(local.check_element(element_info::in_block))
-                                                [actions.paragraph]
-                                                [actions.values.reset()]
-            >>  (   actions.values.list(detail::var(local.element_tag))
-                    [   local.element_rule
-                    >>  (   (space >> ']')
-                        |   cl::eps_p           [actions.error]
-                        )
-                    ]                           [actions.element]
-                |   cl::eps_p                   [actions.error]
+        local.element
+            =   '['
+            >>  (   cl::eps_p(cl::punct_p)
+                >>  elements                    [local.assign_element]
+                |   elements                    [local.assign_element]
+                >>  (cl::eps_p - (cl::alnum_p | '_'))
                 )
+            >>  local.process_element()
+                [   actions.values.list(detail::var(local.element_tag))
+                    [   local.element_rule
+                    >>  space
+                    >>  ']'
+                    ]                           [actions.element]
+                ]
             ;
 
         local.code =
@@ -233,13 +262,17 @@ namespace quickbook
             ;
 
         common =
-                local.macro
-            |   local.phrase_element
+            actions.scoped_context(element_info::in_phrase)
+            [   local.macro
+            |   local.element
+            |   local.template_
+            |   local.break_
             |   local.code_block
             |   local.inline_code
             |   local.simple_format
             |   local.escape
             |   comment
+            ]
             ;
 
         local.macro =
@@ -250,7 +283,8 @@ namespace quickbook
             ;
 
         local.template_ =
-                cl::eps_p                       [actions.values.reset()]
+            (   '['
+            >>  space                           [actions.values.reset()]
             >>  !cl::str_p("`")                 [actions.values.entry(ph::arg1, ph::arg2, template_tags::escape)]
             >>
             ( (
@@ -265,8 +299,8 @@ namespace quickbook
                 >> space
                 >> !local.template_args
             ) )
-            >> cl::eps_p(']')
-            >> cl::eps_p                        [actions.do_template]
+            >> ']'
+            )                                   [actions.do_template]
             ;
 
         local.template_args =
@@ -314,6 +348,15 @@ namespace quickbook
         local.brackets_1_5 =
             '[' >> local.template_inner_arg_1_5 >> ']'
             ;
+
+        local.break_
+            =   (   '['
+                >>  space
+                >>  "br"
+                >>  space
+                >>  ']'
+                )                               [actions.break_]
+                ;
 
         local.inline_code =
             '`' >>
@@ -365,18 +408,23 @@ namespace quickbook
         simple_markup(local.simple_teletype,
             '=', actions.simple_teletype, local.simple_phrase_end);
 
-        phrase = actions.values.save()[
-           *(   common
-            |   (cl::anychar_p - phrase_end)    [actions.plain_char]
-            )
+        phrase =
+            actions.values.save()
+            [   *(  common
+                |   (cl::anychar_p - phrase_end)
+                                                [actions.plain_char]
+                )
             ]
             ;
 
-        extended_phrase = actions.values.save()[
-           *(   local.extended_phrase_element
-            |   common
-            |   (cl::anychar_p - phrase_end)    [actions.plain_char]
-            )
+        extended_phrase =
+            actions.values.save()
+            [  *(   actions.scoped_context(element_info::in_conditional)
+                    [ local.element ]
+                |   common
+                |   (cl::anychar_p - phrase_end)
+                                                [actions.plain_char]
+                )
             ]
             ;
 
@@ -388,45 +436,6 @@ namespace quickbook
                                                 [actions.plain_char]
                 )
             ]                                   [actions.paragraph]
-            ;
-
-        local.phrase_element
-            =   '['
-            >>  space
-            >>  (   local.element
-                >>  cl::eps_p(local.check_element(element_info::in_phrase))
-                                                [actions.values.reset()]
-                >>  actions.values.list(detail::var(local.element_tag))
-                    [   local.element_rule
-                    >>  cl::eps_p(space >> ']')
-                    ]                           [actions.element]
-                |   local.template_
-                |   cl::str_p("br")             [actions.break_]
-                )
-            >>  ']'
-            ;
-
-        local.extended_phrase_element
-            =   '[' >> space
-            >>  local.element
-            >>  cl::eps_p(local.check_element(element_info::in_conditional))
-                                                [actions.paragraph]
-                                                [actions.values.reset()]
-            >>  (   actions.values.list(detail::var(local.element_tag))
-                    [   local.element_rule
-                    >>  (   (space >> ']')          
-                        |   cl::eps_p           [actions.error]
-                        )
-                    ]                           [actions.element]
-                    |   cl::eps_p               [actions.error]
-                )
-            ;
-
-        local.element
-            =   cl::eps_p(cl::punct_p)
-            >>  elements                        [local.assign_element]
-            |   elements                        [local.assign_element]
-            >>  (cl::eps_p - (cl::alnum_p | '_'))
             ;
 
         local.escape =
