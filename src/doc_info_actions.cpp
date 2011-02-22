@@ -324,10 +324,13 @@ namespace quickbook
 
         BOOST_FOREACH(value_consumer biblioid, biblioids)
         {
+            value class_ = biblioid.consume(doc_info_tags::biblioid_class);
+            value value_ = biblioid.consume(doc_info_tags::biblioid_value);
+            
             tmp << "    <biblioid class=\""
-                << biblioid.consume(doc_info_tags::biblioid_class).get_quickbook()
+                << class_.get_quickbook()
                 << "\">"
-                << doc_info_output(biblioid.consume(doc_info_tags::biblioid_value), 106)
+                << doc_info_output(value_, 106)
                 << "</biblioid>"
                 << "\n"
                 ;
