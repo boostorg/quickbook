@@ -42,7 +42,6 @@ namespace quickbook
         std::string             doc_type;
         std::string             doc_title_qbk;
         std::string             doc_id;
-        std::string             include_doc_id;
 
     // main output stream
         collector               out;
@@ -162,8 +161,6 @@ namespace quickbook
         simple_phrase_action    simple_teletype;
         simple_phrase_action    simple_strikethrough;
 
-        variablelist_action     variablelist;
-
         break_action            break_;
         do_macro_action         do_macro;
         do_template_action      do_template;
@@ -171,13 +168,9 @@ namespace quickbook
         markup_action           url_post;
         link_action             link_pre;
         markup_action           link_post;
-        table_action            table;
         anchor_action           anchor;
 
         element_id_warning_action element_id_warning;
-        xinclude_action         xinclude;
-        include_action          include;
-        import_action           import;
 
         markup_action           escape_pre;
         markup_action           escape_post;

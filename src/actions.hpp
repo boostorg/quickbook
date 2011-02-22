@@ -545,30 +545,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct variablelist_action
-    {
-        // Handles variable lists
-
-        variablelist_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        void operator()(iterator, iterator) const;
-
-        quickbook::actions& actions;
-    };
-
-    struct table_action
-    {
-        // Handles tables
-
-        table_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        void operator()(iterator, iterator) const;
-
-        quickbook::actions& actions;
-    };
-
    struct element_id_warning_action
    {
         element_id_warning_action(quickbook::actions& actions_)
@@ -578,42 +554,6 @@ namespace quickbook
 
         quickbook::actions& actions;
    };
-
-    struct xinclude_action
-    {
-        // Handles XML includes
-        xinclude_action(collector& out_, quickbook::actions& actions_)
-            : out(out_), actions(actions_) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        quickbook::actions& actions;
-    };
-
-    struct include_action
-    {
-        // Handles QBK includes
-
-        include_action(quickbook::actions& actions_)
-            : actions(actions_) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        quickbook::actions& actions;
-    };
-
-    struct import_action
-    {
-        // Handles import of source code files (e.g. *.cpp *.py)
-        import_action(collector& out_, quickbook::actions& actions_)
-            : out(out_), actions(actions_) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        quickbook::actions& actions;
-    };
 
     void pre(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
     void post(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);

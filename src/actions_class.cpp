@@ -27,7 +27,6 @@ namespace quickbook
         , doc_type()
         , doc_title_qbk()
         , doc_id()
-        , include_doc_id()
 
     // main output stream
         , out(out_)
@@ -118,8 +117,6 @@ namespace quickbook
         , simple_teletype(phrase, teletype_pre_, teletype_post_, macro, *this)
         , simple_strikethrough(phrase, strikethrough_pre_, strikethrough_post_, macro, *this)
 
-        , variablelist(*this)
-
         , break_(phrase, *this)
         , do_macro(phrase, *this)
         , do_template(*this)
@@ -127,13 +124,9 @@ namespace quickbook
         , url_post(phrase, url_post_, *this)
         , link_pre(phrase, link_pre_, *this)
         , link_post(phrase, link_post_, *this)
-        , table(*this)
         , anchor(*this)
 
         , element_id_warning(*this)
-        , xinclude(out, *this)
-        , include(*this)
-        , import(out, *this)
 
         , escape_pre(phrase, escape_pre_, *this)
         , escape_post(phrase, escape_post_, *this)

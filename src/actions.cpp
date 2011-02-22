@@ -55,6 +55,11 @@ namespace quickbook
     void block_action(quickbook::actions&, value);
     void macro_definition_action(quickbook::actions&, value);
     void template_body_action(quickbook::actions&, value);
+    void variable_list_action(quickbook::actions&, value);
+    void table_action(quickbook::actions&, value);
+    void xinclude_action(quickbook::actions&, value);
+    void import_action(quickbook::actions&, value);
+    void include_action(quickbook::actions&, value);
 
     void element_action::operator()(iterator first, iterator) const
     {
@@ -90,6 +95,16 @@ namespace quickbook
             return macro_definition_action(actions,v);
         case block_tags::template_definition:
             return template_body_action(actions,v);
+        case block_tags::variable_list:
+            return variable_list_action(actions, v);
+        case block_tags::table:
+            return table_action(actions, v);
+        case block_tags::xinclude:
+            return xinclude_action(actions, v);
+        case block_tags::import:
+            return import_action(actions, v);
+        case block_tags::include:
+            return include_action(actions, v);
         default:
             break;
         }
@@ -1213,11 +1228,11 @@ namespace quickbook
         }
     }
 
-    void variablelist_action::operator()(iterator, iterator) const
+    void variable_list_action(quickbook::actions& actions, value variable_list)
     {
         if(actions.suppress) return;
 
-        value_consumer values = actions.values.get();
+        value_consumer values = variable_list;
         std::string title = values.consume(table_tags::title).get_quickbook();
 
         actions.out << "<variablelist>\n";
@@ -1247,11 +1262,11 @@ namespace quickbook
         actions.out << "</variablelist>\n";
     }
 
-    void table_action::operator()(iterator, iterator) const
+    void table_action(quickbook::actions& actions, value table)
     {
         if(actions.suppress) return;
 
-        value_consumer values = actions.values.get();
+        value_consumer values = table;
 
         std::string element_id;
         if(values.is(general_tags::element_id))
@@ -1444,14 +1459,13 @@ namespace quickbook
         return std::accumulate(file, path.end(), result, concat);
     }
 
-    std::string check_path(iterator first, iterator last,
-        quickbook::actions& actions)
+    std::string check_path(value const& path, quickbook::actions& actions)
     {
-        std::string path_text(first, last);
+        std::string path_text = path.get_quickbook();
 
         if(path_text.find('\\') != std::string::npos)
         {
-            detail::outwarn(actions.filename, first.get_position().line)
+            detail::outwarn(actions.filename, path.get_position().line)
                 << "Path isn't portable: "
                 << detail::utf8(path_text)
                 << std::endl;
@@ -1476,14 +1490,18 @@ namespace quickbook
         return path;
     }
 
-    void xinclude_action::operator()(iterator first, iterator last) const
+    void xinclude_action(quickbook::actions& actions, value xinclude)
     {
-        if(!actions.output_pre(out)) return;
+        if(!actions.output_pre(actions.out)) return;
 
-        fs::path path = calculate_relative_path(check_path(first, last, actions), actions);
-        out << "\n<xi:include href=\"";
-        detail::print_string(detail::escape_uri(path.generic_string()), out.get());
-        out << "\" />\n";
+        value_consumer values = xinclude;
+        fs::path path = calculate_relative_path(
+            check_path(values.consume(), actions), actions);
+        assert(!values.is());
+
+        actions.out << "\n<xi:include href=\"";
+        detail::print_string(detail::escape_uri(path.generic_string()), actions.out.get());
+        actions.out << "\" />\n";
     }
 
     namespace
@@ -1516,12 +1534,15 @@ namespace quickbook
         }
     }
 
-    void import_action::operator()(iterator first, iterator last) const
+    void import_action(quickbook::actions& actions, value import)
     {
         if(!actions.output_pre(actions.out)) return;
 
+        value_consumer values = import;
         fs::path path = include_search(actions.filename.parent_path(),
-            check_path(first, last, actions));
+            check_path(values.consume(), actions));
+        assert(!values.is());
+
         std::string ext = path.extension().generic_string();
         std::vector<template_symbol> storage;
         actions.error_count +=
@@ -1540,12 +1561,16 @@ namespace quickbook
         }
     }
 
-    void include_action::operator()(iterator first, iterator last) const
+    void include_action(quickbook::actions& actions, value include)
     {
         if(!actions.output_pre(actions.out)) return;
 
+        value_consumer values = include;
+        value include_doc_id = values.optional_consume(general_tags::include_id);
         fs::path filein = include_search(actions.filename.parent_path(),
-            check_path(first, last, actions));
+            check_path(values.consume(), actions));
+        assert(!values.is());
+
         std::string doc_type, doc_id;
 
         // swap the filenames
@@ -1575,11 +1600,8 @@ namespace quickbook
 
         // if an id is specified in this include (as in [include:id foo.qbk])
         // then use it as the doc_id.
-        if (!actions.include_doc_id.empty())
-        {
-            actions.doc_id = actions.include_doc_id;
-            actions.include_doc_id.clear();
-        }
+        if (!include_doc_id.is_empty())
+            actions.doc_id = include_doc_id.get_quickbook();
 
         // update the __FILENAME__ macro
         *boost::spirit::classic::find(actions.macro, "__FILENAME__")

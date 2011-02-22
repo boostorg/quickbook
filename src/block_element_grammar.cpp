@@ -175,7 +175,7 @@ namespace quickbook
             ;
 
         elements.add
-            ("variablelist", element_info(element_info::block, &local.variablelist))
+            ("variablelist", element_info(element_info::block, &local.variablelist, block_tags::variable_list))
             ;
 
         local.variablelist =
@@ -183,7 +183,6 @@ namespace quickbook
             >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
             >>  (+eol)                          [actions.output_pre]
             >>  *local.varlistentry
-            >>  cl::eps_p                       [actions.variablelist]
             ;
 
         local.varlistentry =
@@ -225,7 +224,7 @@ namespace quickbook
             ;
 
         elements.add
-            ("table", element_info(element_info::block, &local.table))
+            ("table", element_info(element_info::block, &local.table, block_tags::table))
             ;
 
         local.table =
@@ -235,7 +234,6 @@ namespace quickbook
             >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
             >>  (+eol)                          [actions.output_pre]
             >>  *local.table_row
-            >>  cl::eps_p                       [actions.table]
             ;
 
         local.table_row =
@@ -266,21 +264,19 @@ namespace quickbook
             ;
 
         elements.add
-            ("xinclude", element_info(element_info::conditional_or_block, &local.xinclude))
-            ("import", element_info(element_info::conditional_or_block, &local.import))
-            ("include", element_info(element_info::conditional_or_block, &local.include))
+            ("xinclude", element_info(element_info::conditional_or_block, &local.xinclude, block_tags::xinclude))
+            ("import", element_info(element_info::conditional_or_block, &local.import, block_tags::import))
+            ("include", element_info(element_info::conditional_or_block, &local.include, block_tags::include))
             ;
 
         local.xinclude =
                space
-            >> (*(cl::anychar_p - phrase_end))
-                                                [actions.xinclude]
+            >> (*(cl::anychar_p - phrase_end))  [actions.values.entry(ph::arg1, ph::arg2)]
             ;
 
         local.import =
                space
-            >> (*(cl::anychar_p - phrase_end))
-                                                [actions.import]
+            >> (*(cl::anychar_p - phrase_end))  [actions.values.entry(ph::arg1, ph::arg2)]
             ;
 
         local.include =
@@ -289,11 +285,10 @@ namespace quickbook
            !(
                 ':'
                 >> (*((cl::alnum_p | '_') - cl::space_p))
-                                                [cl::assign_a(actions.include_doc_id)]
+                                                [actions.values.entry(ph::arg1, ph::arg2, general_tags::include_id)]
                 >> space
             )
-            >> (*(cl::anychar_p - phrase_end))
-                                                [actions.include]
+            >> (*(cl::anychar_p - phrase_end))  [actions.values.entry(ph::arg1, ph::arg2)]
             ;
 
         local.inner_phrase =
