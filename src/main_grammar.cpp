@@ -21,6 +21,7 @@
 #include <boost/spirit/include/classic_if.hpp>
 #include <boost/spirit/include/classic_loops.hpp>
 #include <boost/spirit/include/phoenix1_primitives.hpp>
+#include <boost/spirit/include/phoenix1_casts.hpp>
 
 namespace quickbook
 {
@@ -186,7 +187,7 @@ namespace quickbook
                 |   cl::eps_p                   [actions.error]
                 )
             ;
-        
+
         local.code =
             (
                 local.code_line
@@ -357,14 +358,14 @@ namespace quickbook
         simple_markup(local.simple_teletype,
             '=', actions.simple_teletype, local.simple_phrase_end);
 
-        phrase = actions.values.save[
+        phrase = actions.values.save()[
            *(   common
             |   (cl::anychar_p - phrase_end)    [actions.plain_char]
             )
             ]
             ;
 
-        extended_phrase = actions.values.save[
+        extended_phrase = actions.values.save()[
            *(   local.extended_phrase_element
             |   common
             |   (cl::anychar_p - phrase_end)    [actions.plain_char]
@@ -373,13 +374,15 @@ namespace quickbook
             ;
 
         inside_paragraph =
-            actions.scoped_block[
-            actions.values.save[
+            actions.scoped_output()
+            [
+            actions.values.save()
+            [
             (*( common
             |   (cl::anychar_p - phrase_end)    [actions.plain_char]
             |   (+eol)                          [actions.inside_paragraph]
             ))                                  [actions.inside_paragraph]
-            ]
+            ]                                   [actions.out_value]
             ]
             ;
 
@@ -442,7 +445,7 @@ namespace quickbook
         // Simple phrase grammar
         //
 
-        simple_phrase = actions.values.save[
+        simple_phrase = actions.values.save()[
            *(   common
             |   (cl::anychar_p - ']')       [actions.plain_char]
             )

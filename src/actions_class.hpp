@@ -38,10 +38,6 @@ namespace quickbook
         typedef std::pair<char, int> mark_type;
         static int const max_template_depth = 100;
 
-        value_parser            values;
-        phrase_to_value_action  phrase_value;
-        phrase_to_docinfo_action docinfo_value;
-
     // header info
         std::string             doc_type;
         std::string             doc_title_qbk;
@@ -54,6 +50,19 @@ namespace quickbook
     // auxilliary streams
         collector               phrase;
         collector               list_buffer;
+
+    // value actions
+        value_parser            values;
+        collector_to_value_action phrase_value;
+        collector_to_value_action out_value;
+        phrase_to_docinfo_action docinfo_value;
+        
+        scoped_parser<cond_phrase_push>
+                                scoped_cond_phrase;
+        scoped_parser<scoped_output_push>
+                                scoped_output;
+        scoped_parser<set_no_eols_scoped>
+                                scoped_no_eols;
 
     // state
         fs::path                filename;
@@ -89,7 +98,6 @@ namespace quickbook
         template_stack          templates;
         int                     error_count;
         string_list             anchors;
-        string_list             saved_anchors;
         bool                    no_eols;
         bool                    suppress;
         bool                    warned_about_breaks;
@@ -106,26 +114,17 @@ namespace quickbook
 
         element_action          element;
         error_action            error;
-        
-        scoped_parser<scoped_block_push>
-                                scoped_block;
-        scoped_parser<scoped_phrase_push>
-                                scoped_phrase;
 
         code_action             code;
         code_action             code_block;
         inline_code_action      inline_code;
         implicit_paragraph_action inside_paragraph;
         markup_action           hr;
-        scoped_parser<set_no_eols_scoped>
-                                set_no_eols;
         space                   space_char;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
         escape_unicode_action   escape_unicode;
         image_action            image;
-        scoped_parser<cond_phrase_push>
-                                scoped_cond_phrase;
 
         list_action             list;
         list_format_action      list_format;
@@ -183,8 +182,6 @@ namespace quickbook
         markup_action           escape_pre;
         markup_action           escape_post;
 
-        inner_phrase_action_pre inner_phrase_pre;
-        inner_phrase_action_post inner_phrase_post;
         pre_output_action       output_pre;
     };
 }

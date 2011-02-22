@@ -262,8 +262,6 @@ namespace quickbook
                 fully_qualified_id(actions.doc_id, actions.qualified_section_id, id);
         }
 
-        actions.output_pre(actions.out);
-        actions.anchors.swap(actions.saved_anchors);
         actions.anchors.push_back(anchor);
         actions.output_pre(actions.out);
         
@@ -289,10 +287,10 @@ namespace quickbook
         out << post;
     }
 
-    cond_phrase_push::cond_phrase_push(quickbook::actions& actions)
-        : actions(actions)
-        , saved_suppress(actions.suppress)
+    void cond_phrase_push::start()
     {
+        saved_suppress = actions.suppress;
+    
         value_consumer values = actions.values.get();
         bool condition = find(actions.macro,
             values.consume().get_quickbook().c_str());
@@ -300,7 +298,7 @@ namespace quickbook
         actions.suppress = actions.suppress || !condition;
     }
     
-    cond_phrase_push::~cond_phrase_push()
+    void cond_phrase_push::cleanup()
     {
         actions.suppress = saved_suppress;
     }
@@ -1359,6 +1357,9 @@ namespace quickbook
         actions.qualified_section_id += actions.section_id;
         ++actions.section_level;
 
+        actions::string_list saved_anchors;
+        saved_anchors.swap(actions.anchors);
+
         actions.output_pre(actions.out);
 
         if (qbk_version_n < 103) // version 1.2 and below
@@ -1372,7 +1373,7 @@ namespace quickbook
                 << "." << actions.qualified_section_id << "\">\n";
         }
 
-        actions.anchors.swap(actions.saved_anchors);
+        actions.anchors.swap(saved_anchors);
         actions.output_pre(actions.out);
 
         if (qbk_version_n < 103) // version 1.2 and below
@@ -1638,32 +1639,15 @@ namespace quickbook
         return (*this)(first, last, value::default_tag);
     }
     
-    void phrase_to_value_action::operator()(iterator first, iterator last) const
+    void collector_to_value_action::operator()(iterator first, iterator last) const
     {
-        if(!actions.output_pre(actions.phrase)) return;
+        if(!actions.output_pre(output)) return;
 
         std::string value;
-        actions.phrase.swap(value);
-        actions.values.builder.insert(
-            bbk_value(value, value::default_tag));
+        output.swap(value);
+        actions.values.builder.insert(bbk_value(value, value::default_tag));
     }
     
-    void inner_phrase_action_pre::operator()(iterator, iterator) const
-    {
-        // TODO: Really?
-        if(actions.suppress) return;
-
-        actions.saved_anchors.clear();
-        actions.saved_anchors.swap(actions.anchors);
-    }
-
-    void inner_phrase_action_post::operator()(iterator, iterator) const
-    {
-        if(actions.suppress) return;
-
-        actions.output_pre(actions.phrase);
-    }
-
     bool pre_output_action::operator()(collector& tgt) const
     {
         if(actions.suppress) return false;
@@ -1688,51 +1672,27 @@ namespace quickbook
         return (*this)(actions.out);
     }
 
-    scoped_block_push::scoped_block_push(quickbook::actions& actions)
-        : actions(actions)
+    void scoped_output_push::start()
     {
         actions.out.push();
         actions.phrase.push();
+        actions.anchors.swap(saved_anchors);
     }
     
-    scoped_block_push::~scoped_block_push()
+    void scoped_output_push::cleanup()
     {
         actions.phrase.pop();
         actions.out.pop();
+        actions.anchors.swap(saved_anchors);
     }
 
-    void scoped_block_push::success_impl()
+    void set_no_eols_scoped::start()
     {
-        actions.values.builder.insert(
-            bbk_value(actions.out.str(), value::default_tag));
-    }
-
-    scoped_phrase_push::scoped_phrase_push(quickbook::actions& actions)
-        : actions(actions)
-    {
-        actions.out.push();
-        actions.phrase.push();
-    }
-    
-    scoped_phrase_push::~scoped_phrase_push()
-    {
-        actions.phrase.pop();
-        actions.out.pop();
-    }
-
-    void scoped_phrase_push::success_impl()
-    {
-        actions.values.builder.insert(
-            bbk_value(actions.phrase.str(), value::default_tag));
-    }
-
-    set_no_eols_scoped::set_no_eols_scoped(quickbook::actions& actions)
-        : actions(actions), saved_no_eols(actions.no_eols)
-    {
+        saved_no_eols = actions.no_eols;
         actions.no_eols = false;
     }
 
-    set_no_eols_scoped::~set_no_eols_scoped()
+    void set_no_eols_scoped::cleanup()
     {
         actions.no_eols = saved_no_eols;
     }

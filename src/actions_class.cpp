@@ -23,10 +23,6 @@ namespace quickbook
     actions::actions(fs::path const& filein_, fs::path const& outdir_, string_stream& out_)
         : grammar_()
 
-        , values()
-        , phrase_value(*this)
-        , docinfo_value(*this)
-
     // header info
         , doc_type()
         , doc_title_qbk()
@@ -39,6 +35,15 @@ namespace quickbook
     // auxilliary streams
         , phrase()
         , list_buffer()
+
+    // value actions
+        , values()
+        , phrase_value(*this, phrase)
+        , out_value(*this, out)
+        , docinfo_value(*this)
+        , scoped_cond_phrase(*this)
+        , scoped_output(*this)
+        , scoped_no_eols(*this)
 
     // state
         , filename(fs::absolute(filein_))
@@ -59,7 +64,6 @@ namespace quickbook
         , templates()
         , error_count(0)
         , anchors()
-        , saved_anchors()
         , no_eols(true)
         , suppress(false)
         , warned_about_breaks(false)
@@ -67,20 +71,16 @@ namespace quickbook
     // actions
         , element(*this)
         , error(*this)
-        , scoped_block(*this)
-        , scoped_phrase(*this)
         , code(out, phrase, *this)
         , code_block(phrase, phrase, *this)
         , inline_code(phrase, *this)
         , inside_paragraph(out, phrase, paragraph_pre, paragraph_post, *this)
         , hr(out, hr_, *this)
-        , set_no_eols(*this)
         , space_char(phrase)
         , plain_char(phrase, *this)
         , raw_char(phrase, *this)
         , escape_unicode(phrase, *this)
         , image(phrase, *this)
-        , scoped_cond_phrase(*this)
 
         , list(out, list_buffer, list_indent, list_marks, *this)
         , list_format(list_buffer, list_indent, list_marks, error_count, *this)
@@ -138,8 +138,6 @@ namespace quickbook
         , escape_pre(phrase, escape_pre_, *this)
         , escape_post(phrase, escape_post_, *this)
         
-        , inner_phrase_pre(*this)
-        , inner_phrase_post(*this)
         , output_pre(*this)
     {
         // turn off __FILENAME__ macro on debug mode = true

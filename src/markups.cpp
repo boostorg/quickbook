@@ -90,27 +90,27 @@ namespace quickbook
     const char* replaceable_pre_    = "<replaceable>";
     const char* replaceable_post_   = "</replaceable>";
 
-	namespace detail
-	{
-		std::map<value::tag_type, markup> markups;
+    namespace detail
+    {
+        std::map<value::tag_type, markup> markups;
 
-		void initialise_markups()
-		{
-			markup init_markups[] = {
-				{ block_tags::blurb, blurb_pre, blurb_post },
-				{ block_tags::blockquote, blockquote_pre, blockquote_post },
-				{ block_tags::preformatted, preformatted_pre, preformatted_post },
-				{ block_tags::warning, warning_pre, warning_post },
-				{ block_tags::caution, caution_pre, caution_post },
-				{ block_tags::important, important_pre, important_post },
-				{ block_tags::note, note_pre, note_post },
-				{ block_tags::tip, tip_pre, tip_post }
-			};
+        void initialise_markups()
+        {
+            markup init_markups[] = {
+                { block_tags::blurb, blurb_pre, blurb_post },
+                { block_tags::blockquote, blockquote_pre, blockquote_post },
+                { block_tags::preformatted, preformatted_pre, preformatted_post },
+                { block_tags::warning, warning_pre, warning_post },
+                { block_tags::caution, caution_pre, caution_post },
+                { block_tags::important, important_pre, important_post },
+                { block_tags::note, note_pre, note_post },
+                { block_tags::tip, tip_pre, tip_post }
+            };
 
-			BOOST_FOREACH(markup m, init_markups)
-			{
-				markups[m.tag] = m;
-			}
-		}
-	}
+            BOOST_FOREACH(markup m, init_markups)
+            {
+                markups[m.tag] = m;
+            }
+        }
+    }
 }

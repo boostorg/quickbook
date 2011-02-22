@@ -17,6 +17,7 @@
 #include <boost/spirit/include/classic_if.hpp>
 #include <boost/spirit/include/classic_clear_actor.hpp>
 #include <boost/spirit/include/phoenix1_primitives.hpp>
+#include <boost/spirit/include/phoenix1_casts.hpp>
 
 namespace quickbook
 {
@@ -122,7 +123,8 @@ namespace quickbook
         local.preformatted =
                 space
             >>  !eol
-            >>  actions.set_no_eols[phrase]     [actions.phrase_value]
+            >>  actions.scoped_no_eols()
+                [phrase]                        [actions.phrase_value]
             ;
 
         elements.add
@@ -204,7 +206,7 @@ namespace quickbook
         local.varlistterm =
             space
             >>  cl::ch_p('[')
-            >>  actions.values.save
+            >>  actions.values.save()
                 [   phrase
                 >>  cl::ch_p(']')
                 >>  space
@@ -242,7 +244,9 @@ namespace quickbook
             >>
             (
                 (
-                    actions.values.list(table_tags::row)[*local.table_cell]
+                    actions.values.list(table_tags::row)
+                    [   *local.table_cell
+                    ]
                     >>  cl::ch_p(']')
                     >>  space
                 )
@@ -293,11 +297,10 @@ namespace quickbook
             ;
 
         local.inner_phrase =
-            actions.values.save
-            [   cl::eps_p                       [actions.inner_phrase_pre]
-            >>  phrase
-            >>  cl::eps_p                       [actions.inner_phrase_post]
-            ]                                   [actions.docinfo_value(ph::arg1, ph::arg2)]
+            actions.scoped_output()
+            [
+                phrase                          [actions.docinfo_value(ph::arg1, ph::arg2)]
+            ]
             ;
     }
 }

@@ -24,6 +24,7 @@
 #include "template_stack.hpp"
 #include "utils.hpp"
 #include "values.hpp"
+#include "scoped.hpp"
 
 #ifdef BOOST_MSVC
 // disable copy/assignment could not be generated, unreferenced formal params
@@ -73,14 +74,6 @@ namespace quickbook
         iterator first, iterator last,
         actions& escape_actions,
         std::string const& source_mode);        
-
-    struct scoped_action_base
-    {
-        typedef quickbook::actions data_type;
-        
-        template <typename T> void success(T const&) {}
-        void failure() {}
-    };
 
     struct error_message_action
     {
@@ -227,8 +220,11 @@ namespace quickbook
 
     struct cond_phrase_push : scoped_action_base
     {
-        cond_phrase_push(quickbook::actions&);
-        ~cond_phrase_push();
+        cond_phrase_push(quickbook::actions& x)
+            : actions(x) {}
+
+        void start();
+        void cleanup();
 
         quickbook::actions& actions;
         bool saved_suppress;
@@ -636,8 +632,8 @@ namespace quickbook
 
     struct phrase_to_docinfo_action_impl
     {
-    	template <typename Arg1, typename Arg2, typename Arg3 = void>
-    	struct result { typedef void type; };
+        template <typename Arg1, typename Arg2, typename Arg3 = void>
+        struct result { typedef void type; };
     
         phrase_to_docinfo_action_impl(quickbook::actions& actions)
             : actions(actions) {}
@@ -650,34 +646,15 @@ namespace quickbook
     
     typedef phoenix::function<phrase_to_docinfo_action_impl> phrase_to_docinfo_action;
 
-    struct phrase_to_value_action
+    struct collector_to_value_action
     {
-        phrase_to_value_action(quickbook::actions& actions)
-            : actions(actions) {}
+        collector_to_value_action(quickbook::actions& actions, collector& output)
+            : actions(actions), output(output) {}
 
         void operator()(iterator first, iterator last) const;
 
         quickbook::actions& actions;
-    };
-
-    struct inner_phrase_action_pre
-    {
-        inner_phrase_action_pre(quickbook::actions& actions)
-            : actions(actions) {}
-
-        void operator()(iterator, iterator) const;
-        
-        quickbook::actions& actions;
-    };
-
-    struct inner_phrase_action_post
-    {
-        inner_phrase_action_post(quickbook::actions& actions)
-            : actions(actions) {}
-
-        void operator()(iterator, iterator) const;
-        
-        quickbook::actions& actions;
+        collector& output;
     };
 
     struct pre_output_action
@@ -691,30 +668,25 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct scoped_block_push : scoped_action_base
+    struct scoped_output_push : scoped_action_base
     {
-        scoped_block_push(quickbook::actions&);
-        ~scoped_block_push();
-        template <typename T> void success(T const&) { this->success_impl(); }
-        void success_impl();
+        scoped_output_push(quickbook::actions& actions)
+            : actions(actions) {}
+
+        void start();
+        void cleanup();
 
         quickbook::actions& actions;
-    };
-
-    struct scoped_phrase_push : scoped_action_base
-    {
-        scoped_phrase_push(quickbook::actions&);
-        ~scoped_phrase_push();
-        template <typename T> void success(T const&) { this->success_impl(); }
-        void success_impl();
-
-        quickbook::actions& actions;
+        std::vector<std::string> saved_anchors;
     };
 
     struct set_no_eols_scoped : scoped_action_base
     {
-        set_no_eols_scoped(quickbook::actions&);
-        ~set_no_eols_scoped();
+        set_no_eols_scoped(quickbook::actions& actions)
+            : actions(actions) {}
+
+        void start();
+        void cleanup();
 
         quickbook::actions& actions;
         bool saved_no_eols;

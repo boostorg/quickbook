@@ -35,8 +35,8 @@ namespace quickbook
     // Declared here to avoid including other headers
     namespace detail
     {
-	    void initialise_markups();
-	}
+        void initialise_markups();
+    }
 }
 
 #endif
