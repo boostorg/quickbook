@@ -65,6 +65,7 @@ namespace quickbook
     void anchor_action(quickbook::actions&, value);
     void link_action(quickbook::actions&, value);
     void phrase_action_(quickbook::actions&, value);
+    void source_mode_action(quickbook::actions&, value);
 
     void element_action::operator()(iterator first, iterator) const
     {
@@ -134,6 +135,10 @@ namespace quickbook
         case phrase_tags::replaceable:
         case phrase_tags::footnote:
             return phrase_action_(actions, v);
+        case source_mode_tags::cpp:
+        case source_mode_tags::python:
+        case source_mode_tags::teletype:
+            return source_mode_action(actions, v);
         default:
             break;
         }
@@ -516,6 +521,11 @@ namespace quickbook
         escape_actions.output_pre(escape_actions.phrase);
         out << escape_actions.phrase.str();
         escape_actions.phrase.pop(); // restore the stream
+    }
+
+    void source_mode_action(quickbook::actions& actions, value source_mode)
+    {
+        actions.source_mode = source_mode_tags::name(source_mode.get_tag());
     }
 
     void code_action::operator()(iterator first, iterator last) const

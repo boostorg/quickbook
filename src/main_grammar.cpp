@@ -374,17 +374,13 @@ namespace quickbook
             ;
 
         inside_paragraph =
-            actions.scoped_output()
-            [   actions.values.save()
-                [
-                (   *( common
-                    |   (cl::anychar_p - phrase_end)
+            actions.values.save()
+            [   *(  local.paragraph_separator   [actions.paragraph]
+                |   common
+                |   (cl::anychar_p - phrase_end)
                                                 [actions.plain_char]
-                    |   local.paragraph_separator
-                                                [actions.paragraph]
-                )   )                           [actions.paragraph]
-                ]                               [actions.out_value]
-            ]
+                )
+            ]                                   [actions.paragraph]
             ;
 
         local.phrase_element
@@ -419,11 +415,10 @@ namespace quickbook
                 )
             ;
 
-
         local.element
             =   cl::eps_p(cl::punct_p)
-            >>  elements                    [local.assign_element]
-            |   elements                    [local.assign_element]
+            >>  elements                        [local.assign_element]
+            |   elements                        [local.assign_element]
             >>  (cl::eps_p - (cl::alnum_p | '_'))
             ;
 
@@ -448,7 +443,7 @@ namespace quickbook
 
         simple_phrase = actions.values.save()[
            *(   common
-            |   (cl::anychar_p - ']')       [actions.plain_char]
+            |   (cl::anychar_p - ']')           [actions.plain_char]
             )
             ]
             ;
@@ -461,15 +456,15 @@ namespace quickbook
             actions.values.list(block_tags::macro_definition)
             [   *cl::space_p
             >>  local.command_line_macro_identifier
-                                            [actions.values.entry(ph::arg1, ph::arg2)]
+                                                [actions.values.entry(ph::arg1, ph::arg2)]
             >>  *cl::space_p
             >>  (   '='
                 >>  *cl::space_p
                 >>  local.command_line_phrase
                 >>  *cl::space_p
                 |   cl::eps_p
-                )                           [actions.phrase_value]
-            ]                               [actions.element]
+                )                               [actions.phrase_value]
+            ]                                   [actions.element]
             ;
 
         local.command_line_macro_identifier =
@@ -479,7 +474,7 @@ namespace quickbook
 
         local.command_line_phrase =
            *(   common
-            |   (cl::anychar_p - ']')       [actions.plain_char]
+            |   (cl::anychar_p - ']')           [actions.plain_char]
             )
             ;
 

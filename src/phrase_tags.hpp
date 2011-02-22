@@ -21,6 +21,12 @@ namespace quickbook
         (bold)(italic)(underline)(teletype)(strikethrough)(quote)(replaceable)
         (footnote)
     )
+    
+    QUICKBOOK_VALUE_NAMED_TAGS(source_mode_tags, 0x550,
+        ((cpp)("c++"))
+        ((python)("python"))
+        ((teletype)("teletype"))
+    )
 }
 
 #endif

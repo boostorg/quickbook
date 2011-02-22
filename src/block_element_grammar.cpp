@@ -27,8 +27,7 @@ namespace quickbook
     struct block_element_grammar_local
     {
         cl::rule<scanner>
-                        heading, blockquote,
-                        inner_phrase, def_macro,
+                        heading, inner_block, inner_phrase, def_macro,
                         table, table_row, variablelist,
                         varlistentry, varlistterm, varlistitem, table_cell,
                         preformatted, begin_section, end_section,
@@ -98,22 +97,14 @@ namespace quickbook
             ("h6", element_info(element_info::block, &local.heading, block_tags::heading6))
             ;
 
-        elements.add("blurb", element_info(element_info::block, &inside_paragraph, block_tags::blurb));
-
         elements.add
-            (":", element_info(element_info::block, &local.blockquote, block_tags::blockquote));
-            ;
-
-        local.blockquote =
-            blank >> inside_paragraph
-            ;
-
-        elements.add
-            ("warning", element_info(element_info::block, &inside_paragraph, block_tags::warning))
-            ("caution", element_info(element_info::block, &inside_paragraph, block_tags::caution))
-            ("important", element_info(element_info::block, &inside_paragraph, block_tags::important))
-            ("note", element_info(element_info::block, &inside_paragraph, block_tags::note))
-            ("tip", element_info(element_info::block, &inside_paragraph, block_tags::tip))
+            ("blurb", element_info(element_info::block, &local.inner_block, block_tags::blurb))
+            (":", element_info(element_info::block, &local.inner_block, block_tags::blockquote))
+            ("warning", element_info(element_info::block, &local.inner_block, block_tags::warning))
+            ("caution", element_info(element_info::block, &local.inner_block, block_tags::caution))
+            ("important", element_info(element_info::block, &local.inner_block, block_tags::important))
+            ("note", element_info(element_info::block, &local.inner_block, block_tags::note))
+            ("tip", element_info(element_info::block, &local.inner_block, block_tags::tip))
             ;
 
         elements.add
@@ -124,7 +115,8 @@ namespace quickbook
                 space
             >>  !eol
             >>  actions.scoped_no_eols()
-                [phrase]                        [actions.phrase_value]
+                [   local.inner_phrase
+                ]
             ;
 
         elements.add
@@ -134,7 +126,8 @@ namespace quickbook
         local.def_macro =
                space
             >> macro_identifier                 [actions.values.entry(ph::arg1, ph::arg2)]
-            >> blank >> phrase                  [actions.phrase_value]
+            >> blank
+            >> local.inner_phrase
             ;
 
         local.identifier =
@@ -205,18 +198,17 @@ namespace quickbook
         local.varlistterm =
             space
             >>  cl::ch_p('[')
-            >>  actions.values.save()
-                [   phrase
-                >>  cl::ch_p(']')
+            >>  local.inner_phrase
+            >>  (   cl::ch_p(']')
                 >>  space
                 |   cl::eps_p                   [actions.error]
-                ]                               [actions.phrase_value]                
+                )
             ;
 
         local.varlistitem =
             space
             >>  cl::ch_p('[')
-            >>  (   inside_paragraph
+            >>  (   local.inner_block
                 >>  cl::ch_p(']')
                 >>  space
                 |   cl::eps_p                   [actions.error]
@@ -256,7 +248,7 @@ namespace quickbook
                 space
             >>  cl::ch_p('[')
             >>  (   cl::eps_p
-                >>  inside_paragraph
+                >>  local.inner_block
                 >>  cl::ch_p(']')
                 >>  space
                 | cl::eps_p                     [actions.error]
@@ -289,6 +281,13 @@ namespace quickbook
                 >> space
             )
             >> (*(cl::anychar_p - phrase_end))  [actions.values.entry(ph::arg1, ph::arg2)]
+            ;
+
+        local.inner_block =
+            actions.scoped_output()
+            [
+                inside_paragraph                [actions.out_value]
+            ]
             ;
 
         local.inner_phrase =
