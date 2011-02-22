@@ -103,6 +103,8 @@ namespace quickbook
     ///////////////////////////////////////////////////////////////////////////
     // actions
     ///////////////////////////////////////////////////////////////////////////
+
+        element_action          element;
         error_action            error;
 
         scoped_parser<scoped_block_push>
@@ -114,7 +116,6 @@ namespace quickbook
         code_action             code_block;
         inline_code_action      inline_code;
         implicit_paragraph_action inside_paragraph;
-        header_action           heading;
         markup_action           hr;
         tagged_action           blurb, blockquote;
         scoped_parser<set_no_eols_scoped>

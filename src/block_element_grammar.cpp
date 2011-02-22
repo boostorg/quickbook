@@ -99,7 +99,7 @@ namespace quickbook
                 >>  local.element_id_1_6
                 >>  space
                 >>  local.inner_phrase
-                ]                               [actions.heading]
+                ]
             ;
 
         // This looks verbose now, but it'll eventually be replaced with a

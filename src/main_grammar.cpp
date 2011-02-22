@@ -174,7 +174,7 @@ namespace quickbook
                                                 [actions.inside_paragraph]
                                                 [actions.values.reset]
             >>  (   local.element_rule
-                >>  (   (space >> ']')
+                >>  (   (space >> ']')          [actions.element]
                     |   cl::eps_p               [actions.error]
                     )
                 |   cl::eps_p                   [actions.error]
@@ -384,6 +384,7 @@ namespace quickbook
                 >>  cl::eps_p(local.check_element(element_info::in_phrase))
                                                 [actions.values.reset]
                 >>  local.element_rule
+                >>  cl::eps_p(space >> ']')     [actions.element]
                 |   local.template_
                 |   cl::str_p("br")             [actions.break_]
                 )
@@ -397,7 +398,7 @@ namespace quickbook
                                                 [actions.inside_paragraph]
                                                 [actions.values.reset]
             >>  (   local.element_rule
-                >>  (   (space >> ']')
+                >>  (   (space >> ']')          [actions.element]
                     |   cl::eps_p               [actions.error]
                     )
                 |   cl::eps_p                   [actions.error]

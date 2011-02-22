@@ -112,6 +112,16 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
+    struct element_action
+    {
+        element_action(quickbook::actions& actions)
+            : actions(actions) {}
+
+        void operator()(iterator, iterator) const;
+
+        quickbook::actions& actions;
+    };
+
     struct tagged_action
     {
         tagged_action(
@@ -185,37 +195,6 @@ namespace quickbook
         collector& phrase;
         std::string pre;
         std::string post;
-        quickbook::actions& actions;
-    };
-
-    struct header_action
-    {
-        //  Handles h
-
-        header_action(
-            collector& out,
-            collector& phrase,
-            std::string const& library_id,
-            std::string const& section_id,
-            std::string const& qualified_section_id,
-            int const& section_level,
-            quickbook::actions& actions)
-        : out(out)
-        , phrase(phrase)
-        , library_id(library_id)
-        , section_id(section_id)
-        , qualified_section_id(qualified_section_id)
-        , section_level(section_level)
-        , actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        collector& phrase;
-        std::string const& library_id;
-        std::string const& section_id;
-        std::string const& qualified_section_id;
-        int const& section_level;
         quickbook::actions& actions;
     };
 
@@ -832,4 +811,3 @@ namespace quickbook
 #endif
 
 #endif // BOOST_SPIRIT_QUICKBOOK_ACTIONS_HPP
-

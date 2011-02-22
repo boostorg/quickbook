@@ -65,6 +65,7 @@ namespace quickbook
         , warned_about_breaks(false)
 
     // actions
+        , element(*this)
         , error(*this)
         , scoped_block(*this)
         , scoped_phrase(*this)
@@ -72,7 +73,6 @@ namespace quickbook
         , code_block(phrase, phrase, *this)
         , inline_code(phrase, *this)
         , inside_paragraph(out, phrase, paragraph_pre, paragraph_post, *this)
-        , heading(out, phrase, doc_id, section_id, qualified_section_id, section_level, *this)
         , hr(out, hr_, *this)
         , blurb(out, blurb_pre, blurb_post, *this)
         , blockquote(out, blockquote_pre, blockquote_post, *this)

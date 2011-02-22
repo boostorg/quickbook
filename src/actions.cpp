@@ -49,6 +49,30 @@ namespace quickbook
         }
     }
 
+    void header_action(quickbook::actions&, value);
+
+    void element_action::operator()(iterator, iterator) const
+    {
+        value_consumer values = actions.values.get();
+        if(!values.is()) return;
+        value v = values.consume();
+        if(values.is()) return;
+        
+        switch(v.get_tag())
+        {
+        case block_tags::generic_heading:
+        case block_tags::heading1:
+        case block_tags::heading2:
+        case block_tags::heading3:
+        case block_tags::heading4:
+        case block_tags::heading5:
+        case block_tags::heading6:
+            return header_action(actions, v);
+        default:
+            break;
+        }
+    }
+
     // Handles line-breaks (DEPRECATED!!!)
     void break_action::operator()(iterator first, iterator) const
     {
@@ -156,15 +180,11 @@ namespace quickbook
         }
     }
 
-    void header_action::operator()(iterator first, iterator last) const
+    void header_action(quickbook::actions& actions, value heading_list)
     {
         if(actions.suppress) return;
 
-        value_consumer values = actions.values.get();
-        value heading_list = values.consume();
-        assert(!values.is());
-
-        values = heading_list;
+        value_consumer values = heading_list;
 
         bool generic = heading_list.get_tag() == block_tags::generic_heading;
         value element_id = values.optional_consume(general_tags::element_id);
@@ -175,7 +195,8 @@ namespace quickbook
 
         if (generic)
         {
-            level = section_level + 2;      // section_level is zero-based. We need to use a
+            level = actions.section_level + 2;
+                                            // section_level is zero-based. We need to use a
                                             // one-based heading which is one greater
                                             // than the current. Thus: section_level + 2.
             if (level > 6 )                 // The max is h6, clip it if it goes
@@ -191,7 +212,7 @@ namespace quickbook
 
         if (!generic && qbk_version_n < 103) // version 1.2 and below
         {
-            anchor = section_id + '.' +
+            anchor = actions.section_id + '.' +
                 detail::make_identifier(content.get_boostbook());
         }
         else
@@ -206,15 +227,16 @@ namespace quickbook
                     );
 
             linkend = anchor =
-                fully_qualified_id(library_id, qualified_section_id, id);
+                fully_qualified_id(actions.doc_id, actions.qualified_section_id, id);
         }
 
-        actions.output_pre(out);
+        actions.output_pre(actions.out);
         actions.anchors.swap(actions.saved_anchors);
         actions.anchors.push_back(anchor);
-        actions.output_pre(out);
+        actions.output_pre(actions.out);
         
-        write_bridgehead(out, level, content.get_boostbook(), anchor + "-heading", linkend);
+        write_bridgehead(actions.out, level,
+            content.get_boostbook(), anchor + "-heading", linkend);
     }
 
     void simple_phrase_action::operator()(iterator first, iterator last) const
