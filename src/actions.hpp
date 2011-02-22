@@ -520,42 +520,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct macro_identifier_action
-    {
-        // Handles macro identifiers
-
-        macro_identifier_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        quickbook::actions& actions;
-    };
-
-    struct macro_definition_action
-    {
-        // Handles macro definitions
-
-        macro_definition_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        quickbook::actions& actions;
-    };
-
-    struct template_body_action
-    {
-        // Handles template definitions
-
-        template_body_action(quickbook::actions& actions)
-        : actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        quickbook::actions& actions;
-    };
-    
     struct do_template_action
     {
         // Handles template substitutions

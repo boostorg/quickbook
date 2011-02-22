@@ -12,6 +12,7 @@
 #include "actions_class.hpp"
 #include "utils.hpp"
 #include "template_tags.hpp"
+#include "block_tags.hpp"
 #include "parsers.hpp"
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_confix.hpp>
@@ -453,17 +454,18 @@ namespace quickbook
         //
 
         command_line =
-                *cl::space_p
+            actions.values.list(block_tags::macro_definition)
+            [   *cl::space_p
             >>  local.command_line_macro_identifier
-                                            [actions.macro_identifier]
+                                            [actions.values.entry(ph::arg1, ph::arg2)]
             >>  *cl::space_p
             >>  (   '='
                 >>  *cl::space_p
                 >>  local.command_line_phrase
-                                            [actions.macro_definition]
                 >>  *cl::space_p
-                )
-            |   cl::eps_p                   [actions.macro_definition]
+                |   cl::eps_p
+                )                           [actions.phrase_value]
+            ]                               [actions.element]
             ;
 
         local.command_line_macro_identifier =

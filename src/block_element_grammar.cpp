@@ -26,9 +26,7 @@ namespace quickbook
     struct block_element_grammar_local
     {
         cl::rule<scanner>
-                        heading,
-                        blurb, blockquote,
-                        warning, caution, important, note, tip,
+                        heading, blockquote,
                         inner_phrase, def_macro,
                         table, table_row, variablelist,
                         varlistentry, varlistterm, varlistitem, table_cell,
@@ -99,66 +97,42 @@ namespace quickbook
             ("h6", element_info(element_info::block, &local.heading, block_tags::heading6))
             ;
 
-        elements.add("blurb", element_info(element_info::block, &local.blurb));
-
-        local.blurb =
-            inside_paragraph                    [actions.blurb]
-            ;
+        elements.add("blurb", element_info(element_info::block, &inside_paragraph, block_tags::blurb));
 
         elements.add
-            (":", element_info(element_info::block, &local.blockquote))
+            (":", element_info(element_info::block, &local.blockquote, block_tags::blockquote));
             ;
 
         local.blockquote =
-            blank >> inside_paragraph           [actions.blockquote]
+            blank >> inside_paragraph
             ;
 
         elements.add
-            ("warning", element_info(element_info::block, &local.warning))
-            ("caution", element_info(element_info::block, &local.caution))
-            ("important", element_info(element_info::block, &local.important))
-            ("note", element_info(element_info::block, &local.note))
-            ("tip", element_info(element_info::block, &local.tip))
-            ;
-
-        local.warning =
-            inside_paragraph                    [actions.warning]
-            ;
-
-        local.caution =
-            inside_paragraph                    [actions.caution]
-            ;
-
-        local.important =
-            inside_paragraph                    [actions.important]
-            ;
-
-        local.note =
-            inside_paragraph                    [actions.note]
-            ;
-
-        local.tip =
-            inside_paragraph                    [actions.tip]
+            ("warning", element_info(element_info::block, &inside_paragraph, block_tags::warning))
+            ("caution", element_info(element_info::block, &inside_paragraph, block_tags::caution))
+            ("important", element_info(element_info::block, &inside_paragraph, block_tags::important))
+            ("note", element_info(element_info::block, &inside_paragraph, block_tags::note))
+            ("tip", element_info(element_info::block, &inside_paragraph, block_tags::tip))
             ;
 
         elements.add
-            ("pre", element_info(element_info::block, &local.preformatted))
+            ("pre", element_info(element_info::block, &local.preformatted, block_tags::preformatted))
             ;
 
         local.preformatted =
                 space
             >>  !eol
-            >>  actions.set_no_eols[phrase]     [actions.preformatted]
+            >>  actions.set_no_eols[phrase]     [actions.phrase_value]
             ;
 
         elements.add
-            ("def", element_info(element_info::block, &local.def_macro))
+            ("def", element_info(element_info::block, &local.def_macro, block_tags::macro_definition))
             ;
 
         local.def_macro =
                space
-            >> macro_identifier                 [actions.macro_identifier]
-            >> blank >> phrase                  [actions.macro_definition]
+            >> macro_identifier                 [actions.values.entry(ph::arg1, ph::arg2)]
+            >> blank >> phrase                  [actions.phrase_value]
             ;
 
         local.identifier =
@@ -170,13 +144,12 @@ namespace quickbook
             ;
 
         elements.add
-            ("template", element_info(element_info::block, &local.template_))
+            ("template", element_info(element_info::block, &local.template_, block_tags::template_definition))
             ;
 
         local.template_ =
                space
-            >> local.template_id                [actions.values.reset()]
-                                                [actions.values.entry(ph::arg1, ph::arg2)]
+            >> local.template_id                [actions.values.entry(ph::arg1, ph::arg2)]
             >> actions.values.list()[
             !(
                 space >> '['
@@ -190,7 +163,7 @@ namespace quickbook
             >>  (   cl::eps_p(*cl::blank_p >> cl::eol_p)
                 >>  local.template_body         [actions.values.entry(ph::arg1, ph::arg2, template_tags::block)]
                 |   local.template_body         [actions.values.entry(ph::arg1, ph::arg2, template_tags::phrase)]
-                )                               [actions.template_body]
+                )
             ;
 
         local.template_body =

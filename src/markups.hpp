@@ -10,6 +10,9 @@
 #if !defined(BOOST_SPIRIT_MARKUPS_HPP)
 #define BOOST_SPIRIT_MARKUPS_HPP
 
+#include <map>
+#include "values.hpp"
+
 namespace quickbook
 {
     extern const char* comment_pre;
@@ -98,6 +101,17 @@ namespace quickbook
     extern const char* escape_post_;
     extern const char* replaceable_pre_;
     extern const char* replaceable_post_;
+
+    namespace detail
+    {    
+        struct markup {
+            value::tag_type tag;
+            char const* pre;
+            char const* post;
+        };
+        
+        extern std::map<value::tag_type, markup> markups;
+    }
 }
 
 #endif // BOOST_SPIRIT_MARKUPS_HPP

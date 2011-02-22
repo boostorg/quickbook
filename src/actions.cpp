@@ -52,6 +52,9 @@ namespace quickbook
     void header_action(quickbook::actions&, value);
     void begin_section_action(quickbook::actions&, value);
     void end_section_action(quickbook::actions&, value, file_position);
+    void block_action(quickbook::actions&, value);
+    void macro_definition_action(quickbook::actions&, value);
+    void template_body_action(quickbook::actions&, value);
 
     void element_action::operator()(iterator first, iterator) const
     {
@@ -74,6 +77,19 @@ namespace quickbook
             return begin_section_action(actions, v);
         case block_tags::end_section:
             return end_section_action(actions, v, first.get_position());
+        case block_tags::blurb:
+        case block_tags::preformatted:
+        case block_tags::blockquote:
+        case block_tags::warning:
+        case block_tags::caution:
+        case block_tags::important:
+        case block_tags::note:
+        case block_tags::tip:
+            return block_action(actions,v);
+        case block_tags::macro_definition:
+            return macro_definition_action(actions,v);
+        case block_tags::template_definition:
+            return template_body_action(actions,v);
         default:
             break;
         }
@@ -134,6 +150,16 @@ namespace quickbook
 
         value_consumer values = actions.values.get();
         out << pre << values.consume().get_boostbook() << post;
+    }
+
+    void block_action(quickbook::actions& actions, value block)
+    {
+        if(!actions.output_pre(actions.out)) return;
+        detail::markup markup = detail::markups[block.get_tag()];
+
+        value_consumer values = block;
+        actions.out << markup.pre << values.consume().get_boostbook() << markup.post;
+        assert(!values.is());
     }
 
     void phrase_action::operator()() const
@@ -709,29 +735,27 @@ namespace quickbook
         phrase << "</inlinemediaobject>";
     }
 
-    void macro_identifier_action::operator()(iterator first, iterator last) const
+    void macro_definition_action(quickbook::actions& actions, quickbook::value macro_definition)
     {
         if(actions.suppress) return;
-        actions.macro_id.assign(first, last);
-        actions.phrase.push(); // save the phrase
-    }
 
-    void macro_definition_action::operator()(iterator first, iterator last) const
-    {
-        if(actions.suppress) return;
+        value_consumer values = macro_definition;
+        std::string macro_id = values.consume().get_quickbook();
+        std::string phrase = values.consume().get_boostbook();
+        assert(!values.is());
+
         actions.copy_macros_for_write();
         actions.macro.add(
-            actions.macro_id.begin()
-          , actions.macro_id.end()
-          , actions.phrase.str());
-        actions.phrase.pop(); // restore the phrase
+            macro_id.begin()
+          , macro_id.end()
+          , phrase);
     }
 
-    void template_body_action::operator()(iterator, iterator) const
+    void template_body_action(quickbook::actions& actions, quickbook::value template_definition)
     {
         if(actions.suppress) return;
 
-        value_consumer values = actions.values.get();
+        value_consumer values = template_definition;
         std::string identifier = values.consume().get_quickbook();
 
         std::vector<std::string> template_values;

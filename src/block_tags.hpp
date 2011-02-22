@@ -17,6 +17,9 @@ namespace quickbook
         (begin_section)(end_section)
         (generic_heading)
         (heading1)(heading2)(heading3)(heading4)(heading5)(heading6)
+        (blurb)(blockquote)(preformatted)
+        (warning)(caution)(important)(note)(tip)
+        (macro_definition)(template_definition)
     )
 
     QUICKBOOK_VALUE_TAGS(table_tags, 0x250,

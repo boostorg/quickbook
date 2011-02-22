@@ -106,7 +106,7 @@ namespace quickbook
 
         element_action          element;
         error_action            error;
-
+        
         scoped_parser<scoped_block_push>
                                 scoped_block;
         scoped_parser<scoped_phrase_push>
@@ -117,11 +117,8 @@ namespace quickbook
         inline_code_action      inline_code;
         implicit_paragraph_action inside_paragraph;
         markup_action           hr;
-        tagged_action           blurb, blockquote;
         scoped_parser<set_no_eols_scoped>
                                 set_no_eols;
-        phrase_action           preformatted;
-        tagged_action           warning, caution, important, note, tip;
         space                   space_char;
         plain_char_action       plain_char;
         raw_char_action         raw_char;
@@ -169,10 +166,7 @@ namespace quickbook
         variablelist_action     variablelist;
 
         break_action            break_;
-        macro_identifier_action macro_identifier;
-        macro_definition_action macro_definition;
         do_macro_action         do_macro;
-        template_body_action    template_body;
         do_template_action      do_template;
         link_action             url_pre;
         markup_action           url_post;
