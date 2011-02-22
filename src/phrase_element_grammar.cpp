@@ -63,7 +63,7 @@ namespace quickbook
                         >>  +(cl::anychar_p - (cl::space_p | phrase_end | '['))
                         ))                      [actions.values.entry(ph::arg1, ph::arg2)]
                     >>  hard_space
-                    >>  *actions.values.scoped[
+                    >>  *actions.values.list()[
                             '['
                         >>  (*(cl::alnum_p | '_')) 
                                                 [actions.values.entry(ph::arg1, ph::arg2)]

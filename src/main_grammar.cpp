@@ -176,11 +176,12 @@ namespace quickbook
             >>  cl::eps_p(local.check_element(element_info::in_block))
                                                 [actions.inside_paragraph]
                                                 [actions.values.reset()]
-                                                [actions.values.tag(detail::var(local.element_tag))]
-            >>  (   local.element_rule
-                >>  (   (space >> ']')          [actions.element]
-                    |   cl::eps_p               [actions.error]
-                    )
+            >>  (   actions.values.list(detail::var(local.element_tag))
+                    [   local.element_rule
+                    >>  (   (space >> ']')
+                        |   cl::eps_p           [actions.error]
+                        )
+                    ]                           [actions.element]
                 |   cl::eps_p                   [actions.error]
                 )
             ;
@@ -387,9 +388,10 @@ namespace quickbook
             >>  (   local.element
                 >>  cl::eps_p(local.check_element(element_info::in_phrase))
                                                 [actions.values.reset()]
-                                                [actions.values.tag(detail::var(local.element_tag))]
-                >>  local.element_rule
-                >>  cl::eps_p(space >> ']')     [actions.element]
+                >>  actions.values.list(detail::var(local.element_tag))
+                    [   local.element_rule
+                    >>  cl::eps_p(space >> ']')
+                    ]                           [actions.element]
                 |   local.template_
                 |   cl::str_p("br")             [actions.break_]
                 )
@@ -402,12 +404,13 @@ namespace quickbook
             >>  cl::eps_p(local.check_element(element_info::in_conditional))
                                                 [actions.inside_paragraph]
                                                 [actions.values.reset()]
-                                                [actions.values.tag(detail::var(local.element_tag))]
-            >>  (   local.element_rule
-                >>  (   (space >> ']')          [actions.element]
+            >>  (   actions.values.list(detail::var(local.element_tag))
+                    [   local.element_rule
+                    >>  (   (space >> ']')          
+                        |   cl::eps_p           [actions.error]
+                        )
+                    ]                           [actions.element]
                     |   cl::eps_p               [actions.error]
-                    )
-                |   cl::eps_p                   [actions.error]
                 )
             ;
 

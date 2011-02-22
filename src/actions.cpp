@@ -1611,7 +1611,7 @@ namespace quickbook
 
     void phrase_to_docinfo_action_impl::operator()(iterator first, iterator last) const
     {
-        return (*this)(first, last, actions.values.builder.release_tag());
+        return (*this)(first, last, value::default_tag);
     }
     
     void phrase_to_value_action::operator()(iterator first, iterator last) const
@@ -1621,7 +1621,7 @@ namespace quickbook
         std::string value;
         actions.phrase.swap(value);
         actions.values.builder.insert(
-            bbk_value(value, actions.values.builder.release_tag()));
+            bbk_value(value, value::default_tag));
     }
     
     void inner_phrase_action_pre::operator()(iterator, iterator) const
@@ -1680,7 +1680,7 @@ namespace quickbook
     void scoped_block_push::success_impl()
     {
         actions.values.builder.insert(
-            bbk_value(actions.out.str(), actions.values.builder.release_tag()));
+            bbk_value(actions.out.str(), value::default_tag));
     }
 
     scoped_phrase_push::scoped_phrase_push(quickbook::actions& actions)
@@ -1699,7 +1699,7 @@ namespace quickbook
     void scoped_phrase_push::success_impl()
     {
         actions.values.builder.insert(
-            bbk_value(actions.phrase.str(), actions.values.builder.release_tag()));
+            bbk_value(actions.phrase.str(), value::default_tag));
     }
 
     set_no_eols_scoped::set_no_eols_scoped(quickbook::actions& actions)

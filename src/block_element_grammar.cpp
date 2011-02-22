@@ -72,25 +72,21 @@ namespace quickbook
             ;
 
         local.begin_section =
-            actions.values.scoped
-            [   space
+                space
             >>  local.element_id
             >>  space
             >>  local.inner_phrase
-            ]
             ;
 
         local.end_section =
-                cl::eps_p                       [actions.values.entry(ph::arg1, ph::arg2)]
+                cl::eps_p
             ;
 
         local.heading
-            =   actions.values.scoped
-                [   space
-                >>  local.element_id_1_6
-                >>  space
-                >>  local.inner_phrase
-                ]
+            =   space
+            >>  local.element_id_1_6
+            >>  space
+            >>  local.inner_phrase
             ;
 
         elements.add
@@ -181,7 +177,7 @@ namespace quickbook
                space
             >> local.template_id                [actions.values.reset()]
                                                 [actions.values.entry(ph::arg1, ph::arg2)]
-            >> actions.values.scoped[
+            >> actions.values.list()[
             !(
                 space >> '['
                 >> *(
@@ -218,7 +214,7 @@ namespace quickbook
         local.varlistentry =
             space
             >>  cl::ch_p('[')
-            >>  actions.values.scoped
+            >>  actions.values.list()
             [
                 (
                     local.varlistterm
@@ -273,7 +269,7 @@ namespace quickbook
             >>
             (
                 (
-                    actions.values.scoped(table_tags::row)[*local.table_cell]
+                    actions.values.list(table_tags::row)[*local.table_cell]
                     >>  cl::ch_p(']')
                     >>  space
                 )
@@ -284,7 +280,7 @@ namespace quickbook
         local.table_cell =
                 space
             >>  cl::ch_p('[')
-            >>  (   cl::eps_p                   [actions.values.tag(table_tags::cell)]
+            >>  (   cl::eps_p
                 >>  inside_paragraph
                 >>  cl::ch_p(']')
                 >>  space

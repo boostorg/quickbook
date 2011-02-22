@@ -37,7 +37,7 @@ namespace quickbook
         element_info(
                 type_enum t,
                 cl::rule<scanner>* r,
-                value::tag_type tag = value::no_tag)
+                value::tag_type tag = value::default_tag)
             : type(t), rule(r), tag(tag) {}
 
         type_enum type;

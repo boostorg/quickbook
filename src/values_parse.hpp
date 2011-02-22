@@ -12,6 +12,7 @@
 #include "values.hpp"
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/phoenix1_functions.hpp>
+#include <boost/spirit/include/phoenix1_primitives.hpp>
 
 namespace quickbook {
     namespace cl = boost::spirit::classic;
@@ -93,12 +94,12 @@ namespace quickbook {
         bool finished;
     };
 
-    template <typename ParserT>
+    template <typename TagActor, typename ParserT>
     struct value_scoped_list_parser
-        : public cl::unary< ParserT, cl::parser< value_scoped_list_parser<ParserT> > >
+        : public cl::unary< ParserT, cl::parser< value_scoped_list_parser<TagActor, ParserT> > >
     {
-        typedef value_scoped_list_parser<ParserT> self_t;
-        typedef cl::unary< ParserT, cl::parser< value_scoped_list_parser<ParserT> > > base_t;
+        typedef value_scoped_list_parser<TagActor, ParserT> self_t;
+        typedef cl::unary< ParserT, cl::parser<self_t> > base_t;
 
         template <typename ScannerT>
         struct result
@@ -106,7 +107,7 @@ namespace quickbook {
             typedef typename cl::parser_result<ParserT, ScannerT>::type type;
         };
 
-        value_scoped_list_parser(value_builder& a, value::tag_type k, ParserT const &p)
+        value_scoped_list_parser(value_builder& a, TagActor k, ParserT const &p)
             : base_t(p)
             , builder_(a)
             , tag_(k)
@@ -117,8 +118,7 @@ namespace quickbook {
         {
             typedef typename ScannerT::iterator_t iterator_t;
             iterator_t save = scan.first;
-
-            value_builder_list list(builder_, tag_);
+            value_builder_list list(builder_, tag_());
             typename cl::parser_result<ParserT, ScannerT>::type result
                 = this->subject().parse(scan);
 
@@ -132,32 +132,54 @@ namespace quickbook {
         }
         
         value_builder& builder_;
-        value::tag_type tag_;
+        TagActor tag_;
     };
-    
-    struct value_scoped_list_gen
-    {
-        explicit value_scoped_list_gen(value_builder& b, value::tag_type t = value::no_tag)
+
+	template <typename TagActor>
+	struct value_scoped_list_gen2
+	{
+        explicit value_scoped_list_gen2(value_builder& b, TagActor t)
             : b(b), tag_(t) {}
 
         template<typename ParserT>
-        value_scoped_list_parser<typename cl::as_parser<ParserT>::type>
+        value_scoped_list_parser<TagActor, typename cl::as_parser<ParserT>::type>
         operator[](ParserT const& p) const
         {
             typedef typename cl::as_parser<ParserT> as_parser_t;
             typedef typename as_parser_t::type parser_t;
             
-            return value_scoped_list_parser<parser_t>
+            return value_scoped_list_parser<TagActor, parser_t>
                 (b, tag_, as_parser_t::convert(p));
         }
         
-        value_scoped_list_gen operator()(value::tag_type const& tag) const
-        {
-            return value_scoped_list_gen(b, tag);
-        }
-        
         value_builder& b;
-        value::tag_type tag_;
+        TagActor tag_;		
+	};
+	
+    struct value_scoped_list_gen
+    {
+        template <typename Arg1> struct result { typedef void type; };
+    	typedef void result_type;
+    
+        explicit value_scoped_list_gen(value_builder& b)
+            : b(b) {}
+
+        template <typename T>
+        value_scoped_list_gen2<typename ph::as_actor<T>::type>
+        	operator()(T const& tag) const
+        {
+            return value_scoped_list_gen2<typename ph::as_actor<T>::type>(
+            		b, ph::as_actor<T>::convert(tag));
+        }
+
+        value_scoped_list_gen2<ph::as_actor<value::tag_type>::type>
+        	operator()(value::tag_type tag = value::default_tag) const
+        {
+            return value_scoped_list_gen2<ph::as_actor<value::tag_type>::type>(
+            		b, ph::as_actor<value::tag_type>::convert(tag));
+        }
+
+        value_builder& b;
     };
 
     struct value_entry
@@ -172,34 +194,17 @@ namespace quickbook {
 
         template <typename Iterator>
         void operator()(Iterator begin, Iterator end,
-                value::tag_type tag = value::no_tag) const
+                value::tag_type tag = value::default_tag) const
         {
-            b.insert(qbk_value(begin, end, b.release_tag(tag)));
+            b.insert(qbk_value(begin, end, tag));
         }
 
         template <typename Iterator>
         void operator()(Iterator begin, Iterator,
                 std::string const& v,
-                value::tag_type tag = value::no_tag) const
+                value::tag_type tag = value::default_tag) const
         {
-            b.insert(qbk_value(v, begin.get_position(), b.release_tag(tag)));
-        }
-
-        value_builder& b;
-    };
-
-    struct value_tag
-    {
-        template <typename Arg>
-        struct result {
-            typedef void type;
-        };
-
-        value_tag(value_builder& b)
-            : b(b) {}
-
-        void operator()(value::tag_type value) const {
-            b.set_tag(value);
+            b.insert(qbk_value(v, begin.get_position(), tag));
         }
 
         value_builder& b;
@@ -238,10 +243,9 @@ namespace quickbook {
         value_parser()
             : builder()
             , save(builder)
-            , scoped(builder)
+            , list(builder)
             , entry(builder)
             , reset(builder)
-            , tag(builder)
             , sort(builder)
             {}
     
@@ -249,10 +253,9 @@ namespace quickbook {
 
         value_builder builder;
         value_save_gen save;
-        value_scoped_list_gen scoped;
+        value_scoped_list_gen list;
         ph::function<value_entry> entry;
         ph::function<value_reset> reset;
-        ph::function<value_tag> tag;
         ph::function<value_sort> sort;
     };
 }

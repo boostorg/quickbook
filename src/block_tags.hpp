@@ -20,7 +20,7 @@ namespace quickbook
     )
 
     QUICKBOOK_VALUE_TAGS(table_tags, 0x250,
-        (title)(row)(cell)
+        (title)(row)
     )
 
     QUICKBOOK_VALUE_TAGS(general_tags, 0x300,
