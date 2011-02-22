@@ -26,7 +26,7 @@ namespace quickbook
     struct block_element_grammar_local
     {
         cl::rule<scanner>
-                        h, h1, h2, h3, h4, h5, h6, heading,
+                        heading,
                         blurb, blockquote,
                         warning, caution, important, note, tip,
                         inner_phrase, def_macro,
@@ -85,16 +85,6 @@ namespace quickbook
                                                 [actions.end_section]
             ;
 
-        elements.add
-            ("heading", element_info(element_info::block, &local.h))
-            ("h1", element_info(element_info::block, &local.h1))
-            ("h2", element_info(element_info::block, &local.h2))
-            ("h3", element_info(element_info::block, &local.h3))
-            ("h4", element_info(element_info::block, &local.h4))
-            ("h5", element_info(element_info::block, &local.h5))
-            ("h6", element_info(element_info::block, &local.h6))
-            ;
-
         local.heading
             =   actions.values.scoped
                 [   space
@@ -104,44 +94,16 @@ namespace quickbook
                 ]
             ;
 
-        // This looks verbose now, but it'll eventually be replaced with a
-        // more automatic version (see how doc_info works).
-
-        local.h
-            =   cl::eps_p                       [actions.values.tag(block_tags::generic_heading)]
-            >>  local.heading
+        elements.add
+            ("heading", element_info(element_info::block, &local.heading, block_tags::generic_heading))
+            ("h1", element_info(element_info::block, &local.heading, block_tags::heading1))
+            ("h2", element_info(element_info::block, &local.heading, block_tags::heading2))
+            ("h3", element_info(element_info::block, &local.heading, block_tags::heading3))
+            ("h4", element_info(element_info::block, &local.heading, block_tags::heading4))
+            ("h5", element_info(element_info::block, &local.heading, block_tags::heading5))
+            ("h6", element_info(element_info::block, &local.heading, block_tags::heading6))
             ;
 
-        local.h1
-            =   cl::eps_p                       [actions.values.tag(block_tags::heading1)]
-            >>  local.heading
-            ;
-
-        local.h2
-            =   cl::eps_p                       [actions.values.tag(block_tags::heading2)]
-            >>  local.heading
-            ;
-
-        local.h3
-            =   cl::eps_p                       [actions.values.tag(block_tags::heading3)]
-            >>  local.heading
-            ;
-
-        local.h4
-            =   cl::eps_p                       [actions.values.tag(block_tags::heading4)]
-            >>  local.heading
-            ;
-
-        local.h5
-            =   cl::eps_p                       [actions.values.tag(block_tags::heading5)]
-            >>  local.heading
-            ;
-
-        local.h6
-            =   cl::eps_p                       [actions.values.tag(block_tags::heading6)]
-            >>  local.heading
-            ;
-        
         elements.add("blurb", element_info(element_info::block, &local.blurb));
 
         local.blurb =

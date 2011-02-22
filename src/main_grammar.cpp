@@ -68,6 +68,30 @@ namespace quickbook
 
     struct main_grammar_local
     {
+        struct assign_element_type {
+            assign_element_type(main_grammar_local& l) : l(l) {}
+
+            void operator()(element_info& t) const {
+                l.element_type = t.type;
+                l.element_rule = *t.rule;
+                l.element_tag = t.tag;
+            }
+            
+            main_grammar_local& l;
+        };
+
+        struct check_element_type {
+            check_element_type(main_grammar_local const& l, element_info::context t)
+                : l(l), t(t) {}
+
+            bool operator()() const {
+                return l.element_type & t;
+            }
+
+            main_grammar_local const& l;
+            element_info::context t;
+        };
+
         cl::rule<scanner>
                         top_level, blocks, paragraph_separator,
                         block_element,
@@ -89,31 +113,9 @@ namespace quickbook
                         dummy_block
                         ;
 
-        struct assign_element_type {
-            assign_element_type(main_grammar_local& l) : l(l) {}
-
-            void operator()(element_info& t) const {
-                l.element_type = t.type;
-                l.element_rule = *t.rule;
-            }
-            
-            main_grammar_local& l;
-        };
-
-        struct check_element_type {
-            check_element_type(main_grammar_local const& l, element_info::context t)
-                : l(l), t(t) {}
-
-            bool operator()() const {
-                return l.element_type & t;
-            }
-
-            main_grammar_local const& l;
-            element_info::context t;
-        };
-
         element_info::type_enum element_type;
         cl::rule<scanner> element_rule;
+        value::tag_type element_tag;
         assign_element_type assign_element;
 
         main_grammar_local()
@@ -174,6 +176,7 @@ namespace quickbook
             >>  cl::eps_p(local.check_element(element_info::in_block))
                                                 [actions.inside_paragraph]
                                                 [actions.values.reset()]
+                                                [actions.values.tag(detail::var(local.element_tag))]
             >>  (   local.element_rule
                 >>  (   (space >> ']')          [actions.element]
                     |   cl::eps_p               [actions.error]
@@ -384,6 +387,7 @@ namespace quickbook
             >>  (   local.element
                 >>  cl::eps_p(local.check_element(element_info::in_phrase))
                                                 [actions.values.reset()]
+                                                [actions.values.tag(detail::var(local.element_tag))]
                 >>  local.element_rule
                 >>  cl::eps_p(space >> ']')     [actions.element]
                 |   local.template_
@@ -398,6 +402,7 @@ namespace quickbook
             >>  cl::eps_p(local.check_element(element_info::in_conditional))
                                                 [actions.inside_paragraph]
                                                 [actions.values.reset()]
+                                                [actions.values.tag(detail::var(local.element_tag))]
             >>  (   local.element_rule
                 >>  (   (space >> ']')          [actions.element]
                     |   cl::eps_p               [actions.error]
