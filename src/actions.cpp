@@ -50,8 +50,10 @@ namespace quickbook
     }
 
     void header_action(quickbook::actions&, value);
+    void begin_section_action(quickbook::actions&, value);
+    void end_section_action(quickbook::actions&, value, file_position);
 
-    void element_action::operator()(iterator, iterator) const
+    void element_action::operator()(iterator first, iterator) const
     {
         value_consumer values = actions.values.get();
         if(!values.is()) return;
@@ -68,6 +70,10 @@ namespace quickbook
         case block_tags::heading5:
         case block_tags::heading6:
             return header_action(actions, v);
+        case block_tags::begin_section:
+            return begin_section_action(actions, v);
+        case block_tags::end_section:
+            return end_section_action(actions, v, first.get_position());
         default:
             break;
         }
@@ -1307,57 +1313,53 @@ namespace quickbook
         }
     }
 
-    void begin_section_action::operator()(iterator, iterator) const
+    void begin_section_action(quickbook::actions& actions, value begin_section_list)
     {    
         if(actions.suppress) return;
 
-        value_consumer values = actions.values.get();
-        value begin_section_list = values.consume(block_tags::begin_section);
-        assert(!values.is());
-
-        values = begin_section_list;
+        value_consumer values = begin_section_list;
 
         value element_id = values.optional_consume(general_tags::element_id);
         value content = values.consume();
         assert(!values.is());
 
-        section_id = !element_id.is_empty() ?
+        actions.section_id = !element_id.is_empty() ?
             element_id.get_quickbook() :
             detail::make_identifier(content.get_quickbook());
 
-        if (section_level != 0)
-            qualified_section_id += '.';
+        if (actions.section_level != 0)
+            actions.qualified_section_id += '.';
         else
-            BOOST_ASSERT(qualified_section_id.empty());
+            BOOST_ASSERT(actions.qualified_section_id.empty());
 
-        qualified_section_id += section_id;
-        ++section_level;
+        actions.qualified_section_id += actions.section_id;
+        ++actions.section_level;
 
-        actions.output_pre(out);
+        actions.output_pre(actions.out);
 
         if (qbk_version_n < 103) // version 1.2 and below
         {
-            out << "\n<section id=\""
-                << library_id << "." << section_id << "\">\n";
+            actions.out << "\n<section id=\""
+                << actions.doc_id << "." << actions.section_id << "\">\n";
         }
         else // version 1.3 and above
         {
-            out << "\n<section id=\"" << library_id
-                << "." << qualified_section_id << "\">\n";
+            actions.out << "\n<section id=\"" << actions.doc_id
+                << "." << actions.qualified_section_id << "\">\n";
         }
 
         actions.anchors.swap(actions.saved_anchors);
-        actions.output_pre(out);
+        actions.output_pre(actions.out);
 
         if (qbk_version_n < 103) // version 1.2 and below
         {
-            out << "<title>" << content.get_boostbook() << "</title>\n";
+            actions.out << "<title>" << content.get_boostbook() << "</title>\n";
         }
         else // version 1.3 and above
         {
-            out << "<title>"
-                << "<link linkend=\"" << library_id
-                    << "." << qualified_section_id << "\">"
+            actions.out << "<title>"
+                << "<link linkend=\"" << actions.doc_id
+                    << "." << actions.qualified_section_id << "\">"
                 << content.get_boostbook()
                 << "</link>"
                 << "</title>\n"
@@ -1365,36 +1367,31 @@ namespace quickbook
         }
     }
 
-    void end_section_action::operator()(iterator, iterator) const
+    void end_section_action(quickbook::actions& actions, value end_section, file_position pos)
     {
-        if(!actions.output_pre(out)) return;
+        if(!actions.output_pre(actions.out)) return;
 
-        value_consumer values = actions.values.get();
-        value end_section = values.consume(block_tags::end_section);
-        assert(!values.is());
-
-        if (section_level <= min_section_level)
+        if (actions.section_level <= actions.min_section_level)
         {
-            file_position const pos = end_section.get_position();
             detail::outerr(actions.filename, pos.line)
                 << "Mismatched [endsect] near column " << pos.column << ".\n";
-            ++error_count;
+            ++actions.error_count;
             
             return;
         }
 
-        --section_level;
-        out << "</section>";
+        --actions.section_level;
+        actions.out << "</section>";
 
-        if (section_level == 0)
+        if (actions.section_level == 0)
         {
-            qualified_section_id.clear();
+            actions.qualified_section_id.clear();
         }
         else
         {
             std::string::size_type const n =
-                qualified_section_id.find_last_of('.');
-            qualified_section_id.erase(n, std::string::npos);
+                actions.qualified_section_id.find_last_of('.');
+            actions.qualified_section_id.erase(n, std::string::npos);
         }
     }
     
@@ -1563,10 +1560,15 @@ namespace quickbook
         *boost::spirit::classic::find(actions.macro, "__FILENAME__")
             = detail::path_to_generic(actions.filename);
 
+        // save values
+        actions.values.builder.save();
+
         // parse the file
         quickbook::parse_file(actions.filename.string().c_str(), actions, true);
 
         // restore the values
+        actions.values.builder.restore();
+
         std::swap(actions.filename, filein);
 
         actions.doc_type.swap(doc_type);

@@ -609,63 +609,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct begin_section_action
-    {
-        // Handles begin page
-
-        begin_section_action(
-            collector& out
-          , collector& phrase
-          , std::string& library_id
-          , std::string& section_id
-          , int& section_level
-          , std::string& qualified_section_id
-          , quickbook::actions& actions)
-        : out(out)
-        , phrase(phrase)
-        , library_id(library_id)
-        , section_id(section_id)
-        , section_level(section_level)
-        , qualified_section_id(qualified_section_id)
-        , actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        collector& phrase;
-        std::string& library_id;
-        std::string& section_id;
-        int& section_level;
-        std::string& qualified_section_id;
-        quickbook::actions& actions;
-    };
-
-    struct end_section_action
-    {
-        end_section_action(
-            collector& out
-          , int& section_level
-          , int& min_section_level
-          , std::string& qualified_section_id
-          , int& error_count
-          , quickbook::actions& actions)
-        : out(out)
-        , section_level(section_level)
-        , min_section_level(min_section_level)
-        , qualified_section_id(qualified_section_id)
-        , error_count(error_count)
-        , actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        int& section_level;
-        int& min_section_level;
-        std::string& qualified_section_id;
-        int& error_count;
-        quickbook::actions& actions;
-   };
-   
    struct element_id_warning_action
    {
         element_id_warning_action(quickbook::actions& actions_)

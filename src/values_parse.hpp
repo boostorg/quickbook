@@ -174,7 +174,7 @@ namespace quickbook {
         void operator()(Iterator begin, Iterator end,
                 value::tag_type tag = value::no_tag) const
         {
-            b.insert(qbk_value(begin, end, tag));
+            b.insert(qbk_value(begin, end, b.release_tag(tag)));
         }
 
         template <typename Iterator>
@@ -182,7 +182,7 @@ namespace quickbook {
                 std::string const& v,
                 value::tag_type tag = value::no_tag) const
         {
-            b.insert(qbk_value(v, begin.get_position(), tag));
+            b.insert(qbk_value(v, begin.get_position(), b.release_tag(tag)));
         }
 
         value_builder& b;

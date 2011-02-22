@@ -67,22 +67,21 @@ namespace quickbook
                 ;
 
         elements.add
-            ("section", element_info(element_info::block, &local.begin_section))
-            ("endsect", element_info(element_info::block, &local.end_section))
+            ("section", element_info(element_info::block, &local.begin_section, block_tags::begin_section))
+            ("endsect", element_info(element_info::block, &local.end_section, block_tags::end_section))
             ;
 
         local.begin_section =
-            actions.values.scoped(block_tags::begin_section)
+            actions.values.scoped
             [   space
             >>  local.element_id
             >>  space
             >>  local.inner_phrase
-            ]                                   [actions.begin_section]
+            ]
             ;
 
         local.end_section =
-                cl::eps_p                       [actions.values.entry(ph::arg1, ph::arg2, block_tags::end_section)]
-                                                [actions.end_section]
+                cl::eps_p                       [actions.values.entry(ph::arg1, ph::arg2)]
             ;
 
         local.heading

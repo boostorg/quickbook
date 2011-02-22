@@ -141,8 +141,6 @@ namespace quickbook
         , table(*this)
         , anchor(*this)
 
-        , begin_section(out, phrase, doc_id, section_id, section_level, qualified_section_id, *this)
-        , end_section(out, section_level, min_section_level, qualified_section_id, error_count, *this)
         , element_id_warning(*this)
         , xinclude(out, *this)
         , include(*this)

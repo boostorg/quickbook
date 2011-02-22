@@ -181,8 +181,6 @@ namespace quickbook
         table_action            table;
         anchor_action           anchor;
 
-        begin_section_action    begin_section;
-        end_section_action      end_section;
         element_id_warning_action element_id_warning;
         xinclude_action         xinclude;
         include_action          include;
