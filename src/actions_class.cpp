@@ -73,7 +73,7 @@ namespace quickbook
         , code(out, phrase, *this)
         , code_block(phrase, phrase, *this)
         , inline_code(phrase, *this)
-        , inside_paragraph(out, phrase, paragraph_pre, paragraph_post, *this)
+        , paragraph(*this)
         , hr(out, hr_, *this)
         , space_char(phrase)
         , plain_char(phrase, *this)

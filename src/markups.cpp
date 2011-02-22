@@ -99,6 +99,7 @@ namespace quickbook
         void initialise_markups()
         {
             markup init_markups[] = {
+                { block_tags::paragraph, paragraph_pre, paragraph_post },
                 { block_tags::blurb, blurb_pre, blurb_post },
                 { block_tags::blockquote, blockquote_pre, blockquote_post },
                 { block_tags::preformatted, preformatted_pre, preformatted_post },

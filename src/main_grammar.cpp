@@ -163,7 +163,7 @@ namespace quickbook
         local.paragraph_separator
             =   cl::eol_p
             >> *cl::blank_p
-            >>  cl::eol_p                       [actions.inside_paragraph]
+            >>  cl::eol_p                       [actions.paragraph]
             ;
 
         local.hr =
@@ -176,7 +176,7 @@ namespace quickbook
             =   '[' >> space
             >>  local.element
             >>  cl::eps_p(local.check_element(element_info::in_block))
-                                                [actions.inside_paragraph]
+                                                [actions.paragraph]
                                                 [actions.values.reset()]
             >>  (   actions.values.list(detail::var(local.element_tag))
                     [   local.element_rule
@@ -375,14 +375,15 @@ namespace quickbook
 
         inside_paragraph =
             actions.scoped_output()
-            [
-            actions.values.save()
-            [
-            (*( common
-            |   (cl::anychar_p - phrase_end)    [actions.plain_char]
-            |   (+eol)                          [actions.inside_paragraph]
-            ))                                  [actions.inside_paragraph]
-            ]                                   [actions.out_value]
+            [   actions.values.save()
+                [
+                (   *( common
+                    |   (cl::anychar_p - phrase_end)
+                                                [actions.plain_char]
+                    |   local.paragraph_separator
+                                                [actions.paragraph]
+                )   )                           [actions.paragraph]
+                ]                               [actions.out_value]
             ]
             ;
 
@@ -406,7 +407,7 @@ namespace quickbook
             =   '[' >> space
             >>  local.element
             >>  cl::eps_p(local.check_element(element_info::in_conditional))
-                                                [actions.inside_paragraph]
+                                                [actions.paragraph]
                                                 [actions.values.reset()]
             >>  (   actions.values.list(detail::var(local.element_tag))
                     [   local.element_rule

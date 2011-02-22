@@ -217,30 +217,24 @@ namespace quickbook
         assert(!values.is());
     }
 
-    void implicit_paragraph_action::operator()() const
+    void paragraph_action::operator()() const
     {
         if(actions.suppress) return;
     
         std::string str;
-        phrase.swap(str);
-
-        // TODO: Use spirit to do this?
+        actions.phrase.swap(str);
 
         std::string::const_iterator
             pos = str.begin(),
             end = str.end();
 
-        while(pos != end && (
-            *pos == ' ' || *pos == '\t' || *pos == '\n' || *pos == '\r'))
-        {
-            ++pos;
-        }
+        while(pos != end && cl::space_p.test(*pos)) ++pos;
 
         if(pos != end) {
-            out << pre << str;
-            // TODO: Is this right place?
-            actions.output_pre(out);
-            out << post;
+            detail::markup markup = detail::markups[block_tags::paragraph];
+            actions.out << markup.pre << str;
+            actions.output_pre(actions.out);
+            actions.out << markup.post;
         }
     }
     
@@ -1229,7 +1223,7 @@ namespace quickbook
         }
 
         if(symbol->body.is_block || !block.empty()) {
-            actions.inside_paragraph();
+            actions.paragraph(); // For paragraphs before the template call.
             actions.out << block;
             actions.phrase << phrase;
         }

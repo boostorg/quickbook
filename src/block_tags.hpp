@@ -21,7 +21,8 @@ namespace quickbook
         (warning)(caution)(important)(note)(tip)
         (macro_definition)(template_definition)
         (variable_list)(table)
-        (xinclude)(import)(include)        
+        (xinclude)(import)(include)
+        (paragraph)
     )
 
     QUICKBOOK_VALUE_TAGS(table_tags, 0x250,

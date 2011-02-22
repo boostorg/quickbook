@@ -146,30 +146,18 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct implicit_paragraph_action
+    struct paragraph_action
     {
         //  implicit paragraphs
         //  doesn't output the paragraph if it's only whitespace.
 
-        implicit_paragraph_action(
-            collector& out,
-            collector& phrase,
-            std::string const& pre,
-            std::string const& post,
+        paragraph_action(
             quickbook::actions& actions)
-        : out(out)
-        , phrase(phrase)
-        , pre(pre)
-        , post(post)
-        , actions(actions) {}
+        : actions(actions) {}
 
         void operator()() const;
         void operator()(iterator first, iterator last) const { (*this)(); }
 
-        collector& out;
-        collector& phrase;
-        std::string pre;
-        std::string post;
         quickbook::actions& actions;
     };
 
