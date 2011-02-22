@@ -33,7 +33,6 @@ namespace quickbook
 
     // auxilliary streams
         , phrase()
-        , list_buffer()
 
     // value actions
         , values()
@@ -57,8 +56,6 @@ namespace quickbook
 
     // temporary or global state
         , macro_id()
-        , list_marks()
-        , list_indent(-1)
         , template_depth(0)
         , templates()
         , error_count(0)
@@ -79,10 +76,6 @@ namespace quickbook
         , plain_char(phrase, *this)
         , raw_char(phrase, *this)
         , escape_unicode(phrase, *this)
-
-        , list(out, list_buffer, list_indent, list_marks, *this)
-        , list_format(list_buffer, list_indent, list_marks, error_count, *this)
-        , list_item(list_buffer, phrase, list_item_pre, list_item_post, *this)
 
         , simple_bold(phrase, bold_pre_, bold_post_, macro, *this)
         , simple_italic(phrase, italic_pre_, italic_post_, macro, *this)
@@ -135,7 +128,6 @@ namespace quickbook
 
         out.push();
         phrase.push();
-        list_buffer.push();
         templates.push();
         values.builder.save();
     }
@@ -176,7 +168,6 @@ namespace quickbook
 
         out.pop();
         phrase.pop();
-        list_buffer.pop();
         templates.pop();
         values.builder.restore();
     }

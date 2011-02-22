@@ -117,35 +117,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct phrase_action
-    {
-        //  blurb, blockquote, preformatted, list_item,
-        //  unordered_list, ordered_list
-
-        phrase_action(
-            collector& out,
-            collector& phrase,
-            std::string const& pre,
-            std::string const& post,
-            quickbook::actions& actions)
-        : out(out)
-        , phrase(phrase)
-        , pre(pre)
-        , post(post)
-        , actions(actions) {}
-
-        void operator()(iterator first, iterator last) const { return (*this)(); }
-        template <typename T>
-        void operator()(T const&) const { return (*this)(); }
-        void operator()() const;
-
-        collector& out;
-        collector& phrase;
-        std::string pre;
-        std::string post;
-        quickbook::actions& actions;
-    };
-
     struct paragraph_action
     {
         //  implicit paragraphs
@@ -196,58 +167,6 @@ namespace quickbook
 
         quickbook::actions& actions;
         bool saved_suppress;
-    };
-
-    struct list_action
-    {
-        //  Handles lists
-
-        typedef std::pair<char, int> mark_type;
-        list_action(
-            collector& out
-          , collector& list_buffer
-          , int& list_indent
-          , std::stack<mark_type>& list_marks
-          , quickbook::actions& actions)
-        : out(out)
-        , list_buffer(list_buffer)
-        , list_indent(list_indent)
-        , list_marks(list_marks)
-        , actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        collector& list_buffer;
-        int& list_indent;
-        std::stack<mark_type>& list_marks;
-        quickbook::actions& actions;
-    };
-
-    struct list_format_action
-    {
-        //  Handles list formatting and hierarchy
-
-        typedef std::pair<char, int> mark_type;
-        list_format_action(
-            collector& out
-          , int& list_indent
-          , std::stack<mark_type>& list_marks
-          , int& error_count
-          , quickbook::actions& actions)
-        : out(out)
-        , list_indent(list_indent)
-        , list_marks(list_marks)
-        , error_count(error_count)
-        , actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        int& list_indent;
-        std::stack<mark_type>& list_marks;
-        int& error_count;
-        quickbook::actions& actions;
     };
 
     struct span

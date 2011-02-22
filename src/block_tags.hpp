@@ -23,6 +23,7 @@ namespace quickbook
         (variable_list)(table)
         (xinclude)(import)(include)
         (paragraph)
+        (list)
     )
 
     QUICKBOOK_VALUE_TAGS(table_tags, 0x250,
@@ -30,7 +31,7 @@ namespace quickbook
     )
 
     QUICKBOOK_VALUE_TAGS(general_tags, 0x300,
-        (element_id)(include_id)
+        (element_id)(include_id)(list_indent)(list_mark)
     )
 
 }

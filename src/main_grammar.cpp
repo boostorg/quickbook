@@ -154,7 +154,7 @@ namespace quickbook
 
         local.blocks =
            *(   local.code
-            |   local.list                      [actions.list]
+            |   local.list
             |   local.hr                        [actions.hr]
             |   +eol
             )
@@ -205,23 +205,30 @@ namespace quickbook
             ;
 
         local.list =
-            cl::eps_p(cl::ch_p('*') | '#') >>
-           +(
-                (*cl::blank_p
-                >> (cl::ch_p('*') | '#'))       [actions.list_format]
-                >> *cl::blank_p
-                >> local.list_item
-            )                                   [actions.list_item]
+                cl::eps_p(cl::ch_p('*') | '#')
+                                            [actions.values.reset()]
+            >>  actions.values.list(block_tags::list)
+                [   +actions.values.list()
+                    [   (*cl::blank_p)      [actions.values.entry(ph::arg1, ph::arg2, general_tags::list_indent)]
+                    >>  (cl::ch_p('*') | '#')
+                                            [actions.values.entry(ph::arg1, ph::arg2, general_tags::list_mark)]
+                    >>  *cl::blank_p
+                    >>  local.list_item     [actions.phrase_value]
+                    ]
+                ]                           [actions.element]
             ;
 
         local.list_item =
-           *(   common
-            |   (cl::anychar_p -
-                    (   cl::eol_p >> *cl::blank_p
-                    >>  (cl::ch_p('*') | '#' | cl::eol_p)
-                    )
-                )                               [actions.plain_char]
-            )
+            actions.values.save()
+            [
+                *(  common
+                |   (cl::anychar_p -
+                        (   cl::eol_p >> *cl::blank_p
+                        >>  (cl::ch_p('*') | '#' | cl::eol_p)
+                        )
+                    )                       [actions.plain_char]
+                )
+            ]
             >> +eol
             ;
 
@@ -473,9 +480,11 @@ namespace quickbook
 
 
         local.command_line_phrase =
-           *(   common
-            |   (cl::anychar_p - ']')           [actions.plain_char]
-            )
+            actions.values.save()
+            [   *(   common
+                |   (cl::anychar_p - ']')       [actions.plain_char]
+                )
+            ]
             ;
 
         // Miscellaneous stuff

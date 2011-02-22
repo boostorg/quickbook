@@ -35,7 +35,6 @@ namespace quickbook
 
         typedef std::vector<std::string> string_list;
 
-        typedef std::pair<char, int> mark_type;
         static int const max_template_depth = 100;
 
     // header info
@@ -48,7 +47,6 @@ namespace quickbook
 
     // auxilliary streams
         collector               phrase;
-        collector               list_buffer;
 
     // value actions
         value_parser            values;
@@ -91,8 +89,6 @@ namespace quickbook
 
     // temporary or global state
         std::string             macro_id;
-        std::stack<mark_type>   list_marks;
-        int                     list_indent;
         int                     template_depth;
         template_stack          templates;
         int                     error_count;
@@ -123,10 +119,6 @@ namespace quickbook
         plain_char_action       plain_char;
         raw_char_action         raw_char;
         escape_unicode_action   escape_unicode;
-
-        list_action             list;
-        list_format_action      list_format;
-        phrase_action           list_item;
 
         simple_phrase_action    simple_bold;
         simple_phrase_action    simple_italic;

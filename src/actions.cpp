@@ -50,6 +50,7 @@ namespace quickbook
         }
     }
 
+    void list_action(quickbook::actions&, value);
     void header_action(quickbook::actions&, value);
     void begin_section_action(quickbook::actions&, value);
     void end_section_action(quickbook::actions&, value, file_position);
@@ -76,6 +77,8 @@ namespace quickbook
         
         switch(v.get_tag())
         {
+        case block_tags::list:
+            return list_action(actions, v);
         case block_tags::generic_heading:
         case block_tags::heading1:
         case block_tags::heading2:
@@ -201,15 +204,6 @@ namespace quickbook
         value_consumer values = block;
         actions.out << markup.pre << values.consume().get_boostbook() << markup.post;
         assert(!values.is());
-    }
-
-    void phrase_action::operator()() const
-    {
-        if(!actions.output_pre(phrase)) return;
-
-        std::string str;
-        phrase.swap(str);
-        out << pre << str << post;
     }
 
     void phrase_action_(quickbook::actions& actions, value phrase)
@@ -348,98 +342,98 @@ namespace quickbook
         actions.suppress = saved_suppress;
     }
 
-    void list_action::operator()(iterator first, iterator last) const
+    namespace {
+        int indent_length(std::string const& indent)
+        {
+            int length = 0;
+            for(std::string::const_iterator
+                first = indent.begin(), end = indent.end(); first != end; ++first)
+            {
+                switch(*first) {
+                    case ' ': ++length; break;
+                    // hardcoded tab to 4 for now
+                    case '\t': length = ((length + 4) / 4) * 4; break;
+                    default: BOOST_ASSERT(false);
+                }
+            }
+            
+            return length;
+        }
+    }
+
+    void list_action(quickbook::actions& actions, value list)
     {
         if(actions.suppress) return;
-    
-        BOOST_ASSERT(!list_marks.empty()); // there must be at least one item in the stack
-        out << list_buffer.str();
-        list_buffer.clear();
 
+        typedef std::pair<char, int> mark_type;
+        std::stack<mark_type> list_marks;
+        int list_indent = -1;
+
+        BOOST_FOREACH(value_consumer values, list)
+        {
+            int new_indent = indent_length(
+                    values.consume(general_tags::list_indent).get_quickbook());
+            value mark_value = values.consume(general_tags::list_mark);
+            std::string content = values.consume().get_boostbook();
+            assert(!values.is());
+
+            char mark = mark_value.get_quickbook()[0];
+            assert(mark == '*' || mark == '#');
+
+            if(list_indent == -1) {
+                assert(new_indent == 0);
+            }
+
+            if(new_indent > list_indent)
+            {
+                list_indent = new_indent;
+                list_marks.push(mark_type(mark, list_indent));
+
+                actions.out << ((mark == '#') ? "<orderedlist>\n" : "<itemizedlist>\n");
+            }
+            else if (new_indent < list_indent)
+            {
+                BOOST_ASSERT(!list_marks.empty());
+                list_indent = new_indent;
+
+                while (!list_marks.empty() && (list_indent < list_marks.top().second))
+                {
+                    char mark = list_marks.top().first;
+                    list_marks.pop();
+                    actions.out << "</listitem>";
+                    actions.out << ((mark == '#') ? "\n</orderedlist>" : "\n</itemizedlist>");
+                }
+
+                actions.out << "</listitem>";
+            }
+            else
+            {
+                actions.out << "</listitem>";
+            }
+
+            if (mark != list_marks.top().first) // new_indent == list_indent
+            {
+                file_position const pos = mark_value.get_position();
+                detail::outerr(actions.filename, pos.line)
+                    << "Illegal change of list style near column " << pos.column << ".\n";
+                detail::outwarn(actions.filename, pos.line)
+                    << "Ignoring change of list style" << std::endl;
+                ++actions.error_count;
+            }
+            
+            actions.out << "<listitem>";
+            actions.out << "<simpara>\n";
+            actions.out << content;
+            actions.out << "\n</simpara>";
+        }
+
+        assert(!list_marks.empty());
         while (!list_marks.empty())
         {
             char mark = list_marks.top().first;
             list_marks.pop();
-            out << std::string((mark == '#') ? "\n</orderedlist>" : "\n</itemizedlist>");
-            if (list_marks.size() >= 1)
-                out << "</listitem>";
-        }
-
-        list_indent = -1; // reset
-    }
-
-    void list_format_action::operator()(iterator first, iterator last) const
-    {
-        if(!actions.output_pre(out)) return;
-    
-        int new_indent = 0;
-        while (first != last && (*first == ' ' || *first == '\t'))
-        {
-            char mark = *first++;
-            if (mark == ' ')
-            {
-                ++new_indent;
-            }
-            else // must be a tab
-            {
-                BOOST_ASSERT(mark == '\t');
-                // hardcoded tab to 4 for now
-                new_indent = ((new_indent + 4) / 4) * 4;
-            }
-        }
-
-        char mark = *first;
-        BOOST_ASSERT(mark == '#' || mark == '*'); // expecting a mark
-
-        if (list_indent == -1) // the very start
-        {
-            BOOST_ASSERT(new_indent == 0);
-        }
-
-        if (new_indent > list_indent)
-        {
-            list_indent = new_indent;
-            list_marks.push(mark_type(mark, list_indent));
-            if (list_marks.size() > 1)
-            {
-                // Make this new list a child of the previous list.
-                // The previous listelem has already ended so we erase
-                // "</listitem>" to accomodate this sub-list. We'll close
-                // the listelem later.
-
-                std::string str;
-                out.swap(str);
-                std::string::size_type pos = str.rfind("</listitem>");
-                BOOST_ASSERT(pos <= str.size());
-                str.erase(str.begin()+pos, str.end());
-                out << str;
-            }
-            out << std::string((mark == '#') ? "<orderedlist>\n" : "<itemizedlist>\n");
-        }
-
-        else if (new_indent < list_indent)
-        {
-            BOOST_ASSERT(!list_marks.empty());
-            list_indent = new_indent;
-
-            while (!list_marks.empty() && (list_indent < list_marks.top().second))
-            {
-                char mark = list_marks.top().first;
-                list_marks.pop();
-                out << std::string((mark == '#') ? "\n</orderedlist>" : "\n</itemizedlist>");
-                if (list_marks.size() >= 1)
-                    out << "</listitem>";
-            }
-        }
-
-        if (mark != list_marks.top().first) // new_indent == list_indent
-        {
-            file_position const pos = first.get_position();
-            detail::outerr(actions.filename, pos.line)
-                << "Illegal change of list style near column " << pos.column << ".\n";
-            detail::outwarn(actions.filename, pos.line)
-                << "Ignoring change of list style" << std::endl;
-            ++error_count;
+            actions.out << "</listitem>";
+            actions.out << ((mark == '#') ? "\n</orderedlist>" : "\n</itemizedlist>");
         }
     }
 
