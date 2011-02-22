@@ -36,7 +36,7 @@ test-suite quickbook.test :
     [ quickbook-test mismatched-brackets-1 ]
     [ quickbook-test mismatched-brackets-2 ]
     [ quickbook-error-test mismatched-brackets-3 ]
-    #[ quickbook-test xinclude ]
+    [ quickbook-test xinclude : : : <quickbook-xinclude-base>../src ]
     [ quickbook-test import ]
     [ quickbook-test include_1_5 ]
     [ quickbook-test include_1_6 ]

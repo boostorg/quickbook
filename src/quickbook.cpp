@@ -109,9 +109,10 @@ namespace quickbook
     }
 
     static int
-    parse_document(fs::path const& filein_, fs::path const& outdir, string_stream& out, bool ignore_docinfo = false)
+    parse_document(fs::path const& filein_, fs::path const& xinclude_base,
+            string_stream& out, bool ignore_docinfo = false)
     {
-        actions actor(filein_, outdir, out);
+        actions actor(filein_, xinclude_base, out);
 
         set_macros(actor);
         bool r = parse_file(filein_, actor);
@@ -133,16 +134,14 @@ namespace quickbook
     parse_document(
         fs::path const& filein_
       , fs::path const& fileout_
+      , fs::path const& xinclude_base_
       , int indent
       , int linewidth
       , bool pretty_print)
     {
         int result = 0;
-        fs::path outdir = fileout_.parent_path();
-        if (outdir.empty())
-            outdir = ".";
         string_stream buffer;
-        result = parse_document(filein_, outdir, buffer);
+        result = parse_document(filein_, xinclude_base_, buffer);
 
         if (result == 0)
         {
@@ -220,6 +219,9 @@ main(int argc, char* argv[])
             ("expect-errors",
                 "Succeed if the input file contains a correctly handled "
                 "error, fail otherwise.")
+            ("xinclude-base", PO_VALUE<input_string>(),
+                "Generate xincludes as if generating for this target "
+                "directory.")
         ;
 
         all.add(desc).add(hidden);
@@ -347,12 +349,25 @@ main(int argc, char* argv[])
                 fileout = filein;
                 fileout.replace_extension(".xml");
             }
+            
+            fs::path xinclude_base;
+            if (vm.count("xinclude-base"))
+            {
+                xinclude_base = quickbook::detail::input_to_path(
+                    vm["xinclude-base"].as<input_string>());
+            }
+            else
+            {
+                xinclude_base = fileout.parent_path();
+                if (xinclude_base.empty())
+                    xinclude_base = ".";
+            }
 
             quickbook::detail::out() << "Generating Output File: "
                 << quickbook::detail::path_to_stream(fileout)
                 << std::endl;
 
-            int r = quickbook::parse_document(filein, fileout, indent, linewidth, pretty_print);
+            int r = quickbook::parse_document(filein, fileout, xinclude_base, indent, linewidth, pretty_print);
 
             if (expect_errors)
             {
