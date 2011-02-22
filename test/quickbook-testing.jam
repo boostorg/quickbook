@@ -95,6 +95,32 @@ rule quickbook-fail-test ( target-name : input ? : requirements * )
     return $(t) ;
 }
 
+rule quickbook-error-test ( target-name : input ? : requirements * )
+{
+    input ?= $(target-name).quickbook ;
+
+    local project = [ project.current ] ;
+    
+    local boost-root = [ modules.peek : BOOST_ROOT ] ;
+
+    local t =
+        [ targets.create-typed-target RUN
+            : $(project)
+            : $(target-name)
+            : $(boost-root)/tools/quickbook/src//quickbook
+            : $(requirements)
+              <testing.input-file>$(input)
+              <testing.arg>--expect-errors
+              <preserve-test-targets>on
+              <dependency>$(input)
+        ]
+        ;
+
+    modules.poke testing : .all-tests : \$\(all-tests\) $(t) ;
+
+    return $(t) ;
+}
+
 ################################################################################
 toolset.flags quickbook-testing.process-quickbook quickbook-command <quickbook-testing.quickbook-command> ;
 toolset.flags quickbook-testing.process-quickbook QB-DEFINES        <quickbook-test-define> ;
@@ -106,6 +132,6 @@ rule process-quickbook ( target : source : properties * )
 
 actions process-quickbook bind quickbook-command
 {
-    $(quickbook-command) $(>) --output-file=$(<) --debug -D"$(QB-DEFINES)"
+    $(quickbook-command) $(>) --output-file=$(<) --debug -D"$(QB-DEFINES)" $(OPTIONS)
 }
 

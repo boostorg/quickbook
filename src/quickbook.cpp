@@ -193,6 +193,8 @@ main(int argc, char* argv[])
         quickbook::detail::initialise_markups();
 
         options_description desc("Allowed options");
+        options_description hidden("Hidden options");
+        options_description all("All options");
 
 #if QUICKBOOK_WIDE_PATHS
 #define PO_VALUE po::wvalue
@@ -214,6 +216,14 @@ main(int argc, char* argv[])
             ("define,D", PO_VALUE< std::vector<input_string> >(), "define macro")
         ;
 
+        hidden.add_options()
+            ("expect-errors",
+                "Succeed if the input file contains a correctly handled "
+                "error, fail otherwise.")
+        ;
+
+        all.add(desc).add(hidden);
+
         positional_options_description p;
         p.add("input-file", -1);
 
@@ -231,14 +241,23 @@ main(int argc, char* argv[])
             return 1;
         }
 
-        store(wcommand_line_parser(wide_argc, wide_argv).options(desc).positional(p).run(), vm);
+        store(
+            wcommand_line_parser(wide_argc, wide_argv)
+                .options(all)
+                .positional(p)
+                .run(), vm);
 
         LocalFree(wide_argv);
 #else
-        store(command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+        store(command_line_parser(argc, argv)
+                .options(all)
+                .positional(p)
+                .run(), vm);
 #endif
 
         notify(vm);
+
+        bool expect_errors = vm.count("expect-errors");
 
         if (vm.count("help"))
         {
@@ -333,7 +352,17 @@ main(int argc, char* argv[])
                 << quickbook::detail::path_to_stream(fileout)
                 << std::endl;
 
-            return quickbook::parse_document(filein, fileout, indent, linewidth, pretty_print);
+            int r = quickbook::parse_document(filein, fileout, indent, linewidth, pretty_print);
+
+            if (expect_errors)
+            {
+                if (!r) quickbook::detail::outerr() << "No errors detected for --expect-errors." << std::endl;
+                return !r;
+            }
+            else
+            {
+                return r;
+            }
         }
         else
         {
