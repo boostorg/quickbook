@@ -11,7 +11,9 @@
 #include "quickbook.hpp"
 #include "markups.hpp"
 #include "block_tags.hpp"
+#include "phrase_tags.hpp"
 #include <boost/foreach.hpp>
+#include <ostream>
 
 namespace quickbook
 {
@@ -104,13 +106,36 @@ namespace quickbook
                 { block_tags::caution, caution_pre, caution_post },
                 { block_tags::important, important_pre, important_post },
                 { block_tags::note, note_pre, note_post },
-                { block_tags::tip, tip_pre, tip_post }
+                { block_tags::tip, tip_pre, tip_post },
+                { phrase_tags::url, url_pre_, url_post_ },
+                { phrase_tags::link, link_pre_, link_post_ },
+                { phrase_tags::funcref, funcref_pre_, funcref_post_ },
+                { phrase_tags::classref, classref_pre_, classref_post_ },
+                { phrase_tags::memberref, memberref_pre_, memberref_post_ },
+                { phrase_tags::enumref, enumref_pre_, enumref_post_ },
+                { phrase_tags::macroref, macroref_pre_, macroref_post_ },
+                { phrase_tags::headerref, headerref_pre_, headerref_post_ },
+                { phrase_tags::conceptref, conceptref_pre_, conceptref_post_ },
+                { phrase_tags::globalref, globalref_pre_, globalref_post_ },
+                { phrase_tags::bold, bold_pre_, bold_post_ },
+                { phrase_tags::italic, italic_pre_, italic_post_ },
+                { phrase_tags::underline, underline_pre_, underline_post_ },
+                { phrase_tags::teletype, teletype_pre_, teletype_post_ },
+                { phrase_tags::strikethrough, strikethrough_pre_, strikethrough_post_ },
+                { phrase_tags::quote, quote_pre_, quote_post_ },
+                { phrase_tags::replaceable, replaceable_pre_, replaceable_post_ },
+                { phrase_tags::footnote, footnote_pre_, footnote_post_ }
             };
 
             BOOST_FOREACH(markup m, init_markups)
             {
                 markups[m.tag] = m;
             }
+        }
+
+        std::ostream& operator<<(std::ostream& out, markup const& m)
+        {
+            return out<<"{"<<m.tag<<": \""<<m.pre<<"\", \""<<m.post<<"\"}";
         }
     }
 }

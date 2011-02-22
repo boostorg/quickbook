@@ -11,6 +11,7 @@
 #define BOOST_SPIRIT_MARKUPS_HPP
 
 #include <map>
+#include <iosfwd>
 #include "values.hpp"
 
 namespace quickbook
@@ -111,6 +112,8 @@ namespace quickbook
         };
         
         extern std::map<value::tag_type, markup> markups;
+        
+        std::ostream& operator<<(std::ostream&, markup const&);
     }
 }
 

@@ -25,6 +25,7 @@
 #include "input_path.hpp"
 #include "template_tags.hpp"
 #include "block_tags.hpp"
+#include "phrase_tags.hpp"
 
 namespace quickbook
 {
@@ -60,6 +61,10 @@ namespace quickbook
     void xinclude_action(quickbook::actions&, value);
     void import_action(quickbook::actions&, value);
     void include_action(quickbook::actions&, value);
+    void image_action(quickbook::actions&, value);
+    void anchor_action(quickbook::actions&, value);
+    void link_action(quickbook::actions&, value);
+    void phrase_action_(quickbook::actions&, value);
 
     void element_action::operator()(iterator first, iterator) const
     {
@@ -105,6 +110,30 @@ namespace quickbook
             return import_action(actions, v);
         case block_tags::include:
             return include_action(actions, v);
+        case phrase_tags::image:
+            return image_action(actions, v);
+        case phrase_tags::anchor:
+            return anchor_action(actions, v);
+        case phrase_tags::url:
+        case phrase_tags::link:
+        case phrase_tags::funcref:
+        case phrase_tags::classref:
+        case phrase_tags::memberref:
+        case phrase_tags::enumref:
+        case phrase_tags::macroref:
+        case phrase_tags::headerref:
+        case phrase_tags::conceptref:
+        case phrase_tags::globalref:
+            return link_action(actions, v);
+        case phrase_tags::bold:
+        case phrase_tags::italic:
+        case phrase_tags::underline:
+        case phrase_tags::teletype:
+        case phrase_tags::strikethrough:
+        case phrase_tags::quote:
+        case phrase_tags::replaceable:
+        case phrase_tags::footnote:
+            return phrase_action_(actions, v);
         default:
             break;
         }
@@ -159,14 +188,6 @@ namespace quickbook
         ++actions.error_count;
     }
 
-    void tagged_action::operator()(iterator, iterator) const
-    {
-        if(!actions.output_pre(out)) return;
-
-        value_consumer values = actions.values.get();
-        out << pre << values.consume().get_boostbook() << post;
-    }
-
     void block_action(quickbook::actions& actions, value block)
     {
         if(!actions.output_pre(actions.out)) return;
@@ -184,6 +205,16 @@ namespace quickbook
         std::string str;
         phrase.swap(str);
         out << pre << str << post;
+    }
+
+    void phrase_action_(quickbook::actions& actions, value phrase)
+    {
+        if(!actions.output_pre(actions.phrase)) return;
+        detail::markup markup = detail::markups[phrase.get_tag()];
+
+        value_consumer values = phrase;
+        actions.phrase << markup.pre << values.consume().get_boostbook() << markup.post;
+        assert(!values.is());
     }
 
     void implicit_paragraph_action::operator()() const
@@ -439,10 +470,13 @@ namespace quickbook
         out << "</phrase>";
     }
 
-    void anchor_action::operator()(iterator first, iterator last) const
+    void anchor_action(quickbook::actions& actions, value anchor)
     {
-        if(!actions.suppress)
-            actions.anchors.push_back(std::string(first, last));
+        if(actions.suppress) return;
+        
+        value_consumer values = anchor;
+        actions.anchors.push_back(values.consume().get_quickbook());
+        assert(!values.is());
     }
 
     void do_macro_action::operator()(std::string const& str) const
@@ -584,14 +618,14 @@ namespace quickbook
         }
     }
 
-    void image_action::operator()(iterator, iterator) const
+    void image_action(quickbook::actions& actions, value image)
     {
-        if(!actions.output_pre(phrase)) return;
+        if(!actions.output_pre(actions.phrase)) return;
 
         typedef std::map<std::string, value> attribute_map;
         attribute_map attributes;
 
-        value_consumer values = actions.values.get();
+        value_consumer values = image;
         attributes["fileref"] = values.consume();
 
         BOOST_FOREACH(value pair_, values)
@@ -717,13 +751,13 @@ namespace quickbook
            }
         }
 
-        phrase << "<inlinemediaobject>";
+        actions.phrase << "<inlinemediaobject>";
 
-        phrase << "<imageobject><imagedata";
+        actions.phrase << "<imageobject><imagedata";
         
         BOOST_FOREACH(attribute_map::value_type const& attr, attributes)
         {
-            phrase << " " << attr.first << "=\"";
+            actions.phrase << " " << attr.first << "=\"";
 
             std::string value = attr.second.get_quickbook();
             for(std::string::const_iterator
@@ -731,21 +765,21 @@ namespace quickbook
                 first != last; ++first)
             {
                 if (*first == '\\' && ++first == last) break;
-                detail::print_char(*first, phrase.get());
+                detail::print_char(*first, actions.phrase.get());
             }
 
-            phrase << "\"";
+            actions.phrase << "\"";
         }
 
-        phrase << "></imagedata></imageobject>";
+        actions.phrase << "></imagedata></imageobject>";
 
         // Add a textobject containing the alt tag from earlier.
         // This will be used for the alt tag in html.
-        phrase << "<textobject><phrase>";
-        detail::print_string(alt_text, phrase.get());
-        phrase << "</phrase></textobject>";
+        actions.phrase << "<textobject><phrase>";
+        detail::print_string(alt_text, actions.phrase.get());
+        actions.phrase << "</phrase></textobject>";
 
-        phrase << "</inlinemediaobject>";
+        actions.phrase << "</inlinemediaobject>";
     }
 
     void macro_definition_action(quickbook::actions& actions, quickbook::value macro_definition)
@@ -1205,27 +1239,26 @@ namespace quickbook
         --actions.template_depth;
     }
 
-    void link_action::operator()(iterator first, iterator last) const
+    void link_action(quickbook::actions& actions, value link)
     {
-        if(!actions.output_pre(phrase)) return;
+        if(!actions.output_pre(actions.phrase)) return;
+        detail::markup markup = detail::markups[link.get_tag()];
 
-        iterator save = first;
-        phrase << tag;
-        while (first != last)
-            detail::print_char(*first++, phrase.get());
-        phrase << "\">";
+        value_consumer values = link;
+        value dst = values.consume();
+        value content = values.consume();
+        assert(!values.is());
+        
+        actions.phrase << markup.pre;
+        detail::print_string(dst.get_quickbook(), actions.phrase.get());
+        actions.phrase << "\">";
 
-        // Yes, it is safe to dereference last here. When we
-        // reach here, *last is certainly valid. We test if
-        // *last == ']'. In which case, the url is the text.
-        // Example: [@http://spirit.sourceforge.net/]
+        if (content.is_empty())
+            detail::print_string(dst.get_quickbook(), actions.phrase.get());
+        else
+            actions.phrase << content.get_boostbook();
 
-        if (*last == ']')
-        {
-            first = save;
-            while (first != last)
-                detail::print_char(*first++, phrase.get());
-        }
+        actions.phrase << markup.post;
     }
 
     void variable_list_action(quickbook::actions& actions, value variable_list)
@@ -1635,14 +1668,6 @@ namespace quickbook
         actions.macro_change_depth = macro_change_depth;
         // restore the templates
         //~ actions.templates = templates; $$$ fixme $$$
-    }
-
-    void phrase_to_string_action::operator()(iterator first, iterator last) const
-    {
-        if(!actions.output_pre(phrase)) return;
-
-        out.clear();
-        phrase.swap(out);
     }
 
     void phrase_to_docinfo_action_impl::operator()(iterator first, iterator last,

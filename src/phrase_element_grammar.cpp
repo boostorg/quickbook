@@ -11,6 +11,7 @@
 #include "grammar_impl.hpp"
 #include "actions_class.hpp"
 #include "utils.hpp"
+#include "phrase_tags.hpp"
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_assign_actor.hpp>
 #include <boost/spirit/include/classic_clear_actor.hpp>
@@ -25,13 +26,8 @@ namespace quickbook
     struct phrase_element_grammar_local
     {
         cl::rule<scanner>
-                        image,
-                        bold, italic, underline, teletype,
-                        strikethrough, url, funcref, classref,
-                        memberref, enumref, macroref, headerref, conceptref, globalref,
-                        anchor, link,
+                        image, anchor, link, url,
                         source_mode_cpp, source_mode_python, source_mode_teletype,
-                        quote, footnote, replaceable,
                         cond_phrase, inner_phrase
                         ;
     };
@@ -54,7 +50,7 @@ namespace quickbook
             ;
 
         elements.add
-            ("$", element_info(element_info::phrase, &local.image))
+            ("$", element_info(element_info::phrase, &local.image, phrase_tags::image))
             ;
 
         local.image =
@@ -79,159 +75,60 @@ namespace quickbook
                         (*(cl::anychar_p - phrase_end))
                                                 [actions.values.entry(ph::arg1, ph::arg2)]
                 ]
-            >>  cl::eps_p(']')                  [actions.image]
+            >>  cl::eps_p(']')
             ;
             
         elements.add
-            ("@", element_info(element_info::phrase, &local.url))
+            ("@", element_info(element_info::phrase, &local.url, phrase_tags::url))
             ;
 
         local.url =
-                (*(cl::anychar_p -
-                    (']' | hard_space)))  [actions.url_pre]
+                (*(cl::anychar_p - (']' | hard_space)))
+                                                [actions.values.entry(ph::arg1, ph::arg2)]
             >>  hard_space
-            >>  phrase                          [actions.url_post]
+            >>  local.inner_phrase
             ;
 
         elements.add
-            ("link", element_info(element_info::phrase, &local.link))
+            ("link", element_info(element_info::phrase, &local.link, phrase_tags::link))
             ;
 
         local.link =
                 space
             >>  (*(cl::anychar_p - (']' | hard_space)))
-                                                [actions.link_pre]
+                                                [actions.values.entry(ph::arg1, ph::arg2)]
             >>  hard_space
-            >>  phrase                          [actions.link_post]
+            >>  local.inner_phrase
             ;
 
         elements.add
-            ("#", element_info(element_info::phrase, &local.anchor))
+            ("#", element_info(element_info::phrase, &local.anchor, phrase_tags::anchor))
             ;
 
         local.anchor =
                 blank
-            >>  (*(cl::anychar_p - phrase_end)) [actions.anchor]
+            >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
             ;
 
         elements.add
-            ("funcref", element_info(element_info::phrase, &local.funcref))
-            ("classref", element_info(element_info::phrase, &local.classref))
-            ("memberref", element_info(element_info::phrase, &local.memberref))
-            ("enumref", element_info(element_info::phrase, &local.enumref))
-            ("macroref", element_info(element_info::phrase, &local.macroref))
-            ("headerref", element_info(element_info::phrase, &local.headerref))
-            ("conceptref", element_info(element_info::phrase, &local.conceptref))
-            ("globalref", element_info(element_info::phrase, &local.globalref))
-            ;
-
-        local.funcref =
-                space
-            >>  (*(cl::anychar_p -
-                    (']' | hard_space)))        [actions.funcref_pre]
-            >>  hard_space
-            >>  phrase                          [actions.funcref_post]
-            ;
-
-        local.classref =
-                space
-            >>  (*(cl::anychar_p -
-                    (']' | hard_space)))        [actions.classref_pre]
-            >>  hard_space
-            >>  phrase                          [actions.classref_post]
-            ;
-
-        local.memberref =
-                space
-            >>  (*(cl::anychar_p -
-                    (']' | hard_space)))        [actions.memberref_pre]
-            >>  hard_space
-            >>  phrase                          [actions.memberref_post]
-            ;
-
-        local.enumref =
-                space
-            >>  (*(cl::anychar_p -
-                    (']' | hard_space)))        [actions.enumref_pre]
-            >>  hard_space
-            >>  phrase                          [actions.enumref_post]
-            ;
-
-        local.macroref =
-                space
-            >>  (*(cl::anychar_p -
-                    (']' | hard_space)))        [actions.macroref_pre]
-            >>  hard_space
-            >>  phrase                          [actions.macroref_post]
-            ;
-
-        local.headerref =
-                space
-            >>  (*(cl::anychar_p -
-                    (']' | hard_space)))        [actions.headerref_pre]
-            >>  hard_space
-            >>  phrase                          [actions.headerref_post]
-            ;
-
-        local.conceptref =
-                space
-            >>  (*(cl::anychar_p -
-                    (']' | hard_space)))        [actions.conceptref_pre]
-            >>  hard_space
-            >>  phrase                          [actions.conceptref_post]
-            ;
-
-        local.globalref =
-                space
-            >>  (*(cl::anychar_p -
-                    (']' | hard_space)))        [actions.globalref_pre]
-            >>  hard_space
-            >>  phrase                          [actions.globalref_post]
+            ("funcref", element_info(element_info::phrase, &local.link, phrase_tags::funcref))
+            ("classref", element_info(element_info::phrase, &local.link, phrase_tags::classref))
+            ("memberref", element_info(element_info::phrase, &local.link, phrase_tags::memberref))
+            ("enumref", element_info(element_info::phrase, &local.link, phrase_tags::enumref))
+            ("macroref", element_info(element_info::phrase, &local.link, phrase_tags::macroref))
+            ("headerref", element_info(element_info::phrase, &local.link, phrase_tags::headerref))
+            ("conceptref", element_info(element_info::phrase, &local.link, phrase_tags::conceptref))
+            ("globalref", element_info(element_info::phrase, &local.link, phrase_tags::globalref))
             ;
 
         elements.add
-            ("*", element_info(element_info::phrase, &local.bold))
-            ("'", element_info(element_info::phrase, &local.italic))
-            ("_", element_info(element_info::phrase, &local.underline))
-            ("^", element_info(element_info::phrase, &local.teletype))
-            ("-", element_info(element_info::phrase, &local.strikethrough))
-            ("\"", element_info(element_info::phrase, &local.quote))
-            ("~", element_info(element_info::phrase, &local.replaceable))
-            ;
-
-        local.bold =
-                blank
-            >>  local.inner_phrase              [actions.bold]
-            ;
-
-        local.italic =
-                blank
-            >>  local.inner_phrase              [actions.italic]
-            ;
-
-        local.underline =
-                blank
-            >>  local.inner_phrase              [actions.underline]
-            ;
-
-        local.teletype =
-                blank
-            >>  local.inner_phrase              [actions.teletype]
-            ;
-
-        local.strikethrough =
-                blank
-            >>  local.inner_phrase              [actions.strikethrough]
-            ;
-
-        local.quote =
-                blank
-            >>  local.inner_phrase              [actions.quote]
-            ;
-
-        local.replaceable =
-                blank
-            >>  local.inner_phrase              [actions.replaceable]
+            ("*", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::bold))
+            ("'", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::italic))
+            ("_", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::underline))
+            ("^", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::teletype))
+            ("-", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::strikethrough))
+            ("\"", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::quote))
+            ("~", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::replaceable))
             ;
 
         elements.add
@@ -245,12 +142,7 @@ namespace quickbook
         local.source_mode_teletype = cl::eps_p [cl::assign_a(actions.source_mode, "teletype")];
 
         elements.add
-            ("footnote", element_info(element_info::phrase, &local.footnote))
-            ;
-
-        local.footnote =
-                blank
-            >>  local.inner_phrase              [actions.footnote]
+            ("footnote", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::footnote))
             ;
 
         local.inner_phrase =

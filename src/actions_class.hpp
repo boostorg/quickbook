@@ -123,37 +123,10 @@ namespace quickbook
         plain_char_action       plain_char;
         raw_char_action         raw_char;
         escape_unicode_action   escape_unicode;
-        image_action            image;
 
         list_action             list;
         list_format_action      list_format;
         phrase_action           list_item;
-
-        link_action             funcref_pre;
-        markup_action           funcref_post;
-        link_action             classref_pre;
-        markup_action           classref_post;
-        link_action             memberref_pre;
-        markup_action           memberref_post;
-        link_action             enumref_pre;
-        markup_action           enumref_post;
-        link_action             macroref_pre;
-        markup_action           macroref_post;
-        link_action             headerref_pre;
-        markup_action           headerref_post;
-        link_action             conceptref_pre;
-        markup_action           conceptref_post;
-        link_action             globalref_pre;
-        markup_action           globalref_post;
-
-        tagged_action           bold;
-        tagged_action           italic;
-        tagged_action           underline;
-        tagged_action           teletype;
-        tagged_action           strikethrough;
-        tagged_action           quote;
-        tagged_action           replaceable;
-        tagged_action           footnote;
 
         simple_phrase_action    simple_bold;
         simple_phrase_action    simple_italic;
@@ -164,11 +137,6 @@ namespace quickbook
         break_action            break_;
         do_macro_action         do_macro;
         do_template_action      do_template;
-        link_action             url_pre;
-        markup_action           url_post;
-        link_action             link_pre;
-        markup_action           link_post;
-        anchor_action           anchor;
 
         element_id_warning_action element_id_warning;
 

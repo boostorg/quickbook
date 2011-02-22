@@ -117,26 +117,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct tagged_action
-    {
-        tagged_action(
-            collector& out,
-            std::string const& pre,
-            std::string const& post,
-            quickbook::actions& actions)
-        : out(out)
-        , pre(pre)
-        , post(post)
-        , actions(actions) {}
-
-        void operator()(iterator, iterator) const;
-
-        collector& out;
-        std::string pre;
-        std::string post;
-        quickbook::actions& actions;
-    };
-
     struct phrase_action
     {
         //  blurb, blockquote, preformatted, list_item,
@@ -311,18 +291,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct anchor_action
-    {
-        // Handles anchors
-
-        anchor_action(quickbook::actions& actions)
-            : actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        quickbook::actions& actions;
-    };
-
     extern char const* quickbook_get_date;
     extern char const* quickbook_get_time;
 
@@ -422,22 +390,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct image_action
-    {
-        // Handles inline images
-
-        image_action(
-            collector& phrase
-          , quickbook::actions& actions)
-        : phrase(phrase)
-        , actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& phrase;
-        quickbook::actions& actions;
-    };
-
     struct markup_action
     {
         // A generic markup action
@@ -528,23 +480,6 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct link_action
-    {
-        // Handles links (URL, XML refentry, function, class, member)
-
-        link_action(
-            collector& phrase,
-            char const* tag,
-            quickbook::actions& actions)
-        : phrase(phrase), tag(tag), actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& phrase;
-        char const* tag;
-        quickbook::actions& actions;
-    };
-
    struct element_id_warning_action
    {
         element_id_warning_action(quickbook::actions& actions_)
@@ -557,18 +492,6 @@ namespace quickbook
 
     void pre(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
     void post(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
-
-    struct phrase_to_string_action
-    {
-        phrase_to_string_action(std::string& out, collector& phrase, quickbook::actions& actions)
-            : out(out) , phrase(phrase), actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        std::string& out;
-        collector& phrase;
-        quickbook::actions& actions;
-    };
 
     struct phrase_to_docinfo_action_impl
     {
