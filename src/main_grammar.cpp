@@ -12,6 +12,7 @@
 #include "actions_class.hpp"
 #include "utils.hpp"
 #include "template_tags.hpp"
+#include "parsers.hpp"
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_confix.hpp>
 #include <boost/spirit/include/classic_chset.hpp>
@@ -22,63 +23,7 @@
 namespace quickbook
 {
     namespace cl = boost::spirit::classic;
-
-    struct simple_markup_start_parser
-        : public cl::unary< cl::chlit<char>, cl::parser< simple_markup_start_parser > >
-    {
-        typedef simple_markup_start_parser self_t;
-        typedef cl::unary< cl::chlit<char>, cl::parser< simple_markup_start_parser > > base_t;
-
-        template <typename ScannerT>
-        struct result
-        {
-            typedef typename cl::parser_result<cl::chlit<char>, ScannerT>::type type;
-        };
-
-        simple_markup_start_parser(char c)
-            : base_t(cl::ch_p(c))
-            , mark_(c)
-        {}
-
-        template <typename ScannerT>
-        typename result<ScannerT>::type parse(ScannerT const &scan) const
-        {
-            typedef typename ScannerT::iterator_t iterator_t;
-            iterator_t save = scan.first;
-
-            typename cl::parser_result<cl::chlit<char>, ScannerT>::type result
-                = this->subject().parse(scan);
-
-            typename iterator_t::lookback_range::iterator
-                lookback_begin = save.lookback().begin(),
-                lookback_end = save.lookback().end();
-            
-            if (lookback_begin != lookback_end) {
-                if (*lookback_begin == mark_)
-                    return scan.no_match();
-
-                if (!cl::punct_p.test(*lookback_begin) &&
-                        !cl::space_p.test(*lookback_begin))
-                    return scan.no_match();
-            }
-                
-            if (result)
-            {
-                return scan.create_match(result.length(), cl::nil_t(), save, scan.first);
-            }
-            else {
-                return scan.no_match();
-            }
-        }
-        
-        char mark_;
-    };
     
-    simple_markup_start_parser start_parser(char c)
-    {
-        return simple_markup_start_parser(c);
-    }
-
     template <typename Rule, typename Action>
     inline void
     simple_markup(
@@ -89,12 +34,21 @@ namespace quickbook
     )
     {
         simple =
-                start_parser(mark)              // first mark must be preceeded
+                mark
+            >>  lookback
+                [   cl::anychar_p
+                >>  ~cl::eps_p(mark)            // first mark not be preceeded by
+                                                // the same character.
+                >>  (cl::space_p | cl::punct_p | cl::end_p)
+                                                // first mark must be preceeded
                                                 // by space or punctuation or the
-                                                // mark character.
-            >>  cl::eps_p(cl::graph_p)          // graph_p must follow first mark
-            >>  (   *(cl::anychar_p -
-                        (   cl::graph_p         // graph_p must precede final mark
+                                                // mark character or a the start.
+                ]
+            >>  (   cl::graph_p                 // graph_p must follow first mark
+                >>  *(  cl::anychar_p -
+                        (   lookback[cl::graph_p]
+                                                // final mark must be preceeded by
+                                                // graph_p
                         >>  mark
                         >>  ~cl::eps_p(mark)    // final mark not be followed by
                                                 // the same character.
@@ -105,8 +59,7 @@ namespace quickbook
                                                 // past a single block
                         )
                     )
-                    >>  cl::graph_p
-                    >>  cl::eps_p(mark >> (cl::space_p | cl::punct_p | cl::end_p))
+                >>  cl::eps_p(mark)
                 )                               [action]
             >> mark
             ;
