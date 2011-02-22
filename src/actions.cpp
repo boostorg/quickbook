@@ -191,22 +191,19 @@ namespace quickbook
 
         if (!generic && qbk_version_n < 103) // version 1.2 and below
         {
-            std::string id_base = content.get_boostbook();
-
             anchor = section_id + '.' +
-                detail::make_identifier(id_base.begin(), id_base.end());
+                detail::make_identifier(content.get_boostbook());
         }
         else
         {
-            std::string id_base =
-                qbk_version_n >= 106 ? 
-                    content.get_quickbook() :
-                    content.get_boostbook();
-
             std::string id =
                 !element_id.is_empty() ?
                     element_id.get_quickbook() :
-                    detail::make_identifier(id_base.begin(), id_base.end());
+                    detail::make_identifier(
+                        qbk_version_n >= 106 ?
+                            content.get_quickbook() :
+                            content.get_boostbook()
+                    );
 
             linkend = anchor =
                 fully_qualified_id(library_id, qualified_section_id, id);
@@ -1222,7 +1219,7 @@ namespace quickbook
             else if(has_title) {
                 table_id = fully_qualified_id(actions.doc_id,
                     actions.qualified_section_id,
-                    detail::make_identifier(title.begin(), title.end()));
+                    detail::make_identifier(title));
             }
         }
 
@@ -1302,11 +1299,9 @@ namespace quickbook
         value content = values.consume();
         assert(!values.is());
 
-        std::string qbk_src = content.get_quickbook();
-
         section_id = !element_id.is_empty() ?
             element_id.get_quickbook() :
-            detail::make_identifier(qbk_src.begin(), qbk_src.end());
+            detail::make_identifier(content.get_quickbook());
 
         if (section_level != 0)
             qualified_section_id += '.';

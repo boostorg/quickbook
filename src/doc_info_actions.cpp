@@ -98,8 +98,7 @@ namespace quickbook
             actions.doc_id = id.get_quickbook();
 
         if (actions.doc_id.empty())
-            actions.doc_id = detail::make_identifier(
-                actions.doc_title_qbk.begin(),actions.doc_title_qbk.end());
+            actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
         
         if (dirname.is_empty() && actions.doc_type == "library") {
             if (!id.is_empty()) {
