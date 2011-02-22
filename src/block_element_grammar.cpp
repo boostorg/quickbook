@@ -11,7 +11,7 @@
 #include "utils.hpp"
 #include "actions_class.hpp"
 #include "grammar_impl.hpp"
-#include "table_tags.hpp"
+#include "block_tags.hpp"
 #include "template_tags.hpp"
 #include <boost/spirit/include/classic_assign_actor.hpp>
 #include <boost/spirit/include/classic_if.hpp>
@@ -24,7 +24,8 @@ namespace quickbook
     struct block_element_grammar_local
     {
         cl::rule<scanner>
-                        h, h1, h2, h3, h4, h5, h6, blurb, blockquote,
+                        h, h1, h2, h3, h4, h5, h6, heading,
+                        blurb, blockquote,
                         warning, caution, important, note, tip,
                         inner_phrase, def_macro,
                         table, table_row, variablelist,
@@ -69,14 +70,17 @@ namespace quickbook
             ;
 
         local.begin_section =
-                space
+            actions.values.scoped(block_tags::begin_section)
+            [   space
             >>  local.element_id
             >>  space
-            >>  local.inner_phrase              [actions.begin_section]
+            >>  local.inner_phrase
+            ]                                   [actions.begin_section]
             ;
 
         local.end_section =
-                cl::eps_p                       [actions.end_section]
+                cl::eps_p                       [actions.values.entry(block_tags::end_section)]
+                                                [actions.end_section]
             ;
 
         elements.add
@@ -89,13 +93,52 @@ namespace quickbook
             ("h6", element_info(element_info::block, &local.h6))
             ;
 
-        local.h  = space >> local.element_id_1_6 >> space >> local.inner_phrase [actions.h];
-        local.h1 = space >> local.element_id_1_6 >> space >> local.inner_phrase [actions.h1];
-        local.h2 = space >> local.element_id_1_6 >> space >> local.inner_phrase [actions.h2];
-        local.h3 = space >> local.element_id_1_6 >> space >> local.inner_phrase [actions.h3];
-        local.h4 = space >> local.element_id_1_6 >> space >> local.inner_phrase [actions.h4];
-        local.h5 = space >> local.element_id_1_6 >> space >> local.inner_phrase [actions.h5];
-        local.h6 = space >> local.element_id_1_6 >> space >> local.inner_phrase [actions.h6];
+        local.heading
+            =   actions.values.scoped
+                [   space
+                >>  local.element_id_1_6
+                >>  space
+                >>  local.inner_phrase
+                ]                               [actions.heading]
+            ;
+
+        // This looks verbose now, but it'll eventually be replaced with a
+        // more automatic version (see how doc_info works).
+
+        local.h
+            =   cl::eps_p                       [actions.values.tag(block_tags::generic_heading)]
+            >>  local.heading
+            ;
+
+        local.h1
+            =   cl::eps_p                       [actions.values.tag(block_tags::heading1)]
+            >>  local.heading
+            ;
+
+        local.h2
+            =   cl::eps_p                       [actions.values.tag(block_tags::heading2)]
+            >>  local.heading
+            ;
+
+        local.h3
+            =   cl::eps_p                       [actions.values.tag(block_tags::heading3)]
+            >>  local.heading
+            ;
+
+        local.h4
+            =   cl::eps_p                       [actions.values.tag(block_tags::heading4)]
+            >>  local.heading
+            ;
+
+        local.h5
+            =   cl::eps_p                       [actions.values.tag(block_tags::heading5)]
+            >>  local.heading
+            ;
+
+        local.h6
+            =   cl::eps_p                       [actions.values.tag(block_tags::heading6)]
+            >>  local.heading
+            ;
         
         elements.add("blurb", element_info(element_info::block, &local.blurb));
 
@@ -317,9 +360,11 @@ namespace quickbook
             ;
 
         local.inner_phrase =
-                cl::eps_p                       [actions.inner_phrase_pre]
+            actions.values.save
+            [   cl::eps_p                       [actions.inner_phrase_pre]
             >>  phrase
             >>  cl::eps_p                       [actions.inner_phrase_post]
+            ]                                   [actions.docinfo_value]
             ;
     }
 }

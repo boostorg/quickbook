@@ -13,7 +13,13 @@
 
 namespace quickbook
 {
-    QUICKBOOK_VALUE_TAGS(table_tags, 0x200,
+    QUICKBOOK_VALUE_TAGS(block_tags, 0x200,
+        (begin_section)(end_section)
+        (generic_heading)
+        (heading1)(heading2)(heading3)(heading4)(heading5)(heading6)
+    )
+
+    QUICKBOOK_VALUE_TAGS(table_tags, 0x250,
         (title)(row)(cell)
     )
 

@@ -85,7 +85,6 @@ namespace quickbook
         std::string             macro_id;
         std::stack<mark_type>   list_marks;
         int                     list_indent;
-        bool                    condition;
         int                     template_depth;
         template_stack          templates;
         int                     error_count;
@@ -108,13 +107,14 @@ namespace quickbook
 
         scoped_parser<scoped_block_push>
                                 scoped_block;
+        scoped_parser<scoped_phrase_push>
+                                scoped_phrase;
 
         code_action             code;
         code_action             code_block;
         inline_code_action      inline_code;
         implicit_paragraph_action inside_paragraph;
-        generic_header_action   h;
-        header_action           h1, h2, h3, h4, h5, h6;
+        header_action           heading;
         markup_action           hr;
         tagged_action           blurb, blockquote;
         scoped_parser<set_no_eols_scoped>
@@ -126,7 +126,6 @@ namespace quickbook
         raw_char_action         raw_char;
         escape_unicode_action   escape_unicode;
         image_action            image;
-        cond_phrase_action_pre  cond_phrase_pre;
         scoped_parser<cond_phrase_push>
                                 scoped_cond_phrase;
 
@@ -151,22 +150,14 @@ namespace quickbook
         link_action             globalref_pre;
         markup_action           globalref_post;
 
-        markup_action           bold_pre;
-        markup_action           bold_post;
-        markup_action           italic_pre;
-        markup_action           italic_post;
-        markup_action           underline_pre;
-        markup_action           underline_post;
-        markup_action           teletype_pre;
-        markup_action           teletype_post;
-        markup_action           strikethrough_pre;
-        markup_action           strikethrough_post;
-        markup_action           quote_pre;
-        markup_action           quote_post;
-        markup_action           replaceable_pre;
-        markup_action           replaceable_post;
-        markup_action           footnote_pre;
-        markup_action           footnote_post;
+        tagged_action           bold;
+        tagged_action           italic;
+        tagged_action           underline;
+        tagged_action           teletype;
+        tagged_action           strikethrough;
+        tagged_action           quote;
+        tagged_action           replaceable;
+        tagged_action           footnote;
 
         simple_phrase_action    simple_bold;
         simple_phrase_action    simple_italic;

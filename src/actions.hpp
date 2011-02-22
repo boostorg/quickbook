@@ -190,40 +190,9 @@ namespace quickbook
 
     struct header_action
     {
-        //  Handles paragraph, h1, h2, h3, h4, h5, h6,
-
-        header_action(
-            collector& out,
-            collector& phrase,
-            std::string const& library_id,
-            std::string const& section_id,
-            std::string const& qualified_section_id,
-            int level,
-            quickbook::actions& actions)
-        : out(out)
-        , phrase(phrase)
-        , library_id(library_id)
-        , section_id(section_id)
-        , qualified_section_id(qualified_section_id)
-        , level(level)
-        , actions(actions) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        collector& out;
-        collector& phrase;
-        std::string const& library_id;
-        std::string const& section_id;
-        std::string const& qualified_section_id;
-        int level;
-        quickbook::actions& actions;
-    };
-
-    struct generic_header_action
-    {
         //  Handles h
 
-        generic_header_action(
+        header_action(
             collector& out,
             collector& phrase,
             std::string const& library_id,
@@ -273,22 +242,6 @@ namespace quickbook
         std::string post;
         string_symbols const& macro;
         quickbook::actions& actions;
-    };
-
-    struct cond_phrase_action_pre
-    {
-        //  Handles conditional phrases
-
-        cond_phrase_action_pre(
-            bool& condition
-          , string_symbols const& macro)
-        : condition(condition)
-        , macro(macro) {}
-
-        void operator()(iterator first, iterator last) const;
-
-        bool& condition;
-        string_symbols const& macro;
     };
 
     struct cond_phrase_push : scoped_action_base
@@ -848,6 +801,16 @@ namespace quickbook
     {
         scoped_block_push(quickbook::actions&);
         ~scoped_block_push();
+        template <typename T> void success(T const&) { this->success_impl(); }
+        void success_impl();
+
+        quickbook::actions& actions;
+    };
+
+    struct scoped_phrase_push : scoped_action_base
+    {
+        scoped_phrase_push(quickbook::actions&);
+        ~scoped_phrase_push();
         template <typename T> void success(T const&) { this->success_impl(); }
         void success_impl();
 

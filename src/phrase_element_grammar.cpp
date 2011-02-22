@@ -30,7 +30,7 @@ namespace quickbook
                         anchor, link,
                         source_mode_cpp, source_mode_python, source_mode_teletype,
                         quote, footnote, replaceable,
-                        cond_phrase
+                        cond_phrase, inner_phrase
                         ;
     };
 
@@ -46,7 +46,7 @@ namespace quickbook
 
         local.cond_phrase =
                 blank
-            >>  macro_identifier                [actions.cond_phrase_pre]
+            >>  macro_identifier                [actions.values.entry]
             >>  actions.scoped_cond_phrase[extended_phrase]
             ;
 
@@ -55,7 +55,7 @@ namespace quickbook
             ;
 
         local.image =
-                blank                           [actions.values.reset]
+                blank
             >>  cl::if_p(qbk_since(105u)) [
                         (+(
                             *cl::space_p
@@ -197,38 +197,38 @@ namespace quickbook
             ;
 
         local.bold =
-                blank                           [actions.bold_pre]
-            >>  phrase                          [actions.bold_post]
+                blank
+            >>  local.inner_phrase              [actions.bold]
             ;
 
         local.italic =
-                blank                           [actions.italic_pre]
-            >>  phrase                          [actions.italic_post]
+                blank
+            >>  local.inner_phrase              [actions.italic]
             ;
 
         local.underline =
-                blank                           [actions.underline_pre]
-            >>  phrase                          [actions.underline_post]
+                blank
+            >>  local.inner_phrase              [actions.underline]
             ;
 
         local.teletype =
-                blank                           [actions.teletype_pre]
-            >>  phrase                          [actions.teletype_post]
+                blank
+            >>  local.inner_phrase              [actions.teletype]
             ;
 
         local.strikethrough =
-                blank                           [actions.strikethrough_pre]
-            >>  phrase                          [actions.strikethrough_post]
+                blank
+            >>  local.inner_phrase              [actions.strikethrough]
             ;
 
         local.quote =
-                blank                           [actions.quote_pre]
-            >>  phrase                          [actions.quote_post]
+                blank
+            >>  local.inner_phrase              [actions.quote]
             ;
 
         local.replaceable =
-                blank                           [actions.replaceable_pre]
-            >>  phrase                          [actions.replaceable_post]
+                blank
+            >>  local.inner_phrase              [actions.replaceable]
             ;
 
         elements.add
@@ -246,8 +246,18 @@ namespace quickbook
             ;
 
         local.footnote =
-                blank                           [actions.footnote_pre]
-            >>  phrase                          [actions.footnote_post]
+                blank
+            >>  local.inner_phrase              [actions.footnote]
+            ;
+
+        local.inner_phrase =
+            actions.scoped_phrase[
+            actions.values.save
+            [   cl::eps_p                       [actions.inner_phrase_pre]
+            >>  phrase
+            >>  cl::eps_p                       [actions.inner_phrase_post]
+            ]                                   [actions.phrase_value]
+            ]
             ;
     }
 }

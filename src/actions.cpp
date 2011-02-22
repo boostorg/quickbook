@@ -24,7 +24,7 @@
 #include "grammar.hpp"
 #include "input_path.hpp"
 #include "template_tags.hpp"
-#include "table_tags.hpp"
+#include "block_tags.hpp"
 
 namespace quickbook
 {
@@ -160,26 +160,55 @@ namespace quickbook
     {
         if(actions.suppress) return;
 
-        std::string str;
-        phrase.swap(str);
-        
         value_consumer values = actions.values.get();
+        value heading_list = values.consume();
+        assert(!values.is());
 
-        std::string anchor;
+        values = heading_list;
 
-        if (qbk_version_n < 103) // version 1.2 and below
+        bool generic = heading_list.get_tag() == block_tags::generic_heading;
+        value element_id = values.optional_consume(general_tags::element_id);
+        value content = values.consume();
+        assert(!values.is());
+
+        int level;
+
+        if (generic)
         {
-            anchor = section_id + '.' +
-                detail::make_identifier(str.begin(), str.end());
+            level = section_level + 2;      // section_level is zero-based. We need to use a
+                                            // one-based heading which is one greater
+                                            // than the current. Thus: section_level + 2.
+            if (level > 6 )                 // The max is h6, clip it if it goes
+                level =  6;                 // further than that
         }
         else
         {
-            std::string id =
-                values.is(general_tags::element_id) ? values.consume().get_quickbook() :
-                qbk_version_n >= 106 ? detail::make_identifier(first, last) :
-                detail::make_identifier(str.begin(), str.end());
+            level = heading_list.get_tag() - block_tags::heading1 + 1;
+        }
 
-            anchor =
+        std::string anchor;
+        std::string linkend;
+
+        if (!generic && qbk_version_n < 103) // version 1.2 and below
+        {
+            std::string id_base = content.get_boostbook();
+
+            anchor = section_id + '.' +
+                detail::make_identifier(id_base.begin(), id_base.end());
+        }
+        else
+        {
+            std::string id_base =
+                qbk_version_n >= 106 ? 
+                    content.get_quickbook() :
+                    content.get_boostbook();
+
+            std::string id =
+                !element_id.is_empty() ?
+                    element_id.get_quickbook() :
+                    detail::make_identifier(id_base.begin(), id_base.end());
+
+            linkend = anchor =
                 fully_qualified_id(library_id, qualified_section_id, id);
         }
 
@@ -188,38 +217,7 @@ namespace quickbook
         actions.anchors.push_back(anchor);
         actions.output_pre(out);
         
-        std::string linkend = qbk_version_n < 103 ? std::string() : anchor;
-        write_bridgehead(out, level, str, anchor + "-heading", linkend);
-    }
-
-    void generic_header_action::operator()(iterator first, iterator last) const
-    {
-        if(actions.suppress) return;
-
-        int level_ = section_level + 2;     // section_level is zero-based. We need to use a
-                                            // one-based heading which is one greater
-                                            // than the current. Thus: section_level + 2.
-        if (level_ > 6)                     // The max is h6, clip it if it goes
-            level_ = 6;                     // further than that
-        std::string str;
-        phrase.swap(str);
-
-        value_consumer values = actions.values.get();
-
-        std::string id =
-            values.is(general_tags::element_id) ? values.consume().get_quickbook() :
-            qbk_version_n >= 106 ? detail::make_identifier(first, last) :
-            detail::make_identifier(str.begin(), str.end());
-
-        std::string anchor =
-            fully_qualified_id(library_id, qualified_section_id, id);
-
-        actions.output_pre(out);
-        actions.anchors.swap(actions.saved_anchors);
-        actions.anchors.push_back(anchor);
-        actions.output_pre(out);
-
-        write_bridgehead(out, level_, str, anchor + "-heading", anchor);
+        write_bridgehead(out, level, content.get_boostbook(), anchor + "-heading", linkend);
     }
 
     void simple_phrase_action::operator()(iterator first, iterator last) const
@@ -240,17 +238,15 @@ namespace quickbook
         out << post;
     }
 
-    void cond_phrase_action_pre::operator()(iterator first, iterator last) const
-    {
-        std::string str(first, last);
-        condition = find(macro, str.c_str());
-    }
-
     cond_phrase_push::cond_phrase_push(quickbook::actions& actions)
         : actions(actions)
         , saved_suppress(actions.suppress)
     {
-        actions.suppress = actions.suppress || !actions.condition;
+        value_consumer values = actions.values.get();
+        bool condition = find(actions.macro,
+            values.consume().get_quickbook().c_str());
+    
+        actions.suppress = actions.suppress || !condition;
     }
     
     cond_phrase_push::~cond_phrase_push()
@@ -1292,20 +1288,31 @@ namespace quickbook
         }
     }
 
-    void begin_section_action::operator()(iterator first, iterator last) const
+    void begin_section_action::operator()(iterator, iterator) const
     {    
         if(actions.suppress) return;
 
         value_consumer values = actions.values.get();
+        value begin_section_list = values.consume(block_tags::begin_section);
+        assert(!values.is());
 
-        section_id = values.is(general_tags::element_id) ?
-            values.consume().get_quickbook() :
-            detail::make_identifier(first, last);
+        values = begin_section_list;
+
+        value element_id = values.optional_consume(general_tags::element_id);
+        value content = values.consume();
+        assert(!values.is());
+
+        std::string qbk_src = content.get_quickbook();
+
+        section_id = !element_id.is_empty() ?
+            element_id.get_quickbook() :
+            detail::make_identifier(qbk_src.begin(), qbk_src.end());
 
         if (section_level != 0)
             qualified_section_id += '.';
         else
             BOOST_ASSERT(qualified_section_id.empty());
+
         qualified_section_id += section_id;
         ++section_level;
 
@@ -1321,35 +1328,37 @@ namespace quickbook
             out << "\n<section id=\"" << library_id
                 << "." << qualified_section_id << "\">\n";
         }
-        std::string str;
-        phrase.swap(str);
 
         actions.anchors.swap(actions.saved_anchors);
         actions.output_pre(out);
 
         if (qbk_version_n < 103) // version 1.2 and below
         {
-            out << "<title>" << str << "</title>\n";
+            out << "<title>" << content.get_boostbook() << "</title>\n";
         }
         else // version 1.3 and above
         {
             out << "<title>"
                 << "<link linkend=\"" << library_id
                     << "." << qualified_section_id << "\">"
-                << str
+                << content.get_boostbook()
                 << "</link>"
                 << "</title>\n"
                 ;
         }
     }
 
-    void end_section_action::operator()(iterator first, iterator last) const
+    void end_section_action::operator()(iterator, iterator) const
     {
         if(!actions.output_pre(out)) return;
 
+        value_consumer values = actions.values.get();
+        value end_section = values.consume(block_tags::end_section);
+        assert(!values.is());
+
         if (section_level <= min_section_level)
         {
-            file_position const pos = first.get_position();
+            file_position const pos = end_section.get_position();
             detail::outerr(actions.filename, pos.line)
                 << "Mismatched [endsect] near column " << pos.column << ".\n";
             ++error_count;
@@ -1645,9 +1654,27 @@ namespace quickbook
 
     void scoped_block_push::success_impl()
     {
-        actions.inside_paragraph();
         actions.values.builder.insert(
             bbk_value(actions.out.str(), actions.values.builder.release_tag()));
+    }
+
+    scoped_phrase_push::scoped_phrase_push(quickbook::actions& actions)
+        : actions(actions)
+    {
+        actions.out.push();
+        actions.phrase.push();
+    }
+    
+    scoped_phrase_push::~scoped_phrase_push()
+    {
+        actions.phrase.pop();
+        actions.out.pop();
+    }
+
+    void scoped_phrase_push::success_impl()
+    {
+        actions.values.builder.insert(
+            bbk_value(actions.phrase.str(), actions.values.builder.release_tag()));
     }
 
     set_no_eols_scoped::set_no_eols_scoped(quickbook::actions& actions)

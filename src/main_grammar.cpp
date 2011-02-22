@@ -351,17 +351,19 @@ namespace quickbook
         simple_markup(local.simple_teletype,
             '=', actions.simple_teletype, local.simple_phrase_end);
 
-        phrase =
+        phrase = actions.values.save[
            *(   common
             |   (cl::anychar_p - phrase_end)    [actions.plain_char]
             )
+            ]
             ;
 
-        extended_phrase =
+        extended_phrase = actions.values.save[
            *(   local.extended_phrase_element
             |   common
             |   (cl::anychar_p - phrase_end)    [actions.plain_char]
             )
+            ]
             ;
 
         inside_paragraph =
@@ -380,6 +382,7 @@ namespace quickbook
             >>  space
             >>  (   local.element
                 >>  cl::eps_p(local.check_element(element_info::in_phrase))
+                                                [actions.values.reset]
                 >>  local.element_rule
                 |   local.template_
                 |   cl::str_p("br")             [actions.break_]
@@ -392,6 +395,7 @@ namespace quickbook
             >>  local.element
             >>  cl::eps_p(local.check_element(element_info::in_conditional))
                                                 [actions.inside_paragraph]
+                                                [actions.values.reset]
             >>  (   local.element_rule
                 >>  (   (space >> ']')
                     |   cl::eps_p               [actions.error]
@@ -427,10 +431,11 @@ namespace quickbook
         // Simple phrase grammar
         //
 
-        simple_phrase =
+        simple_phrase = actions.values.save[
            *(   common
             |   (cl::anychar_p - ']')       [actions.plain_char]
             )
+            ]
             ;
 
         //
