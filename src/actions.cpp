@@ -1596,14 +1596,20 @@ namespace quickbook
         phrase.swap(out);
     }
 
-    void phrase_to_docinfo_action::operator()(iterator first, iterator last) const
+    void phrase_to_docinfo_action_impl::operator()(iterator first, iterator last,
+            value::tag_type tag) const
     {
         if(!actions.output_pre(actions.phrase)) return;
 
         std::string encoded;
         actions.phrase.swap(encoded);
         actions.values.builder.insert(
-            qbk_bbk_value(first, last, encoded, actions.values.builder.release_tag()));
+            qbk_bbk_value(first, last, encoded, tag));
+    }
+
+    void phrase_to_docinfo_action_impl::operator()(iterator first, iterator last) const
+    {
+        return (*this)(first, last, actions.values.builder.release_tag());
     }
     
     void phrase_to_value_action::operator()(iterator first, iterator last) const

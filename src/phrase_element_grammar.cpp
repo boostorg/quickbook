@@ -15,6 +15,7 @@
 #include <boost/spirit/include/classic_assign_actor.hpp>
 #include <boost/spirit/include/classic_clear_actor.hpp>
 #include <boost/spirit/include/classic_if.hpp>
+#include <boost/spirit/include/phoenix1_primitives.hpp>
 
 namespace quickbook
 {
@@ -46,7 +47,7 @@ namespace quickbook
 
         local.cond_phrase =
                 blank
-            >>  macro_identifier                [actions.values.entry]
+            >>  macro_identifier                [actions.values.entry(ph::arg1, ph::arg2)]
             >>  actions.scoped_cond_phrase[extended_phrase]
             ;
 
@@ -60,21 +61,21 @@ namespace quickbook
                         (+(
                             *cl::space_p
                         >>  +(cl::anychar_p - (cl::space_p | phrase_end | '['))
-                        ))                      [actions.values.entry]
+                        ))                      [actions.values.entry(ph::arg1, ph::arg2)]
                     >>  hard_space
                     >>  *actions.values.scoped[
                             '['
                         >>  (*(cl::alnum_p | '_')) 
-                                                [actions.values.entry]
+                                                [actions.values.entry(ph::arg1, ph::arg2)]
                         >>  space
                         >>  (*(cl::anychar_p - (phrase_end | '[')))
-                                                [actions.values.entry]
+                                                [actions.values.entry(ph::arg1, ph::arg2)]
                         >>  ']'
                         >>  space
                         ]
                 ].else_p [
                         (*(cl::anychar_p - phrase_end))
-                                                [actions.values.entry]
+                                                [actions.values.entry(ph::arg1, ph::arg2)]
                 ]
             >>  cl::eps_p(']')                  [actions.image]
             ;

@@ -16,12 +16,14 @@
 #include <stack>
 #include <algorithm>
 #include <boost/filesystem/v3/operations.hpp>
+#include <boost/spirit/include/phoenix1_functions.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include "fwd.hpp"
 #include "collector.hpp"
 #include "template_stack.hpp"
 #include "utils.hpp"
+#include "values.hpp"
 
 #ifdef BOOST_MSVC
 // disable copy/assignment could not be generated, unreferenced formal params
@@ -725,15 +727,21 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct phrase_to_docinfo_action
+    struct phrase_to_docinfo_action_impl
     {
-        phrase_to_docinfo_action(quickbook::actions& actions)
+    	template <typename Arg1, typename Arg2, typename Arg3 = void>
+    	struct result { typedef void type; };
+    
+        phrase_to_docinfo_action_impl(quickbook::actions& actions)
             : actions(actions) {}
 
         void operator()(iterator first, iterator last) const;
+        void operator()(iterator first, iterator last, value::tag_type) const;
 
         quickbook::actions& actions;
     };
+    
+    typedef phoenix::function<phrase_to_docinfo_action_impl> phrase_to_docinfo_action;
 
     struct phrase_to_value_action
     {

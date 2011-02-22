@@ -11,9 +11,11 @@
 
 #include "values.hpp"
 #include <boost/spirit/include/classic_core.hpp>
+#include <boost/spirit/include/phoenix1_functions.hpp>
 
 namespace quickbook {
     namespace cl = boost::spirit::classic;
+    namespace ph = phoenix;
 
     struct value_builder_save
     {
@@ -158,64 +160,41 @@ namespace quickbook {
         value::tag_type tag_;
     };
 
-    /* value_scoped_list_gen
-     */
-
-    struct value_string_entry {
-        value_string_entry(value_builder& b, std::string const& v, value::tag_type t = value::no_tag)
-            : b(b), v(v), tag_(t) {}
-
-        template <typename Iterator>
-        void operator()(Iterator, Iterator) const {
-            b.insert(bbk_value(v, tag_));
-        }
-
-        value_builder& b;
-        std::string v;
-        value::tag_type tag_;
-    };
-
     struct value_entry
     {
-        value_entry(value_builder& b, value::tag_type t = value::no_tag)
-            : b(b), tag_(t) {}
+        template <typename Arg1, typename Arg2 = void, typename Arg3 = void, typename Arg4 = void>
+        struct result {
+            typedef void type;
+        };
+
+        value_entry(value_builder& b)
+            : b(b) {}
 
         template <typename Iterator>
-        void operator()(Iterator begin, Iterator end) const {
-            b.insert(qbk_value(begin, end, tag_));
-        }
-        
-        value_string_entry operator()(std::string const& value) {
-            return value_string_entry(b, value, tag_);
+        void operator()(Iterator begin, Iterator end,
+                value::tag_type tag = value::no_tag) const
+        {
+            b.insert(qbk_value(begin, end, tag));
         }
 
-        value_string_entry operator()(value::tag_type tag, std::string const& value) {
-            return value_string_entry(b, value, tag);
-        }
-
-        value_entry operator()(value::tag_type const& value) {
-            return value_entry(b, value);
+        template <typename Iterator>
+        void operator()(Iterator begin, Iterator,
+                std::string const& v,
+                value::tag_type tag = value::no_tag) const
+        {
+            b.insert(qbk_value(v, begin.get_position(), tag));
         }
 
         value_builder& b;
-        value::tag_type tag_;
-    };
-
-    struct value_fixed_tag {
-        value_fixed_tag(value_builder& b, value::tag_type v)
-            : b(b), v(v) {}
-
-        template <typename Iterator>
-        void operator()(Iterator, Iterator) const {
-            b.set_tag(v);
-        }
-
-        value_builder& b;
-        value::tag_type v;
     };
 
     struct value_tag
     {
+        template <typename Arg>
+        struct result {
+            typedef void type;
+        };
+
         value_tag(value_builder& b)
             : b(b) {}
 
@@ -223,20 +202,17 @@ namespace quickbook {
             b.set_tag(value);
         }
 
-        value_fixed_tag operator()(value::tag_type value) {
-            return value_fixed_tag(b, value);
-        }
-
         value_builder& b;
     };
 
     struct value_reset
     {
+        typedef void result_type;
+    
         value_reset(value_builder& b)
             : b(b) {}
 
-        template <typename Iterator>
-        void operator()(Iterator, Iterator) const {
+        void operator()() const {
             b.reset();
         }
 
@@ -245,11 +221,12 @@ namespace quickbook {
     
     struct value_sort
     {
+        typedef void result_type;
+    
         value_sort(value_builder& b)
             : b(b) {}
 
-        template <typename Iterator>
-        void operator()(Iterator, Iterator) const {
+        void operator()() const {
             b.sort_list();
         }
 
@@ -261,10 +238,10 @@ namespace quickbook {
         value_parser()
             : builder()
             , save(builder)
-            , reset(builder)
             , scoped(builder)
-            , tag(builder)
             , entry(builder)
+            , reset(builder)
+            , tag(builder)
             , sort(builder)
             {}
     
@@ -272,11 +249,11 @@ namespace quickbook {
 
         value_builder builder;
         value_save_gen save;
-        value_reset reset;
         value_scoped_list_gen scoped;
-        value_tag tag;
-        value_entry entry;
-        value_sort sort;
+        ph::function<value_entry> entry;
+        ph::function<value_reset> reset;
+        ph::function<value_tag> tag;
+        ph::function<value_sort> sort;
     };
 }
 

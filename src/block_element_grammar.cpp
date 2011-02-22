@@ -16,10 +16,12 @@
 #include <boost/spirit/include/classic_assign_actor.hpp>
 #include <boost/spirit/include/classic_if.hpp>
 #include <boost/spirit/include/classic_clear_actor.hpp>
+#include <boost/spirit/include/phoenix1_primitives.hpp>
 
 namespace quickbook
 {
     namespace cl = boost::spirit::classic;
+    namespace ph = phoenix;
 
     struct block_element_grammar_local
     {
@@ -46,7 +48,7 @@ namespace quickbook
         local.element_id =
             !(  ':'
             >>  (   cl::if_p(qbk_since(105u)) [space]
-                >>  (+(cl::alnum_p | '_'))      [actions.values.entry(general_tags::element_id)]
+                >>  (+(cl::alnum_p | '_'))      [actions.values.entry(ph::arg1, ph::arg2, general_tags::element_id)]
                 |   cl::eps_p                   [actions.element_id_warning]
                 )
             )
@@ -79,7 +81,7 @@ namespace quickbook
             ;
 
         local.end_section =
-                cl::eps_p                       [actions.values.entry(block_tags::end_section)]
+                cl::eps_p                       [actions.values.entry(ph::arg1, ph::arg2, block_tags::end_section)]
                                                 [actions.end_section]
             ;
 
@@ -216,20 +218,21 @@ namespace quickbook
 
         local.template_ =
                space
-            >> local.template_id                [actions.values.reset][actions.values.entry]
+            >> local.template_id                [actions.values.reset()]
+                                                [actions.values.entry(ph::arg1, ph::arg2)]
             >> actions.values.scoped[
             !(
                 space >> '['
                 >> *(
                         space
-                    >>  local.template_id       [actions.values.entry]
+                    >>  local.template_id       [actions.values.entry(ph::arg1, ph::arg2)]
                     )
                 >> space >> ']'
             )
             ]
             >>  (   cl::eps_p(*cl::blank_p >> cl::eol_p)
-                >>  local.template_body         [actions.values.entry(template_tags::block)]
-                |   local.template_body         [actions.values.entry(template_tags::phrase)]
+                >>  local.template_body         [actions.values.entry(ph::arg1, ph::arg2, template_tags::block)]
+                |   local.template_body         [actions.values.entry(ph::arg1, ph::arg2, template_tags::phrase)]
                 )                               [actions.template_body]
             ;
 
@@ -245,7 +248,7 @@ namespace quickbook
 
         local.variablelist =
                 (cl::eps_p(*cl::blank_p >> cl::eol_p) | space)
-            >>  (*(cl::anychar_p - eol))        [actions.values.entry(table_tags::title)]
+            >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
             >>  (+eol)                          [actions.output_pre]
             >>  *local.varlistentry
             >>  cl::eps_p                       [actions.variablelist]
@@ -297,7 +300,7 @@ namespace quickbook
                 (cl::eps_p(*cl::blank_p >> cl::eol_p) | space)
             >>  local.element_id_1_5
             >>  (cl::eps_p(*cl::blank_p >> cl::eol_p) | space)
-            >>  (*(cl::anychar_p - eol))        [actions.values.entry(table_tags::title)]
+            >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
             >>  (+eol)                          [actions.output_pre]
             >>  *local.table_row
             >>  cl::eps_p                       [actions.table]
@@ -364,7 +367,7 @@ namespace quickbook
             [   cl::eps_p                       [actions.inner_phrase_pre]
             >>  phrase
             >>  cl::eps_p                       [actions.inner_phrase_post]
-            ]                                   [actions.docinfo_value]
+            ]                                   [actions.docinfo_value(ph::arg1, ph::arg2)]
             ;
     }
 }

@@ -19,11 +19,12 @@
 #include <boost/spirit/include/classic_clear_actor.hpp>
 #include <boost/spirit/include/classic_if.hpp>
 #include <boost/spirit/include/classic_loops.hpp>
+#include <boost/spirit/include/phoenix1_primitives.hpp>
 
 namespace quickbook
 {
     namespace cl = boost::spirit::classic;
-    
+
     template <typename Rule, typename Action>
     inline void
     simple_markup(
@@ -172,7 +173,7 @@ namespace quickbook
             >>  local.element
             >>  cl::eps_p(local.check_element(element_info::in_block))
                                                 [actions.inside_paragraph]
-                                                [actions.values.reset]
+                                                [actions.values.reset()]
             >>  (   local.element_rule
                 >>  (   (space >> ']')          [actions.element]
                     |   cl::eps_p               [actions.error]
@@ -236,18 +237,18 @@ namespace quickbook
             ;
 
         local.template_ =
-                cl::eps_p                       [actions.values.reset]
-            >>  !cl::str_p("`")                 [actions.values.entry(template_tags::escape)]
+                cl::eps_p                       [actions.values.reset()]
+            >>  !cl::str_p("`")                 [actions.values.entry(ph::arg1, ph::arg2, template_tags::escape)]
             >>
             ( (
                 (cl::eps_p(cl::punct_p)
                     >> actions.templates.scope
-                )                               [actions.values.entry(template_tags::identifier)]
+                )                               [actions.values.entry(ph::arg1, ph::arg2, template_tags::identifier)]
                 >> !local.template_args
             ) | (
                 (actions.templates.scope
                     >> cl::eps_p(hard_space)
-                )                               [actions.values.entry(template_tags::identifier)]
+                )                               [actions.values.entry(ph::arg1, ph::arg2, template_tags::identifier)]
                 >> space
                 >> !local.template_args
             ) )
@@ -267,8 +268,8 @@ namespace quickbook
 
         local.template_arg_1_4 =
             (   cl::eps_p(*cl::blank_p >> cl::eol_p)
-            >>  local.template_inner_arg_1_4    [actions.values.entry(template_tags::block)]
-            |   local.template_inner_arg_1_4    [actions.values.entry(template_tags::phrase)]
+            >>  local.template_inner_arg_1_4    [actions.values.entry(ph::arg1, ph::arg2, template_tags::block)]
+            |   local.template_inner_arg_1_4    [actions.values.entry(ph::arg1, ph::arg2, template_tags::phrase)]
             )                               
             ;
 
@@ -284,8 +285,8 @@ namespace quickbook
 
         local.template_arg_1_5 =
             (   cl::eps_p(*cl::blank_p >> cl::eol_p)
-            >>  local.template_arg_1_5_content  [actions.values.entry(template_tags::block)]
-            |   local.template_arg_1_5_content  [actions.values.entry(template_tags::phrase)]
+            >>  local.template_arg_1_5_content  [actions.values.entry(ph::arg1, ph::arg2, template_tags::block)]
+            |   local.template_arg_1_5_content  [actions.values.entry(ph::arg1, ph::arg2, template_tags::phrase)]
             )
             ;
 
@@ -382,7 +383,7 @@ namespace quickbook
             >>  space
             >>  (   local.element
                 >>  cl::eps_p(local.check_element(element_info::in_phrase))
-                                                [actions.values.reset]
+                                                [actions.values.reset()]
                 >>  local.element_rule
                 >>  cl::eps_p(space >> ']')     [actions.element]
                 |   local.template_
@@ -396,7 +397,7 @@ namespace quickbook
             >>  local.element
             >>  cl::eps_p(local.check_element(element_info::in_conditional))
                                                 [actions.inside_paragraph]
-                                                [actions.values.reset]
+                                                [actions.values.reset()]
             >>  (   local.element_rule
                 >>  (   (space >> ']')          [actions.element]
                     |   cl::eps_p               [actions.error]
