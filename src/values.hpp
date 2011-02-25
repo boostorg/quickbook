@@ -16,12 +16,14 @@
 #include <cassert>
 #include <boost/scoped_ptr.hpp>
 #include <boost/iterator/iterator_traits.hpp>
+#include <stdexcept>
 #include "fwd.hpp"
 
 namespace quickbook
 {
     class value;
     class value_builder;
+    class value_error;
 
     namespace detail
     {
@@ -42,6 +44,7 @@ namespace quickbook
             virtual ~value_node();
 
         public:
+            virtual char const* type_name() const = 0;
             virtual value_node* clone() const = 0;
             virtual value_node* store();
 
@@ -54,7 +57,7 @@ namespace quickbook
             virtual bool is_string() const;
 
             virtual value_node* get_list() const;
-
+            
             int ref_count_;
             const tag_type tag_;
             value_node* next_;
@@ -256,6 +259,16 @@ namespace quickbook
         detail::value_list_builder current;
         value::tag_type list_tag;
         boost::scoped_ptr<value_builder> saved;
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Value Error
+    //
+    
+    class value_error : std::logic_error
+    {
+    public:
+        value_error(std::string const&);
     };
 
     ////////////////////////////////////////////////////////////////////////////

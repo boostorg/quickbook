@@ -8,9 +8,24 @@
 
 #include "values.hpp"
 #include <boost/intrusive_ptr.hpp>
+#include <boost/current_function.hpp>
+
+#define UNDEFINED_ERROR() \
+    throw value_error( \
+        std::string(BOOST_CURRENT_FUNCTION) +\
+        " not defined for " + \
+        this->type_name() + \
+        " values." \
+        );
 
 namespace quickbook
 {
+    ////////////////////////////////////////////////////////////////////////////
+    // Value Error
+    
+    value_error::value_error(std::string const& x)
+        : std::logic_error(x) {}
+    
     ////////////////////////////////////////////////////////////////////////////
     // Node
 
@@ -25,10 +40,10 @@ namespace quickbook
         
         value_node* value_node::store() { return this; }
 
-        file_position value_node::get_position() const { assert(false); }
-        std::string value_node::get_quickbook() const { assert(false); }
-        std::string value_node::get_boostbook() const { assert(false); }
-        value_node* value_node::get_list() const { assert(false); }
+        file_position value_node::get_position() const { UNDEFINED_ERROR(); }
+        std::string value_node::get_quickbook() const { UNDEFINED_ERROR(); }
+        std::string value_node::get_boostbook() const {  UNDEFINED_ERROR(); }
+        value_node* value_node::get_list() const {  UNDEFINED_ERROR(); }
 
         bool value_node::empty() const { return false; }
         bool value_node::is_list() const { return false; }
@@ -52,6 +67,8 @@ namespace quickbook
                 : value_node(t) {}
 
         private:
+            char const* type_name() const { return "empty"; }
+        
             virtual value_node* clone() const
                 { return new value_empty_impl(tag_); }
 
@@ -188,6 +205,8 @@ namespace quickbook
         public:
             explicit value_string_impl(std::string const&, value::tag_type);
         private:
+            char const* type_name() const { return "boostbook"; }
+
             virtual ~value_string_impl();
             virtual value_node* clone() const;
             virtual std::string get_boostbook() const;
@@ -206,6 +225,8 @@ namespace quickbook
                     quickbook::iterator begin, quickbook::iterator end,
                     value::tag_type);
         private:
+            char const* type_name() const { return "quickbook"; }
+
             virtual ~value_qbk_string_impl();
             virtual value_node* clone() const;
             virtual file_position get_position() const;
@@ -222,6 +243,8 @@ namespace quickbook
         public:
             explicit value_qbk_ref_impl(quickbook::iterator begin, quickbook::iterator end, value::tag_type);
         private:
+            char const* type_name() const { return "quickbook"; }
+
             virtual ~value_qbk_ref_impl();
             virtual value_node* clone() const;
             virtual value_node* store();
@@ -237,6 +260,8 @@ namespace quickbook
         struct value_qbk_bbk_impl : public value_node
         {
         private:
+            char const* type_name() const { return "quickbook/boostbook"; }
+
             value_qbk_bbk_impl(
                 std::string const& qbk, std::string const& bbk,
                 file_position const&, value::tag_type);
@@ -571,6 +596,8 @@ namespace quickbook
             value_list_impl(value::tag_type);
             value_list_impl(value_node*, value::tag_type);
         private:
+            char const* type_name() const { return "list"; }
+
             virtual ~value_list_impl();
             virtual value_node* clone() const;
             virtual value_node* store();
