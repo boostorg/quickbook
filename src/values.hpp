@@ -48,7 +48,7 @@ namespace quickbook
             virtual std::string get_quickbook() const;
             virtual std::string get_boostbook() const;
 
-            virtual bool is_empty() const;
+            virtual bool empty() const;
             virtual bool is_list() const;
             virtual bool is_string() const;
 
@@ -91,7 +91,7 @@ namespace quickbook
         public:
             void swap(value_base& x) { std::swap(value_, x.value_); }
 
-            bool is_empty() const { return value_->is_empty(); }
+            bool empty() const { return value_->empty(); }
             bool is_list() const { return value_->is_list(); }
             bool is_string() const { return value_->is_string(); }
 
@@ -281,19 +281,19 @@ namespace quickbook
 
         reference consume()
         {
-            assert(is());
+            assert(check());
             return *pos_++;
         }
 
         reference consume(value::tag_type t)
         {
-            assert(is(t));
+            assert(check(t));
             return *pos_++;
         }
 
         value optional_consume()
         {
-            if(is()) {
+            if(check()) {
                 return *pos_++;
             }
             else {
@@ -303,7 +303,7 @@ namespace quickbook
 
         value optional_consume(value::tag_type t)
         {
-            if(is(t)) {
+            if(check(t)) {
                 return *pos_++;
             }
             else {
@@ -311,14 +311,19 @@ namespace quickbook
             }
         }
 
-        bool is()
+        bool check() const
         {
             return pos_ != end_;
         }
 
-        bool is(value::tag_type t)
+        bool check(value::tag_type t) const
         {
             return pos_ != end_ && t == pos_->get_tag();
+        }
+        
+        void finish() const
+        {
+        	assert(pos_ == end_);
         }
 
         iterator begin() const { return pos_; }

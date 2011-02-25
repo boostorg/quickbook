@@ -71,9 +71,9 @@ namespace quickbook
     void element_action::operator()(iterator first, iterator) const
     {
         value_consumer values = actions.values.get();
-        if(!values.is()) return;
+        if(!values.check()) return;
         value v = values.consume();
-        if(values.is()) return;
+        if(values.check()) return;
         
         switch(v.get_tag())
         {
@@ -203,7 +203,7 @@ namespace quickbook
 
         value_consumer values = block;
         actions.out << markup.pre << values.consume().get_boostbook() << markup.post;
-        assert(!values.is());
+        values.finish();
     }
 
     void phrase_action_(quickbook::actions& actions, value phrase)
@@ -213,7 +213,7 @@ namespace quickbook
 
         value_consumer values = phrase;
         actions.phrase << markup.pre << values.consume().get_boostbook() << markup.post;
-        assert(!values.is());
+        values.finish();
     }
 
     void paragraph_action::operator()() const
@@ -260,7 +260,7 @@ namespace quickbook
         bool generic = heading_list.get_tag() == block_tags::generic_heading;
         value element_id = values.optional_consume(general_tags::element_id);
         value content = values.consume();
-        assert(!values.is());
+        values.finish();
 
         int level;
 
@@ -289,7 +289,7 @@ namespace quickbook
         else
         {
             std::string id =
-                !element_id.is_empty() ?
+                !element_id.empty() ?
                     element_id.get_quickbook() :
                     detail::make_identifier(
                         qbk_version_n >= 106 ?
@@ -377,7 +377,7 @@ namespace quickbook
                     values.consume(general_tags::list_indent).get_quickbook());
             value mark_value = values.consume(general_tags::list_mark);
             std::string content = values.consume().get_boostbook();
-            assert(!values.is());
+            values.finish();
 
             char mark = mark_value.get_quickbook()[0];
             assert(mark == '*' || mark == '#');
@@ -468,7 +468,7 @@ namespace quickbook
         
         value_consumer values = anchor;
         actions.anchors.push_back(values.consume().get_quickbook());
-        assert(!values.is());
+        values.finish();
     }
 
     void do_macro_action::operator()(std::string const& str) const
@@ -630,7 +630,7 @@ namespace quickbook
             value_consumer pair = pair_;
             value name = pair.consume();
             value value = pair.consume();
-            assert(!pair.is());
+            pair.finish();
             if(!attributes.insert(std::make_pair(name.get_quickbook(), value)).second)
             {
                 detail::outwarn(actions.filename, name.get_position().line)
@@ -786,7 +786,7 @@ namespace quickbook
         value_consumer values = macro_definition;
         std::string macro_id = values.consume().get_quickbook();
         std::string phrase = values.consume().get_boostbook();
-        assert(!values.is());
+        values.finish();
 
         actions.copy_macros_for_write();
         actions.macro.add(
@@ -807,9 +807,9 @@ namespace quickbook
             template_values.push_back(p.get_quickbook());
         }
 
-        BOOST_ASSERT(values.is(template_tags::block) || values.is(template_tags::phrase));
+        BOOST_ASSERT(values.check(template_tags::block) || values.check(template_tags::phrase));
         value body = values.consume();
-        BOOST_ASSERT(!values.is());
+        BOOST_ASSERT(!values.check());
     
         if (!actions.templates.add(
             template_symbol(
@@ -1035,7 +1035,7 @@ namespace quickbook
         // Get the arguments
         value_consumer values = actions.values.get();
 
-        bool template_escape = values.is(template_tags::escape);
+        bool template_escape = values.check(template_tags::escape);
         if(template_escape) values.consume();
 
         std::string identifier = values.consume(template_tags::identifier).get_quickbook();
@@ -1244,13 +1244,13 @@ namespace quickbook
         value_consumer values = link;
         value dst = values.consume();
         value content = values.consume();
-        assert(!values.is());
+        values.finish();
         
         actions.phrase << markup.pre;
         detail::print_string(dst.get_quickbook(), actions.phrase.get());
         actions.phrase << "\">";
 
-        if (content.is_empty())
+        if (content.empty())
             detail::print_string(dst.get_quickbook(), actions.phrase.get());
         else
             actions.phrase << content.get_boostbook();
@@ -1274,13 +1274,13 @@ namespace quickbook
         BOOST_FOREACH(value_consumer entry, values) {
             actions.out << start_varlistentry_;
             
-            if(entry.is()) {
+            if(entry.check()) {
                 actions.out << start_varlistterm_;
                 actions.out << entry.consume().get_boostbook();
                 actions.out << end_varlistterm_;
             }
             
-            if(entry.is()) {
+            if(entry.check()) {
                 actions.out << start_varlistitem_;
                 BOOST_FOREACH(value phrase, entry) actions.out << phrase.get_boostbook();
                 actions.out << end_varlistitem_;
@@ -1299,7 +1299,7 @@ namespace quickbook
         value_consumer values = table;
 
         std::string element_id;
-        if(values.is(general_tags::element_id))
+        if(values.check(general_tags::element_id))
             element_id = values.consume().get_quickbook();
 
         std::string title = values.consume(table_tags::title).get_quickbook();
@@ -1388,9 +1388,9 @@ namespace quickbook
 
         value element_id = values.optional_consume(general_tags::element_id);
         value content = values.consume();
-        assert(!values.is());
+        values.finish();
 
-        actions.section_id = !element_id.is_empty() ?
+        actions.section_id = !element_id.empty() ?
             element_id.get_quickbook() :
             detail::make_identifier(content.get_quickbook());
 
@@ -1527,7 +1527,7 @@ namespace quickbook
         value_consumer values = xinclude;
         fs::path path = calculate_relative_path(
             check_path(values.consume(), actions), actions);
-        assert(!values.is());
+        values.finish();
 
         actions.out << "\n<xi:include href=\"";
         detail::print_string(detail::escape_uri(path.generic_string()), actions.out.get());
@@ -1571,7 +1571,7 @@ namespace quickbook
         value_consumer values = import;
         fs::path path = include_search(actions.filename.parent_path(),
             check_path(values.consume(), actions));
-        assert(!values.is());
+        values.finish();
 
         std::string ext = path.extension().generic_string();
         std::vector<template_symbol> storage;
@@ -1599,7 +1599,7 @@ namespace quickbook
         value include_doc_id = values.optional_consume(general_tags::include_id);
         fs::path filein = include_search(actions.filename.parent_path(),
             check_path(values.consume(), actions));
-        assert(!values.is());
+        values.finish();
 
         std::string doc_type, doc_id;
 
@@ -1630,7 +1630,7 @@ namespace quickbook
 
         // if an id is specified in this include (as in [include:id foo.qbk])
         // then use it as the doc_id.
-        if (!include_doc_id.is_empty())
+        if (!include_doc_id.empty())
             actions.doc_id = include_doc_id.get_quickbook();
 
         // update the __FILENAME__ macro
