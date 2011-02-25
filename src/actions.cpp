@@ -637,6 +637,8 @@ namespace quickbook
                     << "Duplicate image attribute: " << name.get_quickbook() << std::endl;
             }
         }
+        
+        values.finish();
 
         // Find the file basename and extension.
         //
@@ -1056,6 +1058,8 @@ namespace quickbook
                     arg.get_tag() == template_tags::block
                 ));
         }
+        
+        values.finish();
 
         ++actions.template_depth;
         if (actions.template_depth > actions.max_template_depth)
@@ -1290,6 +1294,8 @@ namespace quickbook
         }
 
         actions.out << "</variablelist>\n";
+        
+        values.finish();
     }
 
     void table_action(quickbook::actions& actions, value table)
@@ -1323,10 +1329,12 @@ namespace quickbook
         int row_count = 0;
         int span_count = 0;
 
-        BOOST_FOREACH(value row, values) {
+        value_consumer lookahead = values;
+        BOOST_FOREACH(value row, lookahead) {
             ++row_count;
             span_count = boost::distance(row);
         }
+        lookahead.finish();
 
         if (has_title)
         {
@@ -1366,6 +1374,8 @@ namespace quickbook
             }
             actions.out << end_row_;
         }
+        
+        values.finish();
 
         actions.out << "</tbody>\n"
                      << "</tgroup>\n";

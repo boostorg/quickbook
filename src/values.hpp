@@ -15,6 +15,7 @@
 #include <string>
 #include <cassert>
 #include <boost/scoped_ptr.hpp>
+#include <boost/iterator/iterator_traits.hpp>
 #include "fwd.hpp"
 
 namespace quickbook
@@ -129,6 +130,7 @@ namespace quickbook
         public:
             explicit value_proxy(value_node* base) : value_base(base) {}
             value_proxy* operator->() { return this; }
+            value_ref operator*() const { return value_ref(value_); }
         };
     
         ////////////////////////////////////////////////////////////////////////
@@ -263,8 +265,27 @@ namespace quickbook
 
     class value_consumer {
     public:
-        typedef value::iterator iterator;
-        typedef value::iterator const_iterator;
+        class iterator
+            : public boost::input_iterator_helper<iterator,
+                boost::iterator_value<value::iterator>::type,
+                boost::iterator_difference<value::iterator>::type,
+                boost::iterator_pointer<value::iterator>::type,
+                boost::iterator_reference<value::iterator>::type>
+        {
+        public:
+            iterator();
+            explicit iterator(value::iterator* p) : ptr_(p) {}
+            friend bool operator==(iterator x, iterator y)
+                { return *x.ptr_ == *y.ptr_; }
+            iterator& operator++() { ++*ptr_; return *this; }
+            reference operator*() const { return **ptr_; }
+            pointer operator->() const { return ptr_->operator->(); }
+        private:
+            value::iterator* ptr_;
+        };
+
+
+        typedef iterator const_iterator;
         typedef iterator::reference reference;
     
         value_consumer(value const& x)
@@ -323,14 +344,14 @@ namespace quickbook
         
         void finish() const
         {
-        	assert(pos_ == end_);
+            assert(pos_ == end_);
         }
 
-        iterator begin() const { return pos_; }
-        iterator end() const { return end_; }
+        iterator begin() { return iterator(&pos_); }
+        iterator end() { return iterator(&end_); }
     private:
         value list_;
-        iterator pos_, end_;
+        value::iterator pos_, end_;
     };
 }
 
