@@ -79,8 +79,8 @@ namespace quickbook
 
         while (values.check(value::default_tag)) values.consume();
         
-        std::vector<std::string> duplicates;
-
+        value qbk_version = values.optional_consume(doc_info_tags::qbk_version);
+        
         value doc_title;
         if (values.check())
         {
@@ -88,6 +88,8 @@ namespace quickbook
             doc_title = values.consume(doc_info_tags::title);
             actions.doc_title_qbk = doc_title.get_quickbook();
         }
+
+        std::vector<std::string> duplicates;
 
         value id = consume_last_single(values, doc_info_attributes::id, &duplicates);
         value dirname = consume_last_single(values, doc_info_attributes::dirname, &duplicates);
@@ -155,22 +157,28 @@ namespace quickbook
 
         // Quickbook version
 
-        if (qbk_major_version == -1)
+        int qbk_major_version, qbk_minor_version;
+
+        if (qbk_version.empty())
         {
             // hard code quickbook version to v1.1
             qbk_major_version = 1;
             qbk_minor_version = 1;
-            qbk_version_n = 101;
             detail::outwarn(actions.filename,1)
                 << "Warning: Quickbook version undefined. "
                 "Version 1.1 is assumed" << std::endl;
         }
         else
         {
-            qbk_version_n = ((unsigned) qbk_major_version * 100) +
-                (unsigned) qbk_minor_version;
+            value_consumer qbk_version_values(qbk_version);
+            qbk_major_version = qbk_version_values.consume().get_int();
+            qbk_minor_version = qbk_version_values.consume().get_int();
+            qbk_version_values.finish();
         }
         
+        qbk_version_n = ((unsigned) qbk_major_version * 100) +
+            (unsigned) qbk_minor_version;
+
         if (qbk_version_n == 106)
         {
             detail::outwarn(actions.filename,1)

@@ -37,8 +37,6 @@ namespace quickbook
     namespace cl = boost::spirit::classic;
     namespace fs = boost::filesystem;
 
-    extern int qbk_major_version;
-    extern int qbk_minor_version;
     extern unsigned qbk_version_n; // qbk_major_version * 100 + qbk_minor_version
 
     struct quickbook_range {

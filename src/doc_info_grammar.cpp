@@ -135,11 +135,14 @@ namespace quickbook
             ;
 
         local.quickbook_version =
-                "quickbook" >> hard_space
-            >>  (   cl::uint_p              [cl::assign_a(qbk_major_version)]
+            actions.values.list(doc_info_tags::qbk_version)
+            [   "quickbook"
+            >>  hard_space
+            >>  (   cl::uint_p              [actions.values.entry(ph::arg1)]
                     >> '.' 
-                    >>  uint2_t()           [cl::assign_a(qbk_minor_version)]
+                    >>  uint2_t()           [actions.values.entry(ph::arg1)]
                 )
+            ]
             ;
 
         // TODO: Clear phrase afterwards?
