@@ -28,5 +28,8 @@
     <para>
       not_underlined_
     </para>
+    <para>
+      _Should not underline escaped markup_. _or this escaped_ markup form.
+    </para>
   </section>
 </article>

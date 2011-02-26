@@ -420,7 +420,7 @@ namespace quickbook
             |   local.simple_teletype
             ;
 
-        local.simple_phrase_end = '[' | phrase_end;
+        local.simple_phrase_end = cl::ch_p('[') | "'''" | '`' | phrase_end;
 
         simple_markup(local.simple_bold,
             '*', actions.simple_bold, local.simple_phrase_end);

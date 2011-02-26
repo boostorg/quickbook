@@ -18,4 +18,7 @@ not__underlined__hopefully
 
 not_underlined_
 
+_Should not underline '''escaped''' markup_.
+_or this '''escaped_ markup''' form.
+
 [endsect]
