@@ -479,7 +479,9 @@ namespace quickbook
             |   (
                     ("'''" >> !eol)             [actions.escape_pre]
                 >>  *(cl::anychar_p - "'''")    [actions.raw_char]
-                >>  cl::str_p("'''")            [actions.escape_post]
+                >>  (   cl::str_p("'''")        [actions.escape_post]
+                    |   cl::eps_p               [actions.error("Unclosed boostbook escape.")]
+                    )
                 )
             ;
 
