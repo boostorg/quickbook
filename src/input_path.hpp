@@ -19,9 +19,7 @@
 #   define QUICKBOOK_CYGWIN_PATHS 1
 #elif defined(_WIN32)
 #   define QUICKBOOK_WIDE_PATHS 1
-#   if defined(BOOST_MSVC) && BOOST_MSVC >= 1400
-#       define QUICKBOOK_WIDE_STREAMS 1
-#   endif
+#   define QUICKBOOK_WIDE_STREAMS 1
 #endif
 
 #if !defined(QUICKBOOK_WIDE_PATHS)

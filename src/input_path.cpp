@@ -161,8 +161,10 @@ namespace detail {
 
     void initialise_output()
     {
+#	if defined(BOOST_MSVC) && BOOST_MSVC >= 1400
         if (_isatty(_fileno(stdout))) _setmode(_fileno(stdout), _O_U16TEXT);
         if (_isatty(_fileno(stderr))) _setmode(_fileno(stderr), _O_U16TEXT);
+#	endif
     }
 
     void write_utf8(ostream& out, std::string const& x)
