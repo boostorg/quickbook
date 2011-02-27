@@ -101,7 +101,7 @@ namespace quickbook
                         top_level, blocks, paragraph_separator,
                         code, code_line, blank_line, hr,
                         list, list_item, element,
-                        escape,
+                        nested_char, escape,
                         inline_code,
                         template_,
                         code_block, macro,
@@ -381,7 +381,8 @@ namespace quickbook
             ;
 
         local.simple_markup =
-            (   cl::chset<>("*/_=")            [local.simple_markup.mark = ph::arg1]
+                cl::chset<>("*/_=")            [local.simple_markup.mark = ph::arg1]
+            >>  cl::eps_p(cl::graph_p)         // graph_p must follow first mark
             >>  lookback
                 [   cl::anychar_p
                 >>  ~cl::eps_p(cl::f_ch_p(local.simple_markup.mark))
@@ -392,10 +393,17 @@ namespace quickbook
                                                 // by space or punctuation or the
                                                 // mark character or a the start.
                 ]
-            >>  cl::graph_p                     // graph_p must follow first mark
-            >>  *(cl::anychar_p - local.simple_markup_end(local.simple_markup.mark))
-            >>  cl::f_ch_p(local.simple_markup.mark)
-            )                                   [actions.simple_markup]
+            >>  actions.values.save()
+                [
+                    actions.scoped_output()
+                    [
+                        (*( ~cl::eps_p(local.simple_markup_end(local.simple_markup.mark))
+                        >>  local.nested_char
+                        ))                      [actions.docinfo_value(ph::arg1, ph::arg2)]
+                    ]                           
+                    >>  cl::f_ch_p(local.simple_markup.mark)
+                                                [actions.simple_markup]
+                ]
             ;
 
         local.simple_markup_end
@@ -450,6 +458,19 @@ namespace quickbook
                 )
             ]                                   [actions.paragraph]
             ]
+            ;
+
+        local.nested_char =
+                cl::str_p("\\n")                [actions.break_]
+            |   "\\ "                           // ignore an escaped space
+            |   '\\' >> cl::punct_p             [actions.raw_char]
+            |   "\\u" >> cl::repeat_p(4)
+                    [cl::chset<>("0-9a-fA-F")]
+                                                [actions.escape_unicode]
+            |   "\\U" >> cl::repeat_p(8)
+                    [cl::chset<>("0-9a-fA-F")]
+                                                [actions.escape_unicode]
+            |   cl::anychar_p                   [actions.plain_char]
             ;
 
         local.escape =
@@ -540,13 +561,12 @@ namespace quickbook
             ;
 
         phrase_end =
-            ']' |
-            cl::if_p(var(actions.no_eols))
-            [
-                cl::eol_p >> *cl::blank_p >> cl::eol_p
-                                                // Make sure that we don't go
-            ]                                   // past a single block, except
-            ;                                   // when preformatted.
+                ']'
+            |   cl::eps_p(var(actions.no_eols))
+            >>  cl::eol_p >> *cl::blank_p >> cl::eol_p
+            ;                                   // Make sure that we don't go
+                                                // past a single block, except
+                                                // when preformatted.
 
         comment =
             "[/" >> *(local.dummy_block | (cl::anychar_p - ']')) >> ']'
