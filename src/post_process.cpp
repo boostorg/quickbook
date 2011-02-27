@@ -7,7 +7,6 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 #include "post_process.hpp"
-#include "input_path.hpp"
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/bind.hpp>
 #include <set>
@@ -419,9 +418,8 @@ namespace quickbook
         int indent;
     };
 
-    int post_process(
+    std::string post_process(
         std::string const& in
-      , std::ostream& out
       , int indent
       , int linewidth)
     {
@@ -430,36 +428,17 @@ namespace quickbook
         if (linewidth == -1)
             linewidth = 80;     // set default to 80
 
-        try
+        std::string tidy;
+        tidy_compiler state(tidy, linewidth);
+        tidy_grammar g(state, indent);
+        cl::parse_info<iter_type> r = parse(in.begin(), in.end(), g, cl::space_p);
+        if (r.full)
         {
-            std::string tidy;
-            tidy_compiler state(tidy, linewidth);
-            tidy_grammar g(state, indent);
-            cl::parse_info<iter_type> r = parse(in.begin(), in.end(), g, cl::space_p);
-            if (r.full)
-            {
-                out << tidy;
-                return 0;
-            }
-            else
-            {
-                // fallback!
-                ::quickbook::detail::outerr()
-                    << "Warning: Post Processing Failed."
-                    << std::endl;
-                out << in;
-                return 1;
-            }
+            return tidy;
         }
-
-        catch(...)
+        else
         {
-            // fallback!
-            ::quickbook::detail::outerr()
-                << "Post Processing Failed."
-                << std::endl;
-            out << in;
-            return 1;
+            throw quickbook::post_process_failure("Post Processing Failed.");
         }
     }
 }
