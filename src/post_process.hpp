@@ -16,8 +16,8 @@ namespace quickbook
 {
     std::string post_process(
         std::string const& in
-      , int indent
-      , int linewidth);
+      , int indent = -1
+      , int linewidth = -1);
 
     class post_process_failure : std::runtime_error
     {
