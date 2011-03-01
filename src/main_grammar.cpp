@@ -122,7 +122,8 @@ namespace quickbook
         };
 
         cl::rule<scanner, simple_markup_closure::context_t>
-                        simple_markup, simple_markup_end;
+                        simple_markup;
+        cl::rule<scanner> simple_markup_end;
 
         element_info::type_enum element_type;
         cl::rule<scanner> element_rule;
@@ -397,7 +398,7 @@ namespace quickbook
                 [
                     actions.scoped_output()
                     [
-                        (*( ~cl::eps_p(local.simple_markup_end(local.simple_markup.mark))
+                        (*( ~cl::eps_p(local.simple_markup_end)
                         >>  local.nested_char
                         ))                      [actions.docinfo_value(ph::arg1, ph::arg2)]
                     ]                           
@@ -409,8 +410,8 @@ namespace quickbook
         local.simple_markup_end
             =   (   lookback[cl::graph_p]       // final mark must be preceeded by
                                                 // graph_p
-                >>  cl::f_ch_p(local.simple_markup_end.mark)
-                >>  ~cl::eps_p(cl::f_ch_p(local.simple_markup_end.mark))
+                >>  cl::f_ch_p(local.simple_markup.mark)
+                >>  ~cl::eps_p(cl::f_ch_p(local.simple_markup.mark))
                                                 // final mark not be followed by
                                                 // the same character.
                 >>  (cl::space_p | cl::punct_p | cl::end_p)
