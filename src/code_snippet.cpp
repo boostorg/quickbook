@@ -116,7 +116,7 @@ namespace quickbook
                     =   cl::confix_p(
                             *cl::blank_p >> "#<-",
                             *cl::anychar_p,
-                            "#->" >> *cl::blank_p >> cl::eol_p
+                            "#->" >> *cl::blank_p >> (cl::eol_p | cl::end_p)
                         )
                     |   cl::confix_p(
                             "\"\"\"<-\"\"\"",
@@ -134,7 +134,7 @@ namespace quickbook
                         cl::confix_p(
                             *cl::space_p >> "#`",
                             (*cl::anychar_p)        [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)],
-                            cl::eol_p
+                            (cl::eol_p | cl::end_p)
                         )
                     |   cl::confix_p(
                             *cl::space_p >> "\"\"\"`",
@@ -241,7 +241,7 @@ namespace quickbook
                     =   cl::confix_p(
                             *cl::space_p >> "//`",
                             (*cl::anychar_p)        [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)],
-                            cl::eol_p
+                            (cl::eol_p | cl::end_p)
                         )
                     |   cl::confix_p(
                             *cl::space_p >> "/*`",

@@ -151,6 +151,7 @@ namespace quickbook
                 |   cl::space_p                 [actions.space_char]
                 |   cl::anychar_p               [actions.plain_char]
                 )
+            >>  cl::eps_p                       [actions.paragraph]
             ]
             ;
 
@@ -171,7 +172,7 @@ namespace quickbook
         local.hr =
             cl::str_p("----")
             >> *(cl::anychar_p - eol)
-            >> +eol
+            >> (+eol | cl::end_p)
             ;
 
         local.element
@@ -200,7 +201,7 @@ namespace quickbook
             ;
 
         local.code_line =
-            cl::blank_p >> *(cl::anychar_p - cl::eol_p) >> cl::eol_p
+            cl::blank_p >> *(cl::anychar_p - cl::eol_p) >> (cl::eol_p | cl::end_p)
             ;
 
         local.blank_line =
@@ -238,7 +239,7 @@ namespace quickbook
                 )
             ]
             ]
-            >> +eol
+            >> (+eol | cl::end_p)
             ;
 
         common =

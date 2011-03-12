@@ -1031,28 +1031,14 @@ namespace quickbook
             }
             else
             {
-                if (!body.is_block)
-                {
-                    //  do a phrase level parse
-                    actions.filename = body.filename;
-                    iterator first(body.content.begin(), body.position);
-                    iterator last(body.content.end());
+                actions.filename = body.filename;
+                iterator first(body.content.begin(), body.position);
+                iterator last(body.content.end());
                     
-                    return cl::parse(first, last, actions.grammar().simple_phrase).full;
-                }
-                else
-                {
-                    //  do a block level parse
-                    //  ensure that we have enough trailing newlines to eliminate
-                    //  the need to check for end of file in the grammar.
-                    
-                    actions.filename = body.filename;
-                    std::string content = body.content + "\n\n";
-                    iterator first(content.begin(), body.position);
-                    iterator last(content.end());
-
-                    return cl::parse(first, last, actions.grammar().block).full;
-                }
+                return cl::parse(first, last,
+                        body.is_block ? actions.grammar().block :
+                        actions.grammar().simple_phrase
+                    ).full;
             }
         }
     }
