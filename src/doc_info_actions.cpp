@@ -11,7 +11,6 @@
 #include <sstream>
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/lexical_cast.hpp>
 #include "quickbook.hpp"
 #include "utils.hpp"
 #include "input_path.hpp"
@@ -291,11 +290,10 @@ namespace quickbook
     
                 while(copyright.check(doc_info_tags::copyright_year))
                 {
-                    int year_start =
-                        boost::lexical_cast<int>(copyright.consume().get_quickbook());
+                    int year_start = copyright.consume().get_int();
                     int year_end =
                         copyright.check(doc_info_tags::copyright_year_end) ?
-                        boost::lexical_cast<int>(copyright.consume().get_quickbook()) :
+                        copyright.consume().get_int() :
                         year_start;
     
                     if (year_end < year_start) {
