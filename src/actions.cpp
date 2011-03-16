@@ -1594,47 +1594,14 @@ namespace quickbook
         }
     }
 
-    void import_action(quickbook::actions& actions, value import)
+    void load_quickbook(quickbook::actions& actions, fs::path const& filein,
+            value const& include_doc_id = value())
     {
-        if(!actions.output_pre(actions.out)) return;
-
-        value_consumer values = import;
-        fs::path path = include_search(actions.filename.parent_path(),
-            check_path(values.consume(), actions));
-        values.finish();
-
-        std::string ext = path.extension().generic_string();
-        std::vector<template_symbol> storage;
-        actions.error_count +=
-            load_snippets(path.string(), storage, ext, actions.doc_id);
-
-        BOOST_FOREACH(template_symbol& ts, storage)
-        {
-            std::string tname = ts.identifier;
-            ts.parent = &actions.templates.top_scope();
-            if (!actions.templates.add(ts))
-            {
-                detail::outerr(ts.body.filename, ts.body.position.line)
-                    << "Template Redefinition: " << detail::utf8(tname) << std::endl;
-                ++actions.error_count;
-            }
-        }
-    }
-
-    void include_action(quickbook::actions& actions, value include)
-    {
-        if(!actions.output_pre(actions.out)) return;
-
-        value_consumer values = include;
-        value include_doc_id = values.optional_consume(general_tags::include_id);
-        fs::path filein = include_search(actions.filename.parent_path(),
-            check_path(values.consume(), actions));
-        values.finish();
-
         std::string doc_type, doc_id;
 
         // swap the filenames
-        std::swap(actions.filename, filein);
+        fs::path saved_filename = filein;
+        std::swap(actions.filename, saved_filename);
 
         // save the doc info strings and source mode
         if(qbk_version_n >= 106) {
@@ -1674,7 +1641,7 @@ namespace quickbook
         // restore the values
         actions.values.builder.restore();
 
-        std::swap(actions.filename, filein);
+        std::swap(actions.filename, saved_filename);
 
         actions.doc_type.swap(doc_type);
         actions.doc_id.swap(doc_id);
@@ -1691,6 +1658,51 @@ namespace quickbook
         actions.macro_change_depth = macro_change_depth;
         // restore the templates
         //~ actions.templates = templates; $$$ fixme $$$
+    }
+
+    void load_source_file(quickbook::actions& actions, fs::path const& path)
+    {
+        std::string ext = path.extension().generic_string();
+        std::vector<template_symbol> storage;
+        actions.error_count +=
+            load_snippets(path.string(), storage, ext, actions.doc_id);
+
+        BOOST_FOREACH(template_symbol& ts, storage)
+        {
+            std::string tname = ts.identifier;
+            ts.parent = &actions.templates.top_scope();
+            if (!actions.templates.add(ts))
+            {
+                detail::outerr(ts.body.filename, ts.body.position.line)
+                    << "Template Redefinition: " << detail::utf8(tname) << std::endl;
+                ++actions.error_count;
+            }
+        }
+    }
+
+    void import_action(quickbook::actions& actions, value import)
+    {
+        if(!actions.output_pre(actions.out)) return;
+
+        value_consumer values = import;
+        fs::path path = include_search(actions.filename.parent_path(),
+            check_path(values.consume(), actions));
+        values.finish();
+        
+        load_source_file(actions, path);
+    }
+
+    void include_action(quickbook::actions& actions, value include)
+    {
+        if(!actions.output_pre(actions.out)) return;
+
+        value_consumer values = include;
+        value include_doc_id = values.optional_consume(general_tags::include_id);
+        fs::path filein = include_search(actions.filename.parent_path(),
+            check_path(values.consume(), actions));
+        values.finish();
+
+        load_quickbook(actions, filein, include_doc_id);
     }
 
     void phrase_to_docinfo_action_impl::operator()(iterator first, iterator last,
