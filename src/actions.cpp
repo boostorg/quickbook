@@ -60,7 +60,6 @@ namespace quickbook
     void variable_list_action(quickbook::actions&, value);
     void table_action(quickbook::actions&, value);
     void xinclude_action(quickbook::actions&, value);
-    void import_action(quickbook::actions&, value);
     void include_action(quickbook::actions&, value);
     void image_action(quickbook::actions&, value);
     void anchor_action(quickbook::actions&, value);
@@ -114,7 +113,6 @@ namespace quickbook
         case block_tags::xinclude:
             return xinclude_action(actions, v);
         case block_tags::import:
-            return import_action(actions, v);
         case block_tags::include:
             return include_action(actions, v);
         case phrase_tags::image:
@@ -1595,8 +1593,20 @@ namespace quickbook
     }
 
     void load_quickbook(quickbook::actions& actions, fs::path const& filein,
+            value::tag_type load_type,
             value const& include_doc_id = value())
     {
+        assert(load_type == block_tags::include ||
+            load_type == block_tags::import);
+
+        if (load_type == block_tags::import)
+        {
+            detail::outerr(actions.filename)
+                << "Quickbook import not implemented yet.\n";
+            ++actions.error_count;
+            return;
+        }
+    
         std::string doc_type, doc_id;
 
         // swap the filenames
@@ -1660,8 +1670,21 @@ namespace quickbook
         //~ actions.templates = templates; $$$ fixme $$$
     }
 
-    void load_source_file(quickbook::actions& actions, fs::path const& path)
+    void load_source_file(quickbook::actions& actions, fs::path const& path,
+            value::tag_type load_type,
+            value const& include_doc_id = value())
     {
+        assert(load_type == block_tags::include ||
+            load_type == block_tags::import);
+
+        if (load_type == block_tags::include)
+        {
+            detail::outerr(actions.filename)
+                << "Source include not implemented yet.\n";
+            ++actions.error_count;
+            return;
+        }
+
         std::string ext = path.extension().generic_string();
         std::vector<template_symbol> storage;
         actions.error_count +=
@@ -1680,18 +1703,6 @@ namespace quickbook
         }
     }
 
-    void import_action(quickbook::actions& actions, value import)
-    {
-        if(!actions.output_pre(actions.out)) return;
-
-        value_consumer values = import;
-        fs::path path = include_search(actions.filename.parent_path(),
-            check_path(values.consume(), actions));
-        values.finish();
-        
-        load_source_file(actions, path);
-    }
-
     void include_action(quickbook::actions& actions, value include)
     {
         if(!actions.output_pre(actions.out)) return;
@@ -1701,8 +1712,16 @@ namespace quickbook
         fs::path filein = include_search(actions.filename.parent_path(),
             check_path(values.consume(), actions));
         values.finish();
-
-        load_quickbook(actions, filein, include_doc_id);
+        
+        std::string ext = filein.extension().generic_string();
+        if (ext == ".qbk" || ext == ".quickbook")
+        {
+            load_quickbook(actions, filein, include.get_tag(), include_doc_id);
+        }
+        else
+        {
+            load_source_file(actions, filein, include.get_tag(), include_doc_id);
+        }
     }
 
     void phrase_to_docinfo_action_impl::operator()(iterator first, iterator last,
