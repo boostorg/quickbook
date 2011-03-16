@@ -1713,14 +1713,28 @@ namespace quickbook
             check_path(values.consume(), actions));
         values.finish();
         
-        std::string ext = filein.extension().generic_string();
-        if (ext == ".qbk" || ext == ".quickbook")
+        if (qbk_version_n >= 106)
         {
-            load_quickbook(actions, filein, include.get_tag(), include_doc_id);
+            std::string ext = filein.extension().generic_string();
+            if (ext == ".qbk" || ext == ".quickbook")
+            {
+                load_quickbook(actions, filein, include.get_tag(), include_doc_id);
+            }
+            else
+            {
+                load_source_file(actions, filein, include.get_tag(), include_doc_id);
+            }
         }
         else
         {
-            load_source_file(actions, filein, include.get_tag(), include_doc_id);
+            if (include.get_tag() == block_tags::include)
+            {
+                load_quickbook(actions, filein, include.get_tag(), include_doc_id);
+            }
+            else
+            {
+                load_source_file(actions, filein, include.get_tag(), include_doc_id);
+            }
         }
     }
 
