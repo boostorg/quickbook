@@ -1053,6 +1053,18 @@ or
 can be used to inhibit code from passing through to quickbook. All text between
 the delimeters will simply be ignored.
 
+Comments of this form:
+
+    //=int main() {}
+
+or
+
+    /*=foo()*/
+
+will be displayed as code that isn't in comments. This allows you to
+include some code in the snippet but not actually use it when
+compiling your example.
+
 [heading Callouts]
 
 Special comments of the form:
