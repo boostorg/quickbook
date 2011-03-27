@@ -137,7 +137,7 @@ namespace quickbook
                 )
             >>  space                       [actions.values.sort()]
             >>  ']'
-            >>  +cl::eol_p
+            >>  (+cl::eol_p | cl::end_p)
             ;
 
         local.quickbook_version =

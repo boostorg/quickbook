@@ -244,10 +244,6 @@ namespace quickbook { namespace detail
             return 1;
         }
 
-        //  ensure that we have enough trailing newlines to eliminate
-        //  the need to check for end of file in the grammar.
-        storage.push_back('\n');
-        storage.push_back('\n');
         return 0;
     }
 

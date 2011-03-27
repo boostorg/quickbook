@@ -166,3 +166,21 @@ End block template.
 [phrase [phrase Hello!]]
 
 [endsect]
+
+[/----------------------------------- Block Markup ]
+
+[section Block Markup]
+
+[template list
+* a
+* b]
+
+[template horizontal
+----]
+
+[template codeblock
+    int main() {}]
+
+[list][horizontal][codeblock]
+
+[endsect]

@@ -46,8 +46,6 @@ namespace detail
 
     std::string escape_uri(std::string uri);
 
-    // load file into memory with extra trailing newlines to eliminate
-    //  the need to check for end of file in the grammar.
     int load(fs::path const& filename, std::string& storage);
 
     // given a file extension, return the type of the source file
