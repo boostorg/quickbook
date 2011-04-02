@@ -72,6 +72,9 @@ namespace quickbook
     {
         // The doc_info in the file has been parsed. Here's what we'll do
         // *before* anything else.
+        //
+        // If there isn't a doc info block, then values will be empty, so most
+        // of the following code won't actually do anything.
 
         value_consumer values = actions.values.release();
 
@@ -122,38 +125,26 @@ namespace quickbook
         if (!id.empty())
             actions.doc_id = id.get_quickbook();
 
+        // This is only meant to kick in for the main document (since in
+        // included documents, the id should already be set), but due to a
+        // bug in old versions the document id is reset when including files.
+
         if (actions.doc_id.empty())
-            actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
-        
-        if (dirname.empty() && actions.doc_type == "library") {
-            if (!id.empty()) {
-                dirname = id;
-            }
-            else {
-                dirname = qbk_bbk_value(actions.doc_id, doc_info_attributes::dirname);
-            }
-        }
-
-        if (last_revision.empty())
         {
-            // default value for last-revision is now
-
-            char strdate[64];
-            strftime(
-                strdate, sizeof(strdate),
-                (debug_mode ?
-                    "DEBUG MODE Date: %Y/%m/%d %H:%M:%S $" :
-                    "$" /* prevent CVS substitution */ "Date: %Y/%m/%d %H:%M:%S $"),
-                current_gm_time
-            );
-            last_revision = qbk_bbk_value(strdate, doc_info_attributes::last_revision);
+            assert(qbk_version_n < 106 || !ignore_docinfo);
+            actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
         }
 
         // if we're ignoring the document info, we're done.
+
         if (ignore_docinfo)
         {
             return;
         }
+        
+        // Make sure we really did have a document info block.
+        
+        assert(doc_title.check());
 
         // Quickbook version
 
@@ -194,6 +185,32 @@ namespace quickbook
                 << qbk_minor_version
                 << std::endl;
             ++actions.error_count;
+        }
+
+        // Set defaults for dirname + last_revision
+
+        if (dirname.empty() && actions.doc_type == "library") {
+            if (!id.empty()) {
+                dirname = id;
+            }
+            else {
+                dirname = qbk_bbk_value(actions.doc_id, doc_info_attributes::dirname);
+            }
+        }
+
+        if (last_revision.empty())
+        {
+            // default value for last-revision is now
+
+            char strdate[64];
+            strftime(
+                strdate, sizeof(strdate),
+                (debug_mode ?
+                    "DEBUG MODE Date: %Y/%m/%d %H:%M:%S $" :
+                    "$" /* prevent CVS substitution */ "Date: %Y/%m/%d %H:%M:%S $"),
+                current_gm_time
+            );
+            last_revision = qbk_bbk_value(strdate, doc_info_attributes::last_revision);
         }
 
         // Warn about invalid fields
