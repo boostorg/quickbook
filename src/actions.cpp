@@ -899,7 +899,6 @@ namespace quickbook
         std::string phrase = values.consume().get_boostbook();
         values.finish();
 
-        actions.copy_macros_for_write();
         actions.macro.add(
             macro_id.begin()
           , macro_id.end()
@@ -1805,7 +1804,6 @@ namespace quickbook
 
         // scope the macros
         string_symbols macro = actions.macro;
-        std::size_t macro_change_depth = actions.macro_change_depth;
         // scope the templates
         //~ template_symbols templates = actions.templates; $$$ fixme $$$
 
@@ -1837,9 +1835,12 @@ namespace quickbook
 
         // restore the macros
         actions.macro = macro;
-        actions.macro_change_depth = macro_change_depth;
         // restore the templates
         //~ actions.templates = templates; $$$ fixme $$$
+
+        // restore the __FILENAME__ macro
+        *boost::spirit::classic::find(actions.macro, "__FILENAME__")
+            = detail::path_to_generic(actions.filename_relative);
     }
 
     void phrase_to_docinfo_action_impl::operator()(iterator first, iterator last,

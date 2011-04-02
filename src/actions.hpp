@@ -19,6 +19,7 @@
 #include "utils.hpp"
 #include "values.hpp"
 #include "scoped.hpp"
+#include "symbols.hpp"
 
 namespace quickbook
 {
@@ -50,8 +51,6 @@ namespace quickbook
     inline quickbook_range qbk_before(unsigned max_) {
         return quickbook_range(0, max_);
     }
-
-    typedef cl::symbols<std::string> string_symbols;
 
     int load_snippets(std::string const& file, std::vector<template_symbol>& storage,
         std::string const& extension);

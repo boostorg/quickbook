@@ -7,3 +7,8 @@ project quickbook-unit-tests
 run values_test.cpp ../../src/values.cpp ;
 run post_process_test.cpp ../../src/post_process.cpp ;
 run iterator_tests.cpp ../../src/values.cpp ;
+
+# Copied from spirit
+run symbols_tests.cpp ;
+run symbols_add_null.cpp ;
+run symbols_find_null.cpp ;
