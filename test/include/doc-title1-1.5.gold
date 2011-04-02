@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
+<article id="doc_title_1" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
+ xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Doc Title 1</title> <anchor id="doc_title_1.a1"/>
+  <bridgehead renderas="sect2" id="doc_title_1.a1-heading">
+    <link linkend="doc_title_1.a1">a1</link>
+  </bridgehead>
+  <anchor id="doc_title_1.inc1"/>
+  <bridgehead renderas="sect2" id="doc_title_1.inc1-heading">
+    <link linkend="doc_title_1.inc1">inc1</link>
+  </bridgehead>
+  <anchor id="doc_title_1.a2"/>
+  <bridgehead renderas="sect2" id="doc_title_1.a2-heading">
+    <link linkend="doc_title_1.a2">a2</link>
+  </bridgehead>
+  <anchor id="doc_title_1_inc2.inc2"/>
+  <bridgehead renderas="sect2" id="doc_title_1_inc2.inc2-heading">
+    <link linkend="doc_title_1_inc2.inc2">inc2</link>
+  </bridgehead>
+  <anchor id="doc_title_1.a3"/>
+  <bridgehead renderas="sect2" id="doc_title_1.a3-heading">
+    <link linkend="doc_title_1.a3">a3</link>
+  </bridgehead>
+  <anchor id="doc_title_1_inc2.inc3"/>
+  <bridgehead renderas="sect2" id="doc_title_1_inc2.inc3-heading">
+    <link linkend="doc_title_1_inc2.inc3">inc3</link>
+  </bridgehead>
+  <anchor id="doc_title_1.a4"/>
+  <bridgehead renderas="sect2" id="doc_title_1.a4-heading">
+    <link linkend="doc_title_1.a4">a4</link>
+  </bridgehead>
+</article>
