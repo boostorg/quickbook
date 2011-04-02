@@ -1800,9 +1800,8 @@ namespace quickbook
             actions.doc_id.swap(doc_id);
         }
         
-        // save the source mode and version info (only restored for 1.6+)
+        // save the source mode (only restored for 1.6+)
         std::string source_mode = actions.source_mode;
-        unsigned qbk_version_n_store = qbk_version_n;
 
         // scope the macros
         string_symbols macro = actions.macro;
@@ -1833,12 +1832,8 @@ namespace quickbook
 
         actions.doc_id.swap(doc_id);
         
-        if(qbk_version_n >= 106 || qbk_version_n_store >= 106)
-        {
+        if(qbk_version_n >= 106)
             actions.source_mode = source_mode;
-
-            qbk_version_n = qbk_version_n_store;
-        }
 
         // restore the macros
         actions.macro = macro;
