@@ -1120,7 +1120,7 @@ namespace quickbook
                 iterator last = body.content.get_quickbook_range().end();
                     
                 return cl::parse(first, last,
-                        body.is_block ?
+                        body.is_block() ?
                             actions.grammar().block :
                             actions.grammar().simple_phrase
                     ).full;
@@ -1511,9 +1511,6 @@ namespace quickbook
         actions.qualified_section_id += actions.section_id;
         ++actions.section_level;
 
-        actions::string_list saved_anchors;
-        saved_anchors.swap(actions.anchors);
-
         if (qbk_version_n < 103) // version 1.2 and below
         {
             actions.out << "\n<section id=\""
@@ -1527,7 +1524,6 @@ namespace quickbook
 
         actions.out << "<title>";
 
-        actions.anchors.swap(saved_anchors);
         write_anchors(actions, actions.out);
 
         if (qbk_version_n < 103) // version 1.2 and below
@@ -1764,7 +1760,7 @@ namespace quickbook
         std::string ext = paths.filename.extension().generic_string();
         std::vector<template_symbol> storage;
         actions.error_count +=
-            load_snippets(paths.filename.string(), storage, ext, actions.doc_id);
+            load_snippets(paths.filename.string(), storage, ext);
 
         BOOST_FOREACH(template_symbol& ts, storage)
         {

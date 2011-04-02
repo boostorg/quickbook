@@ -25,12 +25,10 @@ namespace quickbook
     {
         code_snippet_actions(std::vector<template_symbol>& storage,
                                  std::string const& filename,
-                                 std::string const& doc_id,
                                  char const* source_type)
             : callout_id(0)
             , storage(storage)
             , filename(filename)
-            , doc_id(doc_id)
             , source_type(source_type)
         {}
 
@@ -85,7 +83,6 @@ namespace quickbook
         std::string id;
         std::vector<template_symbol>& storage;
         fs::path filename;
-        std::string const doc_id;
         char const* const source_type;
     };
 
@@ -315,8 +312,7 @@ namespace quickbook
         std::string const& file
       , std::vector<template_symbol>& storage   // snippets are stored in a
                                                 // vector of template_symbols
-      , std::string const& extension
-      , std::string const& doc_id)
+      , std::string const& extension)
     {
         std::string code;
         int err = detail::load(file, code);
@@ -327,7 +323,7 @@ namespace quickbook
         iterator last(code.end());
 
         bool is_python = extension == ".py";
-        code_snippet_actions a(storage, file, doc_id, is_python ? "[python]" : "[c++]");
+        code_snippet_actions a(storage, file, is_python ? "[python]" : "[c++]");
         // TODO: Should I check that parse succeeded?
         if(is_python) {
             boost::spirit::classic::parse(first, last, python_code_snippet_grammar(a));

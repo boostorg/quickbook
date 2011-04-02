@@ -54,7 +54,7 @@ namespace quickbook
     typedef cl::symbols<std::string> string_symbols;
 
     int load_snippets(std::string const& file, std::vector<template_symbol>& storage,
-        std::string const& extension, std::string const& doc_id);
+        std::string const& extension);
     std::string syntax_highlight(
         iterator first, iterator last,
         actions& escape_actions,
