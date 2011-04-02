@@ -22,39 +22,10 @@ namespace quickbook
     actions::actions(fs::path const& filein_, fs::path const& xinclude_base_, string_stream& out_)
         : grammar_()
 
-    // header info
         , doc_type()
         , doc_title_qbk()
-        , doc_id()
-
-    // main output stream
-        , out(out_)
-
-    // auxilliary streams
-        , phrase()
-
-    // value actions
-        , values()
-        , phrase_value(*this, phrase)
-        , out_value(*this, out)
-        , docinfo_value(*this)
-        , scoped_cond_phrase(*this)
-        , scoped_output(*this)
-        , scoped_no_eols(*this)
-        , scoped_context(*this)
-
-    // state
-        , filename(filein_)
-        , filename_relative(filein_.filename())
         , xinclude_base(xinclude_base_)
-        , macro()
-        , section_level(0)
-        , min_section_level(0)
-        , section_id()
-        , qualified_section_id()
-        , source_mode("c++")
 
-    // temporary or global state
         , template_depth(0)
         , templates()
         , error_count(0)
@@ -62,8 +33,33 @@ namespace quickbook
         , no_eols(true)
         , suppress(false)
         , warned_about_breaks(false)
+        , context(0)
+
+        , macro()
+        , source_mode("c++")
+        , doc_id()
+        , filename(filein_)
+        , filename_relative(filein_.filename())
+
+        , section_level(0)
+        , min_section_level(0)
+        , section_id()
+        , qualified_section_id()
+
+        , out(out_)
+        , phrase()
+        , values()
 
     // actions
+        , phrase_value(*this, phrase)
+        , out_value(*this, out)
+        , docinfo_value(*this)
+
+        , scoped_cond_phrase(*this)
+        , scoped_output(*this)
+        , scoped_no_eols(*this)
+        , scoped_context(*this)
+
         , element(*this)
         , error(*this)
         , code(out, phrase, *this)
@@ -93,49 +89,52 @@ namespace quickbook
             new quickbook_grammar(*this));
         grammar_.swap(g);
     }
-    
-    void actions::push()
-    {
-        state_stack.push(
-            boost::make_tuple(
-                filename
-              , xinclude_base
-              , macro
-              , section_level
-              , min_section_level
-              , section_id
-              , qualified_section_id
-              , source_mode
-            )
-        );
 
-        out.push();
-        phrase.push();
-        templates.push();
-        values.builder.save();
-    }
-    
-    void actions::pop()
-    {
-        boost::tie(
-            filename
-          , xinclude_base
-          , macro
-          , section_level
-          , min_section_level
-          , section_id
-          , qualified_section_id
-          , source_mode
-        ) = state_stack.top();
-        state_stack.pop();
-
-        out.pop();
-        phrase.pop();
-        templates.pop();
-        values.builder.restore();
-    }
-    
     quickbook_grammar& actions::grammar() const {
         return *grammar_;
+    }
+
+    file_state::file_state(actions& a)
+        : a(a)
+        , doc_id(a.doc_id)
+        , filename(a.filename)
+        , filename_relative(a.filename_relative)
+        , macro(a.macro)
+        , source_mode(a.source_mode)
+    {
+        a.values.builder.save();
+    }
+
+    file_state::~file_state()
+    {
+        a.values.builder.restore();
+        boost::swap(a.doc_id, doc_id);
+        boost::swap(a.filename, filename);
+        boost::swap(a.filename_relative, filename_relative);
+        a.macro = macro;
+        boost::swap(a.source_mode, source_mode);
+    }
+    
+    template_state::template_state(actions& a)
+        : file_state(a)
+        , section_level(a.section_level)
+        , min_section_level(a.min_section_level)
+        , section_id(a.section_id)
+        , qualified_section_id(a.qualified_section_id)
+    {
+        a.out.push();
+        a.phrase.push();
+        a.templates.push();
+    }
+
+    template_state::~template_state()
+    {
+        a.templates.pop();
+        a.phrase.pop();
+        a.out.pop();
+        boost::swap(a.section_level, section_level);
+        boost::swap(a.min_section_level, min_section_level);
+        boost::swap(a.section_id, section_id);
+        boost::swap(a.qualified_section_id, qualified_section_id);
     }
 }

@@ -1177,8 +1177,9 @@ namespace quickbook
         std::string block;
         std::string phrase;
 
-        actions.push(); // scope the actions' states
         {
+            template_state state(actions);
+        
             // Store the current section level so that we can ensure that
             // [section] and [endsect] tags in the template are balanced.
             actions.min_section_level = actions.section_level;
@@ -1199,7 +1200,6 @@ namespace quickbook
             
                 if (!break_arguments(args, symbol->params, actions.filename, pos))
                 {
-                    actions.pop(); // restore the actions' states
                     --actions.template_depth;
                     ++actions.error_count;
                     return;
@@ -1246,7 +1246,6 @@ namespace quickbook
 
             if (!get_arg_result)
             {
-                actions.pop(); // restore the actions' states
                 --actions.template_depth;
                 return;
             }
@@ -1265,7 +1264,6 @@ namespace quickbook
                     << detail::utf8(symbol->body.content.get_quickbook())
                     << "------------------end--------------------" << std::endl
                     << std::endl;
-                actions.pop(); // restore the actions' states
                 --actions.template_depth;
                 ++actions.error_count;
                 return;
@@ -1275,16 +1273,14 @@ namespace quickbook
             {
                 detail::outerr(actions.filename, pos.line)
                     << "Mismatched sections in template " << detail::utf8(identifier) << std::endl;
-                actions.pop(); // restore the actions' states
                 --actions.template_depth;
                 ++actions.error_count;
                 return;
             }
-        }
 
-        actions.out.swap(block);
-        actions.phrase.swap(phrase);
-        actions.pop(); // restore the actions' states
+            actions.out.swap(block);
+            actions.phrase.swap(phrase);
+        }
 
         if(!symbol->callouts.empty())
         {
@@ -1296,23 +1292,25 @@ namespace quickbook
                     boost::lexical_cast<std::string>(detail::callout_id++);
 
                 std::string callout_value;
-                actions.push();
-                bool r = parse_template(
-                    template_body(c, symbol->body.filename), false, actions);
-                actions.out.swap(callout_value);
-                actions.pop();
-
-                if(!r)
                 {
-                    detail::outerr(symbol->body.filename, c.get_position().line)
-                        << "Expanding callout." << std::endl
-                        << "------------------begin------------------" << std::endl
-                        << detail::utf8(c.get_quickbook())
-                        << std::endl
-                        << "------------------end--------------------" << std::endl
-                        ;
-                    ++actions.error_count;
-                    return;
+                    template_state state(actions);
+                    bool r = parse_template(
+                        template_body(c, symbol->body.filename), false, actions);
+
+                    if(!r)
+                    {
+                        detail::outerr(symbol->body.filename, c.get_position().line)
+                            << "Expanding callout." << std::endl
+                            << "------------------begin------------------" << std::endl
+                            << detail::utf8(c.get_quickbook())
+                            << std::endl
+                            << "------------------end--------------------" << std::endl
+                            ;
+                        ++actions.error_count;
+                        return;
+                    }
+
+                    actions.out.swap(callout_value);
                 }
                 
                 block += "<callout arearefs=\"" + callout_id + "co\" ";
@@ -1785,58 +1783,30 @@ namespace quickbook
             check_path(values.consume(), actions), actions);
         values.finish();
 
-        std::string doc_id;
-
-        // swap the filenames
-        std::swap(actions.filename, filein.filename);
-        std::swap(actions.filename_relative, filein.filename_relative);
-
-        // save the doc info strings and source mode
-        if(qbk_version_n >= 106) {
-            doc_id = actions.doc_id;
-        }
-        else {
-            actions.doc_id.swap(doc_id);
-        }
+        {
+            file_state state(actions);
         
-        // save the source mode (only restored for 1.6+)
-        std::string source_mode = actions.source_mode;
+            actions.filename = filein.filename;
+            actions.filename_relative = filein.filename_relative;
 
-        // scope the macros
-        string_symbols macro = actions.macro;
-        // scope the templates
-        //~ template_symbols templates = actions.templates; $$$ fixme $$$
+            // remain bug compatible with old versions of quickbook
+            if(qbk_version_n < 106) actions.doc_id.clear();
 
-        // if an id is specified in this include (as in [include:id foo.qbk])
-        // then use it as the doc_id.
-        if (!include_doc_id.empty())
-            actions.doc_id = include_doc_id.get_quickbook();
+            // if an id is specified in this include (as in [include:id foo.qbk])
+            // then use it as the doc_id.
+            if (!include_doc_id.empty())
+                actions.doc_id = include_doc_id.get_quickbook();
 
-        // update the __FILENAME__ macro
-        *boost::spirit::classic::find(actions.macro, "__FILENAME__")
-            = detail::path_to_generic(actions.filename_relative);
+            // update the __FILENAME__ macro
+            *boost::spirit::classic::find(actions.macro, "__FILENAME__")
+                = detail::path_to_generic(actions.filename_relative);
 
-        // save values
-        actions.values.builder.save();
-
-        // parse the file
-        quickbook::parse_file(actions.filename.string().c_str(), actions, true);
-
-        // restore the values
-        actions.values.builder.restore();
-
-        std::swap(actions.filename, filein.filename);
-        std::swap(actions.filename_relative, filein.filename_relative);
-
-        actions.doc_id.swap(doc_id);
+            // parse the file
+            quickbook::parse_file(actions.filename.string().c_str(), actions, true);
         
-        if(qbk_version_n >= 106)
-            actions.source_mode = source_mode;
-
-        // restore the macros
-        actions.macro = macro;
-        // restore the templates
-        //~ actions.templates = templates; $$$ fixme $$$
+            // Don't restore source_mode on older versions.
+            if (qbk_version_n < 106) state.source_mode = actions.source_mode;
+        }
 
         // restore the __FILENAME__ macro
         *boost::spirit::classic::find(actions.macro, "__FILENAME__")

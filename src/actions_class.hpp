@@ -10,7 +10,6 @@
 #if !defined(BOOST_SPIRIT_ACTIONS_CLASS_HPP)
 #define BOOST_SPIRIT_ACTIONS_CLASS_HPP
 
-#include <boost/tuple/tuple.hpp>
 #include <boost/scoped_ptr.hpp>
 #include "actions.hpp"
 #include "parsers.hpp"
@@ -38,20 +37,46 @@ namespace quickbook
 
         static int const max_template_depth = 100;
 
-    // header info
-        std::string             doc_type;      // For the whole document, not
-                                               // the current file.
+    // global state
+        std::string             doc_type;       // For the whole document, not
+                                                // the current file.
         std::string             doc_title_qbk;
+        fs::path                xinclude_base;
+        int                     template_depth;
+        template_stack          templates;
+        int                     error_count;
+        string_list             anchors;
+        bool                    no_eols;
+        bool                    suppress;
+        bool                    warned_about_breaks;
+        int                     context;
+
+    // state saved for files and templates.
+        string_symbols          macro;
+        std::string             source_mode;
         std::string             doc_id;
+        fs::path                filename;
+        fs::path                filename_relative;  // for the __FILENAME__ macro.
+                                                    // (relative to the original file
+                                                    //  or include path).
 
-    // main output stream
-        collector               out;
+    // state saved for templates.
+        int                     section_level;
+        int                     min_section_level;
+        std::string             section_id;
+        std::string             qualified_section_id;
 
-    // auxilliary streams
-        collector               phrase;
+    // output state - scoped by templates and grammar
+        collector               out;            // main output stream
+        collector               phrase;         // phrase output stream
+        value_parser            values;         // parsed values
 
-    // value actions
-        value_parser            values;
+        quickbook_grammar& grammar() const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // actions
+    ///////////////////////////////////////////////////////////////////////////
+
         collector_to_value_action phrase_value;
         collector_to_value_action out_value;
         phrase_to_docinfo_action docinfo_value;
@@ -64,51 +89,6 @@ namespace quickbook
                                 scoped_no_eols;
         scoped_parser<scoped_context_impl>
                                 scoped_context;
-
-    // state
-        fs::path                filename;
-        fs::path                filename_relative;  // for the __FILENAME__ macro.
-                                                    // (relative to the original file
-                                                    //  or include path).
-        fs::path                xinclude_base;
-        string_symbols          macro;
-        int                     section_level;
-        int                     min_section_level;
-        std::string             section_id;
-        std::string             qualified_section_id;
-        std::string             source_mode;
-
-        typedef boost::tuple<
-            fs::path
-          , fs::path
-          , string_symbols
-          , int
-          , int
-          , std::string
-          , std::string
-          , std::string>
-        state_tuple;
-
-        std::stack<state_tuple> state_stack;
-
-    // temporary or global state
-        int                     template_depth;
-        template_stack          templates;
-        int                     error_count;
-        string_list             anchors;
-        bool                    no_eols;
-        bool                    suppress;
-        bool                    warned_about_breaks;
-        int                     context;
-
-    // push/pop the states and the streams
-        void push();
-        void pop();
-        quickbook_grammar& grammar() const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    // actions
-    ///////////////////////////////////////////////////////////////////////////
 
         element_action          element;
         error_action            error;
@@ -128,6 +108,35 @@ namespace quickbook
         do_macro_action         do_macro;
 
         element_id_warning_action element_id_warning;
+    };
+
+    // State savers
+
+    struct file_state
+    {
+        explicit file_state(actions&);
+        ~file_state();
+        
+        quickbook::actions& a;
+        std::string doc_id;
+        fs::path filename;
+        fs::path filename_relative;
+        string_symbols macro;
+        std::string source_mode;
+    private:
+        file_state(file_state const&);
+        file_state& operator=(file_state const&);
+    };
+
+    struct template_state : file_state
+    {
+        explicit template_state(actions&);
+        ~template_state();
+
+        int section_level;
+        int min_section_level;
+        std::string section_id;
+        std::string qualified_section_id;
     };
 }
 
