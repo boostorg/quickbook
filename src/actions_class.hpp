@@ -39,7 +39,8 @@ namespace quickbook
         static int const max_template_depth = 100;
 
     // header info
-        std::string             doc_type;
+        std::string             doc_type;      // For the whole document, not
+                                               // the current file.
         std::string             doc_title_qbk;
         std::string             doc_id;
 

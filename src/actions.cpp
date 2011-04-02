@@ -1786,7 +1786,7 @@ namespace quickbook
             check_path(values.consume(), actions), actions);
         values.finish();
 
-        std::string doc_type, doc_id;
+        std::string doc_id;
 
         // swap the filenames
         std::swap(actions.filename, filein.filename);
@@ -1794,11 +1794,9 @@ namespace quickbook
 
         // save the doc info strings and source mode
         if(qbk_version_n >= 106) {
-            doc_type = actions.doc_type;
             doc_id = actions.doc_id;
         }
         else {
-            actions.doc_type.swap(doc_type);
             actions.doc_id.swap(doc_id);
         }
         
@@ -1833,7 +1831,6 @@ namespace quickbook
         std::swap(actions.filename, filein.filename);
         std::swap(actions.filename_relative, filein.filename_relative);
 
-        actions.doc_type.swap(doc_type);
         actions.doc_id.swap(doc_id);
         
         if(qbk_version_n >= 106 || qbk_version_n_store >= 106)
