@@ -46,11 +46,8 @@ namespace quickbook
         };
 
     // global state
-        std::string             doc_type;       // For the whole document, not
-                                                // the current file.
         std::string             doc_title_qbk;
         fs::path                xinclude_base;
-        int                     template_depth;
         template_stack          templates;
         int                     error_count;
         string_list             anchors;
@@ -59,6 +56,7 @@ namespace quickbook
         int                     context;
 
     // state saved for files and templates.
+        std::string             doc_type;
         process_flags           process_state;
         string_symbols          macro;
         std::string             source_mode;
@@ -69,6 +67,7 @@ namespace quickbook
                                                     //  or include path).
 
     // state saved for templates.
+        int                     template_depth;
         int                     section_level;
         int                     min_section_level;
         std::string             section_id;
@@ -136,6 +135,8 @@ namespace quickbook
         
         quickbook::actions& a;
         scope_flags scope;
+        unsigned qbk_version;
+        std::string doc_type;
         std::string doc_id;
         fs::path filename;
         fs::path filename_relative;
@@ -152,6 +153,7 @@ namespace quickbook
         explicit template_state(actions&);
         ~template_state();
 
+        int template_depth;
         int section_level;
         int min_section_level;
         std::string section_id;

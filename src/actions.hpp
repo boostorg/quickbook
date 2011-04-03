@@ -337,8 +337,15 @@ namespace quickbook
         quickbook::actions& actions;
    };
 
-    void pre(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
-    void post(collector& out, quickbook::actions& actions, bool ignore_docinfo = false);
+    enum docinfo_types
+    {
+        docinfo_ignore = 0,
+        docinfo_main = 1,
+        docinfo_nested = 2
+    };
+
+    void pre(collector& out, quickbook::actions& actions, docinfo_types = docinfo_main);
+    void post(collector& out, quickbook::actions& actions, docinfo_types = docinfo_main);
 
     struct phrase_to_docinfo_action_impl
     {

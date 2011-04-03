@@ -68,7 +68,7 @@ namespace quickbook
         return values;
     }
 
-    void pre(collector& out, quickbook::actions& actions, bool ignore_docinfo)
+    void pre(collector& out, quickbook::actions& actions, docinfo_types docinfo_type)
     {
         // The doc_info in the file has been parsed. Here's what we'll do
         // *before* anything else.
@@ -90,6 +90,10 @@ namespace quickbook
             actions.doc_type = values.consume(doc_info_tags::type).get_quickbook();
             doc_title = values.consume(doc_info_tags::title);
             actions.doc_title_qbk = doc_title.get_quickbook();
+        }
+        else
+        {
+            actions.doc_type.clear();
         }
 
         std::vector<std::string> duplicates;
@@ -131,20 +135,20 @@ namespace quickbook
 
         if (actions.doc_id.empty())
         {
-            assert(qbk_version_n < 106 || !ignore_docinfo);
+            assert(qbk_version_n < 106 || docinfo_type == docinfo_main);
             actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
         }
 
         // if we're ignoring the document info, we're done.
 
-        if (ignore_docinfo)
+        if (!docinfo_type)
         {
             return;
         }
         
         // Make sure we really did have a document info block.
         
-        assert(doc_title.check());
+        assert(doc_title.check() && !actions.doc_type.empty());
 
         // Quickbook version
 
@@ -152,12 +156,23 @@ namespace quickbook
 
         if (qbk_version.empty())
         {
-            // hard code quickbook version to v1.1
-            qbk_major_version = 1;
-            qbk_minor_version = 1;
-            detail::outwarn(actions.filename,1)
-                << "Warning: Quickbook version undefined. "
-                "Version 1.1 is assumed" << std::endl;
+            // Always reset quickbook version if we're not ignoring the docinfo.
+            // This is so that the file is interpreted as if it was standalone.
+            if (docinfo_type)
+            {
+                // hard code quickbook version to v1.1
+                qbk_major_version = 1;
+                qbk_minor_version = 1;
+                qbk_version_n = 101;
+                detail::outwarn(actions.filename,1)
+                    << "Warning: Quickbook version undefined. "
+                    "Version 1.1 is assumed" << std::endl;
+            }
+            else
+            {
+                qbk_major_version = qbk_version_n / 100;
+                qbk_minor_version = qbk_version_n % 100;
+            }
         }
         else
         {
@@ -165,10 +180,11 @@ namespace quickbook
             qbk_major_version = qbk_version_values.consume().get_int();
             qbk_minor_version = qbk_version_values.consume().get_int();
             qbk_version_values.finish();
+
+            qbk_version_n = ((unsigned) qbk_major_version * 100) +
+                (unsigned) qbk_minor_version;
         }
         
-        qbk_version_n = ((unsigned) qbk_major_version * 100) +
-            (unsigned) qbk_minor_version;
 
         if (qbk_version_n == 106)
         {
@@ -242,15 +258,21 @@ namespace quickbook
 
         // Write out header
 
-        out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            << "<!DOCTYPE "
-            << actions.doc_type
-            << " PUBLIC \"-//Boost//DTD BoostBook XML V1.0//EN\"\n"
-            << "     \"http://www.boost.org/tools/boostbook/dtd/boostbook.dtd\">\n"
-            << '<' << actions.doc_type << "\n"
+        if (docinfo_type == docinfo_main)
+        {
+            out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                << "<!DOCTYPE "
+                << actions.doc_type
+                << " PUBLIC \"-//Boost//DTD BoostBook XML V1.0//EN\"\n"
+                << "     \"http://www.boost.org/tools/boostbook/dtd/boostbook.dtd\">\n"
+                ;
+        }
+
+        out << '<' << actions.doc_type << "\n"
             << "    id=\""
             << actions.doc_id
-            << "\"\n";
+            << "\"\n"
+            ;
         
         if(!lang.empty())
         {
@@ -406,13 +428,15 @@ namespace quickbook
         }
     }
     
-    void post(collector& out, quickbook::actions& actions, bool ignore_docinfo)
+    void post(collector& out, quickbook::actions& actions, docinfo_types docinfo_type)
     {
         // if we're ignoring the document info, do nothing.
-        if (ignore_docinfo)
+        if (!docinfo_type)
         {
             return;
-        } 
+        }
+
+        assert(!actions.doc_type.empty());
 
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.

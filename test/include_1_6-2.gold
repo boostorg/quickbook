@@ -3,6 +3,10 @@
 <article id="include-test" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Include Test</title>
+  <article id="include-sub" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>Include Test Sub Document</title>
+  </article>
   <section id="include-test.test">
     <title><link linkend="include-test.test">Test</link></title>
     <para>

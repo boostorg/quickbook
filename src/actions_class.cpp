@@ -22,11 +22,9 @@ namespace quickbook
     actions::actions(fs::path const& filein_, fs::path const& xinclude_base_, string_stream& out_)
         : grammar_()
 
-        , doc_type()
         , doc_title_qbk()
         , xinclude_base(xinclude_base_)
 
-        , template_depth(0)
         , templates()
         , error_count(0)
         , anchors()
@@ -34,6 +32,7 @@ namespace quickbook
         , warned_about_breaks(false)
         , context(0)
 
+        , doc_type()
         , process_state(process_normal)
         , macro()
         , source_mode("c++")
@@ -41,6 +40,7 @@ namespace quickbook
         , filename(filein_)
         , filename_relative(filein_.filename())
 
+        , template_depth(0)
         , section_level(0)
         , min_section_level(0)
         , section_id()
@@ -98,6 +98,8 @@ namespace quickbook
     file_state::file_state(actions& a, scope_flags scope)
         : a(a)
         , scope(scope)
+        , qbk_version(qbk_version_n)
+        , doc_type(a.doc_type)
         , doc_id(a.doc_id)
         , filename(a.filename)
         , filename_relative(a.filename_relative)
@@ -113,6 +115,8 @@ namespace quickbook
     file_state::~file_state()
     {
         a.values.builder.restore();
+        boost::swap(qbk_version_n, qbk_version);
+        boost::swap(a.doc_type, doc_type);
         boost::swap(a.doc_id, doc_id);
         boost::swap(a.filename, filename);
         boost::swap(a.filename_relative, filename_relative);
@@ -124,6 +128,7 @@ namespace quickbook
     
     template_state::template_state(actions& a)
         : file_state(a, file_state::scope_all)
+        , template_depth(a.template_depth)
         , section_level(a.section_level)
         , min_section_level(a.min_section_level)
         , section_id(a.section_id)
@@ -137,6 +142,7 @@ namespace quickbook
     {
         a.phrase.pop();
         a.out.pop();
+        boost::swap(a.template_depth, template_depth);
         boost::swap(a.section_level, section_level);
         boost::swap(a.min_section_level, min_section_level);
         boost::swap(a.section_id, section_id);

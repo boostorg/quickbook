@@ -70,7 +70,7 @@ namespace quickbook
     //
     ///////////////////////////////////////////////////////////////////////////
     int
-    parse_file(fs::path const& filein_, actions& actor, bool ignore_docinfo)
+    parse_file(fs::path const& filein_, actions& actor, bool nested_file)
     {
         using std::vector;
         using std::string;
@@ -85,16 +85,30 @@ namespace quickbook
         iterator first(storage.begin());
         iterator last(storage.end());
 
+        // This is awkward. When not ignoring docinfo, the source_mode should be
+        // reset, but the code doesn't find out if the docinfo is ignored until
+        // too late. So reset it now, but save it in order to undo the reset if
+        // appopriate.
+        std::string saved_source_mode = actor.source_mode;
+        if (qbk_version_n >= 106) actor.source_mode = "c++";
+
         cl::parse_info<iterator> info = cl::parse(first, last, actor.grammar().doc_info);
 
-        if (info.hit || ignore_docinfo)
+        docinfo_types docinfo_type =
+            !nested_file ? docinfo_main :
+            info.hit && qbk_version_n >= 106 ? docinfo_nested :
+            docinfo_ignore;
+        
+        if (!info.hit) actor.source_mode = saved_source_mode;
+
+        if (info.hit || !docinfo_type)
         {
-            pre(actor.out, actor, ignore_docinfo);
+            pre(actor.out, actor, docinfo_type);
 
             info = cl::parse(info.hit ? info.stop : first, last, actor.grammar().block);
             if (info.full)
             {
-                post(actor.out, actor, ignore_docinfo);
+                post(actor.out, actor, docinfo_type);
             }
         }
 

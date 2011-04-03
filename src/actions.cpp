@@ -1136,16 +1136,6 @@ namespace quickbook
             std::vector<template_body> const& args,
             file_position pos)
     {
-        ++actions.template_depth;
-        if (actions.template_depth > actions.max_template_depth)
-        {
-            detail::outerr(actions.filename, pos.line)
-                << "Infinite loop detected" << std::endl;
-            --actions.template_depth;
-            ++actions.error_count;
-            return;
-        }
-
         // The template arguments should have the scope that the template was
         // called from, not the template's own scope.
         //
@@ -1158,6 +1148,15 @@ namespace quickbook
 
         {
             template_state state(actions);
+
+            ++actions.template_depth;
+            if (actions.template_depth > actions.max_template_depth)
+            {
+                detail::outerr(actions.filename, pos.line)
+                    << "Infinite loop detected" << std::endl;
+                ++actions.error_count;
+                return;
+            }
 
             // Store the current section level so that we can ensure that
             // [section] and [endsect] tags in the template are balanced.
@@ -1179,7 +1178,6 @@ namespace quickbook
 
             if (!get_arg_result)
             {
-                --actions.template_depth;
                 return;
             }
             ///////////////////////////////////
@@ -1196,7 +1194,6 @@ namespace quickbook
                     << detail::utf8(symbol->body.content.get_quickbook())
                     << "------------------end--------------------" << std::endl
                     << std::endl;
-                --actions.template_depth;
                 ++actions.error_count;
                 return;
             }
@@ -1207,7 +1204,6 @@ namespace quickbook
                     << "Mismatched sections in template "
                     << detail::utf8(symbol->identifier)
                     << std::endl;
-                --actions.template_depth;
                 ++actions.error_count;
                 return;
             }
@@ -1224,7 +1220,6 @@ namespace quickbook
         else {
             actions.phrase << phrase;
         }
-        --actions.template_depth;
     }
 
     void call_code_snippet(quickbook::actions& actions,
@@ -1284,7 +1279,6 @@ namespace quickbook
                             << "------------------end--------------------" << std::endl
                             ;
                         ++actions.error_count;
-                        --actions.template_depth;
                         return;
                     }
     
@@ -1297,8 +1291,6 @@ namespace quickbook
                 block += "</callout>";
             }
             block += "</calloutlist>";
-    
-            --actions.template_depth;
         }
 
         actions.out << block;
@@ -1780,6 +1772,9 @@ namespace quickbook
         assert(load_type == block_tags::include ||
             load_type == block_tags::import);
 
+        // Check this before qbk_version_n gets changed by the inner file.
+        bool keep_inner_source_mode = (qbk_version_n < 106);
+
         {
             file_state state(actions,
                 load_type == block_tags::import ? file_state::scope_none :
@@ -1811,7 +1806,7 @@ namespace quickbook
                 actions, true);
 
             // Don't restore source_mode on older versions.
-            if (qbk_version_n < 106) state.source_mode = actions.source_mode;
+            if (keep_inner_source_mode) state.source_mode = actions.source_mode;
         }
 
         // restore the __FILENAME__ macro
