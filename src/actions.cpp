@@ -1749,18 +1749,13 @@ namespace quickbook
     {
         assert(load_type == block_tags::include ||
             load_type == block_tags::import);
-
-        if (load_type == block_tags::import)
-        {
-            detail::outerr(actions.filename)
-                << "Quickbook import not implemented yet.\n";
-            ++actions.error_count;
-            return;
-        }
     
         {
-            file_state state(actions);
-        
+            file_state state(actions,
+                load_type == block_tags::import ? file_state::scope_none :
+                qbk_version_n >= 106u ? file_state::scope_all :
+                file_state::scope_macros);
+
             actions.filename = paths.filename;
             actions.filename_relative = paths.filename_relative;
 

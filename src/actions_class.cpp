@@ -94,14 +94,17 @@ namespace quickbook
         return *grammar_;
     }
 
-    file_state::file_state(actions& a)
+    file_state::file_state(actions& a, scope_flags scope)
         : a(a)
+        , scope(scope)
         , doc_id(a.doc_id)
         , filename(a.filename)
         , filename_relative(a.filename_relative)
-        , macro(a.macro)
         , source_mode(a.source_mode)
+        , macro()
     {
+        if (scope & scope_macros) macro = a.macro;
+        if (scope & scope_templates) a.templates.push();
         a.values.builder.save();
     }
 
@@ -111,12 +114,13 @@ namespace quickbook
         boost::swap(a.doc_id, doc_id);
         boost::swap(a.filename, filename);
         boost::swap(a.filename_relative, filename_relative);
-        a.macro = macro;
         boost::swap(a.source_mode, source_mode);
+        if (scope & scope_templates) a.templates.pop();
+        if (scope & scope_macros) a.macro = macro;
     }
     
     template_state::template_state(actions& a)
-        : file_state(a)
+        : file_state(a, file_state::scope_all)
         , section_level(a.section_level)
         , min_section_level(a.min_section_level)
         , section_id(a.section_id)
@@ -124,12 +128,10 @@ namespace quickbook
     {
         a.out.push();
         a.phrase.push();
-        a.templates.push();
     }
 
     template_state::~template_state()
     {
-        a.templates.pop();
         a.phrase.pop();
         a.out.pop();
         boost::swap(a.section_level, section_level);

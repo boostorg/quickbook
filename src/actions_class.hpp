@@ -114,15 +114,23 @@ namespace quickbook
 
     struct file_state
     {
-        explicit file_state(actions&);
+        enum scope_flags {
+            scope_none = 0,
+            scope_macros = 1,
+            scope_templates = 2,
+            scope_all = 3
+        };
+    
+        explicit file_state(actions&, scope_flags);
         ~file_state();
         
         quickbook::actions& a;
+        scope_flags scope;
         std::string doc_id;
         fs::path filename;
         fs::path filename_relative;
-        string_symbols macro;
         std::string source_mode;
+        string_symbols macro;
     private:
         file_state(file_state const&);
         file_state& operator=(file_state const&);
