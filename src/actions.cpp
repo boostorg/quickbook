@@ -78,7 +78,6 @@ namespace quickbook
     void variable_list_action(quickbook::actions&, value);
     void table_action(quickbook::actions&, value);
     void xinclude_action(quickbook::actions&, value);
-    void import_action(quickbook::actions&, value);
     void include_action(quickbook::actions&, value);
     void image_action(quickbook::actions&, value);
     void anchor_action(quickbook::actions&, value);
@@ -136,7 +135,6 @@ namespace quickbook
         case block_tags::xinclude:
             return xinclude_action(actions, v);
         case block_tags::import:
-            return import_action(actions, v);
         case block_tags::include:
             return include_action(actions, v);
         case phrase_tags::image:
@@ -1744,15 +1742,68 @@ namespace quickbook
         }
     }
 
-    void import_action(quickbook::actions& actions, value import)
+    void load_quickbook(quickbook::actions& actions,
+            include_search_return const& paths,
+            value::tag_type load_type,
+            value const& include_doc_id = value())
     {
-        if (actions.suppress) return;
-        write_anchors(actions, actions.out);
+        assert(load_type == block_tags::include ||
+            load_type == block_tags::import);
 
-        value_consumer values = import;
-        include_search_return paths = include_search(
-            check_path(values.consume(), actions), actions);
-        values.finish();
+        if (load_type == block_tags::import)
+        {
+            detail::outerr(actions.filename)
+                << "Quickbook import not implemented yet.\n";
+            ++actions.error_count;
+            return;
+        }
+    
+        {
+            file_state state(actions);
+        
+            actions.filename = paths.filename;
+            actions.filename_relative = paths.filename_relative;
+
+            // remain bug compatible with old versions of quickbook
+            if(qbk_version_n < 106) actions.doc_id.clear();
+
+            // if an id is specified in this include (as in [include:id foo.qbk])
+            // then use it as the doc_id.
+            if (!include_doc_id.empty())
+                actions.doc_id = include_doc_id.get_quickbook();
+
+            // update the __FILENAME__ macro
+            *boost::spirit::classic::find(actions.macro, "__FILENAME__")
+                = detail::path_to_generic(actions.filename_relative);
+        
+            // parse the file
+            quickbook::parse_file(actions.filename.string().c_str(),
+                actions, true);
+
+            // Don't restore source_mode on older versions.
+            if (qbk_version_n < 106) state.source_mode = actions.source_mode;
+        }
+
+        // restore the __FILENAME__ macro
+        *boost::spirit::classic::find(actions.macro, "__FILENAME__")
+            = detail::path_to_generic(actions.filename_relative);
+    }
+
+    void load_source_file(quickbook::actions& actions,
+            include_search_return const& paths,
+            value::tag_type load_type,
+            value const& include_doc_id = value())
+    {
+        assert(load_type == block_tags::include ||
+            load_type == block_tags::import);
+
+        if (load_type == block_tags::include)
+        {
+            detail::outerr(actions.filename)
+                << "Source include not implemented yet.\n";
+            ++actions.error_count;
+            return;
+        }
 
         std::string ext = paths.filename.extension().generic_string();
         std::vector<template_symbol> storage;
@@ -1779,38 +1830,33 @@ namespace quickbook
 
         value_consumer values = include;
         value include_doc_id = values.optional_consume(general_tags::include_id);
-        include_search_return filein = include_search(
+        include_search_return paths = include_search(
             check_path(values.consume(), actions), actions);
         values.finish();
 
+        if (qbk_version_n >= 106)
         {
-            file_state state(actions);
-        
-            actions.filename = filein.filename;
-            actions.filename_relative = filein.filename_relative;
-
-            // remain bug compatible with old versions of quickbook
-            if(qbk_version_n < 106) actions.doc_id.clear();
-
-            // if an id is specified in this include (as in [include:id foo.qbk])
-            // then use it as the doc_id.
-            if (!include_doc_id.empty())
-                actions.doc_id = include_doc_id.get_quickbook();
-
-            // update the __FILENAME__ macro
-            *boost::spirit::classic::find(actions.macro, "__FILENAME__")
-                = detail::path_to_generic(actions.filename_relative);
-
-            // parse the file
-            quickbook::parse_file(actions.filename.string().c_str(), actions, true);
-        
-            // Don't restore source_mode on older versions.
-            if (qbk_version_n < 106) state.source_mode = actions.source_mode;
+            std::string ext = paths.filename.extension().generic_string();
+            if (ext == ".qbk" || ext == ".quickbook")
+            {
+                load_quickbook(actions, paths, include.get_tag(), include_doc_id);
+            }
+            else
+            {
+                load_source_file(actions, paths, include.get_tag(), include_doc_id);
+            }
         }
-
-        // restore the __FILENAME__ macro
-        *boost::spirit::classic::find(actions.macro, "__FILENAME__")
-            = detail::path_to_generic(actions.filename_relative);
+        else
+        {
+            if (include.get_tag() == block_tags::include)
+            {
+                load_quickbook(actions, paths, include.get_tag(), include_doc_id);
+            }
+            else
+            {
+                load_source_file(actions, paths, include.get_tag(), include_doc_id);
+            }
+        }
     }
 
     void phrase_to_docinfo_action_impl::operator()(iterator first, iterator last,
