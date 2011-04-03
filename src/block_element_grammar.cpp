@@ -126,7 +126,8 @@ namespace quickbook
                space
             >> macro_identifier                 [actions.values.entry(ph::arg1, ph::arg2)]
             >> blank
-            >> local.inner_phrase
+            >> actions.scoped_activate_processing()
+               [ local.inner_phrase ]
             ;
 
         local.identifier =

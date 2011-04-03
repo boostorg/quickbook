@@ -31,10 +31,10 @@ namespace quickbook
         , error_count(0)
         , anchors()
         , no_eols(true)
-        , suppress(false)
         , warned_about_breaks(false)
         , context(0)
 
+        , process_state(process_normal)
         , macro()
         , source_mode("c++")
         , doc_id()
@@ -59,6 +59,7 @@ namespace quickbook
         , scoped_output(*this)
         , scoped_no_eols(*this)
         , scoped_context(*this)
+        , scoped_activate_processing(*this)
 
         , element(*this)
         , error(*this)
@@ -101,6 +102,7 @@ namespace quickbook
         , filename(a.filename)
         , filename_relative(a.filename_relative)
         , source_mode(a.source_mode)
+        , process_state(a.process_state)
         , macro()
     {
         if (scope & scope_macros) macro = a.macro;
@@ -115,6 +117,7 @@ namespace quickbook
         boost::swap(a.filename, filename);
         boost::swap(a.filename_relative, filename_relative);
         boost::swap(a.source_mode, source_mode);
+        boost::swap(a.process_state, process_state);
         if (scope & scope_templates) a.templates.pop();
         if (scope & scope_macros) a.macro = macro;
     }

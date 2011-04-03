@@ -22,6 +22,8 @@ test-suite quickbook.test :
     [ quickbook-test section-unclosed ]
     [ quickbook-test templates-1.5 ]
     [ quickbook-test templates-1.6 ]
+    [ quickbook-test macros-1.5 ]
+    [ quickbook-test macros-1.6 ]
     [ quickbook-error-test section-fail1 ]
     [ quickbook-error-test section-fail2 ]
     ;

@@ -177,7 +177,7 @@ namespace quickbook
     // Handles line-breaks (DEPRECATED!!!)
     void break_action::operator()(iterator first, iterator) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, phrase);
 
         file_position const pos = first.get_position();
@@ -226,7 +226,7 @@ namespace quickbook
 
     void block_action(quickbook::actions& actions, value block)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.out);
 
         detail::markup markup = detail::get_markup(block.get_tag());
@@ -238,7 +238,7 @@ namespace quickbook
 
     void block_empty_action(quickbook::actions& actions, value block)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.out);
 
         detail::markup markup = detail::get_markup(block.get_tag());
@@ -247,7 +247,7 @@ namespace quickbook
 
     void phrase_action(quickbook::actions& actions, value phrase)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.phrase);
 
         detail::markup markup = detail::get_markup(phrase.get_tag());
@@ -259,7 +259,7 @@ namespace quickbook
 
     void raw_phrase_action(quickbook::actions& actions, value phrase)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.phrase);
 
         detail::markup markup = detail::get_markup(phrase.get_tag());
@@ -268,7 +268,7 @@ namespace quickbook
 
     void paragraph_action::operator()() const
     {
-        if(actions.suppress) return;
+        if(!(actions.process_state & actions.process_output)) return;
     
         std::string str;
         actions.phrase.swap(str);
@@ -303,7 +303,7 @@ namespace quickbook
 
     void header_action(quickbook::actions& actions, value heading_list)
     {
-        if(actions.suppress) return;
+        if(!(actions.process_state & actions.process_output)) return;
 
         value_consumer values = heading_list;
 
@@ -360,7 +360,7 @@ namespace quickbook
 
     void simple_phrase_action::operator()(char mark) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, out);
 
         int tag =
@@ -391,20 +391,22 @@ namespace quickbook
 
     bool cond_phrase_push::start()
     {
-        saved_suppress = actions.suppress;
+        saved_process_state = actions.process_state;
     
         value_consumer values = actions.values.release();
         bool condition = find(actions.macro,
             values.consume().get_quickbook().c_str());
-    
-        actions.suppress = actions.suppress || !condition;
+
+        if (!condition)
+            actions.process_state = actions.process_none;
 
         return true;
     }
     
     void cond_phrase_push::cleanup()
     {
-        actions.suppress = saved_suppress;
+        actions.process_state =
+            static_cast<quickbook::actions::process_flags>(saved_process_state);
     }
 
     namespace {
@@ -428,7 +430,7 @@ namespace quickbook
 
     void list_action(quickbook::actions& actions, value list)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.out);
 
         typedef std::pair<char, int> mark_type;
@@ -502,7 +504,7 @@ namespace quickbook
 
     void explicit_list_action(quickbook::actions& actions, value list)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.out);
 
         detail::markup markup = detail::get_markup(list.get_tag());
@@ -547,7 +549,7 @@ namespace quickbook
 
     void anchor_action(quickbook::actions& actions, value anchor)
     {
-        if(actions.suppress) return;
+        if(!(actions.process_state & actions.process_output)) return;
         
         value_consumer values = anchor;
         actions.anchors.push_back(values.consume().get_quickbook());
@@ -556,7 +558,7 @@ namespace quickbook
 
     void do_macro_action::operator()(std::string const& str) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, phrase);
 
         if (str == quickbook_get_date)
@@ -607,7 +609,7 @@ namespace quickbook
 
     void code_action::operator()(iterator first, iterator last) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, out);
 
         // preprocess the code section to remove the initial indentation
@@ -640,7 +642,7 @@ namespace quickbook
 
     void inline_code_action::operator()(iterator first, iterator last) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, out);
 
         std::string save;
@@ -658,7 +660,7 @@ namespace quickbook
 
     void raw_char_action::operator()(char ch) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, phrase);
 
         phrase << ch;
@@ -666,7 +668,7 @@ namespace quickbook
 
     void raw_char_action::operator()(iterator first, iterator /*last*/) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, phrase);
 
         phrase << *first;
@@ -674,7 +676,7 @@ namespace quickbook
 
     void plain_char_action::operator()(char ch) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, phrase);
 
         detail::print_char(ch, phrase.get());
@@ -682,7 +684,7 @@ namespace quickbook
 
     void plain_char_action::operator()(iterator first, iterator /*last*/) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, phrase);
 
         detail::print_char(*first, phrase.get());
@@ -690,7 +692,7 @@ namespace quickbook
 
     void escape_unicode_action::operator()(iterator first, iterator last) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, phrase);
 
         while(first != last && *first == '0') ++first;
@@ -712,7 +714,7 @@ namespace quickbook
 
     void image_action(quickbook::actions& actions, value image)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.phrase);
 
         typedef std::map<std::string, value> attribute_map;
@@ -890,7 +892,7 @@ namespace quickbook
 
     void macro_definition_action(quickbook::actions& actions, quickbook::value macro_definition)
     {
-        if(actions.suppress) return;
+        if(!(actions.process_state & actions.process_macros)) return;
 
         value_consumer values = macro_definition;
         std::string macro_id = values.consume().get_quickbook();
@@ -905,7 +907,7 @@ namespace quickbook
 
     void template_body_action(quickbook::actions& actions, quickbook::value template_definition)
     {
-        if(actions.suppress) return;
+        if(!(actions.process_state & actions.process_templates)) return;
 
         value_consumer values = template_definition;
         std::string identifier = values.consume().get_quickbook();
@@ -1133,7 +1135,7 @@ namespace quickbook
     void do_template_action(quickbook::actions& actions, value template_list,
             file_position pos)
     {
-        if(actions.suppress) return;
+        if(!(actions.process_state & actions.process_output)) return;
 
         // Get the arguments
         value_consumer values = template_list;
@@ -1332,7 +1334,7 @@ namespace quickbook
 
     void link_action(quickbook::actions& actions, value link)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.phrase);
 
         detail::markup markup = detail::get_markup(link.get_tag());
@@ -1356,7 +1358,7 @@ namespace quickbook
 
     void variable_list_action(quickbook::actions& actions, value variable_list)
     {
-        if(actions.suppress) return;
+        if(!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.out);
 
         value_consumer values = variable_list;
@@ -1393,7 +1395,7 @@ namespace quickbook
 
     void table_action(quickbook::actions& actions, value table)
     {
-        if(actions.suppress) return;
+        if(!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.out);
 
         value_consumer values = table;
@@ -1486,7 +1488,7 @@ namespace quickbook
 
     void begin_section_action(quickbook::actions& actions, value begin_section_list)
     {    
-        if(actions.suppress) return;
+        if(!(actions.process_state & actions.process_output)) return;
 
         value_consumer values = begin_section_list;
 
@@ -1539,7 +1541,7 @@ namespace quickbook
 
     void end_section_action(quickbook::actions& actions, value end_section, file_position pos)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.out);
 
         if (actions.section_level <= actions.min_section_level)
@@ -1685,7 +1687,7 @@ namespace quickbook
 
     void xinclude_action(quickbook::actions& actions, value xinclude)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.out);
 
         value_consumer values = xinclude;
@@ -1749,7 +1751,7 @@ namespace quickbook
     {
         assert(load_type == block_tags::include ||
             load_type == block_tags::import);
-    
+
         {
             file_state state(actions,
                 load_type == block_tags::import ? file_state::scope_none :
@@ -1758,6 +1760,11 @@ namespace quickbook
 
             actions.filename = paths.filename;
             actions.filename_relative = paths.filename_relative;
+
+            if (load_type == block_tags::import)
+                actions.process_state =
+                    static_cast<quickbook::actions::process_flags>(
+                        actions.process_macros | actions.process_templates);
 
             // remain bug compatible with old versions of quickbook
             if(qbk_version_n < 106) actions.doc_id.clear();
@@ -1820,7 +1827,7 @@ namespace quickbook
 
     void include_action(quickbook::actions& actions, value include)
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.out);
 
         value_consumer values = include;
@@ -1832,6 +1839,7 @@ namespace quickbook
         if (qbk_version_n >= 106)
         {
             std::string ext = paths.filename.extension().generic_string();
+            
             if (ext == ".qbk" || ext == ".quickbook")
             {
                 load_quickbook(actions, paths, include.get_tag(), include_doc_id);
@@ -1857,7 +1865,7 @@ namespace quickbook
     void phrase_to_docinfo_action_impl::operator()(iterator first, iterator last,
             value::tag_type tag) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, actions.phrase);
 
         std::string encoded;
@@ -1873,7 +1881,7 @@ namespace quickbook
     
     void collector_to_value_action::operator()(iterator, iterator) const
     {
-        if (actions.suppress) return;
+        if (!(actions.process_state & actions.process_output)) return;
         write_anchors(actions, output);
 
         std::string value;
@@ -1922,4 +1930,19 @@ namespace quickbook
     {
         actions_.context = saved_context_;
     }
+
+    bool activate_processing_impl::start()
+    {
+        saved_process_state = actions.process_state;
+        actions.process_state = actions.process_normal;
+
+        return true;
+    }
+    
+    void activate_processing_impl::cleanup()
+    {
+        actions.process_state =
+            static_cast<quickbook::actions::process_flags>(saved_process_state);
+    }
+
 }

@@ -5,3 +5,7 @@
 [include templates-inc1.quickbook]
 
 [foo]
+
+[import templates-inc1.quickbook]
+
+[foo]

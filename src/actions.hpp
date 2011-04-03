@@ -144,7 +144,7 @@ namespace quickbook
         void cleanup();
 
         quickbook::actions& actions;
-        bool saved_suppress;
+        int saved_process_state;
     };
 
     struct span
@@ -401,6 +401,18 @@ namespace quickbook
     private:
         quickbook::actions& actions_;
         int saved_context_;
+    };
+
+    struct activate_processing_impl : scoped_action_base
+    {
+        activate_processing_impl(quickbook::actions& x)
+            : actions(x) {}
+
+        bool start();
+        void cleanup();
+
+        quickbook::actions& actions;
+        int saved_process_state;
     };
 }
 
