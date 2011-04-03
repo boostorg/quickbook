@@ -53,7 +53,8 @@ namespace quickbook
     }
 
     int load_snippets(std::string const& file, std::vector<template_symbol>& storage,
-        std::string const& extension);
+        std::string const& extension, value::tag_type load_type);
+
     std::string syntax_highlight(
         iterator first, iterator last,
         actions& escape_actions,

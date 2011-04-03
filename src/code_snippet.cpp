@@ -13,6 +13,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
+#include "block_tags.hpp"
 #include "template_stack.hpp"
 #include "actions.hpp"
 #include "values.hpp"
@@ -312,8 +313,12 @@ namespace quickbook
         std::string const& file
       , std::vector<template_symbol>& storage   // snippets are stored in a
                                                 // vector of template_symbols
-      , std::string const& extension)
+      , std::string const& extension
+      , value::tag_type load_type)
     {
+        assert(load_type == block_tags::include ||
+            load_type == block_tags::import);
+
         std::string code;
         int err = detail::load(file, code);
         if (err != 0)
@@ -325,11 +330,22 @@ namespace quickbook
         bool is_python = extension == ".py";
         code_snippet_actions a(storage, file, is_python ? "[python]" : "[c++]");
         // TODO: Should I check that parse succeeded?
+
+        if (load_type == block_tags::include) {
+            // Use an id that couldn't occur normally.
+            a.id = "global tag";
+            a.start_snippet(first, first);
+        }
+        
         if(is_python) {
             boost::spirit::classic::parse(first, last, python_code_snippet_grammar(a));
         }
         else {
             boost::spirit::classic::parse(first, last, cpp_code_snippet_grammar(a));
+        }
+
+        if (load_type == block_tags::include) {
+            a.end_snippet(first, first);
         }
 
         return 0;
