@@ -331,8 +331,56 @@ void free_add_find_functions_tests()
     nsymbols sym;
     BOOST_TEST(*add(sym, "a", 0) == 0);
     BOOST_TEST(*add(sym, "a2", 1) == 1);
+    BOOST_TEST(add(sym, "a2", 2) == 0);
     BOOST_TEST(find(sym, "a2"));
     BOOST_TEST(find(sym, "a"));
+}
+
+// The original teneray search tree implementation contained a bug when
+// inserting duplicate values. I want this implementation to be as
+// close as possible to the original (so they can be easily switched)
+// so check that the bug remains the same.
+
+struct check_parse_value
+{
+    explicit check_parse_value(int value) : value_(value){}
+    
+    void operator()(int value) const { BOOST_TEST(value == value_); }
+    
+    int value_;
+};
+
+// My version is different to the original, if there's an existing value
+// it replaces it with the new one.
+
+static
+void duplicate_add_tests()
+{
+	char const* foo1 = "foo";
+	char const* foo2 = foo1 + 3;
+
+    nsymbols sym;
+    sym.add(foo1, foo2, 1);
+    nsymbols sym2 = sym;
+    sym.add(foo1, foo2, 2);
+    sym2.add(foo1, foo2, 3);
+    
+    BOOST_TEST(find(sym, "foo") && *find(sym, "foo") == 2);
+    BOOST_TEST(find(sym2, "foo") && *find(sym2, "foo") == 3);
+
+    parse_info<char const*> info;
+
+    info = parse("foo ", sym[check_parse_value(2)]);
+    BOOST_TEST(info.hit && info.length == 3);
+
+    info = parse("foo", sym[check_parse_value(2)]);
+    BOOST_TEST(info.hit && info.length == 3);
+
+    info = parse("foo ", sym2[check_parse_value(3)]);
+    BOOST_TEST(info.hit && info.length == 3);
+
+    info = parse("foo", sym2[check_parse_value(3)]);
+    BOOST_TEST(info.hit && info.length == 3);
 }
 
 int
@@ -352,5 +400,6 @@ main()
     wide_value_tests();
     wide_free_functions_tests();
     free_add_find_functions_tests();
+    duplicate_add_tests();
     return boost::report_errors();
 }

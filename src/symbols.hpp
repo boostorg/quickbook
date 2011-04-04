@@ -121,7 +121,6 @@ namespace quickbook
             root.swap(other.root);
         }
 
-        // TODO: Make sure you check for readdition.
         template <typename IteratorT>
         T* add(IteratorT first, IteratorT const& last, T const& data)
         {
@@ -134,14 +133,11 @@ namespace quickbook
             BOOST_SPIRIT_ASSERT((first == last || ch != 0)
                 && "Won't add string containing null character");
 
-            for (;;)
+            while(ch != CharT(0))
             {
-                if (!*np || ch == 0)
+                if (!*np)
                 {
-                    node_ptr right = *np;
                     *np = new node_t(ch);
-                    if (right)
-                        (*np)->right = right;
                 }
                 else if ((*np)->reference_count > 1)
                 {
@@ -152,37 +148,38 @@ namespace quickbook
                 {
                     np = &(*np)->left;
                 }
+                else if (ch == (*np)->value)
+                {
+                    ++first;
+                    ch = (first == last) ? CharT(0) : *first;
+                    BOOST_SPIRIT_ASSERT((first == last || ch != 0)
+                        && "Won't add string containing null character");
+                    np = &(*np)->middle;
+                }
                 else
                 {
-                    if (ch == (*np)->value)
-                    {
-                        if (ch == 0)
-                        {
-                            if ((*np)->data == 0)
-                            {
-                                (*np)->data = new T(data);
-                                return (*np)->data;
-                            }
-                            else
-                            {
-                                //  re-addition is disallowed
-                                return 0;
-                            }
-                       }
-                        ++first;
-                        ch = (first == last) ? CharT(0) : *first;
-                        BOOST_SPIRIT_ASSERT((first == last || ch != 0)
-                            && "Won't add string containing null character");
-                        np = &(*np)->middle;
-                    }
-                    else
-                    {
-                        np = &(*np)->right;
-                    }
+                    np = &(*np)->right;
                 }
             }
-        }
 
+            if (*np && (*np)->value == CharT(0))
+            {
+                node_ptr new_node = new node_t(ch);
+                new_node->left = (*np)->left;
+                new_node->right = (*np)->right;
+                *np = new_node;
+            }
+            else
+            {
+                node_ptr new_node = new node_t(ch);
+                new_node->right = *np;
+                *np = new_node;
+            }
+
+            (*np)->data = new T(data);
+            return (*np)->data;
+        }
+        
         template <typename ScannerT>
         search_info find(ScannerT const& scan) const
         {

@@ -899,6 +899,20 @@ namespace quickbook
         std::string phrase = values.consume().get_boostbook();
         values.finish();
 
+        std::string* existing_macro =
+            boost::spirit::classic::find(actions.macro, macro_id.c_str());
+        quickbook::ignore_variable(&existing_macro);
+
+        if (existing_macro)
+        {
+            if (qbk_version_n < 106) return;
+
+            // Do this if you're using spirit's TST.
+            //
+            // *existing_macro = phrase;
+            // return;
+        }
+
         actions.macro.add(
             macro_id.begin()
           , macro_id.end()

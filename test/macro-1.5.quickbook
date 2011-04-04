@@ -1,0 +1,28 @@
+[article Macro Test
+[quickbook 1.5]
+]
+
+[def one 1]
+
+one
+
+[template foo[]
+
+[def two 2]
+two
+]
+
+[foo]
+two [/This shouldn't expand]
+
+
+[def __foo__ 1]
+[def __foo__ 2]
+__foo__
+
+[template foo2[]
+[def __foo__ 2]
+__foo__
+]
+
+[foo2]
