@@ -52,7 +52,7 @@ namespace quickbook
         return quickbook_range(0, max_);
     }
 
-    int load_snippets(std::string const& file, std::vector<template_symbol>& storage,
+    int load_snippets(fs::path const& file, std::vector<template_symbol>& storage,
         std::string const& extension, value::tag_type load_type);
 
     std::string syntax_highlight(

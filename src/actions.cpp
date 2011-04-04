@@ -1826,7 +1826,7 @@ namespace quickbook
         std::string ext = paths.filename.extension().generic_string();
         std::vector<template_symbol> storage;
         actions.error_count +=
-            load_snippets(paths.filename.string(), storage, ext, load_type);
+            load_snippets(paths.filename, storage, ext, load_type);
 
         if (load_type == block_tags::import)
         {
