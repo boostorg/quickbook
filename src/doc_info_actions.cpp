@@ -165,7 +165,7 @@ namespace quickbook
                 qbk_minor_version = 1;
                 qbk_version_n = 101;
                 detail::outwarn(actions.filename,1)
-                    << "Warning: Quickbook version undefined. "
+                    << "Quickbook version undefined. "
                     "Version 1.1 is assumed" << std::endl;
             }
             else
