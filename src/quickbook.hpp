@@ -28,7 +28,8 @@ namespace quickbook
     extern std::vector<fs::path> include_path;
     extern std::vector<std::string> preset_defines;
 
-    int parse_file(fs::path const& filein_, actions& actor, bool nested_file = false);
+    int parse_file(fs::path const& filein_, actions& actor,
+        bool nested_file = false);
     
     // Some initialisation methods
     //

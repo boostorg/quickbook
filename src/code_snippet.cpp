@@ -320,9 +320,7 @@ namespace quickbook
             load_type == block_tags::import);
 
         std::string code;
-        int err = detail::load(file, code);
-        if (err != 0)
-            return err; // return early on error
+        detail::load(file, code); // Throws detail::load_error.
 
         iterator first(code.begin());
         iterator last(code.end());

@@ -69,18 +69,13 @@ namespace quickbook
     //  Parse a file
     //
     ///////////////////////////////////////////////////////////////////////////
-    int
-    parse_file(fs::path const& filein_, actions& actor, bool nested_file)
+    int parse_file(fs::path const& filein_, actions& actor, bool nested_file)
     {
         using std::vector;
         using std::string;
 
         std::string storage;
-        int err = detail::load(filein_, storage);
-        if (err != 0) {
-            ++actor.error_count;
-            return err;
-        }
+        detail::load(filein_, storage); // Throws detail::load_error
 
         iterator first(storage.begin());
         iterator last(storage.end());
@@ -119,8 +114,6 @@ namespace quickbook
                 << "Syntax Error near column " << pos.column << ".\n";
             ++actor.error_count;
         }
-
-        return actor.error_count ? 1 : 0;
     }
 
     static int
@@ -132,19 +125,27 @@ namespace quickbook
         actions actor(filein_, xinclude_base, out);
 
         set_macros(actor);
-        bool r = parse_file(filein_, actor);
-        if (actor.section_level != 0)
-            detail::outwarn(filein_)
-                << "Warning missing [endsect] detected at end of file."
-                << std::endl;
+        
+        try {
+            parse_file(filein_, actor);
 
-        if(actor.error_count)
-        {
-            detail::outerr()
-                << "Error count: " << actor.error_count << ".\n";
+            if (actor.section_level != 0) {
+                detail::outwarn(filein_)
+                    << "Warning missing [endsect] detected at end of file."
+                    << std::endl;
+            }
+
+            if(actor.error_count) {
+                detail::outerr()
+                    << "Error count: " << actor.error_count << ".\n";
+            }
+        }
+        catch (detail::load_error& e) {
+            ++actor.error_count;
+            detail::outerr(filein_) << detail::utf8(e.what()) << std::endl;
         }
 
-        return r;
+        return !!actor.error_count;
     }
 
     static int

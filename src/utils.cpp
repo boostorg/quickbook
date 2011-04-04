@@ -8,7 +8,6 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 #include "utils.hpp"
-#include "input_path.hpp"
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/filesystem/v3/fstream.hpp>
 
@@ -190,18 +189,14 @@ namespace quickbook { namespace detail
     // newlines.
 
     template <class InputIterator, class OutputIterator>
-    bool normalize(InputIterator begin, InputIterator end,
-            OutputIterator out, fs::path const& filename)
+    void normalize(InputIterator begin, InputIterator end,
+            OutputIterator out)
     {
         std::string encoding = read_bom(begin, end, out);
 
-        if(encoding != "UTF-8" && encoding != "") {
-            outerr(filename) << encoding.c_str()
-                << " is not supported. Please use UTF-8."
-                << std::endl;
-
-            return false;
-        }
+        if(encoding != "UTF-8" && encoding != "")
+        	throw load_error(encoding +
+        		" is not supported. Please use UTF-8.");
     
         while(begin != end) {
             if(*begin == '\r') {
@@ -213,11 +208,9 @@ namespace quickbook { namespace detail
                 *out++ = *begin++;
             }
         }
-        
-        return true;
     }
 
-    int load(fs::path const& filename, std::string& storage)
+    void load(fs::path const& filename, std::string& storage)
     {
         using std::endl;
         using std::ios;
@@ -227,24 +220,15 @@ namespace quickbook { namespace detail
         fs::ifstream in(filename, std::ios_base::in);
 
         if (!in)
-        {
-            outerr(filename) << "Could not open input file." << endl;
-            return 1;
-        }
+        	throw load_error("Could not open input file.");
 
         // Turn off white space skipping on the stream
         in.unsetf(ios::skipws);
 
-        if(!normalize(
+        normalize(
             istream_iterator<char>(in),
             istream_iterator<char>(),
-            std::back_inserter(storage),
-            filename))
-        {
-            return 1;
-        }
-
-        return 0;
+            std::back_inserter(storage));
     }
 
     file_type get_file_type(std::string const& extension)

@@ -1839,6 +1839,7 @@ namespace quickbook
 
         std::string ext = paths.filename.extension().generic_string();
         std::vector<template_symbol> storage;
+        // Throws detail::load_error
         actions.error_count +=
             load_snippets(paths.filename, storage, ext, load_type);
 
@@ -1875,29 +1876,41 @@ namespace quickbook
             check_path(values.consume(), actions), actions);
         values.finish();
 
-        if (qbk_version_n >= 106)
-        {
-            std::string ext = paths.filename.extension().generic_string();
-            
-            if (ext == ".qbk" || ext == ".quickbook")
+        try {
+            if (qbk_version_n >= 106)
             {
-                load_quickbook(actions, paths, include.get_tag(), include_doc_id);
+                std::string ext = paths.filename.extension().generic_string();
+                
+                if (ext == ".qbk" || ext == ".quickbook")
+                {
+                    load_quickbook(actions, paths, include.get_tag(), include_doc_id);
+                }
+                else
+                {
+                    load_source_file(actions, paths, include.get_tag(), pos, include_doc_id);
+                }
             }
             else
             {
-                load_source_file(actions, paths, include.get_tag(), pos, include_doc_id);
+                if (include.get_tag() == block_tags::include)
+                {
+                    load_quickbook(actions, paths, include.get_tag(), include_doc_id);
+                }
+                else
+                {
+                    load_source_file(actions, paths, include.get_tag(), pos, include_doc_id);
+                }
             }
         }
-        else
-        {
-            if (include.get_tag() == block_tags::include)
-            {
-                load_quickbook(actions, paths, include.get_tag(), include_doc_id);
-            }
-            else
-            {
-                load_source_file(actions, paths, include.get_tag(), pos, include_doc_id);
-            }
+        catch (detail::load_error& e) {
+            ++actions.error_count;
+
+            detail::outerr(actions.filename, pos.line)
+                << "Loading file:"
+                << paths.filename
+                << ": "
+                << detail::utf8(e.what())
+                << std::endl;
         }
     }
 

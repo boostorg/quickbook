@@ -45,8 +45,15 @@ namespace detail
     void unindent(std::string& program);
 
     std::string escape_uri(std::string uri);
+    
+    class load_error : public std::runtime_error
+    {
+    public:
+    	explicit load_error(std::string const& arg)
+    		: std::runtime_error(arg) {}
+    };
 
-    int load(fs::path const& filename, std::string& storage);
+    void load(fs::path const& filename, std::string& storage);
 
     // given a file extension, return the type of the source file
     // we'll have an internal database for known file types.
