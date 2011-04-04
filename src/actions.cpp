@@ -1816,8 +1816,7 @@ namespace quickbook
                 = detail::path_to_generic(actions.filename_relative);
         
             // parse the file
-            quickbook::parse_file(actions.filename.string().c_str(),
-                actions, true);
+            quickbook::parse_file(actions.filename, actions, true);
 
             // Don't restore source_mode on older versions.
             if (keep_inner_source_mode) state.source_mode = actions.source_mode;
