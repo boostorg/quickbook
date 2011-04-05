@@ -7,7 +7,11 @@
     [@http://www.boost.org/LICENSE_1_0.txt])
 ]
 
-[section:change_log Change Log]
+[chapter Change Log
+	[quickbook 1.5]
+	[id quickbook.change_log]
+    [source-mode teletype]
+]
 
 [section:versions Language Versions]
 
@@ -243,5 +247,3 @@ Boost 1.46.1:
 
 
 [endsect] [/releases]
-
-[endsect] [/Change log]

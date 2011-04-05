@@ -7,7 +7,11 @@
     [@http://www.boost.org/LICENSE_1_0.txt])
 ]
 
-[section:intro Introduction]
+[chapter Introduction
+    [quickbook 1.5]
+    [id quickbook.intro]
+    [source-mode teletype]
+]
 
 [:[*['["Why program by hand in five days what you can spend five years of your
 life automating?]]]
@@ -44,5 +48,3 @@ Features include:
   tables, URLs, anchors, images, etc.
 * automatic syntax coloring of code samples
 * CSS support
-
-[endsect] [/Introduction]

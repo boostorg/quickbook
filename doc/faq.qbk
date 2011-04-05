@@ -7,7 +7,11 @@
     [@http://www.boost.org/LICENSE_1_0.txt])
 ]
 
-[section:faq Frequently Asked Questions]
+[chapter Frequently Asked Questions
+    [quickbook 1.5]
+    [id quickbook.faq]
+    [source-mode teletype]
+]
 
 [heading Can I use QuickBook for non-Boost documentation?]
 
@@ -48,5 +52,3 @@ so it's then just a cut and paste job to convert the BoostBook to
 QuickBook (which IMO is a whole lot easier to edit and maintain).
 
 --John Maddock
-
-[endsect] [/faq]

@@ -7,7 +7,11 @@
     [@http://www.boost.org/LICENSE_1_0.txt])
 ]
 
-[section:ref Quick Reference]
+[chapter Quick Reference
+    [quickbook 1.5]
+    [id quickbook.ref]
+    [source-mode teletype]
+]
 
 [teletype]
 
@@ -99,5 +103,3 @@
     [[conditional generation]
                             [[^'''[? symbol phrase]''']]                    [__cond__]]
 ]
-
-[endsect] [/ quick reference]

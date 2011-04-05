@@ -7,7 +7,11 @@
     [@http://www.boost.org/LICENSE_1_0.txt])
 ]
 
-[section:phrase Phrase Level Elements]
+[chapter Phrase Level Elements
+    [quickbook 1.5]
+    [id quickbook.phrase]
+    [source-mode teletype]
+]
 
 [section Font Styles]
 
@@ -518,5 +522,3 @@ And try again:
 Yes![footnote Conditional Generation makes quickbook turing complete.]
 
 [endsect] [/Condition Generation]
-
-[endsect] [/Phrase Level Elements]

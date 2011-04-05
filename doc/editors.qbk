@@ -7,7 +7,11 @@
     [@http://www.boost.org/LICENSE_1_0.txt])
 ]
 
-[section:editors Editor Support]
+[chapter Editor Support
+    [quickbook 1.5]
+    [id quickbook.editors]
+    [source-mode teletype]
+]
 
 Editing quickbook files is usually done with text editors both simple and
 powerful. The following sections list the settings for some editors which can
@@ -49,5 +53,3 @@ comment.box.end.props=]
 
 [/ KDE support (Kate, KWrite, Konqueror, KDevelop) ]
 [include ../extra/katepart/katepart.qbk]
-
-[endsect] [/editors]

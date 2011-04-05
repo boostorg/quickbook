@@ -7,7 +7,11 @@
     [@http://www.boost.org/LICENSE_1_0.txt])
 ]
 
-[section:block Block Level Elements]
+[chapter Block Level Elements
+	[quickbook 1.5]
+	[id quickbook.block]
+    [source-mode teletype]
+]
 
 [section xinclude]
 
@@ -1106,5 +1110,3 @@ Example:
 See the actual code here: [@boost:/tools/quickbook/test/stub.cpp]
 
 [endsect] [/Import]
-
-[endsect] [/Block Level Elements]

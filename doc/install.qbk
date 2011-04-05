@@ -7,7 +7,11 @@
     [@http://www.boost.org/LICENSE_1_0.txt])
 ]
 
-[section:install Installation and configuration]
+[chapter Installation and configuration
+    [quickbook 1.5]
+    [id quickbook.install]
+    [source-mode teletype]
+]
 
 This section provides some guidelines on how to install and configure
 BoostBook and Quickbook under several operating systems. Before installing
@@ -308,5 +312,3 @@ rebuilds:
      ;
 
 [endsect] [/Linux]
-
-[endsect] [/Installation and configuration]
