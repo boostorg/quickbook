@@ -69,7 +69,8 @@ namespace quickbook
     //  Parse a file
     //
     ///////////////////////////////////////////////////////////////////////////
-    int parse_file(fs::path const& filein_, actions& actor, bool nested_file)
+    void parse_file(fs::path const& filein_, actions& actor,
+            value include_doc_id, bool nested_file)
     {
         using std::vector;
         using std::string;
@@ -98,7 +99,7 @@ namespace quickbook
 
         if (info.hit || !docinfo_type)
         {
-            pre(actor.out, actor, docinfo_type);
+            pre(actor.out, actor, include_doc_id, docinfo_type);
 
             info = cl::parse(info.hit ? info.stop : first, last, actor.grammar().block);
             if (info.full)

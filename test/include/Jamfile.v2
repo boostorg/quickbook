@@ -26,6 +26,8 @@ test-suite quickbook.test :
     [ quickbook-test macros-1.6 ]
     [ quickbook-test code-import ]
     [ quickbook-test code-include ]
+    [ quickbook-test include-id-1.5 ]
+    [ quickbook-test include-id-1.6 ]
     [ quickbook-error-test section-fail1 ]
     [ quickbook-error-test section-fail2 ]
     ;

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
+<article id="include_id_test" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
+ xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Include Id Test</title> <anchor id="a.simple_include"/>
+  <bridgehead renderas="sect2" id="a.simple_include-heading">
+    <link linkend="a.simple_include">Simple include</link>
+  </bridgehead>
+  <anchor id="b.simple_include"/>
+  <bridgehead renderas="sect2" id="b.simple_include-heading">
+    <link linkend="b.simple_include">Simple include</link>
+  </bridgehead>
+  <anchor id="c.title__no_id"/>
+  <bridgehead renderas="sect2" id="c.title__no_id-heading">
+    <link linkend="c.title__no_id">Title, no id</link>
+  </bridgehead>
+  <anchor id="d.title__no_id"/>
+  <bridgehead renderas="sect2" id="d.title__no_id-heading">
+    <link linkend="d.title__no_id">Title, no id</link>
+  </bridgehead>
+  <anchor id="with-id.title_with_id"/>
+  <bridgehead renderas="sect2" id="with-id.title_with_id-heading">
+    <link linkend="with-id.title_with_id">Title with id</link>
+  </bridgehead>
+  <anchor id="with-id.title_with_id"/>
+  <bridgehead renderas="sect2" id="with-id.title_with_id-heading">
+    <link linkend="with-id.title_with_id">Title with id</link>
+  </bridgehead>
+</article>

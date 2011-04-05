@@ -68,7 +68,8 @@ namespace quickbook
         return values;
     }
 
-    void pre(collector& out, quickbook::actions& actions, docinfo_types docinfo_type)
+    void pre(collector& out, quickbook::actions& actions,
+            value include_doc_id, docinfo_types docinfo_type)
     {
         // The doc_info in the file has been parsed. Here's what we'll do
         // *before* anything else.
@@ -126,18 +127,27 @@ namespace quickbook
                 ;
         }
 
-        if (!id.empty())
-            actions.doc_id = id.get_quickbook();
-
-        // This is only meant to kick in for the main document (since in
-        // included documents, the id should already be set), but due to a
-        // bug in old versions the document id is reset when including files.
-
-        if (actions.doc_id.empty())
+        // Note: this is the version number of the parent document.
+        if (qbk_version_n >= 106)
         {
-            assert(qbk_version_n < 106 || docinfo_type == docinfo_main);
-            actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
+            if (!include_doc_id.empty())
+                actions.doc_id = include_doc_id.get_quickbook();
+            else if (!id.empty())
+                actions.doc_id = id.get_quickbook();
+            else if (docinfo_type)
+                actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
         }
+        else
+        {
+            if (!id.empty())
+                actions.doc_id = id.get_quickbook();
+            else if (!include_doc_id.empty())
+                actions.doc_id = include_doc_id.get_quickbook();
+            else
+                actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
+        }
+
+        assert(!actions.doc_id.empty());
 
         // if we're ignoring the document info, we're done.
 

@@ -345,8 +345,8 @@ namespace quickbook
         docinfo_nested = 2
     };
 
-    void pre(collector& out, quickbook::actions& actions, docinfo_types = docinfo_main);
-    void post(collector& out, quickbook::actions& actions, docinfo_types = docinfo_main);
+    void pre(collector& out, quickbook::actions& actions, value include_doc_id, docinfo_types);
+    void post(collector& out, quickbook::actions& actions, docinfo_types);
 
     struct phrase_to_docinfo_action_impl
     {

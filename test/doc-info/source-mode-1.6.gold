@@ -18,7 +18,8 @@
     
 <programlisting>This shouldn't be highlighted.</programlisting>
   </para>
-  <article id="c___test" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <article id="c___source_mode_include" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>C++ source mode include</title>
     <para>
       
@@ -29,7 +30,8 @@
     
 <programlisting>This shouldn't be highlighted.</programlisting>
   </para>
-  <article id="c___test" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <article id="python_source_mode_include" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Python source mode include</title>
     <para>
       
@@ -40,7 +42,8 @@
     
 <programlisting>This shouldn't be highlighted.</programlisting>
   </para>
-  <article id="c___test" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <article id="teletype_source_mode_include" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Teletype source mode include</title>
     <para>
       

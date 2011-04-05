@@ -17,6 +17,7 @@
 #include <string>
 #include <boost/filesystem/v3/path.hpp>
 #include "fwd.hpp"
+#include "values.hpp"
 
 namespace quickbook
 {
@@ -28,8 +29,9 @@ namespace quickbook
     extern std::vector<fs::path> include_path;
     extern std::vector<std::string> preset_defines;
 
-    int parse_file(fs::path const& filein_, actions& actor,
-        bool nested_file = false);
+    void parse_file(fs::path const& filein_, actions& actor,
+    	value include_doc_id = value(),
+    	bool nested_file = false);
     
     // Some initialisation methods
     //

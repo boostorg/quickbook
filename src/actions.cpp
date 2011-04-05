@@ -1806,17 +1806,13 @@ namespace quickbook
             // remain bug compatible with old versions of quickbook
             if(qbk_version_n < 106) actions.doc_id.clear();
 
-            // if an id is specified in this include (as in [include:id foo.qbk])
-            // then use it as the doc_id.
-            if (!include_doc_id.empty())
-                actions.doc_id = include_doc_id.get_quickbook();
-
             // update the __FILENAME__ macro
             *boost::spirit::classic::find(actions.macro, "__FILENAME__")
                 = detail::path_to_generic(actions.filename_relative);
         
             // parse the file
-            quickbook::parse_file(actions.filename, actions, true);
+            quickbook::parse_file(actions.filename, actions,
+                include_doc_id, true);
 
             // Don't restore source_mode on older versions.
             if (keep_inner_source_mode) state.source_mode = actions.source_mode;
