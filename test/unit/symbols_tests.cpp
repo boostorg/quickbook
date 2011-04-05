@@ -356,8 +356,8 @@ struct check_parse_value
 static
 void duplicate_add_tests()
 {
-	char const* foo1 = "foo";
-	char const* foo2 = foo1 + 3;
+    char const* foo1 = "foo";
+    char const* foo2 = foo1 + 3;
 
     nsymbols sym;
     sym.add(foo1, foo2, 1);

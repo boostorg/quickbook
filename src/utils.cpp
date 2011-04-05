@@ -195,8 +195,8 @@ namespace quickbook { namespace detail
         std::string encoding = read_bom(begin, end, out);
 
         if(encoding != "UTF-8" && encoding != "")
-        	throw load_error(encoding +
-        		" is not supported. Please use UTF-8.");
+            throw load_error(encoding +
+                " is not supported. Please use UTF-8.");
     
         while(begin != end) {
             if(*begin == '\r') {
@@ -220,7 +220,7 @@ namespace quickbook { namespace detail
         fs::ifstream in(filename, std::ios_base::in);
 
         if (!in)
-        	throw load_error("Could not open input file.");
+            throw load_error("Could not open input file.");
 
         // Turn off white space skipping on the stream
         in.unsetf(ios::skipws);
@@ -250,5 +250,3 @@ namespace quickbook { namespace detail
     }
 
 }}
-
-

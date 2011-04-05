@@ -49,8 +49,8 @@ namespace detail
     class load_error : public std::runtime_error
     {
     public:
-    	explicit load_error(std::string const& arg)
-    		: std::runtime_error(arg) {}
+        explicit load_error(std::string const& arg)
+            : std::runtime_error(arg) {}
     };
 
     void load(fs::path const& filename, std::string& storage);
