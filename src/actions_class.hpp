@@ -37,14 +37,6 @@ namespace quickbook
 
         static int const max_template_depth = 100;
         
-        enum process_flags {
-            process_none = 0,
-            process_macros = 1,
-            process_templates = 2,
-            process_output = 4,
-            process_normal = 7
-        };
-
     // global state
         std::string             doc_title_qbk;
         fs::path                xinclude_base;
@@ -54,10 +46,11 @@ namespace quickbook
         bool                    no_eols;
         bool                    warned_about_breaks;
         int                     context;
+        bool                    conditional;
 
     // state saved for files and templates.
+        bool                    imported;
         std::string             doc_type;
-        process_flags           process_state;
         string_symbols          macro;
         std::string             source_mode;
         std::string             doc_id;
@@ -95,8 +88,6 @@ namespace quickbook
                                 scoped_no_eols;
         scoped_parser<scoped_context_impl>
                                 scoped_context;
-        scoped_parser<activate_processing_impl>
-                                scoped_activate_processing;
 
         element_action          element;
         error_action            error;
@@ -126,7 +117,9 @@ namespace quickbook
             scope_none = 0,
             scope_macros = 1,
             scope_templates = 2,
-            scope_all = 3
+            scope_output = 4,
+            scope_callables = scope_macros + scope_templates,
+            scope_all = scope_callables + scope_output
         };
     
         explicit file_state(actions&, scope_flags);
@@ -135,12 +128,12 @@ namespace quickbook
         quickbook::actions& a;
         scope_flags scope;
         unsigned qbk_version;
+        bool imported;
         std::string doc_type;
         std::string doc_id;
         fs::path filename;
         fs::path filename_relative;
         std::string source_mode;
-        actions::process_flags process_state;
         string_symbols macro;
     private:
         file_state(file_state const&);

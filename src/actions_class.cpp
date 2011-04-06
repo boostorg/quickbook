@@ -31,9 +31,10 @@ namespace quickbook
         , no_eols(true)
         , warned_about_breaks(false)
         , context(0)
+        , conditional(true)
 
+        , imported(false)
         , doc_type()
-        , process_state(process_normal)
         , macro()
         , source_mode("c++")
         , doc_id()
@@ -58,7 +59,6 @@ namespace quickbook
         , scoped_output(*this)
         , scoped_no_eols(*this)
         , scoped_context(*this)
-        , scoped_activate_processing(*this)
 
         , element(*this)
         , error(*this)
@@ -98,16 +98,20 @@ namespace quickbook
         : a(a)
         , scope(scope)
         , qbk_version(qbk_version_n)
+        , imported(a.imported)
         , doc_type(a.doc_type)
         , doc_id(a.doc_id)
         , filename(a.filename)
         , filename_relative(a.filename_relative)
         , source_mode(a.source_mode)
-        , process_state(a.process_state)
         , macro()
     {
         if (scope & scope_macros) macro = a.macro;
         if (scope & scope_templates) a.templates.push();
+        if (scope & scope_output) {
+            a.out.push();
+            a.phrase.push();
+        }
         a.values.builder.save();
     }
 
@@ -115,12 +119,16 @@ namespace quickbook
     {
         a.values.builder.restore();
         boost::swap(qbk_version_n, qbk_version);
+        boost::swap(a.imported, imported);
         boost::swap(a.doc_type, doc_type);
         boost::swap(a.doc_id, doc_id);
         boost::swap(a.filename, filename);
         boost::swap(a.filename_relative, filename_relative);
         boost::swap(a.source_mode, source_mode);
-        boost::swap(a.process_state, process_state);
+        if (scope & scope_output) {
+            a.out.pop();
+            a.phrase.pop();
+        }
         if (scope & scope_templates) a.templates.pop();
         if (scope & scope_macros) a.macro = macro;
     }
@@ -133,14 +141,10 @@ namespace quickbook
         , section_id(a.section_id)
         , qualified_section_id(a.qualified_section_id)
     {
-        a.out.push();
-        a.phrase.push();
     }
 
     template_state::~template_state()
     {
-        a.phrase.pop();
-        a.out.pop();
         boost::swap(a.template_depth, template_depth);
         boost::swap(a.section_level, section_level);
         boost::swap(a.min_section_level, min_section_level);
