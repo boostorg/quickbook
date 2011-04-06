@@ -184,6 +184,17 @@ Pre [phrase [phrase Hello!]] Post
 [template codeblock
     int main() {}]
 
-[list][horizontal][codeblock]
+[template paragraphs
+Paragraphs 1
+
+Paragraphs 2
+]
+
+[list][horizontal][codeblock][paragraphs]
+
+* [list]
+* [horizontal]
+* [codeblock]
+* [paragraphs]
 
 [endsect]
