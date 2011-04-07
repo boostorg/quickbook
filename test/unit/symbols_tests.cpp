@@ -401,5 +401,6 @@ main()
     wide_free_functions_tests();
     free_add_find_functions_tests();
     duplicate_add_tests();
+
     return boost::report_errors();
 }

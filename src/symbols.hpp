@@ -13,8 +13,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <boost/spirit/home/classic/symbols.hpp>
-#include <boost/spirit/home/classic/core/assert.hpp>
 #include <boost/intrusive_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace quickbook
@@ -50,7 +50,7 @@ namespace quickbook
         tst_node(CharT value_)
         : reference_count(0)
         , value(value_)
-        , data(0)
+        , data()
         {
         }
         
@@ -60,10 +60,8 @@ namespace quickbook
         , left(other.left)
         , middle(other.middle)
         , right(other.right)
-        , data(0)
+        , data(other.data ? new T(*other.data) : 0)
         {
-            if (other.data)
-                data = new T(*other.data);
         }
         
         tst_node& operator=(tst_node other)
@@ -72,11 +70,6 @@ namespace quickbook
             return *this;
         }
 
-        ~tst_node()
-        {
-            delete data;
-        }
-        
         void swap(tst_node& x, tst_node& y)
         {
             boost::swap(x.reference_count, y.reference_count);
@@ -92,7 +85,7 @@ namespace quickbook
         boost::intrusive_ptr<tst_node> left;
         boost::intrusive_ptr<tst_node> middle;
         boost::intrusive_ptr<tst_node> right;
-        T* data;
+        boost::scoped_ptr<T> data;
     };
 
     template <typename T, typename CharT>
@@ -121,19 +114,19 @@ namespace quickbook
             root.swap(other.root);
         }
 
+        // Adds symbol to ternary search tree.
+        // If it already exists, then replace it with new value.
+        //
+        // pre: first != last
         template <typename IteratorT>
         T* add(IteratorT first, IteratorT const& last, T const& data)
         {
-            if (first == last)
-                return 0;
+            assert (first != last);
 
             node_ptr* np = &root;
             CharT ch = *first;
 
-            BOOST_SPIRIT_ASSERT((first == last || ch != 0)
-                && "Won't add string containing null character");
-
-            while(ch != CharT(0))
+            for(;;)
             {
                 if (!*np)
                 {
@@ -151,9 +144,8 @@ namespace quickbook
                 else if (ch == (*np)->value)
                 {
                     ++first;
-                    ch = (first == last) ? CharT(0) : *first;
-                    BOOST_SPIRIT_ASSERT((first == last || ch != 0)
-                        && "Won't add string containing null character");
+                    if (first == last) break;
+                    ch = *first;
                     np = &(*np)->middle;
                 }
                 else
@@ -162,22 +154,9 @@ namespace quickbook
                 }
             }
 
-            if (*np && (*np)->value == CharT(0))
-            {
-                node_ptr new_node = new node_t(ch);
-                new_node->left = (*np)->left;
-                new_node->right = (*np)->right;
-                *np = new_node;
-            }
-            else
-            {
-                node_ptr new_node = new node_t(ch);
-                new_node->right = *np;
-                *np = new_node;
-            }
-
-            (*np)->data = new T(data);
-            return (*np)->data;
+            boost::scoped_ptr<T> new_data(new T(data));
+            boost::swap((*np)->data, new_data);
+            return (*np)->data.get();
         }
         
         template <typename ScannerT>
@@ -191,71 +170,39 @@ namespace quickbook
             typedef typename ScannerT::iterator_t iterator_t;
             node_ptr    np = root;
             CharT       ch = *scan;
-            iterator_t  save = scan.first;
             iterator_t  latest = scan.first;
-            std::size_t latest_len = 0;
+            std::size_t length = 0;
 
             while (np)
             {
-
                 if (ch < np->value) // => go left!
                 {
-                    if (np->value == 0)
-                    {
-                        result.data = np->data;
-                        if (result.data)
-                        {
-                            latest = scan.first;
-                            latest_len = result.length;
-                        }
-                    }
-
                     np = np->left;
                 }
                 else if (ch == np->value) // => go middle!
                 {
-                    // Matching the null character is not allowed.
-                    if (np->value == 0)
+                    ++scan;
+                    ++length;
+
+                    // Found a potential match.
+                    if (np->data.get())
                     {
-                        result.data = np->data;
-                        if (result.data)
-                        {
-                            latest = scan.first;
-                            latest_len = result.length;
-                        }
-                        break;
+                        result.data = np->data.get();
+                        result.length = length;
+                        latest = scan.first;
                     }
 
-                    ++scan;
-                    ch = scan.at_end() ? CharT(0) : *scan;
+                    if (scan.at_end()) break;
+                    ch = *scan;
                     np = np->middle;
-                    ++result.length;
                 }
                 else // (ch > np->value) => go right!
                 {
-                    if (np->value == 0)
-                    {
-                        result.data = np->data;
-                        if (result.data)
-                        {
-                            latest = scan.first;
-                            latest_len = result.length;
-                        }
-                    }
-
                     np = np->right;
                 }
             }
 
-            if (result.data == 0)
-            {
-                scan.first = save;
-            }
-            else
-            {
-                scan.first = latest;
-                result.length = latest_len;
-            }
+            scan.first = latest;
             return result;
         }
 
