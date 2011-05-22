@@ -13,6 +13,20 @@
     [source-mode teletype]
 ]
 
+[/TODO: I started to write this in the syntax chapter, but it was too
+much information, will incorporate into this file.]
+[/
+To avoid breaking old documentation we support using different versions
+of the language, compatibility is not 100% but we try to avoid
+problematic changes. This documentation applies to the current version,
+`[quickbook 1.5]`.
+
+There is also some mention of the next version `[quickbook 1.6]`. While
+quickbook allows you to use it now, it isn't recommended as it is
+currently a work in progress and subject to change.
+]
+
+[#ref-docinfo]
 [section:docinfo Document Info]
 
 Every document must begin with a Document Info section, which looks something
