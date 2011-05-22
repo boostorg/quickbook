@@ -27,7 +27,7 @@ A simple quickbook document might look something like:
 
 The document starts with the
 [link quickbook.structure.docinfo document info block].
-This describes the type of the document, it's title and document
+This describes the type of the document, its title and document
 metadata. In this case just the version of quickbook to be used.
 
 This is then followed by one or more blocks. An example of
