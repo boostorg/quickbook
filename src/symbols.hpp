@@ -49,43 +49,35 @@ namespace quickbook
     {
         tst_node(CharT value_)
         : reference_count(0)
-        , value(value_)
+        , left()
+        , middle()
+        , right()
         , data()
+        , value(value_)
         {
         }
         
         tst_node(tst_node const& other)
         : reference_count(0)
-        , value(other.value)
         , left(other.left)
         , middle(other.middle)
         , right(other.right)
         , data(other.data ? new T(*other.data) : 0)
+        , value(other.value)
         {
-        }
-        
-        tst_node& operator=(tst_node other)
-        {
-            swap(other);
-            return *this;
         }
 
-        void swap(tst_node& x, tst_node& y)
-        {
-            boost::swap(x.reference_count, y.reference_count);
-            boost::swap(x.value, y.value);
-            boost::swap(x.left, y.left);
-            boost::swap(x.middle, y.middle);
-            boost::swap(x.right, y.right);
-            boost::swap(x.data, y.data);
-        }
-
-        short reference_count;
-        CharT value;
+        // If you fancy a slight improvement in memory use,
+        // reference_count + value could probably be packed
+        // in the space for a single int.
+        int reference_count;
         boost::intrusive_ptr<tst_node> left;
         boost::intrusive_ptr<tst_node> middle;
         boost::intrusive_ptr<tst_node> right;
         boost::scoped_ptr<T> data;
+        CharT value;
+    private:
+        tst_node& operator=(tst_node const&);
     };
 
     template <typename T, typename CharT>
@@ -101,6 +93,10 @@ namespace quickbook
     template <typename T, typename CharT>
     class tst
     {
+        typedef tst_node<T, CharT> node_t;
+        typedef boost::intrusive_ptr<node_t> node_ptr;
+        node_ptr root;
+
     public:
 
         struct search_info
@@ -205,12 +201,6 @@ namespace quickbook
             scan.first = latest;
             return result;
         }
-
-    private:
-
-        typedef tst_node<T, CharT> node_t;
-        typedef boost::intrusive_ptr<node_t> node_ptr;
-        node_ptr root;
     };
 
     typedef boost::spirit::classic::symbols<
