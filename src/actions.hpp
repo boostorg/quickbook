@@ -124,16 +124,13 @@ namespace quickbook
 
         simple_phrase_action(
             collector& out
-          , string_symbols const& macro
           , quickbook::actions& actions)
         : out(out)
-        , macro(macro)
         , actions(actions) {}
 
         void operator()(char) const;
 
         collector& out;
-        string_symbols const& macro;
         quickbook::actions& actions;
     };
 
@@ -160,6 +157,27 @@ namespace quickbook
         void operator()(iterator first, iterator last) const;
 
         char const* name;
+        collector& out;
+    };
+
+    struct span_start
+    {
+        span_start(char const* name, collector& out)
+        : name(name), out(out) {}
+
+        void operator()(iterator first, iterator last) const;
+
+        char const* name;
+        collector& out;
+    };
+
+    struct span_end
+    {
+        span_end(collector& out)
+        : out(out) {}
+
+        void operator()(iterator first, iterator last) const;
+
         collector& out;
     };
 

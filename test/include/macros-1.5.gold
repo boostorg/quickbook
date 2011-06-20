@@ -12,7 +12,7 @@
   <itemizedlist>
     <listitem>
       <simpara>
-        <emphasis role="underline">_foo_</emphasis>
+        __foo__
       </simpara>
     </listitem>
     <listitem>
@@ -22,7 +22,7 @@
     </listitem>
     <listitem>
       <simpara>
-        <emphasis role="underline">_defined_macro_</emphasis>
+        __defined_macro__
       </simpara>
     </listitem>
     <listitem>

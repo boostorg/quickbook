@@ -10,8 +10,10 @@
       role="underline">underline</emphasis> <literal>teletype</literal>
     </para>
     <para>
-      <emphasis>/italic/</emphasis> <emphasis role="bold">*bold*</emphasis> <emphasis
-      role="underline">_underline_</emphasis> <literal>=teletype=</literal>
+      //not italic// **not bold** __not underline__ ==not teletype==
+    </para>
+    <para>
+      <emphasis role="underline">odd__ edge case</emphasis>
     </para>
     <para>
       not__underlined__hopefully
@@ -32,7 +34,7 @@
       _Should not underline escaped markup_. _or this escaped_ markup form.
     </para>
     <para>
-      <literal>Matti Meik&#xE4;l&#xE4;inen</literal>
+      <literal>Matti Meik\u00E4l\u00E4inen</literal>
     </para>
     <para>
       <literal>replaced</literal>
@@ -41,13 +43,16 @@
       <emphasis role="underline">replaced</emphasis>
     </para>
     <para>
-      <literal>_macro_</literal>
+      <literal>_mac\ ro_</literal>
     </para>
     <para>
-      /not italic/
+      <emphasis>not italic\</emphasis>
     </para>
     <para>
       These shouldn't be interepted as markup: == // **
+    </para>
+    <para>
+      <literal>&lt;</literal> <literal>\&lt;</literal> <literal>\\&lt;</literal>
     </para>
   </section>
 </article>

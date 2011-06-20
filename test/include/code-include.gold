@@ -40,19 +40,19 @@
     
 <programlisting><phrase role="keyword">char</phrase><phrase role="special">*</phrase> <phrase role="identifier">foo</phrase><phrase role="special">()</phrase>
 <phrase role="special">{</phrase>
-    <phrase role="comment">// return 'em, foo man!
-</phrase>    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo&quot;</phrase><phrase role="special">;</phrase>
+    <phrase role="comment">// return 'em, foo man!</phrase>
+    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo&quot;</phrase><phrase role="special">;</phrase>
 <phrase role="special">}</phrase>
 </programlisting>
   </para>
   <para>
     
-<programlisting><phrase role="comment"># Copyright 2009 Daniel James
-</phrase><phrase role="comment">#
-</phrase><phrase role="comment"># Use, modification and distribution is subject to the Boost Software
-</phrase><phrase role="comment"># License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
-</phrase><phrase role="comment"># http://www.boost.org/LICENSE_1_0.txt)
-</phrase>
+<programlisting><phrase role="comment"># Copyright 2009 Daniel James</phrase>
+<phrase role="comment">#</phrase>
+<phrase role="comment"># Use, modification and distribution is subject to the Boost Software</phrase>
+<phrase role="comment"># License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at</phrase>
+<phrase role="comment"># http://www.boost.org/LICENSE_1_0.txt)</phrase>
+
 </programlisting>
   </para>
   <para>
@@ -80,8 +80,8 @@
   <para>
     
 <programlisting><phrase role="keyword">def</phrase> <phrase role="identifier">foo</phrase><phrase role="special">():</phrase>
-    <phrase role="comment"># return 'em, foo man!
-</phrase>    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo&quot;</phrase>
+    <phrase role="comment"># return 'em, foo man!</phrase>
+    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo&quot;</phrase>
 
 <phrase role="keyword">print</phrase> <phrase role="identifier">foo</phrase><phrase role="special">()</phrase></programlisting>
   </para>
@@ -106,8 +106,8 @@
     
 <programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="identifier">bar</phrase><phrase role="special">()</phrase>
 <phrase role="special">{</phrase>
-    <phrase role="comment">// return 'em, bar man!
-</phrase>    <phrase role="keyword">return</phrase> <phrase role="string">&quot;bar&quot;</phrase><phrase role="special">;</phrase>
+    <phrase role="comment">// return 'em, bar man!</phrase>
+    <phrase role="keyword">return</phrase> <phrase role="string">&quot;bar&quot;</phrase><phrase role="special">;</phrase>
 <phrase role="special">}</phrase></programlisting>
   </para>
   <para>
@@ -138,8 +138,8 @@
     
 <programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="identifier">foo</phrase><phrase role="special">()</phrase>
 <phrase role="special">{</phrase>
-    <phrase role="comment">// return 'em, foo man!
-</phrase>    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo&quot;</phrase><phrase role="special">;</phrase>
+    <phrase role="comment">// return 'em, foo man!</phrase>
+    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo&quot;</phrase><phrase role="special">;</phrase>
 <phrase role="special">}</phrase>
 <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="identifier">foo_bar</phrase><phrase role="special">()</phrase> <!--quickbook-escape-prefix--><co id="include0co" linkends="include0" /><!--quickbook-escape-postfix-->
 <phrase role="special">{</phrase>

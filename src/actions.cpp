@@ -59,7 +59,7 @@ namespace quickbook
             {
                 tgt << "<anchor id=\"";
                 detail::print_string(*it, tgt.get());
-                tgt << "\"/>\n";
+                tgt << "\"/>";
             }
             
             actions.anchors.clear();
@@ -190,9 +190,8 @@ namespace quickbook
         if(!actions.warned_about_breaks)
         {
             detail::outwarn(actions.filename, pos.line)
-                << "line breaks generate invalid boostbook"
-                << "    (will only note first occurrence)."
-                << "\n";
+                << "line breaks generate invalid boostbook "
+                   "(will only note first occurrence).\n";
 
             actions.warned_about_breaks = true;
         }
@@ -368,14 +367,7 @@ namespace quickbook
         values.finish();
 
         out << markup.pre;
-        if (std::string const* ptr = find(macro, content.get_quickbook().c_str()))
-        {
-            out << *ptr;
-        }
-        else
-        {
-            out << content.get_boostbook();
-        }
+        out << content.get_boostbook();
         out << markup.post;
     }
 
@@ -523,10 +515,24 @@ namespace quickbook
     }
 
     // TODO: No need to check suppress since this is only used in the syntax
-    //       highlighter. I should moved this or something.
+    //       highlighter. I should move this or something.
     void span::operator()(iterator first, iterator last) const
     {
+        if (name) out << "<phrase role=\"" << name << "\">";
+        while (first != last)
+            detail::print_char(*first++, out.get());
+        if (name) out << "</phrase>";
+    }
+
+    void span_start::operator()(iterator first, iterator last) const
+    {
         out << "<phrase role=\"" << name << "\">";
+        while (first != last)
+            detail::print_char(*first++, out.get());
+    }
+
+    void span_end::operator()(iterator first, iterator last) const
+    {
         while (first != last)
             detail::print_char(*first++, out.get());
         out << "</phrase>";
