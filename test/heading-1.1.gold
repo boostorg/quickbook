@@ -2,82 +2,69 @@
 <!DOCTYPE article PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
 <article id="heading_test_1_1" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
-  <title>Heading Test 1.1</title> <anchor id="heading_test_1_1.generic_header"/>
+  <title>Heading Test 1.1</title>
   <bridgehead renderas="sect2" id="heading_test_1_1.generic_header-heading">
-    <link linkend="heading_test_1_1.generic_header">Generic header</link>
+    <phrase id="heading_test_1_1.generic_header"/><link linkend="heading_test_1_1.generic_header">Generic
+    header</link>
   </bridgehead>
-  <anchor id=".level_1"/>
-  <bridgehead renderas="sect1" id=".level_1-heading">
+  <bridgehead renderas="sect1" id=".level_1">
     Level 1
   </bridgehead>
-  <anchor id=".level_2"/>
-  <bridgehead renderas="sect2" id=".level_2-heading">
+  <bridgehead renderas="sect2" id=".level_2">
     Level 2
   </bridgehead>
-  <anchor id=".level_3"/>
-  <bridgehead renderas="sect3" id=".level_3-heading">
+  <bridgehead renderas="sect3" id=".level_3">
     Level 3
   </bridgehead>
-  <anchor id=".level_4"/>
-  <bridgehead renderas="sect4" id=".level_4-heading">
+  <bridgehead renderas="sect4" id=".level_4">
     Level 4
   </bridgehead>
-  <anchor id=".level_5"/>
-  <bridgehead renderas="sect5" id=".level_5-heading">
+  <bridgehead renderas="sect5" id=".level_5">
     Level 5
   </bridgehead>
-  <anchor id=".level_6"/>
-  <bridgehead renderas="sect6" id=".level_6-heading">
+  <bridgehead renderas="sect6" id=".level_6">
     Level 6
   </bridgehead>
-  <anchor id="._emphasis_role__bold__bold__emphasis_"/>
-  <bridgehead renderas="sect1" id="._emphasis_role__bold__bold__emphasis_-heading">
+  <bridgehead renderas="sect1" id="._emphasis_role__bold__bold__emphasis_">
     <emphasis role="bold">Bold</emphasis>
   </bridgehead>
-  <anchor id=".comment"/>
-  <bridgehead renderas="sect1" id=".comment-heading">
+  <bridgehead renderas="sect1" id=".comment">
     Comment
   </bridgehead>
-  <anchor id="._notanid"/>
-  <bridgehead renderas="sect1" id="._notanid-heading">
+  <bridgehead renderas="sect1" id="._notanid">
     :notanid
   </bridgehead>
-  <anchor id="._also_not_an_id"/>
-  <bridgehead renderas="sect1" id="._also_not_an_id-heading">
+  <bridgehead renderas="sect1" id="._also_not_an_id">
     :also not an id
   </bridgehead>
-  <anchor id=".h1"/>
-  <bridgehead renderas="sect1" id=".h1-heading">
+  <bridgehead renderas="sect1" id=".h1">
     H1
   </bridgehead>
   <section id="heading_test_1_1.s1">
-    <title>S1</title> <anchor id="s1.h2"/>
-    <bridgehead renderas="sect2" id="s1.h2-heading">
+    <title>S1</title>
+    <bridgehead renderas="sect2" id="s1.h2">
       H2
     </bridgehead>
     <section id="heading_test_1_1.s2">
-      <title>S2</title> <anchor id="s2.h3"/>
-      <bridgehead renderas="sect3" id="s2.h3-heading">
+      <title>S2</title>
+      <bridgehead renderas="sect3" id="s2.h3">
         H3
       </bridgehead>
     </section>
-    <anchor id="heading_test_1_1.s1.h4"/>
     <bridgehead renderas="sect3" id="heading_test_1_1.s1.h4-heading">
-      <link linkend="heading_test_1_1.s1.h4">H4</link>
+      <phrase id="heading_test_1_1.s1.h4"/><link linkend="heading_test_1_1.s1.h4">H4</link>
     </bridgehead>
     <section id="heading_test_1_1.s3">
-      <title>S3</title> <anchor id="s3.h5"/>
-      <bridgehead renderas="sect3" id="s3.h5-heading">
+      <title>S3</title>
+      <bridgehead renderas="sect3" id="s3.h5">
         H5
       </bridgehead>
     </section>
-    <anchor id="heading_test_1_1.s1.h6"/>
     <bridgehead renderas="sect3" id="heading_test_1_1.s1.h6-heading">
-      <link linkend="heading_test_1_1.s1.h6">H6</link>
+      <phrase id="heading_test_1_1.s1.h6"/><link linkend="heading_test_1_1.s1.h6">H6</link>
     </bridgehead>
   </section>
-  <anchor id="s3.h7"/>
-  <bridgehead renderas="sect1" id="s3.h7-heading">
+  <bridgehead renderas="sect1" id="s3.h7">
     H7
   </bridgehead>
 </article>

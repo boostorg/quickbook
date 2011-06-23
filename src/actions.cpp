@@ -281,15 +281,27 @@ namespace quickbook
     
     namespace {
         void write_bridgehead(collector& out, int level,
-            std::string const& str, std::string const& id, std::string const& linkend)
+            std::string const& str, std::string const& id, bool self_link)
         {
-            out << "<bridgehead renderas=\"sect" << level << "\"";
-            if(!id.empty()) out << " id=\"" << id << "\"";
-            out << ">";
-            if(!linkend.empty()) out << "<link linkend=\"" << linkend << "\">";
-            out << str;
-            if(!linkend.empty()) out << "</link>";
-            out << "</bridgehead>";
+            if (self_link && !id.empty())
+            {
+                out << "<bridgehead renderas=\"sect" << level << "\"";
+                out << " id=\"" << id << "-heading\"";
+                out << ">";
+                out << "<phrase id=\"" << id << "\"/>";
+                out << "<link linkend=\"" << id << "\">";
+                out << str;
+                out << "</link>";
+                out << "</bridgehead>";
+            }
+            else
+            {
+                out << "<bridgehead renderas=\"sect" << level << "\"";
+                if(!id.empty()) out << " id=\"" << id << "\"";
+                out << ">";
+                out << str;
+                out << "</bridgehead>";
+            }
         }
     }
 
@@ -319,12 +331,16 @@ namespace quickbook
         }
 
         std::string anchor;
-        std::string linkend;
+
+        write_anchors(actions, actions.out);
 
         if (!generic && qbk_version_n < 103) // version 1.2 and below
         {
             anchor = actions.section_id + '.' +
                 detail::make_identifier(content.get_boostbook());
+
+            write_bridgehead(actions.out, level,
+                content.get_boostbook(), anchor, false);
         }
         else
         {
@@ -337,15 +353,13 @@ namespace quickbook
                             content.get_boostbook()
                     );
 
-            linkend = anchor =
-                fully_qualified_id(actions.doc_id, actions.qualified_section_id, id);
+            anchor = fully_qualified_id(actions.doc_id,
+                    actions.qualified_section_id, id);
+
+            write_bridgehead(actions.out, level,
+                content.get_boostbook(), anchor, true);
         }
 
-        actions.anchors.push_back(anchor);
-        write_anchors(actions, actions.out);
-        
-        write_bridgehead(actions.out, level,
-            content.get_boostbook(), anchor + "-heading", linkend);
     }
 
     void simple_phrase_action::operator()(char mark) const
