@@ -83,6 +83,7 @@ namespace quickbook
     void anchor_action(quickbook::actions&, value);
     void link_action(quickbook::actions&, value);
     void phrase_action(quickbook::actions&, value);
+    void footnote_action(quickbook::actions&, value);
     void raw_phrase_action(quickbook::actions&, value);
     void source_mode_action(quickbook::actions&, value);
     void do_template_action(quickbook::actions&, value, file_position);
@@ -159,8 +160,9 @@ namespace quickbook
         case phrase_tags::strikethrough:
         case phrase_tags::quote:
         case phrase_tags::replaceable:
-        case phrase_tags::footnote:
             return phrase_action(actions, v);
+        case phrase_tags::footnote:
+            return footnote_action(actions, v);
         case phrase_tags::escape:
             return raw_phrase_action(actions, v);
         case source_mode_tags::cpp:
@@ -249,6 +251,21 @@ namespace quickbook
 
         value_consumer values = phrase;
         actions.phrase << markup.pre << values.consume().get_boostbook() << markup.post;
+        values.finish();
+    }
+
+    void footnote_action(quickbook::actions& actions, value phrase)
+    {
+        write_anchors(actions, actions.phrase);
+
+        value_consumer values = phrase;
+        actions.phrase
+            << "<footnote id=\""
+            << actions.doc_id << ".f"
+            << boost::lexical_cast<std::string>(actions.footnote_id_count++)
+            << "\"><para>"
+            << values.consume().get_boostbook()
+            << "</para></footnote>";
         values.finish();
     }
 
@@ -1132,11 +1149,6 @@ namespace quickbook
         }
     }
 
-    namespace detail
-    {
-        int callout_id = 0;
-    }
-
     void call_template(quickbook::actions& actions, bool template_escape,
             template_symbol const* symbol,
             std::vector<template_body> const& args,
@@ -1242,7 +1254,7 @@ namespace quickbook
         for(unsigned int i = 0; i < size; ++i)
         {
             std::string callout_id = actions.doc_id +
-                boost::lexical_cast<std::string>(detail::callout_id + i);
+                boost::lexical_cast<std::string>(actions.callout_id_count + i);
 
             std::string code;
             code += "'''";
@@ -1268,7 +1280,7 @@ namespace quickbook
             BOOST_FOREACH(value c, symbol->callouts)
             {
                 std::string callout_id = actions.doc_id +
-                    boost::lexical_cast<std::string>(detail::callout_id++);
+                    boost::lexical_cast<std::string>(actions.callout_id_count++);
     
                 std::string callout_value;
                 {

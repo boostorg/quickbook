@@ -32,6 +32,8 @@ namespace quickbook
         , warned_about_breaks(false)
         , context(0)
         , conditional(true)
+        , callout_id_count(0)
+        , footnote_id_count(0)
 
         , imported(false)
         , doc_type()

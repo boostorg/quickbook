@@ -47,6 +47,8 @@ namespace quickbook
         bool                    warned_about_breaks;
         int                     context;
         bool                    conditional;
+        int                     callout_id_count;
+        int                     footnote_id_count;
 
     // state saved for files and templates.
         bool                    imported;
