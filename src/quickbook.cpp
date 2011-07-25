@@ -13,6 +13,7 @@
 #include "post_process.hpp"
 #include "utils.hpp"
 #include "input_path.hpp"
+#include "id_generator.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/v3/path.hpp>
 #include <boost/filesystem/v3/operations.hpp>
@@ -120,12 +121,8 @@ namespace quickbook
     static int
     parse_document(
         fs::path const& filein_,
-        fs::path const& xinclude_base,
-            string_stream& out)
-    {
-        actions actor(filein_, xinclude_base, out);
-
-        set_macros(actor);
+        actions& actor)
+    {        
         
         try {
             parse_file(filein_, actor);
@@ -158,9 +155,14 @@ namespace quickbook
       , int linewidth
       , bool pretty_print)
     {
-        int result = 0;
         string_stream buffer;
-        result = parse_document(filein_, xinclude_base_, buffer);
+        id_generator ids;
+        actions actor(filein_, xinclude_base_, buffer, ids);
+        set_macros(actor);
+
+        int result = parse_document(filein_, actor);
+
+        std::string stage2 = ids.replace_placeholders(buffer.str());
 
         if (result == 0)
         {
@@ -170,7 +172,7 @@ namespace quickbook
             {
                 try
                 {
-                    fileout << post_process(buffer.str(), indent, linewidth);
+                    fileout << post_process(stage2, indent, linewidth);
                 }
                 catch (quickbook::post_process_failure&)
                 {
@@ -178,13 +180,13 @@ namespace quickbook
                     ::quickbook::detail::outerr()
                         << "Post Processing Failed."
                         << std::endl;
-                    fileout << buffer.str();
+                    fileout << stage2;
                     return 1;
                 }
             }
             else
             {
-                fileout << buffer.str();
+                fileout << stage2;
             }
         }
         return result;

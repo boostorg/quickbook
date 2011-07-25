@@ -3,7 +3,7 @@
 <article id="heading_test_1_1" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Heading Test 1.1</title>
-  <bridgehead renderas="sect2" id="heading_test_1_1.generic_header-heading">
+  <bridgehead renderas="sect2" id="heading_test_1_1.h0">
     <phrase id="heading_test_1_1.generic_header"/><link linkend="heading_test_1_1.generic_header">Generic
     header</link>
   </bridgehead>
@@ -51,7 +51,7 @@
         H3
       </bridgehead>
     </section>
-    <bridgehead renderas="sect3" id="heading_test_1_1.s1.h4-heading">
+    <bridgehead renderas="sect3" id="heading_test_1_1.s1.h0">
       <phrase id="heading_test_1_1.s1.h4"/><link linkend="heading_test_1_1.s1.h4">H4</link>
     </bridgehead>
     <section id="heading_test_1_1.s3">
@@ -60,7 +60,7 @@
         H5
       </bridgehead>
     </section>
-    <bridgehead renderas="sect3" id="heading_test_1_1.s1.h6-heading">
+    <bridgehead renderas="sect3" id="heading_test_1_1.s1.h1">
       <phrase id="heading_test_1_1.s1.h6"/><link linkend="heading_test_1_1.s1.h6">H6</link>
     </bridgehead>
   </section>

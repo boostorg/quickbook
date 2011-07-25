@@ -23,7 +23,8 @@ namespace quickbook
 
     struct actions
     {
-        actions(fs::path const& filein_, fs::path const& xinclude_base, string_stream& out_);
+        actions(fs::path const& filein_, fs::path const& xinclude_base, string_stream& out_,
+                id_generator&);
 
     private:
         boost::scoped_ptr<quickbook_grammar> grammar_;
@@ -47,8 +48,7 @@ namespace quickbook
         bool                    warned_about_breaks;
         int                     context;
         bool                    conditional;
-        int                     callout_id_count;
-        int                     footnote_id_count;
+        id_generator&           ids;
 
     // state saved for files and templates.
         bool                    imported;

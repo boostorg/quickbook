@@ -3,7 +3,7 @@
 <article id="various_blocks" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Various blocks</title>
-  <bridgehead renderas="sect2" id="various_blocks.blockquotes-heading">
+  <bridgehead renderas="sect2" id="various_blocks.h0">
     <phrase id="various_blocks.blockquotes"/><link linkend="various_blocks.blockquotes">Blockquotes</link>
   </bridgehead>
   <para>
@@ -25,7 +25,7 @@
       Blockquote second paragraph.
     </para>
   </blockquote>
-  <bridgehead renderas="sect2" id="various_blocks.admonitions-heading">
+  <bridgehead renderas="sect2" id="various_blocks.h1">
     <phrase id="various_blocks.admonitions"/><link linkend="various_blocks.admonitions">Admonitions</link>
   </bridgehead>
   <warning>
@@ -61,7 +61,7 @@
       Warning second paragraph.
     </para>
   </warning>
-  <bridgehead renderas="sect2" id="various_blocks.blurb-heading">
+  <bridgehead renderas="sect2" id="various_blocks.h2">
     <phrase id="various_blocks.blurb"/><link linkend="various_blocks.blurb">Blurb</link>
   </bridgehead>
   <sidebar role="blurb">
@@ -69,7 +69,7 @@
     Blurb
   </para>
   </sidebar>
-  <bridgehead renderas="sect2" id="various_blocks.inline_blocks-heading">
+  <bridgehead renderas="sect2" id="various_blocks.h3">
     <phrase id="various_blocks.inline_blocks"/><link linkend="various_blocks.inline_blocks">Inline
     blocks</link>
   </bridgehead>

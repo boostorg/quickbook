@@ -19,7 +19,8 @@
 
 namespace quickbook
 {
-    actions::actions(fs::path const& filein_, fs::path const& xinclude_base_, string_stream& out_)
+    actions::actions(fs::path const& filein_, fs::path const& xinclude_base_,
+            string_stream& out_, id_generator& ids)
         : grammar_()
 
         , doc_title_qbk()
@@ -32,8 +33,7 @@ namespace quickbook
         , warned_about_breaks(false)
         , context(0)
         , conditional(true)
-        , callout_id_count(0)
-        , footnote_id_count(0)
+        , ids(ids)
 
         , imported(false)
         , doc_type()

@@ -17,6 +17,7 @@
 #include "input_path.hpp"
 #include "actions_class.hpp"
 #include "doc_info_tags.hpp"
+#include "id_generator.hpp"
 
 namespace quickbook
 {
@@ -280,7 +281,7 @@ namespace quickbook
 
         out << '<' << actions.doc_type << "\n"
             << "    id=\""
-            << actions.doc_id
+            << actions.ids.add(actions.doc_id, id_generator::explicit_id)
             << "\"\n"
             ;
         
@@ -374,7 +375,10 @@ namespace quickbook
 
         if (!license.empty())
         {
-            tmp << "    <legalnotice id=\"legal." << actions.doc_id << "\">\n"
+            tmp << "    <legalnotice id=\""
+                << actions.ids.add(actions.doc_id + ".legal",
+                    id_generator::generated)
+                << "\">\n"
                 << "      <para>\n"
                 << "        " << doc_info_output(license, 103) << "\n"
                 << "      </para>\n"

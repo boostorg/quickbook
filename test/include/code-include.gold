@@ -141,28 +141,28 @@
     <phrase role="comment">// return 'em, foo man!</phrase>
     <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo&quot;</phrase><phrase role="special">;</phrase>
 <phrase role="special">}</phrase>
-<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="identifier">foo_bar</phrase><phrase role="special">()</phrase> <!--quickbook-escape-prefix--><co id="include0co" linkends="include0" /><!--quickbook-escape-postfix-->
+<phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="identifier">foo_bar</phrase><phrase role="special">()</phrase> <co id="include.c0" linkends="include.c1" />
 <phrase role="special">{</phrase>
-    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo-bar&quot;</phrase><phrase role="special">;</phrase> <!--quickbook-escape-prefix--><co id="include1co" linkends="include1" /><!--quickbook-escape-postfix-->
+    <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo-bar&quot;</phrase><phrase role="special">;</phrase> <co id="include.c2" linkends="include.c3" />
 <phrase role="special">}</phrase>
 <phrase role="keyword">class</phrase> <phrase role="identifier">x</phrase>
 <phrase role="special">{</phrase>
 <phrase role="keyword">public</phrase><phrase role="special">:</phrase>
 
-    <!--quickbook-escape-prefix--><co id="include2co" linkends="include2" /><!--quickbook-escape-postfix--><phrase role="identifier">x</phrase><phrase role="special">()</phrase> <phrase role="special">:</phrase> <phrase role="identifier">n</phrase><phrase role="special">(</phrase><phrase role="number">0</phrase><phrase role="special">)</phrase>
+    <co id="include.c4" linkends="include.c5" /><phrase role="identifier">x</phrase><phrase role="special">()</phrase> <phrase role="special">:</phrase> <phrase role="identifier">n</phrase><phrase role="special">(</phrase><phrase role="number">0</phrase><phrase role="special">)</phrase>
     <phrase role="special">{</phrase>
     <phrase role="special">}</phrase>
 
-    <!--quickbook-escape-prefix--><co id="include3co" linkends="include3" /><!--quickbook-escape-postfix--><phrase role="special">~</phrase><phrase role="identifier">x</phrase><phrase role="special">()</phrase>
+    <co id="include.c6" linkends="include.c7" /><phrase role="special">~</phrase><phrase role="identifier">x</phrase><phrase role="special">()</phrase>
     <phrase role="special">{</phrase>
     <phrase role="special">}</phrase>
 
-    <!--quickbook-escape-prefix--><co id="include4co" linkends="include4" /><!--quickbook-escape-postfix--><phrase role="keyword">int</phrase> <phrase role="identifier">get</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase>
+    <co id="include.c8" linkends="include.c9" /><phrase role="keyword">int</phrase> <phrase role="identifier">get</phrase><phrase role="special">()</phrase> <phrase role="keyword">const</phrase>
     <phrase role="special">{</phrase>
         <phrase role="keyword">return</phrase> <phrase role="identifier">n</phrase><phrase role="special">;</phrase> 
     <phrase role="special">}</phrase>
 
-    <!--quickbook-escape-prefix--><co id="include5co" linkends="include5" /><!--quickbook-escape-postfix--><phrase role="keyword">void</phrase> <phrase role="identifier">set</phrase><phrase role="special">(</phrase><phrase role="keyword">int</phrase> <phrase role="identifier">n_</phrase><phrase role="special">)</phrase>
+    <co id="include.c10" linkends="include.c11" /><phrase role="keyword">void</phrase> <phrase role="identifier">set</phrase><phrase role="special">(</phrase><phrase role="keyword">int</phrase> <phrase role="identifier">n_</phrase><phrase role="special">)</phrase>
     <phrase role="special">{</phrase>
         <phrase role="identifier">n</phrase> <phrase role="special">=</phrase> <phrase role="identifier">n_</phrase><phrase role="special">;</phrase>
     <phrase role="special">}</phrase>
@@ -170,33 +170,33 @@
 </programlisting>
   </para>
   <calloutlist>
-    <callout arearefs="include0co" id="include0">
+    <callout arearefs="include.c0" id="include.c1">
       <para>
         The <emphasis>Mythical</emphasis> FooBar. See <ulink url="http://en.wikipedia.org/wiki/Foobar">Foobar
         for details</ulink>
       </para>
     </callout>
-    <callout arearefs="include1co" id="include1">
+    <callout arearefs="include.c2" id="include.c3">
       <para>
         return 'em, foo-bar man!
       </para>
     </callout>
-    <callout arearefs="include2co" id="include2">
+    <callout arearefs="include.c4" id="include.c5">
       <para>
         Constructor
       </para>
     </callout>
-    <callout arearefs="include3co" id="include3">
+    <callout arearefs="include.c6" id="include.c7">
       <para>
         Destructor
       </para>
     </callout>
-    <callout arearefs="include4co" id="include4">
+    <callout arearefs="include.c8" id="include.c9">
       <para>
         Get the <code><phrase role="identifier">n</phrase></code> member variable
       </para>
     </callout>
-    <callout arearefs="include5co" id="include5">
+    <callout arearefs="include.c10" id="include.c11">
       <para>
         Set the <code><phrase role="identifier">n</phrase></code> member variable
       </para>
