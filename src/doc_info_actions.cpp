@@ -128,6 +128,8 @@ namespace quickbook
                 ;
         }
 
+        bool generated_id = false;
+
         // Note: this is the version number of the parent document.
         if (qbk_version_n >= 106)
         {
@@ -135,8 +137,10 @@ namespace quickbook
                 actions.doc_id = include_doc_id.get_quickbook();
             else if (!id.empty())
                 actions.doc_id = id.get_quickbook();
-            else if (docinfo_type)
+            else if (docinfo_type) {
                 actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
+                generated_id = true;
+            }
         }
         else
         {
@@ -144,8 +148,10 @@ namespace quickbook
                 actions.doc_id = id.get_quickbook();
             else if (!include_doc_id.empty())
                 actions.doc_id = include_doc_id.get_quickbook();
-            else
+            else {
                 actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
+                generated_id = true;
+            }
         }
 
         assert(!actions.doc_id.empty());
@@ -281,7 +287,8 @@ namespace quickbook
 
         out << '<' << actions.doc_type << "\n"
             << "    id=\""
-            << actions.ids.add(actions.doc_id, id_generator::explicit_id)
+            << actions.ids.add(actions.doc_id, generated_id ?
+                id_generator::generated_doc : id_generator::explicit_id)
             << "\"\n"
             ;
         

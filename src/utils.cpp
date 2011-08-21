@@ -138,7 +138,7 @@ namespace quickbook { namespace detail
     // Although, given how UTF-8 works, if we've read anything in, the files
     // probably broken.
 
-    template <class InputIterator, class OutputIterator>
+    template <typename InputIterator, typename OutputIterator>
     bool check_bom(InputIterator& begin, InputIterator end,
             OutputIterator out, char const* chars, int length)
     {
@@ -157,7 +157,7 @@ namespace quickbook { namespace detail
         return false;
     }
     
-    template <class InputIterator, class OutputIterator>
+    template <typename InputIterator, typename OutputIterator>
     std::string read_bom(InputIterator& begin, InputIterator end,
             OutputIterator out)
     {
@@ -188,7 +188,7 @@ namespace quickbook { namespace detail
     // Copy a string, converting mac and windows style newlines to unix
     // newlines.
 
-    template <class InputIterator, class OutputIterator>
+    template <typename InputIterator, typename OutputIterator>
     void normalize(InputIterator begin, InputIterator end,
             OutputIterator out)
     {
