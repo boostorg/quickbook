@@ -1730,7 +1730,7 @@ namespace quickbook
         std::string path_text = path.get_quickbook();
 
         if (path_text.find_first_of("[\\*") != std::string::npos)
-        	return path_text;
+            return path_text;
         if(path_text.find('\\') != std::string::npos)
         {
             detail::outwarn(actions.filename, path.get_position().line)
@@ -1784,8 +1784,8 @@ namespace quickbook
         {
             include_search_return(fs::path const& x, fs::path const& y)
             {
-            	this->insert(x,y);
-            	this->pop();
+                this->insert(x,y);
+                this->pop();
             }
 
             include_search_return()
@@ -1801,70 +1801,70 @@ namespace quickbook
 
             bool pop()
             {
-            	if (paths.empty()) return false;
-            	this->filename = this->paths.begin()->get<0>();
-            	this->filename_relative = this->paths.begin()->get<1>();
-            	this->paths.erase(this->paths.begin());
-            	return true;
+                if (paths.empty()) return false;
+                this->filename = this->paths.begin()->get<0>();
+                this->filename_relative = this->paths.begin()->get<1>();
+                this->paths.erase(this->paths.begin());
+                return true;
             }
 
             void insert(fs::path const& x, fs::path const& y)
             {
-            	this->paths.insert(path_t(x,y));
+                this->paths.insert(path_t(x,y));
             }
         };
 
         void split_at_path(std::string & root, std::string & rest, std::string name, std::size_t i = 0)
         {
-        	std::size_t i_re = name.find_first_of("/",i);
-        	if (std::string::npos != i_re)
-        	{
-        		root = name.substr(0,i_re);
-        		rest = name.substr(i_re+1,std::string::npos);
-        	}
-        	else
-        	{
-        		root = name;
-        		rest = "";
-        	}
+            std::size_t i_re = name.find_first_of("/",i);
+            if (std::string::npos != i_re)
+            {
+                root = name.substr(0,i_re);
+                rest = name.substr(i_re+1,std::string::npos);
+            }
+            else
+            {
+                root = name;
+                rest = "";
+            }
         }
 
         void include_search_regex(include_search_return & result, fs::path dir,
-        	std::string const & name, quickbook::actions const& actions)
+            std::string const & name, quickbook::actions const& actions)
         {
-        	// Split the name regex into the current dir/re/rest to search.
-        	std::string root;
-        	std::string base;
-        	std::string rest;
-        	std::size_t i_re = name.find_first_of("[\\*");
-        	i_re = name.substr(0,i_re).find_last_of("/");
-        	split_at_path(root,rest,name,i_re);
-        	split_at_path(base,rest,rest);
-        	dir /= root;
-        	// Walk through the dir for matches.
-        	boost::filesystem::directory_iterator i(dir);
-        	boost::filesystem::directory_iterator e;
-        	for (; i != e; ++i)
-        	{
+            // Split the name regex into the current dir/re/rest to search.
+            std::string root;
+            std::string base;
+            std::string rest;
+            std::size_t i_re = name.find_first_of("[\\*");
+            i_re = name.substr(0,i_re).find_last_of("/");
+            split_at_path(root,rest,name,i_re);
+            split_at_path(base,rest,rest);
+            dir /= root;
+            // Walk through the dir for matches.
+            boost::filesystem::directory_iterator i(dir);
+            boost::filesystem::directory_iterator e;
+            for (; i != e; ++i)
+            {
                 std::string f = i->path().filename().native();
-        		// The re we are looking for at the moment.
+                // The re we are looking for at the moment.
                 boost::regex path_re(base,boost::regex::basic);
-        		// Skip if the dir item doesn't match.
+                // Skip if the dir item doesn't match.
                 boost::smatch what;
-        		if (!boost::regex_match(f, what, path_re)) continue;
-        		// If it's a file we add it to the results.
-        		if (boost::filesystem::is_regular_file(i->status()))
-        		{
-        			result.insert(
-        				dir / f,
-        				actions.filename_relative.parent_path() / dir / f);
-        		}
-        		// If it's a matching dir, we recurse looking for more files.
-        		else
-        		{
-        			include_search_regex(result,dir,f+"/"+rest,actions);
-        		}
-        	}
+                if (!boost::regex_match(f, what, path_re)) continue;
+                // If it's a file we add it to the results.
+                if (boost::filesystem::is_regular_file(i->status()))
+                {
+                    result.insert(
+                        dir / f,
+                        actions.filename_relative.parent_path() / dir / f);
+                }
+                // If it's a matching dir, we recurse looking for more files.
+                else
+                {
+                    include_search_regex(result,dir,f+"/"+rest,actions);
+                }
+            }
         }
         include_search_return include_search(std::string const & name,
                 quickbook::actions const& actions)
@@ -1881,7 +1881,7 @@ namespace quickbook
                 // Search the include path dirs accumulating to the result.
                 BOOST_FOREACH(fs::path dir, include_path)
                 {
-                	include_search_regex(result,dir,name,actions);
+                    include_search_regex(result,dir,name,actions);
                 }
                 // Done. "pop" the first result to prep for the context which
                 // is not aware of multiple results.
@@ -1932,33 +1932,33 @@ namespace quickbook
 
         do
         {
-			std::string ext = paths.filename.extension().generic_string();
-			std::vector<template_symbol> storage;
-			actions.error_count +=
-				load_snippets(paths.filename, storage, ext, actions.doc_id);
+            std::string ext = paths.filename.extension().generic_string();
+            std::vector<template_symbol> storage;
+            actions.error_count +=
+                load_snippets(paths.filename, storage, ext, actions.doc_id);
 
-			BOOST_FOREACH(template_symbol& ts, storage)
-			{
-				std::string tname = ts.identifier;
-				if (tname == "!")
-				{
-					actions.templates.push();
-				}
-				ts.parent = &actions.templates.top_scope();
-				if (!actions.templates.add(ts))
-				{
-					detail::outerr(ts.body.filename, ts.body.content.get_position().line)
-						<< "Template Redefinition: " << detail::utf8(tname) << std::endl;
-					++actions.error_count;
-				}
-				if (tname == "!")
-				{
-					value_builder vb;
-					vb.insert(qbk_value("!",file_position(),template_tags::identifier));
-					do_template_action(actions,vb.release(),file_position());
-					actions.templates.pop();
-				}
-			}
+            BOOST_FOREACH(template_symbol& ts, storage)
+            {
+                std::string tname = ts.identifier;
+                if (tname == "!")
+                {
+                    actions.templates.push();
+                }
+                ts.parent = &actions.templates.top_scope();
+                if (!actions.templates.add(ts))
+                {
+                    detail::outerr(ts.body.filename, ts.body.content.get_position().line)
+                        << "Template Redefinition: " << detail::utf8(tname) << std::endl;
+                    ++actions.error_count;
+                }
+                if (tname == "!")
+                {
+                    value_builder vb;
+                    vb.insert(qbk_value("!",file_position(),template_tags::identifier));
+                    do_template_action(actions,vb.release(),file_position());
+                    actions.templates.pop();
+                }
+            }
         }
         while (paths.pop());
     }

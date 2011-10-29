@@ -401,11 +401,11 @@ namespace quickbook
 
     void code_snippet_actions::escaped_comment(iterator first, iterator last)
     {
-    	if (!snippet_stack)
-    	{
-    		id = "!";
-    		start_snippet(first,first);
-    	}
+        if (!snippet_stack)
+        {
+            id = "!";
+            start_snippet(first,first);
+        }
         snippet_data& snippet = *snippet_stack;
         append_code();
         close_code();
@@ -419,7 +419,7 @@ namespace quickbook
 
         if (snippet.id == "!")
         {
-        	end_snippet(first,first);
+            end_snippet(first,first);
         }
     }
 
