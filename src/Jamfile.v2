@@ -42,6 +42,7 @@ exe quickbook
     doc_info_grammar.cpp
     /boost//program_options
     /boost//filesystem
+    /boost//regex
     : #<define>QUICKBOOK_NO_DATES
       <define>BOOST_FILESYSTEM_NO_DEPRECATED
       <toolset>msvc:<cxxflags>/wd4355

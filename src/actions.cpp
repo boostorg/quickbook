@@ -12,6 +12,7 @@
 #include <functional>
 #include <vector>
 #include <map>
+#include <set>
 #include <boost/filesystem/v3/convenience.hpp>
 #include <boost/filesystem/v3/fstream.hpp>
 #include <boost/range/distance.hpp>
@@ -20,6 +21,9 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/next_prior.hpp>
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
+#include <boost/regex.hpp>
 #include "quickbook.hpp"
 #include "actions.hpp"
 #include "utils.hpp"
@@ -1725,6 +1729,8 @@ namespace quickbook
     {
         std::string path_text = path.get_quickbook();
 
+        if (path_text.find_first_of("[\\*") != std::string::npos)
+        	return path_text;
         if(path_text.find('\\') != std::string::npos)
         {
             detail::outwarn(actions.filename, path.get_position().line)
@@ -1777,42 +1783,140 @@ namespace quickbook
         struct include_search_return
         {
             include_search_return(fs::path const& x, fs::path const& y)
-                : filename(x), filename_relative(y) {}
+            {
+            	this->insert(x,y);
+            	this->pop();
+            }
+
+            include_search_return()
+            {
+            }
 
             fs::path filename;
             fs::path filename_relative;
+
+            typedef boost::tuples::tuple<fs::path,fs::path> path_t;
+            typedef std::set<path_t> paths_t;
+            paths_t paths;
+
+            bool pop()
+            {
+            	if (paths.empty()) return false;
+            	this->filename = this->paths.begin()->get<0>();
+            	this->filename_relative = this->paths.begin()->get<1>();
+            	this->paths.erase(this->paths.begin());
+            	return true;
+            }
+
+            void insert(fs::path const& x, fs::path const& y)
+            {
+            	this->paths.insert(path_t(x,y));
+            }
         };
 
+        void split_at_path(std::string & root, std::string & rest, std::string name, std::size_t i = 0)
+        {
+        	std::size_t i_re = name.find_first_of("/",i);
+        	if (std::string::npos != i_re)
+        	{
+        		root = name.substr(0,i_re);
+        		rest = name.substr(i_re+1,std::string::npos);
+        	}
+        	else
+        	{
+        		root = name;
+        		rest = "";
+        	}
+        }
+
+        void include_search_regex(include_search_return & result, fs::path dir,
+        	std::string const & name, quickbook::actions const& actions)
+        {
+        	// Split the name regex into the current dir/re/rest to search.
+        	std::string root;
+        	std::string base;
+        	std::string rest;
+        	std::size_t i_re = name.find_first_of("[\\*");
+        	i_re = name.substr(0,i_re).find_last_of("/");
+        	split_at_path(root,rest,name,i_re);
+        	split_at_path(base,rest,rest);
+        	dir /= root;
+        	// Walk through the dir for matches.
+        	boost::filesystem::directory_iterator i(dir);
+        	boost::filesystem::directory_iterator e;
+        	for (; i != e; ++i)
+        	{
+                std::string f = i->path().filename().native();
+        		// The re we are looking for at the moment.
+                boost::regex path_re(base,boost::regex::basic);
+        		// Skip if the dir item doesn't match.
+                boost::smatch what;
+        		if (!boost::regex_match(f, what, path_re)) continue;
+        		// If it's a file we add it to the results.
+        		if (boost::filesystem::is_regular_file(i->status()))
+        		{
+        			result.insert(
+        				dir / f,
+        				actions.filename_relative.parent_path() / dir / f);
+        		}
+        		// If it's a matching dir, we recurse looking for more files.
+        		else
+        		{
+        			include_search_regex(result,dir,f+"/"+rest,actions);
+        		}
+        	}
+        }
         include_search_return include_search(std::string const & name,
                 quickbook::actions const& actions)
         {
             fs::path current = actions.filename.parent_path();
-            fs::path path = detail::generic_to_path(name);
 
-            // If the path is relative, try and resolve it.
-            if (!path.has_root_directory() && !path.has_root_name())
+            // If the path has some posix-basic-regex match characters
+            // we do a discovery of all the matches..
+            if (name.find_first_of("[\\*") != std::string::npos)
             {
-                // See if it can be found locally first.
-                if (fs::exists(current / path))
+                include_search_return result;
+                // Search for the current dir accumulating to the result.
+                include_search_regex(result,current,name,actions);
+                // Search the include path dirs accumulating to the result.
+                BOOST_FOREACH(fs::path dir, include_path)
                 {
-                    return include_search_return(
-                        current / path,
-                        actions.filename_relative.parent_path() / path);
+                	include_search_regex(result,dir,name,actions);
                 }
+                // Done. "pop" the first result to prep for the context which
+                // is not aware of multiple results.
+                result.pop();
+                return result;
+            }
+            else
+            {
+                fs::path path = detail::generic_to_path(name);
 
-                // Search in each of the include path locations.
-                BOOST_FOREACH(fs::path full, include_path)
+                // If the path is relative, try and resolve it.
+                if (!path.has_root_directory() && !path.has_root_name())
                 {
-                    full /= path;
-                    if (fs::exists(full))
+                    // See if it can be found locally first.
+                    if (fs::exists(current / path))
                     {
-                        return include_search_return(full, path);
+                        return include_search_return(
+                            current / path,
+                            actions.filename_relative.parent_path() / path);
+                    }
+
+                    // Search in each of the include path locations.
+                    BOOST_FOREACH(fs::path full, include_path)
+                    {
+                        full /= path;
+                        if (fs::exists(full))
+                        {
+                            return include_search_return(full, path);
+                        }
                     }
                 }
-            }
 
-            return include_search_return(path,
-                actions.filename_relative.parent_path() / path);
+                return include_search_return(path,
+                    actions.filename_relative.parent_path() / path);
+            }
         }
     }
 
@@ -1826,22 +1930,37 @@ namespace quickbook
             check_path(values.consume(), actions), actions);
         values.finish();
 
-        std::string ext = paths.filename.extension().generic_string();
-        std::vector<template_symbol> storage;
-        actions.error_count +=
-            load_snippets(paths.filename, storage, ext, actions.doc_id);
-
-        BOOST_FOREACH(template_symbol& ts, storage)
+        do
         {
-            std::string tname = ts.identifier;
-            ts.parent = &actions.templates.top_scope();
-            if (!actions.templates.add(ts))
-            {
-                detail::outerr(ts.body.filename, ts.body.content.get_position().line)
-                    << "Template Redefinition: " << detail::utf8(tname) << std::endl;
-                ++actions.error_count;
-            }
+			std::string ext = paths.filename.extension().generic_string();
+			std::vector<template_symbol> storage;
+			actions.error_count +=
+				load_snippets(paths.filename, storage, ext, actions.doc_id);
+
+			BOOST_FOREACH(template_symbol& ts, storage)
+			{
+				std::string tname = ts.identifier;
+				if (tname == "!")
+				{
+					actions.templates.push();
+				}
+				ts.parent = &actions.templates.top_scope();
+				if (!actions.templates.add(ts))
+				{
+					detail::outerr(ts.body.filename, ts.body.content.get_position().line)
+						<< "Template Redefinition: " << detail::utf8(tname) << std::endl;
+					++actions.error_count;
+				}
+				if (tname == "!")
+				{
+					value_builder vb;
+					vb.insert(qbk_value("!",file_position(),template_tags::identifier));
+					do_template_action(actions,vb.release(),file_position());
+					actions.templates.pop();
+				}
+			}
         }
+        while (paths.pop());
     }
 
     void include_action(quickbook::actions& actions, value include)
