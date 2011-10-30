@@ -1871,11 +1871,16 @@ namespace quickbook
         actions.error_count +=
             load_snippets(paths.filename, storage, ext, load_type);
 
-        if (load_type == block_tags::import)
+        if (load_type == block_tags::include)
         {
-            BOOST_FOREACH(template_symbol& ts, storage)
+            actions.templates.push();
+        }
+
+        BOOST_FOREACH(template_symbol& ts, storage)
+        {
+            std::string tname = ts.identifier;
+            if (tname != "!")
             {
-                std::string tname = ts.identifier;
                 ts.parent = &actions.templates.top_scope();
                 if (!actions.templates.add(ts))
                 {
@@ -1885,11 +1890,21 @@ namespace quickbook
                 }
             }
         }
-        else
+
+        if (load_type == block_tags::include)
         {
-            template_symbol* snippet = &storage.back();
-            snippet->parent = &actions.templates.top_scope();
-            call_code_snippet(actions, false, snippet, pos);
+            BOOST_FOREACH(template_symbol& ts, storage)
+            {
+                std::string tname = ts.identifier;
+
+                if (tname == "!")
+                {
+                    ts.parent = &actions.templates.top_scope();
+                    call_code_snippet(actions, false, &ts, pos);
+                }
+            }
+
+            actions.templates.pop();
         }
     }
 

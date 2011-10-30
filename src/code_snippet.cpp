@@ -329,21 +329,11 @@ namespace quickbook
         code_snippet_actions a(storage, file, is_python ? "[python]" : "[c++]");
         // TODO: Should I check that parse succeeded?
 
-        if (load_type == block_tags::include) {
-            // Use an id that couldn't occur normally.
-            a.id = "global tag";
-            a.start_snippet(first, first);
-        }
-
         if(is_python) {
             boost::spirit::classic::parse(first, last, python_code_snippet_grammar(a));
         }
         else {
             boost::spirit::classic::parse(first, last, cpp_code_snippet_grammar(a));
-        }
-
-        if (load_type == block_tags::include) {
-            a.end_snippet(first, first);
         }
 
         return 0;
@@ -411,16 +401,27 @@ namespace quickbook
 
     void code_snippet_actions::escaped_comment(iterator first, iterator last)
     {
-        if(!snippet_stack) return;
+       if (!snippet_stack)
+       {
+           id = "!";
+           start_snippet(first,first);
+       }
+
         snippet_data& snippet = *snippet_stack;
         append_code();
         close_code();
 
         std::string temp(first, last);
         detail::unindent(temp); // remove all indents
+
         if (temp.size() != 0)
         {
             snippet.content += "\n" + temp; // add a linebreak to allow block markups
+        }
+
+        if (snippet.id == "!")
+        {
+            end_snippet(first,first);
         }
     }
 
