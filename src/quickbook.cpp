@@ -123,15 +123,8 @@ namespace quickbook
         fs::path const& filein_,
         actions& actor)
     {        
-        
         try {
             parse_file(filein_, actor);
-
-            if (actor.section_level != 0) {
-                detail::outwarn(filein_)
-                    << "Warning missing [endsect] detected at end of file."
-                    << std::endl;
-            }
 
             if(actor.error_count) {
                 detail::outerr()

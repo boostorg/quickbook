@@ -459,6 +459,20 @@ namespace quickbook
 
         assert(!actions.doc_type.empty());
 
+        // Close any open sections.
+        if (actions.section_level != 0) {
+            detail::outwarn(actions.filename)
+                << "Warning missing [endsect] detected at end of file."
+                << std::endl;
+
+            while(actions.section_level > 0) {
+                out << "</section>";
+                --actions.section_level;
+            }
+
+            actions.qualified_section_id.clear();
+        }
+
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
         out << "\n</" << actions.doc_type << ">\n\n";
