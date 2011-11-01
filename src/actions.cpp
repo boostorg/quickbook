@@ -1836,9 +1836,6 @@ namespace quickbook
             actions.filename = paths.filename;
             actions.filename_relative = paths.filename_relative;
 
-            // remain bug compatible with old versions of quickbook
-            if(qbk_version_n < 106) actions.doc_id.clear();
-
             // update the __FILENAME__ macro
             *boost::spirit::classic::find(actions.macro, "__FILENAME__")
                 = detail::path_to_generic(actions.filename_relative);
