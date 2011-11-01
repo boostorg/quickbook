@@ -462,7 +462,7 @@ namespace quickbook
         // Close any open sections.
         if (actions.section_level != 0) {
             detail::outwarn(actions.filename)
-                << "Warning missing [endsect] detected at end of file."
+                << "Missing [endsect] detected at end of file."
                 << std::endl;
 
             while(actions.section_level > 0) {
