@@ -3,7 +3,7 @@
 ]
 
 [variablelist Empty
-] 
+]
 
 [variablelist One entry
     [[a][b]]
@@ -28,4 +28,3 @@
     [[#id4]b[#id5]]
     ]
 ]
-    

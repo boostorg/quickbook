@@ -1,8 +1,7 @@
 [article Code Block Teletype 1
     [quickbook 1.5]
+    [source-mode teletype]
 ]
-
-[teletype]
 
 [section A code block]
 

@@ -62,7 +62,7 @@ comment]
   [
     [
       Header 1. Paragraph 1
-      
+
       Header 1. Paragraph 2
     ]
     [
@@ -75,7 +75,7 @@ comment]
     ]
     [
       Row 1. Cell 2.
-      
+
       Row 1. Cell 2. Paragraph 2.
     ]
   ]
