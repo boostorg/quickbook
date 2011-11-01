@@ -364,7 +364,6 @@ namespace quickbook
             level = heading_list.get_tag() - block_tags::heading1 + 1;
         }
 
-
         write_anchors(actions, actions.out);
 
         if (!generic && qbk_version_n < 103) // version 1.2 and below
