@@ -24,4 +24,5 @@ test-suite quickbook.test :
     [ quickbook-test copyright1 ]
     [ quickbook-error-test copyright-fail1 ]
     [ quickbook-error-test copyright-fail2 ]
+    [ quickbook-test id1-1.5 ]
     ;
