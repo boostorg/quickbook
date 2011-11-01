@@ -136,6 +136,7 @@ namespace quickbook
         fs::path filename_relative;
         std::string source_mode;
         string_symbols macro;
+        int min_section_level;
     private:
         file_state(file_state const&);
         file_state& operator=(file_state const&);
@@ -148,7 +149,6 @@ namespace quickbook
 
         int template_depth;
         int section_level;
-        int min_section_level;
         std::string section_id;
         std::string qualified_section_id;
     };
