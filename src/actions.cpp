@@ -575,46 +575,6 @@ namespace quickbook
         actions.out << markup.post;
     }
 
-    // TODO: No need to check suppress since this is only used in the syntax
-    //       highlighter. I should move this or something.
-    void span::operator()(parse_iterator first, parse_iterator last) const
-    {
-        if (name) out << "<phrase role=\"" << name << "\">";
-        while (first != last)
-            detail::print_char(*first++, out.get());
-        if (name) out << "</phrase>";
-    }
-
-    void span_start::operator()(parse_iterator first, parse_iterator last) const
-    {
-        out << "<phrase role=\"" << name << "\">";
-        while (first != last)
-            detail::print_char(*first++, out.get());
-    }
-
-    void span_end::operator()(parse_iterator first, parse_iterator last) const
-    {
-        while (first != last)
-            detail::print_char(*first++, out.get());
-        out << "</phrase>";
-    }
-
-    void unexpected_char::operator()(parse_iterator first, parse_iterator last) const
-    {
-        file_position const pos = get_position(first, actions.current_file->source);
-
-        detail::outwarn(actions.current_file->path, pos.line)
-            << "in column:" << pos.column
-            << ", unexpected character: " << detail::utf8(first, last)
-            << "\n";
-
-        // print out an unexpected character
-        out << "<phrase role=\"error\">";
-        while (first != last)
-            detail::print_char(*first++, out.get());
-        out << "</phrase>";
-    }
-
     void anchor_action(quickbook::actions& actions, value anchor)
     {
         value_consumer values = anchor;
@@ -644,26 +604,15 @@ namespace quickbook
         }
     }
 
-    void space::operator()(char ch) const
+    void space_action::operator()(char ch) const
     {
         detail::print_space(ch, out.get());
     }
 
-    void space::operator()(parse_iterator first, parse_iterator last) const
+    void space_action::operator()(parse_iterator first, parse_iterator last) const
     {
         while (first != last)
             detail::print_space(*first++, out.get());
-    }
-
-    void pre_escape_back::operator()(parse_iterator, parse_iterator) const
-    {
-        escape_actions.phrase.push(); // save the stream
-    }
-
-    void post_escape_back::operator()(parse_iterator, parse_iterator) const
-    {
-        out << escape_actions.phrase.str();
-        escape_actions.phrase.pop(); // restore the stream
     }
 
     void source_mode_action(quickbook::actions& actions, value source_mode)
@@ -736,11 +685,12 @@ namespace quickbook
         detail::print_char(ch, phrase.get());
     }
 
-    void plain_char_action::operator()(parse_iterator first, parse_iterator /*last*/) const
+    void plain_char_action::operator()(parse_iterator first, parse_iterator last) const
     {
         write_anchors(actions, phrase);
 
-        detail::print_char(*first, phrase.get());
+        while (first != last)
+            detail::print_char(*first++, phrase.get());
     }
 
     void escape_unicode_action::operator()(parse_iterator first, parse_iterator last) const

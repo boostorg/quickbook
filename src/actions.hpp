@@ -158,56 +158,6 @@ namespace quickbook
         std::vector<std::string> anchors;
     };
 
-    struct span
-    {
-        // Decorates c++ code fragments
-
-        span(char const* name, collector& out)
-        : name(name), out(out) {}
-
-        void operator()(parse_iterator first, parse_iterator last) const;
-
-        char const* name;
-        collector& out;
-    };
-
-    struct span_start
-    {
-        span_start(char const* name, collector& out)
-        : name(name), out(out) {}
-
-        void operator()(parse_iterator first, parse_iterator last) const;
-
-        char const* name;
-        collector& out;
-    };
-
-    struct span_end
-    {
-        span_end(collector& out)
-        : out(out) {}
-
-        void operator()(parse_iterator first, parse_iterator last) const;
-
-        collector& out;
-    };
-
-    struct unexpected_char
-    {
-        // Handles unexpected chars in c++ syntax
-
-        unexpected_char(
-            collector& out
-          , quickbook::actions& actions)
-        : out(out)
-        , actions(actions) {}
-
-        void operator()(parse_iterator first, parse_iterator last) const;
-
-        collector& out;
-        quickbook::actions& actions;
-    };
-
     extern char const* quickbook_get_date;
     extern char const* quickbook_get_time;
 
@@ -224,44 +174,17 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct space
+    struct space_action
     {
         // Prints a space
 
-        space(collector& out)
+        space_action(collector& out)
             : out(out) {}
 
         void operator()(char ch) const;
         void operator()(parse_iterator first, parse_iterator last) const;
 
         collector& out;
-    };
-
-    struct pre_escape_back
-    {
-        // Escapes back from code to quickbook (Pre)
-
-        pre_escape_back(actions& escape_actions, std::string& save)
-            : escape_actions(escape_actions), save(save) {}
-
-        void operator()(parse_iterator first, parse_iterator last) const;
-
-        actions& escape_actions;
-        std::string& save;
-    };
-
-    struct post_escape_back
-    {
-        // Escapes back from code to quickbook (Post)
-
-        post_escape_back(collector& out, actions& escape_actions, std::string& save)
-            : out(out), escape_actions(escape_actions), save(save) {}
-
-        void operator()(parse_iterator first, parse_iterator last) const;
-
-        collector& out;
-        actions& escape_actions;
-        std::string& save;
     };
 
     struct plain_char_action

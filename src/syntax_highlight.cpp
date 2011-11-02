@@ -15,10 +15,169 @@
 #include "grammar.hpp"
 #include "grammar_impl.hpp" // Just for context stuff. Should move?
 #include "actions_class.hpp"
+#include "files.hpp"
+#include "input_path.hpp"
 
 namespace quickbook
 {    
     namespace cl = boost::spirit::classic;
+
+    // quickbook::actions is used in a few places here, as 'escape_actions'.
+    // It's named differently to distinguish it from the syntax highlighting
+    // actions, declared below.
+
+    // Syntax Highlight Actions
+
+    struct span
+    {
+        // Decorates c++ code fragments
+
+        span(char const* name, collector& out)
+        : name(name), out(out) {}
+
+        void operator()(parse_iterator first, parse_iterator last) const;
+
+        char const* name;
+        collector& out;
+    };
+
+    struct span_start
+    {
+        span_start(char const* name, collector& out)
+        : name(name), out(out) {}
+
+        void operator()(parse_iterator first, parse_iterator last) const;
+
+        char const* name;
+        collector& out;
+    };
+
+    struct span_end
+    {
+        span_end(collector& out)
+        : out(out) {}
+
+        void operator()(parse_iterator first, parse_iterator last) const;
+
+        collector& out;
+    };
+
+    struct unexpected_char
+    {
+        // Handles unexpected chars in c++ syntax
+
+        unexpected_char(
+            collector& out
+          , quickbook::actions& escape_actions)
+        : out(out)
+        , escape_actions(escape_actions) {}
+
+        void operator()(parse_iterator first, parse_iterator last) const;
+
+        collector& out;
+        quickbook::actions& escape_actions;
+    };
+
+    struct plain_char
+    {
+        // Prints a single plain char.
+        // Converts '<' to "&lt;"... etc See utils.hpp
+
+        plain_char(collector& out)
+        : out(out) {}
+
+        void operator()(char ch) const;
+        void operator()(parse_iterator first, parse_iterator last) const;
+
+        collector& out;
+    };
+
+    struct pre_escape_back
+    {
+        // Escapes back from code to quickbook (Pre)
+
+        pre_escape_back(actions& escape_actions)
+            : escape_actions(escape_actions) {}
+
+        void operator()(parse_iterator first, parse_iterator last) const;
+
+        actions& escape_actions;
+    };
+
+    struct post_escape_back
+    {
+        // Escapes back from code to quickbook (Post)
+
+        post_escape_back(collector& out, actions& escape_actions)
+            : out(out), escape_actions(escape_actions) {}
+
+        void operator()(parse_iterator first, parse_iterator last) const;
+
+        collector& out;
+        actions& escape_actions;
+    };
+
+    void span::operator()(parse_iterator first, parse_iterator last) const
+    {
+        out << "<phrase role=\"" << name << "\">";
+        while (first != last)
+            detail::print_char(*first++, out.get());
+        out << "</phrase>";
+    }
+
+    void span_start::operator()(parse_iterator first, parse_iterator last) const
+    {
+        out << "<phrase role=\"" << name << "\">";
+        while (first != last)
+            detail::print_char(*first++, out.get());
+    }
+
+    void span_end::operator()(parse_iterator first, parse_iterator last) const
+    {
+        while (first != last)
+            detail::print_char(*first++, out.get());
+        out << "</phrase>";
+    }
+
+    void unexpected_char::operator()(parse_iterator first, parse_iterator last) const
+    {
+        file_position const pos = get_position(first, escape_actions.current_file->source);
+
+        detail::outwarn(escape_actions.current_file->path, pos.line)
+            << "in column:" << pos.column
+            << ", unexpected character: " << detail::utf8(first, last)
+            << "\n";
+
+        // print out an unexpected character
+        out << "<phrase role=\"error\">";
+        while (first != last)
+            detail::print_char(*first++, out.get());
+        out << "</phrase>";
+    }
+
+    void plain_char::operator()(char ch) const
+    {
+        detail::print_char(ch, out.get());
+    }
+
+    void plain_char::operator()(parse_iterator first, parse_iterator last) const
+    {
+        while (first != last)
+            detail::print_char(*first++, out.get());
+    }
+
+    void pre_escape_back::operator()(parse_iterator, parse_iterator) const
+    {
+        escape_actions.phrase.push(); // save the stream
+    }
+
+    void post_escape_back::operator()(parse_iterator, parse_iterator) const
+    {
+        out << escape_actions.phrase.str();
+        escape_actions.phrase.pop(); // restore the stream
+    }
+
+    // Syntax
 
     struct keywords_holder
     {
@@ -80,7 +239,7 @@ namespace quickbook
             {
                 program
                     =
-                    *(  (+cl::space_p)  [space(self.out)]
+                    *(  (+cl::space_p)  [plain_char(self.out)]
                     |   macro
                     |   escape
                     |   preprocessor    [span("preprocessor", self.out)]
@@ -104,7 +263,7 @@ namespace quickbook
                     ;
 
                 escape =
-                    cl::str_p("``")     [pre_escape_back(self.escape_actions, save)]
+                    cl::str_p("``")     [pre_escape_back(self.escape_actions)]
                     >>
                     (
                         (
@@ -119,7 +278,7 @@ namespace quickbook
                             cl::eps_p   [self.escape_actions.error]
                             >> *cl::anychar_p
                         )
-                    )                   [post_escape_back(self.out, self.escape_actions, save)]
+                    )                   [post_escape_back(self.out, self.escape_actions)]
                     ;
 
                 preprocessor
@@ -130,13 +289,13 @@ namespace quickbook
                     =   cl::str_p("//")         [span_start("comment", self.out)]
                     >>  *(  escape
                         |   (+(cl::anychar_p - (cl::eol_p | "``")))
-                                                [span(0, self.out)]
+                                                [plain_char(self.out)]
                         )
                     >>  cl::eps_p               [span_end(self.out)]
                     |   cl::str_p("/*")         [span_start("comment", self.out)]
                     >>  *(  escape
                         |   (+(cl::anychar_p - (cl::str_p("*/") | "``")))
-                                                [span(0, self.out)]
+                                                [plain_char(self.out)]
                         )
                     >>  (!cl::str_p("*/"))      [span_end(self.out)]
                     ;
@@ -179,7 +338,6 @@ namespace quickbook
                             string_char;
 
             quickbook_grammar& g;
-            std::string save;
 
             cl::rule<Scanner> const&
             start() const { return program; }
@@ -206,7 +364,7 @@ namespace quickbook
             {
                 program
                     =
-                    *(  (+cl::space_p)  [space(self.out)]
+                    *(  (+cl::space_p)  [plain_char(self.out)]
                     |   macro
                     |   escape          
                     |   comment
@@ -228,7 +386,7 @@ namespace quickbook
                     ;
 
                 escape =
-                    cl::str_p("``")     [pre_escape_back(self.escape_actions, save)]
+                    cl::str_p("``")     [pre_escape_back(self.escape_actions)]
                     >>
                     (
                         (
@@ -243,14 +401,14 @@ namespace quickbook
                             cl::eps_p   [self.escape_actions.error]
                             >> *cl::anychar_p
                         )
-                    )                   [post_escape_back(self.out, self.escape_actions, save)]
+                    )                   [post_escape_back(self.out, self.escape_actions)]
                     ;
 
                 comment
                     =   cl::str_p("#")          [span_start("comment", self.out)]
                     >>  *(  escape
                         |   (+(cl::anychar_p - (cl::eol_p | "``")))
-                                                [span(0, self.out)]
+                                                [plain_char(self.out)]
                         )
                     >>  cl::eps_p               [span_end(self.out)]
                     ;
@@ -305,7 +463,6 @@ namespace quickbook
                             escape, string_char;
 
             quickbook_grammar& g;
-            std::string save;
 
             cl::rule<Scanner> const&
             start() const { return program; }
@@ -332,7 +489,7 @@ namespace quickbook
                     =
                     *(  macro
                     |   escape          
-                    |   cl::repeat_p(1)[cl::anychar_p]  [plain_char_action(self.out, self.escape_actions)]
+                    |   cl::repeat_p(1)[cl::anychar_p]  [plain_char(self.out)]
                     )
                     ;
 
@@ -344,7 +501,7 @@ namespace quickbook
                     ;
 
                 escape =
-                    cl::str_p("``")     [pre_escape_back(self.escape_actions, save)]
+                    cl::str_p("``")     [pre_escape_back(self.escape_actions)]
                     >>
                     (
                         (
@@ -359,14 +516,13 @@ namespace quickbook
                             cl::eps_p   [self.escape_actions.error]
                             >> *cl::anychar_p
                         )
-                    )                   [post_escape_back(self.out, self.escape_actions, save)]
+                    )                   [post_escape_back(self.out, self.escape_actions)]
                     ;
             }
 
             cl::rule<Scanner> program, macro, escape;
 
             quickbook_grammar& g;
-            std::string save;
 
             cl::rule<Scanner> const&
             start() const { return program; }
