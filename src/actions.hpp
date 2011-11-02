@@ -254,8 +254,6 @@ namespace quickbook
 
     struct break_action
     {
-        // Handles line-breaks (DEPRECATED!!!)
-
         break_action(collector& phrase, quickbook::actions& actions)
         : phrase(phrase), actions(actions) {}
 

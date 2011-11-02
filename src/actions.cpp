@@ -181,7 +181,6 @@ namespace quickbook
         }
     }
 
-    // Handles line-breaks (DEPRECATED!!!)
     void break_action::operator()(parse_iterator first, parse_iterator) const
     {
         write_anchors(actions, phrase);
