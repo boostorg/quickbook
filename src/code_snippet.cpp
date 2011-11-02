@@ -461,8 +461,13 @@ namespace quickbook
         }
         
         // TODO: Save position in start_snippet
-        template_symbol symbol(snippet->id, params, qbk_value(body, qbk_version_n, template_tags::block));
-        symbol.callouts = callouts;
+
+        value_builder content;
+        content.set_tag(template_tags::snippet);
+        content.insert(qbk_value(body, qbk_version_n, template_tags::block));
+        content.insert(callouts);
+
+        template_symbol symbol(snippet->id, params, content.release());
         storage.push_back(symbol);
 
         // Merge the snippet into its parent

@@ -31,20 +31,11 @@ namespace quickbook
 
     struct template_symbol
     {
-           template_symbol(
+        template_symbol(
                 std::string const& identifier,
                 std::vector<std::string> const& params,
                 value const& content,
-                template_scope const* parent = 0)
-           : identifier(identifier)
-           , params(params)
-           , content(content)
-           , parent(parent)
-           , callouts()
-        {
-            assert(content.get_tag() == template_tags::block ||
-                content.get_tag() == template_tags::phrase);
-        }
+                template_scope const* parent = 0);
 
         std::string identifier;
         std::vector<std::string> params;
@@ -54,8 +45,6 @@ namespace quickbook
         // TODO: I should probably call this something like lexical_parent
         // or static_parent for clarity.
         template_scope const* parent;
-
-        value callouts;
     };
 
     typedef boost::spirit::classic::symbols<template_symbol> template_symbols;

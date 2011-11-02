@@ -877,6 +877,10 @@ namespace quickbook
         list_tag = value::default_tag;
     }
 
+    void value_builder::set_tag(value::tag_type tag) {
+        list_tag = tag;
+    }
+
     void value_builder::insert(value const& item) {
         current.append(item.value_);
     }

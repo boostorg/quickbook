@@ -1260,7 +1260,10 @@ namespace quickbook
             template_symbol const* symbol,
             string_iterator first)
     {
-        assert(symbol->content.get_tag() == template_tags::block);
+        value_consumer values = symbol->content;
+        value content = values.consume(template_tags::block);
+        value callouts = values.consume();
+        values.finish();
 
         std::vector<std::string> callout_ids;
         std::vector<value> args;
@@ -1281,15 +1284,21 @@ namespace quickbook
             callout_ids.push_back(callout_id2);
         }
 
-        call_template(actions, symbol, args, first);
+        // Create a fake symbol for call_template
+        template_symbol t(
+            symbol->identifier,
+            symbol->params,
+            content,
+            symbol->parent);
+        call_template(actions, &t, args, first);
 
         std::string block;
 
-        if(!symbol->callouts.empty())
+        if(!callouts.empty())
         {
             block += "<calloutlist>";
             int i = 0;
-            BOOST_FOREACH(value c, symbol->callouts)
+            BOOST_FOREACH(value c, callouts)
             {
                 std::string callout_id1 = callout_ids[i++];
                 std::string callout_id2 = callout_ids[i++];
@@ -1376,9 +1385,11 @@ namespace quickbook
 
         ///////////////////////////////////
         // Initialise the arguments
-        
-        if (!symbol->callouts.check())
+
+        switch(symbol->content.get_tag())
         {
+        case template_tags::block:
+        case template_tags::phrase:
             // Break the arguments for a template
 
             break_arguments(args, symbol->params, actions.current_file->path);
@@ -1398,9 +1409,10 @@ namespace quickbook
             }
 
             call_template(actions, symbol, args, first);
-        }
-        else
-        {
+            break;
+
+        case template_tags::snippet:
+
             if (!args.empty())
             {
                 detail::outerr(actions.current_file, first)
@@ -1412,6 +1424,10 @@ namespace quickbook
             }
 
             call_code_snippet(actions, symbol, first);
+            break;
+
+        default:
+            assert(0);
         }
     }
 

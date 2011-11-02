@@ -16,6 +16,21 @@
 
 namespace quickbook
 {
+    template_symbol::template_symbol(
+            std::string const& identifier,
+            std::vector<std::string> const& params,
+            value const& content,
+            template_scope const* parent)
+       : identifier(identifier)
+       , params(params)
+       , content(content)
+       , parent(parent)
+    {
+        assert(content.get_tag() == template_tags::block ||
+            content.get_tag() == template_tags::phrase ||
+            content.get_tag() == template_tags::snippet);
+    }
+
     template_stack::template_stack()
         : scope(template_stack::parser(*this))
         , scopes()
