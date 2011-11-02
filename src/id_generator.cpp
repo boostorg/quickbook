@@ -456,7 +456,7 @@ namespace quickbook
     // section_info
 
     section_info::section_info()
-        : level(0), min_level(0), id(), qualified_id() {}
+        : level(0), min_level(0), doc_id(), id(), qualified_id() {}
 
     std::string section_info::old_style_id(
             id_generator& ids,
@@ -468,7 +468,6 @@ namespace quickbook
 
     std::string section_info::fully_qualified_id(
             id_generator& ids,
-            std::string const& doc_id,
             std::string const& id_part,
             id_generator::categories category)
     {
@@ -483,7 +482,6 @@ namespace quickbook
     std::string section_info::begin_section(
             id_generator& ids,
             unsigned qbk_version_n,
-            std::string const& doc_id,
             std::string const& id_part,
             id_generator::categories category)
     {
@@ -528,6 +526,7 @@ namespace quickbook
     {
         boost::swap(a.level, b.level);
         boost::swap(a.min_level, b.min_level);
+        boost::swap(a.doc_id, b.doc_id);
         boost::swap(a.id, b.id);
         boost::swap(a.qualified_id, b.qualified_id);
     }

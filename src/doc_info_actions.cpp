@@ -134,27 +134,28 @@ namespace quickbook
         if (qbk_version_n >= 106)
         {
             if (!include_doc_id.empty())
-                actions.doc_id = include_doc_id.get_quickbook();
+                actions.section->doc_id = include_doc_id.get_quickbook();
             else if (!id.empty())
-                actions.doc_id = id.get_quickbook();
+                actions.section->doc_id = id.get_quickbook();
             else if (docinfo_type) {
-                actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
+                actions.section->doc_id = detail::make_identifier(actions.doc_title_qbk);
                 generated_id = true;
+            }
+            else {
+                assert(!actions.section->doc_id.empty());
             }
         }
         else
         {
             if (!id.empty())
-                actions.doc_id = id.get_quickbook();
+                actions.section->doc_id = id.get_quickbook();
             else if (!include_doc_id.empty())
-                actions.doc_id = include_doc_id.get_quickbook();
+                actions.section->doc_id = include_doc_id.get_quickbook();
             else {
-                actions.doc_id = detail::make_identifier(actions.doc_title_qbk);
+                actions.section->doc_id = detail::make_identifier(actions.doc_title_qbk);
                 generated_id = true;
             }
         }
-
-        assert(!actions.doc_id.empty());
 
         // if we're ignoring the document info, we're done.
 
@@ -232,7 +233,8 @@ namespace quickbook
                 dirname = id;
             }
             else {
-                dirname = qbk_bbk_value(actions.doc_id, doc_info_attributes::dirname);
+                dirname = qbk_bbk_value(actions.section->doc_id,
+                    doc_info_attributes::dirname);
             }
         }
 
@@ -292,7 +294,7 @@ namespace quickbook
 
         out << '<' << actions.doc_type << "\n"
             << "    id=\""
-            << actions.ids.add(actions.doc_id, generated_id ?
+            << actions.ids.add(actions.section->doc_id, generated_id ?
                 id_generator::generated_doc : id_generator::explicit_id)
             << "\"\n"
             ;
@@ -388,7 +390,7 @@ namespace quickbook
         if (!license.empty())
         {
             tmp << "    <legalnotice id=\""
-                << actions.ids.add(actions.doc_id + ".legal",
+                << actions.ids.add(actions.section->doc_id + ".legal",
                     id_generator::generated)
                 << "\">\n"
                 << "      <para>\n"

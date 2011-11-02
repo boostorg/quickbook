@@ -40,7 +40,6 @@ namespace quickbook
         , doc_type()
         , macro()
         , source_mode("c++")
-        , doc_id()
         , filename(filein_)
         , filename_relative(filein_.filename())
 
@@ -99,7 +98,6 @@ namespace quickbook
         , qbk_version(qbk_version_n)
         , imported(a.imported)
         , doc_type(a.doc_type)
-        , doc_id(a.doc_id)
         , filename(a.filename)
         , filename_relative(a.filename_relative)
         , source_mode(a.source_mode)
@@ -120,7 +118,6 @@ namespace quickbook
         boost::swap(qbk_version_n, qbk_version);
         boost::swap(a.imported, imported);
         boost::swap(a.doc_type, doc_type);
-        boost::swap(a.doc_id, doc_id);
         boost::swap(a.filename, filename);
         boost::swap(a.filename_relative, filename_relative);
         boost::swap(a.source_mode, source_mode);

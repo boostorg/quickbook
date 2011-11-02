@@ -97,10 +97,13 @@ namespace quickbook
 
         section_info section;
         section_info* saved_section = &section;
+        boost::swap(saved_section, actor.section);
 
-        if (docinfo_type) {
-            boost::swap(saved_section, actor.section);
+        if (saved_section) {
+            if (!docinfo_type) section = *saved_section;
+            else section.doc_id = saved_section->doc_id;
         }
+
 
         if (info.hit || !docinfo_type)
         {
@@ -113,8 +116,14 @@ namespace quickbook
             }
         }
 
-        if (docinfo_type)
-            boost::swap(saved_section, actor.section);
+        // If this is not a nested document then we want to keep
+        // the current section state.
+        if (saved_section && !docinfo_type) {
+            saved_section->level = section.level;
+            saved_section->id = section.id;
+            saved_section->qualified_id = section.qualified_id;
+        }
+        boost::swap(saved_section, actor.section);
 
         if (!info.full)
         {

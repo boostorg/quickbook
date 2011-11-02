@@ -55,7 +55,6 @@ namespace quickbook
         std::string             doc_type;
         string_symbols          macro;
         std::string             source_mode;
-        std::string             doc_id;
         fs::path                filename;
         fs::path                filename_relative;  // for the __FILENAME__ macro.
                                                     // (relative to the original file
