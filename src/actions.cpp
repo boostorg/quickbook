@@ -30,7 +30,7 @@
 #include "input_path.hpp"
 #include "block_tags.hpp"
 #include "phrase_tags.hpp"
-#include "id_generator.hpp"
+#include "id_manager.hpp"
 
 namespace quickbook
 {
@@ -57,9 +57,9 @@ namespace quickbook
         
         std::string add_anchor(quickbook::actions& actions,
                 std::string const& id,
-                id_generator::categories category = id_generator::explicit_id)
+                id_category::categories category = id_category::explicit_id)
         {
-            std::string placeholder = actions.ids.add(id, category);
+            std::string placeholder = actions.ids.add_anchor(id, category);
             actions.anchors.push_back(placeholder);
             return placeholder;
         }
@@ -260,8 +260,7 @@ namespace quickbook
         value_consumer values = phrase;
         actions.phrase
             << "<footnote id=\""
-            << actions.section->fully_qualified_id(
-                actions.ids, "f", id_generator::numbered)
+            << actions.ids.add_id("f", id_category::numbered)
             << "\"><para>"
             << values.consume().get_boostbook()
             << "</para></footnote>";
@@ -303,8 +302,7 @@ namespace quickbook
             {
                 actions.out << "<bridgehead renderas=\"sect" << level << "\"";
                 actions.out << " id=\"";
-                actions.out << actions.section->fully_qualified_id(
-                    actions.ids, "h", id_generator::numbered);
+                actions.out << actions.ids.add_id("h", id_category::numbered);
                 actions.out << "\">";
                 actions.out << "<phrase id=\"" << id << "\"/>";
                 actions.out << "<link linkend=\"" << id << "\">";
@@ -336,10 +334,9 @@ namespace quickbook
 
         if (generic)
         {
-            level = actions.section->level + 2;
-                                            // section.level is zero-based. We need to use a
-                                            // one-based heading which is one greater
-                                            // than the current. Thus: section.level + 2.
+            level = actions.ids.section_level() + 1;
+                                            // We need to use a heading which is one greater
+                                            // than the current.
             if (level > 6 )                 // The max is h6, clip it if it goes
                 level =  6;                 // further than that
         }
@@ -352,19 +349,22 @@ namespace quickbook
 
         if (!generic && qbk_version_n < 103) // version 1.2 and below
         {
-            std::string anchor = actions.section->old_style_id(
-                actions.ids, detail::make_identifier(content.get_boostbook()),
-                id_generator::generated_heading);
+            // This generates the old id style if both the interpreting
+            // version and the generation version are less then 103u.
+
+            std::string anchor = actions.ids.old_style_id(
+                detail::make_identifier(content.get_boostbook()),
+                id_category::generated_heading);
 
             write_bridgehead(actions, level,
                 content.get_boostbook(), anchor, false);
         }
         else
         {
-            id_generator::categories category =
+            id_category::categories category =
                 !element_id.empty() ?
-                    id_generator::explicit_id :
-                    id_generator::generated_heading;
+                    id_category::explicit_id :
+                    id_category::generated_heading;
 
             std::string id =
                 !element_id.empty() ?
@@ -375,8 +375,7 @@ namespace quickbook
                             content.get_boostbook()
                     );
 
-            std::string anchor = actions.section->fully_qualified_id(
-                actions.ids, id, category);
+            std::string anchor = actions.ids.add_id(id, category);
 
             write_bridgehead(actions, level,
                 content.get_boostbook(), anchor, true);
@@ -1182,7 +1181,7 @@ namespace quickbook
 
             // Store the current section level so that we can ensure that
             // [section] and [endsect] tags in the template are balanced.
-            actions.section->min_level = actions.section->level;
+            actions.min_section_level = actions.ids.section_level();
 
             // Quickbook 1.4-: When expanding the tempalte continue to use the
             //                 current scope (the dynamic scope).
@@ -1220,7 +1219,7 @@ namespace quickbook
                 return;
             }
 
-            if (actions.section->level != actions.section->min_level)
+            if (actions.ids.section_level() != actions.min_section_level)
             {
                 detail::outerr(actions.filename, pos.line)
                     << "Mismatched sections in template "
@@ -1259,10 +1258,8 @@ namespace quickbook
 
         for(unsigned int i = 0; i < size; ++i)
         {
-            std::string callout_id1 = actions.section->fully_qualified_id(
-                actions.ids, callout_base, id_generator::numbered);
-            std::string callout_id2 = actions.section->fully_qualified_id(
-                actions.ids, callout_base, id_generator::numbered);
+            std::string callout_id1 = actions.ids.add_id(callout_base, id_category::numbered);
+            std::string callout_id2 = actions.ids.add_id(callout_base, id_category::numbered);
 
             std::string code;
             code += "<co id=\"" + callout_id1 + "\" ";
@@ -1453,18 +1450,15 @@ namespace quickbook
         std::string table_id;
         if(qbk_version_n >= 105) {
             if(!element_id.empty()) {
-                table_id = actions.section->fully_qualified_id(
-                    actions.ids, element_id, id_generator::explicit_id);
+                table_id = actions.ids.add_id(element_id, id_category::explicit_id);
             }
             else if(has_title) {
-                table_id = actions.section->fully_qualified_id(
-                    actions.ids, detail::make_identifier(title), id_generator::generated);
+                table_id = actions.ids.add_id(detail::make_identifier(title), id_category::generated);
             }
         }
         else if (has_title)
         {
-            table_id = actions.section->fully_qualified_id(
-                actions.ids, "t", id_generator::numbered);
+            table_id = actions.ids.add_id("t", id_category::numbered);
         }
 
         // Emulating the old behaviour which used the width of the final
@@ -1541,14 +1535,13 @@ namespace quickbook
         value content = values.consume();
         values.finish();
 
-        std::string full_id = actions.section->begin_section(
-            actions.ids, qbk_version_n,
+        std::string full_id = actions.ids.begin_section(
             !element_id.empty() ?
                 element_id.get_quickbook() :
                 detail::make_identifier(content.get_quickbook()),
             !element_id.empty() ?
-                id_generator::explicit_id :
-                id_generator::generated_section);
+                id_category::explicit_id :
+                id_category::generated_section);
 
         actions.out << "\n<section id=\"" << full_id << "\">\n";
         actions.out << "<title>";
@@ -1574,7 +1567,7 @@ namespace quickbook
     {
         write_anchors(actions, actions.out);
 
-        if (actions.section->level <= actions.section->min_level)
+        if (actions.ids.section_level() <= actions.min_section_level)
         {
             detail::outerr(actions.filename, pos.line)
                 << "Mismatched [endsect] near column " << pos.column << ".\n";
@@ -1584,7 +1577,7 @@ namespace quickbook
         }
 
         actions.out << "</section>";
-        actions.section->end_section();
+        actions.ids.end_section();
     }
     
     void element_id_warning_action::operator()(iterator first, iterator) const

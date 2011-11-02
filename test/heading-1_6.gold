@@ -32,11 +32,11 @@
     6</link>
   </bridgehead>
   <bridgehead renderas="sect1" id="heading_test_1_6.h9">
-    <phrase id="heading_test_1_6._bold_"/><link linkend="heading_test_1_6._bold_"><emphasis
+    <phrase id="heading_test_1_6._bold"/><link linkend="heading_test_1_6._bold"><emphasis
     role="bold">Bold</emphasis></link>
   </bridgehead>
   <bridgehead renderas="sect1" id="heading_test_1_6.h10">
-    <phrase id="heading_test_1_6.comment___"/><link linkend="heading_test_1_6.comment___">Comment</link>
+    <phrase id="heading_test_1_6.comment"/><link linkend="heading_test_1_6.comment">Comment</link>
   </bridgehead>
   <bridgehead renderas="sect1" id="heading_test_1_6.h11">
     <phrase id="heading_test_1_6.h1"/><link linkend="heading_test_1_6.h1">H1</link>
@@ -71,28 +71,28 @@
   <bridgehead renderas="sect1" id="heading_test_1_6.h13">
     <phrase id="heading_test_1_6.a1"/><link linkend="heading_test_1_6.a1">H1</link>
   </bridgehead>
-  <section id="heading_test_1_6.s1">
-    <title><link linkend="heading_test_1_6.s1">S1</link></title>
-    <bridgehead renderas="sect2" id="heading_test_1_6.s1.h5">
-      <phrase id="heading_test_1_6.s1.a2"/><link linkend="heading_test_1_6.s1.a2">H2</link>
+  <section id="heading_test_1_6.s1_0">
+    <title><link linkend="heading_test_1_6.s1_0">S1</link></title>
+    <bridgehead renderas="sect2" id="heading_test_1_6.s1_0.h0">
+      <phrase id="heading_test_1_6.s1_0.a2"/><link linkend="heading_test_1_6.s1_0.a2">H2</link>
     </bridgehead>
-    <section id="heading_test_1_6.s1.s2">
-      <title><link linkend="heading_test_1_6.s1.s2">S2</link></title>
-      <bridgehead renderas="sect3" id="heading_test_1_6.s1.s2.h1">
-        <phrase id="heading_test_1_6.s1.s2.a3"/><link linkend="heading_test_1_6.s1.s2.a3">H3</link>
+    <section id="heading_test_1_6.s1_0.s2">
+      <title><link linkend="heading_test_1_6.s1_0.s2">S2</link></title>
+      <bridgehead renderas="sect3" id="heading_test_1_6.s1_0.s2.h0">
+        <phrase id="heading_test_1_6.s1_0.s2.a3"/><link linkend="heading_test_1_6.s1_0.s2.a3">H3</link>
       </bridgehead>
     </section>
-    <bridgehead renderas="sect2" id="heading_test_1_6.s1.h7">
-      <phrase id="heading_test_1_6.s1.a4"/><link linkend="heading_test_1_6.s1.a4">H4</link>
+    <bridgehead renderas="sect2" id="heading_test_1_6.s1_0.h1">
+      <phrase id="heading_test_1_6.s1_0.a4"/><link linkend="heading_test_1_6.s1_0.a4">H4</link>
     </bridgehead>
-    <section id="heading_test_1_6.s1.s3">
-      <title><link linkend="heading_test_1_6.s1.s3">S3</link></title>
-      <bridgehead renderas="sect3" id="heading_test_1_6.s1.s3.h1">
-        <phrase id="heading_test_1_6.s1.s3.a5"/><link linkend="heading_test_1_6.s1.s3.a5">H5</link>
+    <section id="heading_test_1_6.s1_0.s3">
+      <title><link linkend="heading_test_1_6.s1_0.s3">S3</link></title>
+      <bridgehead renderas="sect3" id="heading_test_1_6.s1_0.s3.h0">
+        <phrase id="heading_test_1_6.s1_0.s3.a5"/><link linkend="heading_test_1_6.s1_0.s3.a5">H5</link>
       </bridgehead>
     </section>
-    <bridgehead renderas="sect3" id="heading_test_1_6.s1.h8">
-      <phrase id="heading_test_1_6.s1.a6"/><link linkend="heading_test_1_6.s1.a6">H6</link>
+    <bridgehead renderas="sect3" id="heading_test_1_6.s1_0.h2">
+      <phrase id="heading_test_1_6.s1_0.a6"/><link linkend="heading_test_1_6.s1_0.a6">H6</link>
     </bridgehead>
   </section>
   <bridgehead renderas="sect1" id="heading_test_1_6.h14">

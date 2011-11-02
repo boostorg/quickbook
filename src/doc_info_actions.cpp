@@ -17,7 +17,7 @@
 #include "input_path.hpp"
 #include "actions_class.hpp"
 #include "doc_info_tags.hpp"
-#include "id_generator.hpp"
+#include "id_manager.hpp"
 
 namespace quickbook
 {
@@ -128,54 +128,18 @@ namespace quickbook
                 ;
         }
 
-        std::string id_placeholder;
-
-        // Note: this is the version number of the parent document.
-        if (qbk_version_n >= 106)
-        {
-            if (!include_doc_id.empty())
-                id_placeholder = actions.section->set_doc_id(actions.ids,
-                    include_doc_id.get_quickbook(), id_generator::explicit_id);
-            else if (!id.empty())
-                id_placeholder = actions.section->set_doc_id(actions.ids,
-                    id.get_quickbook(), id_generator::explicit_id);
-            else if (docinfo_type)
-                id_placeholder = actions.section->set_doc_id(actions.ids,
-                    detail::make_identifier(actions.doc_title_qbk),
-                    id_generator::generated_doc);
-            else
-                assert(!actions.section->doc_id.empty());
-        }
-        else
-        {
-            if (!id.empty())
-                id_placeholder = actions.section->set_doc_id(actions.ids,
-                    id.get_quickbook(), id_generator::explicit_id);
-            else if (!include_doc_id.empty())
-                id_placeholder = actions.section->set_doc_id(actions.ids,
-                    include_doc_id.get_quickbook(), id_generator::explicit_id);
-            else
-                id_placeholder = actions.section->set_doc_id(actions.ids,
-                    detail::make_identifier(actions.doc_title_qbk),
-                    id_generator::generated_doc);
-        }
-
-        // if we're ignoring the document info, we're done.
+        // if we're ignoring the document info, just start the file
+        // and we're done.
 
         if (!docinfo_type)
         {
+            actions.ids.start_file(
+                include_doc_id.empty() ? "" : include_doc_id.get_quickbook(),
+                id.empty() ? "" : id.get_quickbook(),
+                actions.doc_title_qbk);
+
             return;
         }
-        
-        // Make sure we really did have a document info block.
-
-        assert(doc_title.check() && !actions.doc_type.empty() &&
-            !id_placeholder.empty());
-
-        // Save the section level so it can be checked at the end of the
-        // document.
-
-        actions.section->min_level = actions.section->level;
 
         // Quickbook version
 
@@ -183,23 +147,13 @@ namespace quickbook
 
         if (qbk_version.empty())
         {
-            // Always reset quickbook version if we're not ignoring the docinfo.
-            // This is so that the file is interpreted as if it was standalone.
-            if (docinfo_type)
-            {
-                // hard code quickbook version to v1.1
-                qbk_major_version = 1;
-                qbk_minor_version = 1;
-                qbk_version_n = 101;
-                detail::outwarn(actions.filename,1)
-                    << "Quickbook version undefined. "
-                    "Version 1.1 is assumed" << std::endl;
-            }
-            else
-            {
-                qbk_major_version = qbk_version_n / 100;
-                qbk_minor_version = qbk_version_n % 100;
-            }
+            // hard code quickbook version to v1.1
+            qbk_major_version = 1;
+            qbk_minor_version = 1;
+            qbk_version_n = 101;
+            detail::outwarn(actions.filename,1)
+                << "Quickbook version undefined. "
+                "Version 1.1 is assumed" << std::endl;
         }
         else
         {
@@ -211,7 +165,6 @@ namespace quickbook
             qbk_version_n = ((unsigned) qbk_major_version * 100) +
                 (unsigned) qbk_minor_version;
         }
-        
 
         if (qbk_version_n == 106)
         {
@@ -230,6 +183,25 @@ namespace quickbook
             ++actions.error_count;
         }
 
+        id_manager::start_file_info start_file_info =
+            actions.ids.start_file_with_docinfo(
+                qbk_version_n,
+                include_doc_id.empty() ? "" : include_doc_id.get_quickbook(),
+                id.empty() ? "" : id.get_quickbook(),
+                actions.doc_title_qbk);
+
+        // if we're ignoring the document info, we're done.
+
+        if (!docinfo_type)
+        {
+            return;
+        }
+
+        // Make sure we really did have a document info block.
+
+        assert(doc_title.check() && !actions.doc_type.empty() &&
+            !start_file_info.doc_id.empty());
+
         // Set defaults for dirname + last_revision
 
         if (dirname.empty() && actions.doc_type == "library") {
@@ -237,7 +209,7 @@ namespace quickbook
                 dirname = id;
             }
             else {
-                dirname = qbk_bbk_value(actions.section->doc_id,
+                dirname = qbk_bbk_value(start_file_info.doc_id,
                     doc_info_attributes::dirname);
             }
         }
@@ -298,7 +270,7 @@ namespace quickbook
 
         out << '<' << actions.doc_type << "\n"
             << "    id=\""
-            << id_placeholder
+            << start_file_info.placeholder
             << "\"\n";
 
         if(!lang.empty())
@@ -392,8 +364,7 @@ namespace quickbook
         if (!license.empty())
         {
             tmp << "    <legalnotice id=\""
-                << actions.section->fully_qualified_id(actions.ids, "legal",
-                    id_generator::generated)
+                << actions.ids.add_id("legal", id_category::generated)
                 << "\">\n"
                 << "      <para>\n"
                 << "        " << doc_info_output(license, 103) << "\n"
@@ -460,29 +431,23 @@ namespace quickbook
     
     void post(collector& out, quickbook::actions& actions, docinfo_types docinfo_type)
     {
-        // if we're ignoring the document info, do nothing.
-        if (!docinfo_type)
-        {
-            return;
-        }
-
-        assert(!actions.doc_type.empty());
+        // We've finished generating our output. Here's what we'll do
+        // *after* everything else.
 
         // Close any open sections.
-        if (actions.section->level > 0) {
+        if (docinfo_type && actions.ids.section_level() > 1) {
             detail::outwarn(actions.filename)
                 << "Missing [endsect] detected at end of file."
                 << std::endl;
 
-            while(actions.section->level > 0) {
+            while(actions.ids.section_level() > 1) {
                 out << "</section>";
-                actions.section->end_section();
+                actions.ids.end_section();
             }
         }
 
-        // We've finished generating our output. Here's what we'll do
-        // *after* everything else.
-        out << "\n</" << actions.doc_type << ">\n\n";
+        actions.ids.end_file();
+        if (docinfo_type) out << "\n</" << actions.doc_type << ">\n\n";
     }
 
     static void write_document_title(collector& out, value const& title, value const& version)

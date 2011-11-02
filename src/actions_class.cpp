@@ -21,7 +21,7 @@
 namespace quickbook
 {
     actions::actions(fs::path const& filein_, fs::path const& xinclude_base_,
-            string_stream& out_, id_generator& ids)
+            string_stream& out_, id_manager& ids)
         : grammar_()
 
         , doc_title_qbk()
@@ -44,7 +44,7 @@ namespace quickbook
         , filename_relative(filein_.filename())
 
         , template_depth(0)
-        , section(0)
+        , min_section_level(1)
 
         , out(out_)
         , phrase()
@@ -132,13 +132,13 @@ namespace quickbook
     template_state::template_state(actions& a)
         : file_state(a, file_state::scope_all)
         , template_depth(a.template_depth)
-        , section(*a.section)
+        , min_section_level(a.min_section_level)
     {
     }
 
     template_state::~template_state()
     {
         boost::swap(a.template_depth, template_depth);
-        boost::swap(*a.section, section);
+        boost::swap(a.min_section_level, min_section_level);
     }
 }

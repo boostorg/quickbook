@@ -11,7 +11,6 @@
 #define BOOST_SPIRIT_ACTIONS_STATE_HPP
 
 #include "actions_class.hpp"
-#include "id_generator.hpp"
 
 namespace quickbook
 {
@@ -53,7 +52,7 @@ namespace quickbook
         ~template_state();
 
         int template_depth;
-        section_info section;
+        int min_section_level;
     };
 }
 

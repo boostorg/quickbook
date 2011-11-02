@@ -13,7 +13,7 @@
 #include "post_process.hpp"
 #include "utils.hpp"
 #include "input_path.hpp"
-#include "id_generator.hpp"
+#include "id_manager.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/v3/path.hpp>
 #include <boost/filesystem/v3/operations.hpp>
@@ -95,13 +95,6 @@ namespace quickbook
         
         if (!info.hit) actor.source_mode = saved_source_mode;
 
-        section_info section;
-        section_info* saved_section = &section;
-        boost::swap(saved_section, actor.section);
-
-        if (saved_section) section = *saved_section;
-        if (docinfo_type) section.clear_section();
-
         if (info.hit || !docinfo_type)
         {
             pre(actor.out, actor, include_doc_id, docinfo_type);
@@ -112,11 +105,6 @@ namespace quickbook
                 post(actor.out, actor, docinfo_type);
             }
         }
-
-        // If this is not a nested document then we want to keep
-        // the current section state.
-        if (!docinfo_type) saved_section->copy_section(section);
-        boost::swap(saved_section, actor.section);
 
         if (!info.full)
         {
@@ -158,7 +146,7 @@ namespace quickbook
       , bool pretty_print)
     {
         string_stream buffer;
-        id_generator ids;
+        id_manager ids;
         actions actor(filein_, xinclude_base_, buffer, ids);
         set_macros(actor);
 
