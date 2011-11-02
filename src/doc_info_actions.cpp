@@ -472,10 +472,8 @@ namespace quickbook
 
             while(actions.section->level > 0) {
                 out << "</section>";
-                --actions.section->level;
+                actions.section->end_section();
             }
-
-            actions.section->qualified_id.clear();
         }
 
         // We've finished generating our output. Here's what we'll do

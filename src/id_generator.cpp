@@ -458,6 +458,72 @@ namespace quickbook
     section_info::section_info()
         : level(0), min_level(0), id(), qualified_id() {}
 
+    std::string section_info::old_style_id(
+            id_generator& ids,
+            std::string const& id_part,
+            id_generator::categories category)
+    {
+        return ids.add(id + '.' + id_part, category);
+    }
+
+    std::string section_info::fully_qualified_id(
+            id_generator& ids,
+            std::string const& doc_id,
+            std::string const& id_part,
+            id_generator::categories category)
+    {
+        std::string id = doc_id;
+        if(!id.empty() && !qualified_id.empty()) id += '.';
+        id += qualified_id;
+        if(!id.empty() && !id_part.empty()) id += '.';
+        id += id_part;
+        return ids.add(id, category);
+    }
+
+    std::string section_info::begin_section(
+            id_generator& ids,
+            unsigned qbk_version_n,
+            std::string const& doc_id,
+            std::string const& id_part,
+            id_generator::categories category)
+    {
+        id = id_part;
+
+        if (level != 0)
+            qualified_id += '.';
+        else
+            BOOST_ASSERT(qualified_id.empty());
+
+        qualified_id += id;
+        ++level;
+
+        // TODO: This could be awkward if there's a clash, possibly
+        // needs another category, between explicit and generated.
+        std::string full_id = ids.add(
+            qbk_version_n < 103 ?
+                doc_id + "." + id :
+                doc_id + "." + qualified_id,
+            category);
+
+        return full_id;
+    }
+
+    void section_info::end_section()
+    {
+        --level;
+
+        if (level == 0)
+        {
+            qualified_id.clear();
+        }
+        else
+        {
+            std::string::size_type const n =
+                qualified_id.find_last_of('.');
+            qualified_id.erase(n, std::string::npos);
+        }
+    }
+
     void swap(section_info& a, section_info& b)
     {
         boost::swap(a.level, b.level);

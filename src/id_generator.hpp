@@ -113,6 +113,23 @@ namespace quickbook
     {
         section_info();
 
+        std::string old_style_id(
+                id_generator&,
+                std::string const&,
+                id_generator::categories);
+        std::string fully_qualified_id(
+                id_generator&,
+                std::string const& doc_id,
+                std::string const&,
+                id_generator::categories);
+        std::string begin_section(
+                id_generator&,
+                unsigned qbk_version_n,
+                std::string const& doc_id,
+                std::string const&,
+                id_generator::categories);
+        void end_section();
+
         int                     level;
         int                     min_level;
         std::string             id;

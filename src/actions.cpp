@@ -40,18 +40,6 @@ namespace quickbook
     unsigned qbk_version_n = 0; // qbk_major_version * 100 + qbk_minor_version
 
     namespace {
-        std::string fully_qualified_id(
-            quickbook::actions const& actions,
-            std::string const& section_id)
-        {
-            std::string id = actions.doc_id;
-            if(!id.empty() && !actions.section->qualified_id.empty()) id += '.';
-            id += actions.section->qualified_id;
-            if(!id.empty() && !section_id.empty()) id += '.';
-            id += section_id;
-            return id;
-        }
-
         void write_anchors(quickbook::actions& actions, collector& tgt)
         {
             for(quickbook::actions::string_list::iterator
@@ -272,8 +260,8 @@ namespace quickbook
         value_consumer values = phrase;
         actions.phrase
             << "<footnote id=\""
-            << actions.ids.add(fully_qualified_id(actions, "f"),
-                    id_generator::numbered)
+            << actions.section->fully_qualified_id(
+                actions.ids, actions.doc_id, "f", id_generator::numbered)
             << "\"><para>"
             << values.consume().get_boostbook()
             << "</para></footnote>";
@@ -315,9 +303,8 @@ namespace quickbook
             {
                 actions.out << "<bridgehead renderas=\"sect" << level << "\"";
                 actions.out << " id=\"";
-                actions.out << actions.ids.add(
-                    fully_qualified_id(actions, "h"),
-                    id_generator::numbered),
+                actions.out << actions.section->fully_qualified_id(
+                    actions.ids, actions.doc_id, "h", id_generator::numbered);
                 actions.out << "\">";
                 actions.out << "<phrase id=\"" << id << "\"/>";
                 actions.out << "<link linkend=\"" << id << "\">";
@@ -365,9 +352,8 @@ namespace quickbook
 
         if (!generic && qbk_version_n < 103) // version 1.2 and below
         {
-            std::string anchor = actions.ids.add(
-                actions.section->id + '.' +
-                    detail::make_identifier(content.get_boostbook()),
+            std::string anchor = actions.section->old_style_id(
+                actions.ids, detail::make_identifier(content.get_boostbook()),
                 id_generator::generated_heading);
 
             write_bridgehead(actions, level,
@@ -389,9 +375,8 @@ namespace quickbook
                             content.get_boostbook()
                     );
 
-            std::string anchor = actions.ids.add(
-                fully_qualified_id(actions, id),
-                category);;
+            std::string anchor = actions.section->fully_qualified_id(
+                actions.ids, actions.doc_id, id, category);
 
             write_bridgehead(actions, level,
                 content.get_boostbook(), anchor, true);
@@ -1270,17 +1255,14 @@ namespace quickbook
         std::vector<std::string> callout_ids;
         std::vector<template_body> args;
         unsigned int size = symbol->params.size();
-        std::string callout_base_id =
-            fully_qualified_id(actions, "c");
+        std::string callout_base("c");
 
         for(unsigned int i = 0; i < size; ++i)
         {
-            std::string callout_id1 =
-                actions.ids.add(
-                    callout_base_id, id_generator::numbered);
-            std::string callout_id2 =
-                actions.ids.add(
-                    callout_base_id, id_generator::numbered);
+            std::string callout_id1 = actions.section->fully_qualified_id(
+                actions.ids, actions.doc_id, callout_base, id_generator::numbered);
+            std::string callout_id2 = actions.section->fully_qualified_id(
+                actions.ids, actions.doc_id, callout_base, id_generator::numbered);
 
             std::string code;
             code += "<co id=\"" + callout_id1 + "\" ";
@@ -1472,21 +1454,18 @@ namespace quickbook
         std::string table_id;
         if(qbk_version_n >= 105) {
             if(!element_id.empty()) {
-                table_id = actions.ids.add(
-                    fully_qualified_id(actions, element_id),
-                    id_generator::explicit_id);
+                table_id = actions.section->fully_qualified_id(
+                    actions.ids, actions.doc_id, element_id, id_generator::explicit_id);
             }
             else if(has_title) {
-                table_id = actions.ids.add(
-                    fully_qualified_id(actions, detail::make_identifier(title)),
-                    id_generator::generated);
+                table_id = actions.section->fully_qualified_id(
+                    actions.ids, actions.doc_id, detail::make_identifier(title), id_generator::generated);
             }
         }
         else if (has_title)
         {
-            table_id = actions.ids.add(
-                    fully_qualified_id(actions, "t"),
-                id_generator::numbered);
+            table_id = actions.section->fully_qualified_id(
+                actions.ids, actions.doc_id, "t", id_generator::numbered);
         }
 
         // Emulating the old behaviour which used the width of the final
@@ -1563,24 +1542,11 @@ namespace quickbook
         value content = values.consume();
         values.finish();
 
-        actions.section->id = !element_id.empty() ?
-            element_id.get_quickbook() :
-            detail::make_identifier(content.get_quickbook());
-
-        if (actions.section->level != 0)
-            actions.section->qualified_id += '.';
-        else
-            BOOST_ASSERT(actions.section->qualified_id.empty());
-
-        actions.section->qualified_id += actions.section->id;
-        ++actions.section->level;
-
-        // TODO: This could be awkward if there's a clash, possibly
-        // needs another category, between explicit and generated.
-        std::string full_id = actions.ids.add(
-            qbk_version_n < 103 ?
-                actions.doc_id + "." + actions.section->id :
-                actions.doc_id + "." + actions.section->qualified_id,
+        std::string full_id = actions.section->begin_section(
+            actions.ids, qbk_version_n, actions.doc_id,
+            !element_id.empty() ?
+                element_id.get_quickbook() :
+                detail::make_identifier(content.get_quickbook()),
             !element_id.empty() ?
                 id_generator::explicit_id :
                 id_generator::generated_section);
@@ -1618,19 +1584,8 @@ namespace quickbook
             return;
         }
 
-        --actions.section->level;
         actions.out << "</section>";
-
-        if (actions.section->level == 0)
-        {
-            actions.section->qualified_id.clear();
-        }
-        else
-        {
-            std::string::size_type const n =
-                actions.section->qualified_id.find_last_of('.');
-            actions.section->qualified_id.erase(n, std::string::npos);
-        }
+        actions.section->end_section();
     }
     
     void element_id_warning_action::operator()(iterator first, iterator) const
