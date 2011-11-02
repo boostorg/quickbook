@@ -46,7 +46,6 @@ namespace quickbook
         string_list             anchors;
         bool                    no_eols;
         bool                    warned_about_breaks;
-        int                     context;
         bool                    conditional;
         id_manager&             ids;
         file*                   current_file_tmp;   // Temporary non-const pointer to new
@@ -87,8 +86,6 @@ namespace quickbook
                                 scoped_output;
         scoped_parser<set_no_eols_scoped>
                                 scoped_no_eols;
-        scoped_parser<scoped_context_impl>
-                                scoped_context;
 
         element_action          element;
         error_action            error;

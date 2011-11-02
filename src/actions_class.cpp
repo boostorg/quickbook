@@ -32,7 +32,6 @@ namespace quickbook
         , anchors()
         , no_eols(true)
         , warned_about_breaks(false)
-        , context(0)
         , conditional(true)
         , ids(ids)
 
@@ -55,7 +54,6 @@ namespace quickbook
         , scoped_cond_phrase(*this)
         , scoped_output(*this)
         , scoped_no_eols(*this)
-        , scoped_context(*this)
 
         , element(*this)
         , error(*this)

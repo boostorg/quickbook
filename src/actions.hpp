@@ -332,19 +332,6 @@ namespace quickbook
         quickbook::actions& actions;
         bool saved_no_eols;
     };
-    
-    struct scoped_context_impl : scoped_action_base
-    {
-        scoped_context_impl(quickbook::actions& actions)
-            : actions_(actions) {}
-
-        bool start(int);
-        void cleanup();
-
-    private:
-        quickbook::actions& actions_;
-        int saved_context_;
-    };
 }
 
 #endif // BOOST_SPIRIT_QUICKBOOK_ACTIONS_HPP

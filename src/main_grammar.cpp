@@ -36,7 +36,7 @@ namespace quickbook
 
             bool start()
             {
-                if (!(l.info.type & l.actions_.context) ||
+                if (!(l.info.type & l.context) ||
                         qbk_version_n < l.info.qbk_version)
                     return false;
 
@@ -85,6 +85,29 @@ namespace quickbook
             main_grammar_local& l_;
         };
 
+        struct scoped_context_impl : scoped_action_base
+        {
+            scoped_context_impl(main_grammar_local& l)
+                : l_(l) {}
+    
+            bool start(int new_context)
+            {
+                saved_context_ = l_.context;
+                l_.context = new_context;
+        
+                return true;
+            }
+        
+            void cleanup()
+            {
+                l_.context = saved_context_;
+            }
+
+        private:
+            main_grammar_local& l_;
+            int saved_context_;
+        };
+
         cl::rule<scanner>
                         top_level, blocks, paragraph_separator,
                         code, code_line, blank_line, hr,
@@ -114,15 +137,18 @@ namespace quickbook
         cl::rule<scanner, simple_markup_closure::context_t> simple_markup;
         cl::rule<scanner> simple_markup_end;
 
+        int context;
         element_info info;
         element_info::type_enum element_type;
 
         quickbook::actions& actions_;
+        scoped_parser<scoped_context_impl> scoped_context;
         scoped_parser<process_element_impl> process_element;
         is_block_type is_block;
 
         main_grammar_local(quickbook::actions& actions)
             : actions_(actions)
+            , scoped_context(*this)
             , process_element(*this)
             , is_block(*this)
             {}
@@ -142,7 +168,7 @@ namespace quickbook
             ;
 
         phrase_start =
-            actions.scoped_context(element_info::in_phrase)
+            local.scoped_context(element_info::in_phrase)
             [
                *(   common
                 |   cl::anychar_p               [actions.plain_char]
@@ -151,7 +177,7 @@ namespace quickbook
             ;
 
         local.top_level =
-            actions.scoped_context(element_info::in_block)
+            local.scoped_context(element_info::in_block)
             [   local.blocks
             >>  *(  local.element
                 >>  !(cl::eps_p(local.is_block) >> +eol >> local.blocks)
@@ -236,7 +262,7 @@ namespace quickbook
             ;
 
         local.list_item =
-            actions.scoped_context(element_info::in_phrase)
+            local.scoped_context(element_info::in_phrase)
             [
             actions.values.save()
             [
@@ -425,7 +451,7 @@ namespace quickbook
                 ;
 
         phrase =
-            actions.scoped_context(element_info::in_phrase)
+            local.scoped_context(element_info::in_phrase)
             [
             actions.values.save()
             [   *(  common
@@ -437,7 +463,7 @@ namespace quickbook
             ;
 
         extended_phrase =
-            actions.scoped_context(element_info::in_conditional)
+            local.scoped_context(element_info::in_conditional)
             [
             actions.values.save()
             [  *(   common
@@ -449,7 +475,7 @@ namespace quickbook
             ;
 
         inside_paragraph =
-            actions.scoped_context(element_info::in_nested_block)
+            local.scoped_context(element_info::in_nested_block)
             [
             actions.values.save()
             [   *(  local.paragraph_separator   [actions.paragraph]
@@ -483,7 +509,7 @@ namespace quickbook
         //
 
         simple_phrase =
-            actions.scoped_context(element_info::in_phrase)
+            local.scoped_context(element_info::in_phrase)
             [
             actions.values.save()
             [
@@ -519,7 +545,7 @@ namespace quickbook
 
 
         local.command_line_phrase =
-            actions.scoped_context(element_info::in_phrase)
+            local.scoped_context(element_info::in_phrase)
             [
             actions.values.save()
             [   *(   common

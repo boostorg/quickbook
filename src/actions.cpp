@@ -1970,17 +1970,4 @@ namespace quickbook
     {
         actions.no_eols = saved_no_eols;
     }
-
-    bool scoped_context_impl::start(int new_context)
-    {
-        saved_context_ = actions_.context;
-        actions_.context = new_context;
-
-        return true;
-    }
-
-    void scoped_context_impl::cleanup()
-    {
-        actions_.context = saved_context_;
-    }
 }
