@@ -18,7 +18,7 @@ namespace quickbook
         (generic_heading)
         (heading1)(heading2)(heading3)(heading4)(heading5)(heading6)
         (blurb)(blockquote)(preformatted)
-        (warning)(caution)(important)(note)(tip)
+        (warning)(caution)(important)(note)(tip)(block)
         (macro_definition)(template_definition)
         (variable_list)(table)
         (xinclude)(import)(include)

@@ -102,6 +102,10 @@ namespace quickbook
             ;
 
         elements.add
+            ("block", element_info(element_info::nested_block, &local.inner_phrase, block_tags::block, 106u))
+            ;
+
+        elements.add
             ("pre", element_info(element_info::nested_block, &local.preformatted, block_tags::preformatted))
             ;
 

@@ -124,6 +124,7 @@ namespace quickbook
         case block_tags::important:
         case block_tags::note:
         case block_tags::tip:
+        case block_tags::block:
             return block_action(actions,v);
         case block_tags::hr:
             return block_empty_action(actions,v);
