@@ -19,6 +19,7 @@ namespace quickbook
     struct quickbook_grammar;
     struct collector;
     struct id_generator;
+    struct section_info;
 
     typedef position_iterator<std::string::const_iterator> iterator;
 

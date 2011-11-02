@@ -9,6 +9,7 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 #include "actions_class.hpp"
+#include "actions_state.hpp"
 #include "quickbook.hpp"
 #include "grammar.hpp"
 #include "input_path.hpp"
@@ -44,7 +45,7 @@ namespace quickbook
         , filename_relative(filein_.filename())
 
         , template_depth(0)
-        , section()
+        , section(0)
 
         , out(out_)
         , phrase()
@@ -134,24 +135,13 @@ namespace quickbook
     template_state::template_state(actions& a)
         : file_state(a, file_state::scope_all)
         , template_depth(a.template_depth)
-        , section(a.section)
+        , section(*a.section)
     {
     }
 
     template_state::~template_state()
     {
         boost::swap(a.template_depth, template_depth);
-        boost::swap(a.section, section);
-    }
-
-    section_info::section_info()
-        : level(0), min_level(0), id(), qualified_id() {}
-
-    void swap(section_info& a, section_info& b)
-    {
-        boost::swap(a.level, b.level);
-        boost::swap(a.min_level, b.min_level);
-        boost::swap(a.id, b.id);
-        boost::swap(a.qualified_id, b.qualified_id);
+        boost::swap(*a.section, section);
     }
 }

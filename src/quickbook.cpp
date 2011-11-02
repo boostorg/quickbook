@@ -73,9 +73,6 @@ namespace quickbook
     void parse_file(fs::path const& filein_, actions& actor,
             value include_doc_id, bool nested_file)
     {
-        using std::vector;
-        using std::string;
-
         std::string storage;
         detail::load(filein_, storage); // Throws detail::load_error
 
@@ -98,9 +95,12 @@ namespace quickbook
         
         if (!info.hit) actor.source_mode = saved_source_mode;
 
-        section_info saved_section;
-        if (docinfo_type == docinfo_nested)
+        section_info section;
+        section_info* saved_section = &section;
+
+        if (docinfo_type) {
             boost::swap(saved_section, actor.section);
+        }
 
         if (info.hit || !docinfo_type)
         {
@@ -113,7 +113,7 @@ namespace quickbook
             }
         }
 
-        if (docinfo_type == docinfo_nested)
+        if (docinfo_type)
             boost::swap(saved_section, actor.section);
 
         if (!info.full)

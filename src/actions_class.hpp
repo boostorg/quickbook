@@ -21,17 +21,6 @@ namespace quickbook
     namespace cl = boost::spirit::classic;
     namespace fs = boost::filesystem;
 
-    struct section_info
-    {
-        section_info();
-
-        int                     level;
-        int                     min_level;
-        std::string             id;
-        std::string             qualified_id;
-    };
-    void swap(section_info&, section_info&);
-
     struct actions
     {
         actions(fs::path const& filein_, fs::path const& xinclude_base, string_stream& out_,
@@ -74,7 +63,7 @@ namespace quickbook
 
     // state saved for templates.
         int                     template_depth;
-        section_info            section;
+        section_info*           section;
 
     // output state - scoped by templates and grammar
         collector               out;            // main output stream
@@ -116,46 +105,6 @@ namespace quickbook
         do_macro_action         do_macro;
 
         element_id_warning_action element_id_warning;
-    };
-
-    // State savers
-
-    struct file_state
-    {
-        enum scope_flags {
-            scope_none = 0,
-            scope_macros = 1,
-            scope_templates = 2,
-            scope_output = 4,
-            scope_callables = scope_macros + scope_templates,
-            scope_all = scope_callables + scope_output
-        };
-    
-        explicit file_state(actions&, scope_flags);
-        ~file_state();
-        
-        quickbook::actions& a;
-        scope_flags scope;
-        unsigned qbk_version;
-        bool imported;
-        std::string doc_type;
-        std::string doc_id;
-        fs::path filename;
-        fs::path filename_relative;
-        std::string source_mode;
-        string_symbols macro;
-    private:
-        file_state(file_state const&);
-        file_state& operator=(file_state const&);
-    };
-
-    struct template_state : file_state
-    {
-        explicit template_state(actions&);
-        ~template_state();
-
-        int template_depth;
-        section_info section;
     };
 }
 

@@ -108,6 +108,18 @@ namespace quickbook
         bool try_potential_id(placeholder_id*);
         bool try_counted_id(placeholder_id*);
     };
+
+    struct section_info
+    {
+        section_info();
+
+        int                     level;
+        int                     min_level;
+        std::string             id;
+        std::string             qualified_id;
+    };
+
+    void swap(section_info&, section_info&);
 }
 
 #endif

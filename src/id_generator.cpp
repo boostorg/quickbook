@@ -452,4 +452,17 @@ namespace quickbook
         result.append(copied, source.end());
         return result;
     }
+
+    // section_info
+
+    section_info::section_info()
+        : level(0), min_level(0), id(), qualified_id() {}
+
+    void swap(section_info& a, section_info& b)
+    {
+        boost::swap(a.level, b.level);
+        boost::swap(a.min_level, b.min_level);
+        boost::swap(a.id, b.id);
+        boost::swap(a.qualified_id, b.qualified_id);
+    }
 }
