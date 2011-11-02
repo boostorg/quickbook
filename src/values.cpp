@@ -58,7 +58,7 @@ namespace quickbook
         bool value_node::empty() const { return false; }
         bool value_node::check() const { return true; }
         bool value_node::is_list() const { return false; }
-        bool value_node::is_string() const { return false; }
+        bool value_node::is_encoded() const { return false; }
         bool value_node::equals(value_node*) const { UNDEFINED_ERROR(); }
     }
 
@@ -89,7 +89,7 @@ namespace quickbook
             bool empty() const { UNDEFINED_ERROR(); }
             bool check() const { UNDEFINED_ERROR(); }
             bool is_list() const { UNDEFINED_ERROR(); }
-            bool is_string() const { UNDEFINED_ERROR(); }
+            bool is_encoded() const { UNDEFINED_ERROR(); }
         };
 
         value_list_end_impl value_list_end_impl::instance;
@@ -245,6 +245,7 @@ namespace quickbook
             virtual int get_int() const;
             virtual std::string get_boostbook() const;
             virtual bool empty() const;
+            virtual bool is_encoded() const;
             virtual bool equals(value_node*) const;
 
             int value_;
@@ -273,6 +274,11 @@ namespace quickbook
         bool value_int_impl::empty() const
         {
             return false;
+        }
+
+        bool value_int_impl::is_encoded() const
+        {
+            return true;
         }
 
         bool value_int_impl::equals(value_node* other) const {
@@ -305,8 +311,8 @@ namespace quickbook
             virtual ~value_string_impl();
             virtual value_node* clone() const;
             virtual std::string get_boostbook() const;
-            virtual bool is_string() const;
             virtual bool empty() const;
+            virtual bool is_encoded() const;
             virtual bool equals(value_node*) const;
 
             std::string value_;
@@ -325,7 +331,6 @@ namespace quickbook
             virtual file const* get_file() const;
             virtual string_iterator get_position() const;
             virtual string_ref get_quickbook() const;
-            virtual bool is_string() const;
             virtual bool empty() const;
             virtual bool equals(value_node*) const;
 
@@ -348,7 +353,6 @@ namespace quickbook
             virtual file const* get_file() const;
             virtual string_iterator get_position() const;
             virtual string_ref get_quickbook() const;
-            virtual bool is_string() const;
             virtual bool empty() const;
             virtual bool equals(value_node*) const;
 
@@ -372,8 +376,8 @@ namespace quickbook
             virtual string_iterator get_position() const;
             virtual string_ref get_quickbook() const;
             virtual std::string get_boostbook() const;
-            virtual bool is_string() const;
             virtual bool empty() const;
+            virtual bool is_encoded() const;
             virtual bool equals(value_node*) const;
 
             file const* file_;
@@ -408,11 +412,11 @@ namespace quickbook
         std::string value_string_impl::get_boostbook() const
             { return value_; }
 
-        bool value_string_impl::is_string() const
-            { return true; }
-
         bool value_string_impl::empty() const
             { return value_.empty(); }
+
+        bool value_string_impl::is_encoded() const
+            { return true; }
 
         bool value_string_impl::equals(value_node* other) const {
             try {
@@ -458,9 +462,6 @@ namespace quickbook
         string_ref value_qbk_string_impl::get_quickbook() const
             { return string_ref(fake_file_.source); }
 
-        bool value_qbk_string_impl::is_string() const
-            { return true; }
-
         bool value_qbk_string_impl::empty() const
             { return fake_file_.source.empty(); }
 
@@ -501,9 +502,6 @@ namespace quickbook
 
         string_ref value_qbk_ref_impl::get_quickbook() const
             { return string_ref(begin_, end_); }
-
-        bool value_qbk_ref_impl::is_string() const
-            { return true; }
 
         bool value_qbk_ref_impl::empty() const
             { return begin_ == end_; }
@@ -556,12 +554,12 @@ namespace quickbook
         std::string value_qbk_bbk_impl::get_boostbook() const
             { return bbk_value_; }
 
-        bool value_qbk_bbk_impl::is_string() const
-            { return true; }
-
         // Should this test the quickbook, the boostbook or both?
         bool value_qbk_bbk_impl::empty() const
             { return bbk_value_.empty(); }
+
+        bool value_qbk_bbk_impl::is_encoded() const
+            { return true; }
 
         bool value_qbk_bbk_impl::equals(value_node* other) const {
             try {

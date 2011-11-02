@@ -12,6 +12,7 @@
 #include <string>
 #include <deque>
 #include <vector>
+#include <cassert>
 #include <boost/tuple/tuple.hpp>
 #include <boost/assert.hpp>
 #include <boost/spirit/include/classic_functor_parser.hpp>
@@ -26,36 +27,10 @@ namespace quickbook
 {
     namespace fs = boost::filesystem;
 
-    struct template_body
-    {
-        enum content_type
-        {
-            quickbook,
-            raw_output
-        };
-    
-        template_body(value const&, content_type = quickbook);
-        bool is_block() const;
-
-        value content;
-        content_type type;
-    };
-
     struct template_scope;
 
     struct template_symbol
     {
-        template_symbol(
-                std::string const& identifier,
-                std::vector<std::string> const& params,
-                template_body const& body,
-                template_scope const* parent = 0)
-           : identifier(identifier)
-           , params(params)
-           , body(body)
-           , parent(parent)
-           , callouts() {}
-
            template_symbol(
                 std::string const& identifier,
                 std::vector<std::string> const& params,
@@ -63,13 +38,17 @@ namespace quickbook
                 template_scope const* parent = 0)
            : identifier(identifier)
            , params(params)
-           , body(content)
+           , content(content)
            , parent(parent)
-           , callouts() {}
+           , callouts()
+        {
+            assert(content.get_tag() == template_tags::block ||
+                content.get_tag() == template_tags::phrase);
+        }
 
         std::string identifier;
         std::vector<std::string> params;
-        template_body body;
+        value content;
         
         // This is only used for quickbook 1.5+, 1.4 uses the dynamic scope.
         // TODO: I should probably call this something like lexical_parent

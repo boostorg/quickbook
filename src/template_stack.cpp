@@ -16,22 +16,6 @@
 
 namespace quickbook
 {
-    template_body::template_body(
-            value const& content,
-            content_type type
-        )
-        : content(content)
-        , type(type)
-    {
-        assert(content.get_tag() == template_tags::block ||
-            content.get_tag() == template_tags::phrase);
-    }
-
-    bool template_body::is_block() const
-    {
-        return content.get_tag() == template_tags::block;
-    }
-
     template_stack::template_stack()
         : scope(template_stack::parser(*this))
         , scopes()

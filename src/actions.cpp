@@ -1065,7 +1065,7 @@ namespace quickbook
         }
     
         void break_arguments(
-            std::vector<template_body>& args
+            std::vector<value>& args
           , std::vector<std::string> const& params
           , fs::path const& filename
         )
@@ -1087,36 +1087,36 @@ namespace quickbook
                     // recursively until we have all the expected number of
                     // arguments, or if there are no more spaces left.
 
-                    template_body& body = args.back();
-                    string_iterator begin = body.content.get_quickbook().begin();
-                    string_iterator end = body.content.get_quickbook().end();
+                    value last_arg = args.back();
+                    string_iterator begin = last_arg.get_quickbook().begin();
+                    string_iterator end = last_arg.get_quickbook().end();
                     
                     std::pair<string_iterator, string_iterator> pos =
                         find_seperator(begin, end);
                     if (pos.second == end) break;
-                    template_body second(
-                        qbk_value_ref(body.content.get_file(),
+                    value new_arg(
+                        qbk_value_ref(last_arg.get_file(),
                             pos.second, end, template_tags::phrase));
     
                     // TODO: Make sure that this is overwriting a reference, not
                     // a value.
-                    body.content = qbk_value_ref(body.content.get_file(),
-                        begin, pos.first, body.content.get_tag());
-                    args.push_back(second);
+                    args.back() = qbk_value_ref(last_arg.get_file(),
+                        begin, pos.first, last_arg.get_tag());
+                    args.push_back(new_arg);
                 }
             }
         }
 
         std::pair<bool, std::vector<std::string>::const_iterator>
         get_arguments(
-            std::vector<template_body> const& args
+            std::vector<value> const& args
           , std::vector<std::string> const& params
           , template_scope const& scope
           , string_iterator first
           , quickbook::actions& actions
         )
         {
-            std::vector<template_body>::const_iterator arg = args.begin();
+            std::vector<value>::const_iterator arg = args.begin();
             std::vector<std::string>::const_iterator tpl = params.begin();
             std::vector<std::string> empty_params;
 
@@ -1137,22 +1137,20 @@ namespace quickbook
         }
         
         bool parse_template(
-            template_body const& body
+            value const& content
           , quickbook::actions& actions
         )
         {
-            assert(body.type != template_body::raw_output);
-
             file const* saved_current_file = actions.current_file;
 
-            actions.current_file = body.content.get_file();
-            string_ref source = body.content.get_quickbook();
+            actions.current_file = content.get_file();
+            string_ref source = content.get_quickbook();
 
             parse_iterator first(source.begin());
             parse_iterator last(source.end());
 
             bool r = cl::parse(first, last,
-                    body.is_block() ?
+                    content.get_tag() == template_tags::block ?
                         actions.grammar().block :
                         actions.grammar().simple_phrase
                 ).full;
@@ -1165,7 +1163,7 @@ namespace quickbook
 
     void call_template(quickbook::actions& actions,
             template_symbol const* symbol,
-            std::vector<template_body> const& args,
+            std::vector<value> const& args,
             string_iterator first)
     {
         // The template arguments should have the scope that the template was
@@ -1181,7 +1179,7 @@ namespace quickbook
         {
             template_state state(actions);
 
-            qbk_version_n = symbol->body.content.get_file()->version();
+            qbk_version_n = symbol->content.get_file()->version();
 
             ++actions.template_depth;
             if (actions.template_depth > actions.max_template_depth)
@@ -1218,15 +1216,15 @@ namespace quickbook
             ///////////////////////////////////
             // parse the template body:
 
-            if (!parse_template(symbol->body, actions))
+            if (!parse_template(symbol->content, actions))
             {
                 detail::outerr(actions.current_file, first)
                     << "Expanding "
-                    << (symbol->body.is_block() ? "block" : "phrase")
+                    << (symbol->content.get_tag() == template_tags::block ? "block" : "phrase")
                     << " template: " << detail::utf8(symbol->identifier) << std::endl
                     << std::endl
                     << "------------------begin------------------" << std::endl
-                    << detail::utf8(symbol->body.content.get_quickbook())
+                    << detail::utf8(symbol->content.get_quickbook())
                     << "------------------end--------------------" << std::endl
                     << std::endl;
                 ++actions.error_count;
@@ -1247,7 +1245,7 @@ namespace quickbook
             actions.phrase.swap(phrase);
         }
 
-        if(symbol->body.is_block() || !block.empty()) {
+        if(symbol->content.get_tag() == template_tags::block || !block.empty()) {
             actions.paragraph(); // For paragraphs before the template call.
             actions.out << block;
             actions.phrase << phrase;
@@ -1262,10 +1260,10 @@ namespace quickbook
             template_symbol const* symbol,
             string_iterator first)
     {
-        assert(symbol->body.is_block());
+        assert(symbol->content.get_tag() == template_tags::block);
 
         std::vector<std::string> callout_ids;
-        std::vector<template_body> args;
+        std::vector<value> args;
         unsigned int size = symbol->params.size();
         std::string callout_base("c");
 
@@ -1278,9 +1276,7 @@ namespace quickbook
             code += "<co id=\"" + callout_id1 + "\" ";
             code += "linkends=\"" + callout_id2 + "\" />";
 
-            args.push_back(template_body(
-                bbk_value(code, template_tags::phrase),
-                template_body::raw_output));
+            args.push_back(bbk_value(code, template_tags::phrase));
             callout_ids.push_back(callout_id1);
             callout_ids.push_back(callout_id2);
         }
@@ -1303,7 +1299,7 @@ namespace quickbook
                     template_state state(actions);
                     ++actions.template_depth;
 
-                    bool r = parse_template(template_body(c), actions);
+                    bool r = parse_template(c, actions);
 
                     if(!r)
                     {
@@ -1343,12 +1339,11 @@ namespace quickbook
 
         std::string identifier = values.consume(template_tags::identifier).get_quickbook();
 
-        std::vector<std::string> callout_ids;
-        std::vector<template_body> args;
+        std::vector<value> args;
 
         BOOST_FOREACH(value arg, values)
         {
-            args.push_back(template_body(arg));
+            args.push_back(arg);
         }
         
         values.finish();
@@ -1358,11 +1353,10 @@ namespace quickbook
 
         // Deal with raw templates and escaped templates.
 
-        if (symbol->body.type == template_body::raw_output)
+        if (symbol->content.is_encoded())
         {
-            // Note: 'raw_output' is currently only used for callouts in code_snippets.
-            (symbol->body.is_block() ? actions.out : actions.phrase)
-                << symbol->body.content.get_boostbook();
+            (symbol->content.get_tag() == template_tags::block ? actions.out : actions.phrase)
+                << symbol->content.get_boostbook();
             return;
         }
         else if (template_escape)
@@ -1375,8 +1369,8 @@ namespace quickbook
                 ++actions.error_count;
             }
 
-            (symbol->body.is_block() ? actions.out : actions.phrase)
-                << symbol->body.content.get_quickbook();
+            (symbol->content.get_tag() == template_tags::block ? actions.out : actions.phrase)
+                << symbol->content.get_quickbook();
             return;
         }
 
@@ -1868,7 +1862,7 @@ namespace quickbook
                 ts.parent = &actions.templates.top_scope();
                 if (!actions.templates.add(ts))
                 {
-                    detail::outerr(ts.body.content.get_file(), ts.body.content.get_position())
+                    detail::outerr(ts.content.get_file(), ts.content.get_position())
                         << "Template Redefinition: " << detail::utf8(tname) << std::endl;
                     ++actions.error_count;
                 }

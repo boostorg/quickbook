@@ -56,8 +56,8 @@ namespace quickbook
 
             virtual bool check() const;
             virtual bool empty() const;
+            virtual bool is_encoded() const;
             virtual bool is_list() const;
-            virtual bool is_string() const;
             virtual bool equals(value_node*) const;
 
             virtual value_node* get_list() const;
@@ -100,8 +100,8 @@ namespace quickbook
         public:
             bool check() const { return value_->check(); }
             bool empty() const { return value_->empty(); }
+            bool is_encoded() const { return value_->is_encoded(); }
             bool is_list() const { return value_->is_list(); }
-            bool is_string() const { return value_->is_string(); }
 
             iterator begin() const;
             iterator end() const;

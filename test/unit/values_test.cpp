@@ -20,7 +20,7 @@ void empty_tests()
     quickbook::value q;
     BOOST_TEST(q.empty());
     BOOST_TEST(!q.is_list());
-    BOOST_TEST(!q.is_string());
+    BOOST_TEST(!q.is_encoded());
 }
 
 void qbk_tests()
