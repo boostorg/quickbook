@@ -44,10 +44,7 @@ namespace quickbook
         , filename_relative(filein_.filename())
 
         , template_depth(0)
-        , section_level(0)
-        , min_section_level(0)
-        , section_id()
-        , qualified_section_id()
+        , section()
 
         , out(out_)
         , phrase()
@@ -106,7 +103,7 @@ namespace quickbook
         , filename_relative(a.filename_relative)
         , source_mode(a.source_mode)
         , macro()
-        , min_section_level(a.min_section_level)
+        , min_level(a.section.min_level)
     {
         if (scope & scope_macros) macro = a.macro;
         if (scope & scope_templates) a.templates.push();
@@ -133,23 +130,30 @@ namespace quickbook
         }
         if (scope & scope_templates) a.templates.pop();
         if (scope & scope_macros) a.macro = macro;
-        boost::swap(a.min_section_level, min_section_level);
+        boost::swap(a.section.min_level, min_level);
     }
     
     template_state::template_state(actions& a)
         : file_state(a, file_state::scope_all)
         , template_depth(a.template_depth)
-        , section_level(a.section_level)
-        , section_id(a.section_id)
-        , qualified_section_id(a.qualified_section_id)
+        , section(a.section)
     {
     }
 
     template_state::~template_state()
     {
         boost::swap(a.template_depth, template_depth);
-        boost::swap(a.section_level, section_level);
-        boost::swap(a.section_id, section_id);
-        boost::swap(a.qualified_section_id, qualified_section_id);
+        boost::swap(a.section, section);
+    }
+
+    section_info::section_info()
+        : level(0), min_level(0), id(), qualified_id() {}
+
+    void swap(section_info& a, section_info& b)
+    {
+        boost::swap(a.level, b.level);
+        boost::swap(a.min_level, b.min_level);
+        boost::swap(a.id, b.id);
+        boost::swap(a.qualified_id, b.qualified_id);
     }
 }

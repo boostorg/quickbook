@@ -44,8 +44,8 @@ namespace quickbook
             std::string const& section_id)
         {
             std::string id = actions.doc_id;
-            if(!id.empty() && !actions.qualified_section_id.empty()) id += '.';
-            id += actions.qualified_section_id;
+            if(!id.empty() && !actions.section.qualified_id.empty()) id += '.';
+            id += actions.section.qualified_id;
             if(!id.empty() && !section_id.empty()) id += '.';
             id += section_id;
             return id;
@@ -348,10 +348,10 @@ namespace quickbook
 
         if (generic)
         {
-            level = actions.section_level + 2;
-                                            // section_level is zero-based. We need to use a
+            level = actions.section.level + 2;
+                                            // section.level is zero-based. We need to use a
                                             // one-based heading which is one greater
-                                            // than the current. Thus: section_level + 2.
+                                            // than the current. Thus: section.level + 2.
             if (level > 6 )                 // The max is h6, clip it if it goes
                 level =  6;                 // further than that
         }
@@ -365,7 +365,7 @@ namespace quickbook
         if (!generic && qbk_version_n < 103) // version 1.2 and below
         {
             std::string anchor = actions.ids.add(
-                actions.section_id + '.' +
+                actions.section.id + '.' +
                     detail::make_identifier(content.get_boostbook()),
                 id_generator::generated_heading);
 
@@ -1196,7 +1196,7 @@ namespace quickbook
 
             // Store the current section level so that we can ensure that
             // [section] and [endsect] tags in the template are balanced.
-            actions.min_section_level = actions.section_level;
+            actions.section.min_level = actions.section.level;
 
             // Quickbook 1.4-: When expanding the tempalte continue to use the
             //                 current scope (the dynamic scope).
@@ -1234,7 +1234,7 @@ namespace quickbook
                 return;
             }
 
-            if (actions.section_level != actions.min_section_level)
+            if (actions.section.level != actions.section.min_level)
             {
                 detail::outerr(actions.filename, pos.line)
                     << "Mismatched sections in template "
@@ -1562,24 +1562,24 @@ namespace quickbook
         value content = values.consume();
         values.finish();
 
-        actions.section_id = !element_id.empty() ?
+        actions.section.id = !element_id.empty() ?
             element_id.get_quickbook() :
             detail::make_identifier(content.get_quickbook());
 
-        if (actions.section_level != 0)
-            actions.qualified_section_id += '.';
+        if (actions.section.level != 0)
+            actions.section.qualified_id += '.';
         else
-            BOOST_ASSERT(actions.qualified_section_id.empty());
+            BOOST_ASSERT(actions.section.qualified_id.empty());
 
-        actions.qualified_section_id += actions.section_id;
-        ++actions.section_level;
+        actions.section.qualified_id += actions.section.id;
+        ++actions.section.level;
 
         // TODO: This could be awkward if there's a clash, possibly
         // needs another category, between explicit and generated.
         std::string full_id = actions.ids.add(
             qbk_version_n < 103 ?
-                actions.doc_id + "." + actions.section_id :
-                actions.doc_id + "." + actions.qualified_section_id,
+                actions.doc_id + "." + actions.section.id :
+                actions.doc_id + "." + actions.section.qualified_id,
             !element_id.empty() ?
                 id_generator::explicit_id :
                 id_generator::generated_section);
@@ -1608,7 +1608,7 @@ namespace quickbook
     {
         write_anchors(actions, actions.out);
 
-        if (actions.section_level <= actions.min_section_level)
+        if (actions.section.level <= actions.section.min_level)
         {
             detail::outerr(actions.filename, pos.line)
                 << "Mismatched [endsect] near column " << pos.column << ".\n";
@@ -1617,18 +1617,18 @@ namespace quickbook
             return;
         }
 
-        --actions.section_level;
+        --actions.section.level;
         actions.out << "</section>";
 
-        if (actions.section_level == 0)
+        if (actions.section.level == 0)
         {
-            actions.qualified_section_id.clear();
+            actions.section.qualified_id.clear();
         }
         else
         {
             std::string::size_type const n =
-                actions.qualified_section_id.find_last_of('.');
-            actions.qualified_section_id.erase(n, std::string::npos);
+                actions.section.qualified_id.find_last_of('.');
+            actions.section.qualified_id.erase(n, std::string::npos);
         }
     }
     

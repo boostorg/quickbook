@@ -170,7 +170,7 @@ namespace quickbook
         // Save the section level so it can be checked at the end of the
         // document.
 
-        actions.min_section_level = actions.section_level;
+        actions.section.min_level = actions.section.level;
 
         // Quickbook version
 
@@ -465,17 +465,17 @@ namespace quickbook
         assert(!actions.doc_type.empty());
 
         // Close any open sections.
-        if (actions.section_level > actions.min_section_level) {
+        if (actions.section.level > actions.section.min_level) {
             detail::outwarn(actions.filename)
                 << "Missing [endsect] detected at end of file."
                 << std::endl;
 
-            while(actions.section_level > actions.min_section_level) {
+            while(actions.section.level > actions.section.min_level) {
                 out << "</section>";
-                --actions.section_level;
+                --actions.section.level;
             }
 
-            actions.qualified_section_id.clear();
+            actions.section.qualified_id.clear();
         }
 
         // We've finished generating our output. Here's what we'll do

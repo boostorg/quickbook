@@ -21,6 +21,17 @@ namespace quickbook
     namespace cl = boost::spirit::classic;
     namespace fs = boost::filesystem;
 
+    struct section_info
+    {
+        section_info();
+
+        int                     level;
+        int                     min_level;
+        std::string             id;
+        std::string             qualified_id;
+    };
+    void swap(section_info&, section_info&);
+
     struct actions
     {
         actions(fs::path const& filein_, fs::path const& xinclude_base, string_stream& out_,
@@ -63,10 +74,7 @@ namespace quickbook
 
     // state saved for templates.
         int                     template_depth;
-        int                     section_level;
-        int                     min_section_level;
-        std::string             section_id;
-        std::string             qualified_section_id;
+        section_info            section;
 
     // output state - scoped by templates and grammar
         collector               out;            // main output stream
@@ -136,7 +144,9 @@ namespace quickbook
         fs::path filename_relative;
         std::string source_mode;
         string_symbols macro;
-        int min_section_level;
+        // Currently saving this twice for templates...
+        // Will fix that soon.
+        int min_level;
     private:
         file_state(file_state const&);
         file_state& operator=(file_state const&);
@@ -148,9 +158,7 @@ namespace quickbook
         ~template_state();
 
         int template_depth;
-        int section_level;
-        std::string section_id;
-        std::string qualified_section_id;
+        section_info section;
     };
 }
 
