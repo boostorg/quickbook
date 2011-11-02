@@ -40,19 +40,17 @@ namespace quickbook
         std::string identifier;
         std::vector<std::string> params;
         value content;
-        
-        // This is only used for quickbook 1.5+, 1.4 uses the dynamic scope.
-        // TODO: I should probably call this something like lexical_parent
-        // or static_parent for clarity.
-        template_scope const* parent;
+
+        template_scope const* lexical_parent;
     };
 
     typedef boost::spirit::classic::symbols<template_symbol> template_symbols;
     
     // template scope
     //
-    // 1.4-: parent_scope is the previous scope on the stack
-    //       (the template's dynamic parent).
+    // 1.4-: parent_scope is the previous scope on the dynamic
+    //       lookup chain. This moves up the stack skipping
+    //       1.5 templates (but not 1.5 included files).
     // 1.5+: parent_scope is the template's lexical parent.
     //
     // This means that a search along the parent_scope chain will follow the
@@ -62,8 +60,9 @@ namespace quickbook
     
     struct template_scope
     {
-        template_scope() : parent_scope() {}
+        template_scope() : parent_scope(), parent_1_4() {}
         template_scope const* parent_scope;
+        template_scope const* parent_1_4;
         template_symbols symbols;
     };
 
@@ -111,8 +110,7 @@ namespace quickbook
         void push();
         void pop();
 
-        // Set the current scope's parent.
-        void set_parent_scope(template_scope const&);
+        void start_template(template_symbol const*);
 
         boost::spirit::classic::functor_parser<parser> scope;
 
@@ -120,6 +118,7 @@ namespace quickbook
 
         friend struct parser;
         deque scopes;
+        template_scope const* parent_1_4;
     };
 }
 

@@ -1178,6 +1178,7 @@ namespace quickbook
 
         {
             template_state state(actions);
+            actions.templates.start_template(symbol);
 
             qbk_version_n = symbol->content.get_file()->version();
 
@@ -1193,13 +1194,6 @@ namespace quickbook
             // Store the current section level so that we can ensure that
             // [section] and [endsect] tags in the template are balanced.
             actions.min_section_level = actions.ids.section_level();
-
-            // Quickbook 1.4-: When expanding the template continue to use the
-            //                 current scope (the dynamic scope).
-            // Quickbook 1.5+: Use the scope the template was defined in
-            //                 (the static scope).
-            if (qbk_version_n >= 105)
-                actions.templates.set_parent_scope(*symbol->parent);
 
             ///////////////////////////////////
             // Prepare the arguments as local templates
@@ -1289,7 +1283,7 @@ namespace quickbook
             symbol->identifier,
             symbol->params,
             content,
-            symbol->parent);
+            symbol->lexical_parent);
         call_template(actions, &t, args, first);
 
         std::string block;
@@ -1875,7 +1869,7 @@ namespace quickbook
             std::string tname = ts.identifier;
             if (tname != "!")
             {
-                ts.parent = &actions.templates.top_scope();
+                ts.lexical_parent = &actions.templates.top_scope();
                 if (!actions.templates.add(ts))
                 {
                     detail::outerr(ts.content.get_file(), ts.content.get_position())
@@ -1893,7 +1887,7 @@ namespace quickbook
 
                 if (tname == "!")
                 {
-                    ts.parent = &actions.templates.top_scope();
+                    ts.lexical_parent = &actions.templates.top_scope();
                     call_code_snippet(actions, &ts, first);
                 }
             }
