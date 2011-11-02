@@ -20,6 +20,51 @@ namespace quickbook
 {    
     namespace cl = boost::spirit::classic;
 
+    struct keywords_holder
+    {
+        cl::symbols<> cpp, python;
+
+        keywords_holder()
+        {
+            cpp
+                    =   "and_eq", "and", "asm", "auto", "bitand", "bitor",
+                        "bool", "break", "case", "catch", "char", "class",
+                        "compl", "const_cast", "const", "continue", "default",
+                        "delete", "do", "double", "dynamic_cast",  "else",
+                        "enum", "explicit", "export", "extern", "false",
+                        "float", "for", "friend", "goto", "if", "inline",
+                        "int", "long", "mutable", "namespace", "new", "not_eq",
+                        "not", "operator", "or_eq", "or", "private",
+                        "protected", "public", "register", "reinterpret_cast",
+                        "return", "short", "signed", "sizeof", "static",
+                        "static_cast", "struct", "switch", "template", "this",
+                        "throw", "true", "try", "typedef", "typeid",
+                        "typename", "union", "unsigned", "using", "virtual",
+                        "void", "volatile", "wchar_t", "while", "xor_eq", "xor"
+                    ;
+
+            python
+                    =
+                    "and",       "del",       "for",       "is",        "raise",
+                    "assert",    "elif",      "from",      "lambda",    "return",
+                    "break",     "else",      "global",    "not",       "try",
+                    "class",     "except",    "if",        "or",        "while",
+                    "continue",  "exec",      "import",    "pass",      "yield",
+                    "def",       "finally",   "in",        "print",
+
+                    // Technically "as" and "None" are not yet keywords (at Python
+                    // 2.4). They are destined to become keywords, and we treat them
+                    // as such for syntax highlighting purposes.
+
+                    "as", "None"
+                    ;
+        }
+    };
+
+    namespace {
+        keywords_holder keywords;
+    }
+
     // Grammar for C++ highlighting
     struct cpp_highlight
     : public cl::grammar<cpp_highlight>
@@ -106,25 +151,8 @@ namespace quickbook
                     ;
 
                 keyword
-                    =   keyword_ >> (cl::eps_p - (cl::alnum_p | '_'))
+                    =   keywords.cpp >> (cl::eps_p - (cl::alnum_p | '_'))
                     ;   // make sure we recognize whole words only
-
-                keyword_
-                    =   "and_eq", "and", "asm", "auto", "bitand", "bitor",
-                        "bool", "break", "case", "catch", "char", "class",
-                        "compl", "const_cast", "const", "continue", "default",
-                        "delete", "do", "double", "dynamic_cast",  "else",
-                        "enum", "explicit", "export", "extern", "false",
-                        "float", "for", "friend", "goto", "if", "inline",
-                        "int", "long", "mutable", "namespace", "new", "not_eq",
-                        "not", "operator", "or_eq", "or", "private",
-                        "protected", "public", "register", "reinterpret_cast",
-                        "return", "short", "signed", "sizeof", "static",
-                        "static_cast", "struct", "switch", "template", "this",
-                        "throw", "true", "try", "typedef", "typeid",
-                        "typename", "union", "unsigned", "using", "virtual",
-                        "void", "volatile", "wchar_t", "while", "xor_eq", "xor"
-                    ;
 
                 special
                     =   +cl::chset_p("~!%^&*()+={[}]:;,<.>?/|\\-")
@@ -159,7 +187,6 @@ namespace quickbook
                             char_, number, identifier, keyword, qbk_phrase, escape,
                             string_char;
 
-            cl::symbols<> keyword_;
             quickbook_grammar& g;
             std::string save;
 
@@ -248,24 +275,8 @@ namespace quickbook
                     ;
 
                 keyword
-                    =   keyword_ >> (cl::eps_p - (cl::alnum_p | '_'))
+                    =   keywords.python >> (cl::eps_p - (cl::alnum_p | '_'))
                     ;   // make sure we recognize whole words only
-
-                keyword_
-                    =
-                    "and",       "del",       "for",       "is",        "raise",    
-                    "assert",    "elif",      "from",      "lambda",    "return",   
-                    "break",     "else",      "global",    "not",       "try",  
-                    "class",     "except",    "if",        "or",        "while",    
-                    "continue",  "exec",      "import",    "pass",      "yield",   
-                    "def",       "finally",   "in",        "print",
-
-                    // Technically "as" and "None" are not yet keywords (at Python
-                    // 2.4). They are destined to become keywords, and we treat them 
-                    // as such for syntax highlighting purposes.
-                    
-                    "as", "None"
-                    ;
 
                 special
                     =   +cl::chset_p("~!%^&*()+={[}]:;,<.>/|\\-")
@@ -312,7 +323,6 @@ namespace quickbook
                             short_string, long_string, number, identifier, keyword, 
                             qbk_phrase, escape, string_char;
 
-            cl::symbols<> keyword_;
             quickbook_grammar& g;
             std::string save;
 
