@@ -83,6 +83,7 @@ namespace quickbook
     void anchor_action(quickbook::actions&, value);
     void link_action(quickbook::actions&, value);
     void phrase_action(quickbook::actions&, value);
+    void role_action(quickbook::actions&, value);
     void footnote_action(quickbook::actions&, value);
     void raw_phrase_action(quickbook::actions&, value);
     void source_mode_action(quickbook::actions&, value);
@@ -165,6 +166,8 @@ namespace quickbook
             return footnote_action(actions, v);
         case phrase_tags::escape:
             return raw_phrase_action(actions, v);
+        case phrase_tags::role:
+            return role_action(actions, v);
         case source_mode_tags::cpp:
         case source_mode_tags::python:
         case source_mode_tags::teletype:
@@ -251,6 +254,21 @@ namespace quickbook
 
         value_consumer values = phrase;
         actions.phrase << markup.pre << values.consume().get_boostbook() << markup.post;
+        values.finish();
+    }
+
+    void role_action(quickbook::actions& actions, value role)
+    {
+        write_anchors(actions, actions.phrase);
+
+        value_consumer values = role;
+        actions.phrase
+            << "<phrase role=\"";
+        detail::print_string(values.consume().get_quickbook(), actions.phrase.get());
+        actions.phrase
+            << "\">"
+            << values.consume().get_boostbook()
+            << "</phrase>";
         values.finish();
     }
 

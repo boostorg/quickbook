@@ -26,7 +26,8 @@ namespace quickbook
     struct phrase_element_grammar_local
     {
         cl::rule<scanner>
-                        image, anchor, link, empty, cond_phrase, inner_phrase
+                        image, anchor, link, empty, cond_phrase, inner_phrase,
+                        role
                         ;
     };
 
@@ -121,7 +122,18 @@ namespace quickbook
             ("python", element_info(element_info::phrase, &local.empty, source_mode_tags::python))
             ("teletype", element_info(element_info::phrase, &local.empty, source_mode_tags::teletype))
             ;
-        
+
+        elements.add
+            ("role", element_info(element_info::phrase, &local.role, phrase_tags::role, 106u))
+            ;
+
+        local.role
+            =   space
+            >>  (+(cl::alnum_p | '_'))              [actions.values.entry(ph::arg1, ph::arg2)]
+            >>  hard_space
+            >>  local.inner_phrase
+            ;
+
         local.empty = cl::eps_p;
 
         local.inner_phrase =
