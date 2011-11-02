@@ -63,6 +63,7 @@ namespace quickbook
         , code_block(phrase, phrase, *this)
         , inline_code(phrase, *this)
         , paragraph(*this)
+        , phrase_end(*this)
         , space_char(phrase)
         , plain_char(phrase, *this)
         , escape_unicode(phrase, *this)

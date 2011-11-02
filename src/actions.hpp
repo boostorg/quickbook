@@ -118,6 +118,17 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
+    struct phrase_end_action
+    {
+        phrase_end_action(quickbook::actions& actions) :
+            actions(actions) {}
+
+        void operator()() const;
+        void operator()(parse_iterator, parse_iterator) const { (*this)(); }
+
+        quickbook::actions& actions;
+    };
+
     struct simple_phrase_action
     {
         //  Handles simple text formats

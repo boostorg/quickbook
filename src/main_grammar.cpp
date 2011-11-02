@@ -141,6 +141,15 @@ namespace quickbook
             local.top_level >> blank
             ;
 
+        phrase_start =
+            actions.scoped_context(element_info::in_phrase)
+            [
+               *(   common
+                |   cl::anychar_p               [actions.plain_char]
+                )
+            ]                                   [actions.phrase_end]
+            ;
+
         local.top_level =
             actions.scoped_context(element_info::in_block)
             [   local.blocks

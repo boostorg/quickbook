@@ -103,15 +103,6 @@ namespace quickbook
                     >> self.escape_actions.macro        [do_macro_action(self.out, self.escape_actions)]
                     ;
 
-                qbk_phrase =
-                    self.escape_actions.scoped_context(element_info::in_phrase)
-                    [  *(   g.common
-                        |   (cl::anychar_p - cl::str_p("``"))
-                                        [self.escape_actions.plain_char]
-                        )
-                    ]
-                    ;
-
                 escape =
                     cl::str_p("``")     [pre_escape_back(self.escape_actions, save)]
                     >>
@@ -119,7 +110,7 @@ namespace quickbook
                         (
                             (
                                 (+(cl::anychar_p - "``") >> cl::eps_p("``"))
-                                & qbk_phrase
+                                & g.phrase
                             )
                             >>  cl::str_p("``")
                         )
@@ -184,7 +175,7 @@ namespace quickbook
 
             cl::rule<Scanner>
                             program, macro, preprocessor, comment, special, string_, 
-                            char_, number, identifier, keyword, qbk_phrase, escape,
+                            char_, number, identifier, keyword, escape,
                             string_char;
 
             quickbook_grammar& g;
@@ -236,16 +227,6 @@ namespace quickbook
                     >> self.escape_actions.macro        [do_macro_action(self.out, self.escape_actions)]
                     ;
 
-                qbk_phrase =
-                    self.escape_actions.scoped_context(element_info::in_phrase)
-                    [
-                       *(   g.common
-                        |   (cl::anychar_p - cl::str_p("``"))
-                                        [self.escape_actions.plain_char]
-                        )
-                    ]
-                    ;
-
                 escape =
                     cl::str_p("``")     [pre_escape_back(self.escape_actions, save)]
                     >>
@@ -253,7 +234,7 @@ namespace quickbook
                         (
                             (
                                 (+(cl::anychar_p - "``") >> cl::eps_p("``"))
-                                & qbk_phrase
+                                & g.phrase
                             )
                             >>  cl::str_p("``")
                         )
@@ -321,7 +302,7 @@ namespace quickbook
             cl::rule<Scanner>
                             program, macro, comment, special, string_, string_prefix, 
                             short_string, long_string, number, identifier, keyword, 
-                            qbk_phrase, escape, string_char;
+                            escape, string_char;
 
             quickbook_grammar& g;
             std::string save;
@@ -362,16 +343,6 @@ namespace quickbook
                     >> self.escape_actions.macro        [do_macro_action(self.out, self.escape_actions)]
                     ;
 
-                qbk_phrase =
-                    self.escape_actions.scoped_context(element_info::in_phrase)
-                    [
-                       *(   g.common
-                        |   (cl::anychar_p - cl::str_p("``"))
-                                        [self.escape_actions.plain_char]
-                        )
-                    ]
-                    ;
-
                 escape =
                     cl::str_p("``")     [pre_escape_back(self.escape_actions, save)]
                     >>
@@ -379,7 +350,7 @@ namespace quickbook
                         (
                             (
                                 (+(cl::anychar_p - "``") >> cl::eps_p("``"))
-                                & qbk_phrase
+                                & g.phrase
                             )
                             >>  cl::str_p("``")
                         )
@@ -392,7 +363,7 @@ namespace quickbook
                     ;
             }
 
-            cl::rule<Scanner> program, macro, qbk_phrase, escape;
+            cl::rule<Scanner> program, macro, escape;
 
             quickbook_grammar& g;
             std::string save;

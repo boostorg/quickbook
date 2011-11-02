@@ -314,6 +314,11 @@ namespace quickbook
             actions.out << markup.post;
         }
     }
+
+    void phrase_end_action::operator()() const
+    {
+        write_anchors(actions, actions.phrase);
+    }
     
     namespace {
         void write_bridgehead(quickbook::actions& actions, int level,
@@ -657,7 +662,6 @@ namespace quickbook
 
     void post_escape_back::operator()(parse_iterator, parse_iterator) const
     {
-        write_anchors(escape_actions, escape_actions.phrase);
         out << escape_actions.phrase.str();
         escape_actions.phrase.pop(); // restore the stream
     }

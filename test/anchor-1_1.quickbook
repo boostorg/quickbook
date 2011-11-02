@@ -47,3 +47,24 @@ they appear in the correct place. [#a3]
 * Item 3
 
 [endsect]
+
+[section Anchors in templates]
+
+[template anchor1[][#t1]]
+[template para[] Text content]
+
+[anchor1]
+
+Some text.
+
+[#t2]
+
+[para]
+
+[endsect]
+
+[section Anchors in syntax highlighted code]
+
+    int ``[#s1]``main() {}
+
+[endsect]
