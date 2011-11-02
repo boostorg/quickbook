@@ -98,7 +98,7 @@ namespace quickbook
             ;
 
         elements.add
-            ("#", element_info(element_info::phrase, &local.anchor, phrase_tags::anchor))
+            ("#", element_info(element_info::maybe_block, &local.anchor, phrase_tags::anchor))
             ;
 
         local.anchor =

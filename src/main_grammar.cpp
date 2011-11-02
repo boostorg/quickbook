@@ -30,6 +30,9 @@ namespace quickbook
 
     struct main_grammar_local
     {
+        ////////////////////////////////////////////////////////////////////////
+        // Local actions
+
         struct process_element_impl : scoped_action_base {
             process_element_impl(main_grammar_local& l)
                 : l(l) {}
@@ -44,6 +47,13 @@ namespace quickbook
 
                 if (!(info_.type & element_info::in_phrase))
                     l.actions_.paragraph();
+
+                if ((info_.type & element_info::contextual_block) &&
+                        l.parse_blocks)
+                {
+                    info_.type = element_info::type_enum(
+                        info_.type & ~element_info::in_phrase);
+                }
 
                 l.actions_.values.builder.reset();
                 
@@ -93,7 +103,9 @@ namespace quickbook
             bool start(int new_context)
             {
                 saved_context_ = l_.context;
+                saved_parse_blocks_ = l_.parse_blocks;
                 l_.context = new_context;
+                l_.parse_blocks = l_.context != element_info::in_phrase;
         
                 return true;
             }
@@ -101,12 +113,17 @@ namespace quickbook
             void cleanup()
             {
                 l_.context = saved_context_;
+                l_.parse_blocks = saved_parse_blocks_;
             }
 
         private:
             main_grammar_local& l_;
             int saved_context_;
+            bool saved_parse_blocks_;
         };
+
+        ////////////////////////////////////////////////////////////////////////
+        // Local members
 
         cl::rule<scanner>
                         top_level, blocks, paragraph_separator,
@@ -138,6 +155,7 @@ namespace quickbook
         cl::rule<scanner> simple_markup_end;
 
         int context;
+        bool parse_blocks;
         element_info info;
         element_info::type_enum element_type;
 
@@ -146,6 +164,9 @@ namespace quickbook
         scoped_parser<process_element_impl> process_element;
         is_block_type is_block;
 
+        ////////////////////////////////////////////////////////////////////////
+        // Local constructor
+
         main_grammar_local(quickbook::actions& actions)
             : actions_(actions)
             , scoped_context(*this)
@@ -153,6 +174,9 @@ namespace quickbook
             , is_block(*this)
             {}
     };
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Local grammar
 
     void quickbook_grammar::impl::init_main()
     {
@@ -178,20 +202,22 @@ namespace quickbook
 
         local.top_level =
             local.scoped_context(element_info::in_block)
-            [   local.blocks
-            >>  *(  local.element
-                >>  !(cl::eps_p(local.is_block) >> +eol >> local.blocks)
-                |   local.paragraph_separator >> local.blocks
-                |   common
-                |   cl::space_p                 [actions.space_char]
-                |   cl::anychar_p               [actions.plain_char]
+            [   *(  cl::eps_p(ph::var(local.parse_blocks)) >> local.blocks
+                |   local.element               [ph::var(local.parse_blocks) = false]
+                >>  !(cl::eps_p(local.is_block) >> +eol)
+                                                [ph::var(local.parse_blocks) = true]
+                |   local.paragraph_separator   [ph::var(local.parse_blocks) = true]
+                |   (   common
+                    |   cl::space_p             [actions.space_char]
+                    |   cl::anychar_p           [actions.plain_char]
+                    )                           [ph::var(local.parse_blocks) = false]
                 )
             >>  cl::eps_p                       [actions.paragraph]
             ]
             ;
 
         local.blocks =
-           *(   local.code
+           +(   local.code
             |   local.list
             |   local.hr
             |   +eol

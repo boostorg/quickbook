@@ -26,7 +26,13 @@ namespace quickbook
             in_block = 1,
             in_phrase = 2,
             in_conditional = 4,
-            in_nested_block = 8
+            in_nested_block = 8,
+            // This is a magic value to indicate an element that
+            // might be a block or might be a phrase. It isn't
+            // perfect, if a contextual_block appears at the
+            // beginning of a paragraph it might interpreted as
+            // a block when is should be a phrase.
+            contextual_block = 16
         };
 
         enum type_enum {
@@ -34,7 +40,8 @@ namespace quickbook
             block = in_block,
             conditional_or_block = block | in_conditional,
             nested_block = conditional_or_block | in_nested_block,
-            phrase = nested_block | in_phrase
+            phrase = nested_block | in_phrase,
+            maybe_block = phrase | contextual_block
         };
 
         element_info()
