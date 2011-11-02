@@ -103,7 +103,6 @@ namespace quickbook
         , filename_relative(a.filename_relative)
         , source_mode(a.source_mode)
         , macro()
-        , min_level(a.section.min_level)
     {
         if (scope & scope_macros) macro = a.macro;
         if (scope & scope_templates) a.templates.push();
@@ -130,7 +129,6 @@ namespace quickbook
         }
         if (scope & scope_templates) a.templates.pop();
         if (scope & scope_macros) a.macro = macro;
-        boost::swap(a.section.min_level, min_level);
     }
     
     template_state::template_state(actions& a)

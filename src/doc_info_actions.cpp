@@ -465,12 +465,12 @@ namespace quickbook
         assert(!actions.doc_type.empty());
 
         // Close any open sections.
-        if (actions.section.level > actions.section.min_level) {
+        if (actions.section.level > 0) {
             detail::outwarn(actions.filename)
                 << "Missing [endsect] detected at end of file."
                 << std::endl;
 
-            while(actions.section.level > actions.section.min_level) {
+            while(actions.section.level > 0) {
                 out << "</section>";
                 --actions.section.level;
             }

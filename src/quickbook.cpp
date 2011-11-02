@@ -98,6 +98,10 @@ namespace quickbook
         
         if (!info.hit) actor.source_mode = saved_source_mode;
 
+        section_info saved_section;
+        if (docinfo_type == docinfo_nested)
+            boost::swap(saved_section, actor.section);
+
         if (info.hit || !docinfo_type)
         {
             pre(actor.out, actor, include_doc_id, docinfo_type);
@@ -108,6 +112,9 @@ namespace quickbook
                 post(actor.out, actor, docinfo_type);
             }
         }
+
+        if (docinfo_type == docinfo_nested)
+            boost::swap(saved_section, actor.section);
 
         if (!info.full)
         {

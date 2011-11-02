@@ -144,9 +144,6 @@ namespace quickbook
         fs::path filename_relative;
         std::string source_mode;
         string_symbols macro;
-        // Currently saving this twice for templates...
-        // Will fix that soon.
-        int min_level;
     private:
         file_state(file_state const&);
         file_state& operator=(file_state const&);
