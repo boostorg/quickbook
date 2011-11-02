@@ -1122,6 +1122,24 @@ namespace quickbook
             std::vector<value> const& args,
             string_iterator first)
     {
+        // If this template contains already encoded text, then just
+        // write it out, without going through any of the rigamarole.
+
+        if (symbol->content.is_encoded())
+        {
+            if (symbol->content.get_tag() == template_tags::block)
+            {
+                actions.paragraph();
+                actions.out << symbol->content.get_boostbook();
+            }
+            else
+            {
+                actions.phrase << symbol->content.get_boostbook();
+            }
+
+            return;
+        }
+
         // The template arguments should have the scope that the template was
         // called from, not the template's own scope.
         //
@@ -1310,15 +1328,9 @@ namespace quickbook
         template_symbol const* symbol = actions.templates.find(identifier);
         BOOST_ASSERT(symbol);
 
-        // Deal with raw templates and escaped templates.
+        // Deal with escaped templates.
 
-        if (symbol->content.is_encoded())
-        {
-            (symbol->content.get_tag() == template_tags::block ? actions.out : actions.phrase)
-                << symbol->content.get_boostbook();
-            return;
-        }
-        else if (template_escape)
+        if (template_escape)
         {
             if (!args.empty())
             {
@@ -1328,8 +1340,32 @@ namespace quickbook
                 ++actions.error_count;
             }
 
-            (symbol->content.get_tag() == template_tags::block ? actions.out : actions.phrase)
-                << symbol->content.get_quickbook();
+            if (symbol->content.is_encoded())
+            {
+                actions.phrase << symbol->content.get_boostbook();
+            }
+            else
+            {
+                actions.phrase << symbol->content.get_quickbook();
+
+                /*
+
+                This would surround the escaped template in escape
+                comments to indicate to the post-processor that it
+                isn't quickbook generated markup. But I'm not sure if
+                it would work.
+
+                quickbook::detail::markup escape_markup
+                    = detail::get_markup(phrase_tags::escape);
+
+                actions.phrase
+                    << escape_markup.pre
+                    << symbol->content.get_quickbook()
+                    << escape_markup.post
+                    ;
+                */
+            }
+
             return;
         }
 

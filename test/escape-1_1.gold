@@ -22,5 +22,8 @@
 <link linkend="$-256">two</link>,
 <link linkend="$text">three</link>.
     </para>
+    <para>
+      <emphasis>This will be escaped</emphasis>
+    </para>
   </section>
 </article>

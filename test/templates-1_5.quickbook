@@ -44,3 +44,16 @@
 [template ternary[x y z] {[x]-[y]-[z]}]
 [ternary 1..2..3]  [/ {1-2-3} ]
 [ternary 1 2 3]    [/ {1-2-3} ]
+
+[/ Block vs. phrase templates ]
+
+[template phrase[] Some *text*]
+[template block[]
+
+A <emphasis>paragraph</emphasis>.
+]
+
+[phrase]
+[block]
+[`phrase]
+[`block]

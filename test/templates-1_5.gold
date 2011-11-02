@@ -24,4 +24,13 @@
   <para>
     {1-2-3} {1-2-3}
   </para>
+  <para>
+    Some <emphasis role="bold">text</emphasis>
+  </para>
+  <para>
+    A &lt;emphasis&gt;paragraph&lt;/emphasis&gt;.
+  </para>
+  <para>
+    Some *text* A <emphasis>paragraph</emphasis>.
+  </para>
 </article>

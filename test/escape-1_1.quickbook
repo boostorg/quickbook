@@ -24,4 +24,8 @@ Some other problematic links:
 <link linkend="$text">three</link>.
 '''
 
+[template escapedtemplate <emphasis>This will be escaped</emphasis>]
+
+[`escapedtemplate]
+
 [endsect]
