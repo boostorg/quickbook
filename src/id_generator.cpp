@@ -118,6 +118,33 @@ namespace quickbook
     {
     }
 
+    id_generator::placeholder id_generator::add_placeholder(
+            std::string const& value,
+            id_generator::categories category)
+    {
+        std::string result;
+
+        id_data& data = ids.emplace(boost::unordered::piecewise_construct,
+            boost::make_tuple(value),
+            boost::make_tuple(value, category)).first->second;
+
+        // Doesn't check if explicit ids collide, could probably be a warning.
+        if (category == explicit_id)
+        {
+            data.category = category;
+            data.used = true;
+        }
+        else
+        {
+            if (category < data.category) data.category = category;
+        }
+
+        placeholder p(placeholders.size());
+        placeholders.push_back(placeholder_id(category, &data));
+
+        return p;
+    }
+
     std::string id_generator::add(
             std::string const& value,
             id_generator::categories category)
@@ -138,11 +165,8 @@ namespace quickbook
         else
         {
             if (category < data.category) data.category = category;
-
-            // '$' can't appear in quickbook ids, so use it indicate a
-            // placeholder id.
-            result = "$" +
-                boost::lexical_cast<std::string>(placeholders.size());
+            placeholder p(placeholders.size());
+            result = p.to_string();
             placeholders.push_back(placeholder_id(category, &data));
         }
 
@@ -270,10 +294,26 @@ namespace quickbook
         return insert.second;
     }
 
+    id_generator::placeholder_id::placeholder_id(
+            id_generator::categories category, id_data* data)
+      : category(category),
+        data(data),
+        final_id()
+    {
+        if (category == explicit_id)
+            final_id = data->name;
+    }
+
     void id_generator::id_generation_data::new_base_value() {
         count = 0;
         needs_underscore = !base.empty() &&
             std::isdigit(base[base.length() - 1]);
+    }
+
+    std::string id_generator::placeholder::to_string() const {
+        // '$' can't appear in quickbook ids, so use it indicate a
+        // placeholder id.
+        return "$" + boost::lexical_cast<std::string>(index);
     }
 
     // Very simple xml subset parser which replaces id values.
@@ -458,6 +498,16 @@ namespace quickbook
     section_info::section_info()
         : level(0), min_level(0), doc_id(), id(), qualified_id() {}
 
+    std::string section_info::set_doc_id(
+            id_generator& ids,
+            std::string const& new_doc_id,
+            id_generator::categories category)
+    {
+        doc_id = new_doc_id;
+        parent_placeholder = ids.add_placeholder(new_doc_id, category);
+        return parent_placeholder.to_string();
+    }
+
     std::string section_info::old_style_id(
             id_generator& ids,
             std::string const& id_part,
@@ -520,6 +570,22 @@ namespace quickbook
                 qualified_id.find_last_of('.');
             qualified_id.erase(n, std::string::npos);
         }
+    }
+
+    void section_info::clear_section()
+    {
+        level = 0;
+        min_level = 0;
+        id.clear();
+        qualified_id.clear();
+    }
+
+    void section_info::copy_section(section_info const& x)
+    {
+        level = x.level;
+        min_level = x.min_level;
+        id = x.id;
+        qualified_id = x.qualified_id;
     }
 
     void swap(section_info& a, section_info& b)

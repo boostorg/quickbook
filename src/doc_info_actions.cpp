@@ -128,33 +128,36 @@ namespace quickbook
                 ;
         }
 
-        bool generated_id = false;
+        std::string id_placeholder;
 
         // Note: this is the version number of the parent document.
         if (qbk_version_n >= 106)
         {
             if (!include_doc_id.empty())
-                actions.section->doc_id = include_doc_id.get_quickbook();
+                id_placeholder = actions.section->set_doc_id(actions.ids,
+                    include_doc_id.get_quickbook(), id_generator::explicit_id);
             else if (!id.empty())
-                actions.section->doc_id = id.get_quickbook();
-            else if (docinfo_type) {
-                actions.section->doc_id = detail::make_identifier(actions.doc_title_qbk);
-                generated_id = true;
-            }
-            else {
+                id_placeholder = actions.section->set_doc_id(actions.ids,
+                    id.get_quickbook(), id_generator::explicit_id);
+            else if (docinfo_type)
+                id_placeholder = actions.section->set_doc_id(actions.ids,
+                    detail::make_identifier(actions.doc_title_qbk),
+                    id_generator::generated_doc);
+            else
                 assert(!actions.section->doc_id.empty());
-            }
         }
         else
         {
             if (!id.empty())
-                actions.section->doc_id = id.get_quickbook();
+                id_placeholder = actions.section->set_doc_id(actions.ids,
+                    id.get_quickbook(), id_generator::explicit_id);
             else if (!include_doc_id.empty())
-                actions.section->doc_id = include_doc_id.get_quickbook();
-            else {
-                actions.section->doc_id = detail::make_identifier(actions.doc_title_qbk);
-                generated_id = true;
-            }
+                id_placeholder = actions.section->set_doc_id(actions.ids,
+                    include_doc_id.get_quickbook(), id_generator::explicit_id);
+            else
+                id_placeholder = actions.section->set_doc_id(actions.ids,
+                    detail::make_identifier(actions.doc_title_qbk),
+                    id_generator::generated_doc);
         }
 
         // if we're ignoring the document info, we're done.
@@ -165,8 +168,9 @@ namespace quickbook
         }
         
         // Make sure we really did have a document info block.
-        
-        assert(doc_title.check() && !actions.doc_type.empty());
+
+        assert(doc_title.check() && !actions.doc_type.empty() &&
+            !id_placeholder.empty());
 
         // Save the section level so it can be checked at the end of the
         // document.
@@ -294,12 +298,9 @@ namespace quickbook
 
         out << '<' << actions.doc_type << "\n"
             << "    id=\""
-            << actions.section->fully_qualified_id(actions.ids,
-                std::string(), generated_id ?
-                id_generator::generated_doc : id_generator::explicit_id)
-            << "\"\n"
-            ;
-        
+            << id_placeholder
+            << "\"\n";
+
         if(!lang.empty())
         {
             out << "    lang=\""

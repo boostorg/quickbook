@@ -42,10 +42,7 @@ namespace quickbook
 
         struct placeholder_id
         {
-            placeholder_id(id_generator::categories category, id_data* data)
-              : category(category),
-                data(data),
-                final_id() {}
+            placeholder_id(id_generator::categories, id_data*);
 
             id_generator::categories category;
             id_data* data;
@@ -92,9 +89,20 @@ namespace quickbook
         std::deque<placeholder_id> placeholders;
 
     public:
+        struct placeholder
+        {
+        private:
+            int index;
+        public:
+            placeholder(int index = -1) : index(index) {}
+            std::string to_string() const;
+            bool check() const { return index != -1; }
+        };
+
         id_generator();
         ~id_generator();
 
+        placeholder add_placeholder(std::string const& id, categories priority);
         std::string add(std::string const& id, categories priority);
 
         std::string replace_placeholders(std::string const&);
@@ -113,6 +121,10 @@ namespace quickbook
     {
         section_info();
 
+        std::string set_doc_id(
+                id_generator&,
+                std::string const&,
+                id_generator::categories);
         std::string old_style_id(
                 id_generator&,
                 std::string const&,
@@ -127,12 +139,16 @@ namespace quickbook
                 std::string const&,
                 id_generator::categories);
         void end_section();
+        void clear_section();
+        void copy_section(section_info const&);
 
         int                     level;
         int                     min_level;
         std::string             doc_id;
         std::string             id;
         std::string             qualified_id;
+        id_generator::placeholder
+                                parent_placeholder;
     };
 
     void swap(section_info&, section_info&);
