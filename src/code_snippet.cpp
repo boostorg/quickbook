@@ -26,7 +26,7 @@ namespace quickbook
     struct code_snippet_actions
     {
         code_snippet_actions(std::vector<template_symbol>& storage,
-                                file const* source_file,
+                                file* source_file,
                                 char const* source_type)
             : callout_id(0)
             , storage(storage)
@@ -84,7 +84,7 @@ namespace quickbook
         std::string code;
         std::string id;
         std::vector<template_symbol>& storage;
-        file const* source_file;
+        file* source_file;
         char const* const source_type;
     };
 
@@ -321,7 +321,7 @@ namespace quickbook
             load_type == block_tags::import);
 
         bool is_python = extension == ".py";
-        code_snippet_actions a(storage, load(filename), is_python ? "[python]" : "[c++]");
+        code_snippet_actions a(storage, load(filename, qbk_version_n), is_python ? "[python]" : "[c++]");
 
         // TODO: Should I check that parse succeeded?
 
@@ -461,7 +461,7 @@ namespace quickbook
         }
         
         // TODO: Save position in start_snippet
-        template_symbol symbol(snippet->id, params, qbk_value(body, template_tags::block));
+        template_symbol symbol(snippet->id, params, qbk_value(body, qbk_version_n, template_tags::block));
         symbol.callouts = callouts;
         storage.push_back(symbol);
 

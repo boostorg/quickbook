@@ -146,6 +146,7 @@ namespace quickbook
 
         if (!docinfo_type)
         {
+            actions.current_file_tmp->version(qbk_version_n);
             actions.ids.start_file(include_doc_id_, id_, actions.doc_title_qbk);
 
             return;
@@ -192,6 +193,8 @@ namespace quickbook
                 << std::endl;
             ++actions.error_count;
         }
+
+        actions.current_file_tmp->version(qbk_version_n);
 
         id_manager::start_file_info start_file_info =
             actions.ids.start_file_with_docinfo(

@@ -315,7 +315,7 @@ namespace quickbook
         struct value_qbk_string_impl : public value_node
         {
         public:
-            explicit value_qbk_string_impl(std::string const&, value::tag_type);
+            explicit value_qbk_string_impl(std::string const&, unsigned qbk_version, value::tag_type);
             explicit value_qbk_string_impl(file const&, value::tag_type);
         private:
             char const* type_name() const { return "quickbook"; }
@@ -427,12 +427,11 @@ namespace quickbook
     
         value_qbk_string_impl::value_qbk_string_impl(
                 std::string const& v,
+                unsigned qbk_version,
                 value::tag_type tag)
             : value_node(tag)
-            , fake_file_()
+            , fake_file_("(generated code)", v, qbk_version)
         {
-            fake_file_.source = v;
-            fake_file_.path = "(generated code)";
         }
 
         value_qbk_string_impl::value_qbk_string_impl(
@@ -584,9 +583,9 @@ namespace quickbook
         return value(new detail::value_qbk_ref_impl(f, x, y, t));
     }
 
-    value qbk_value(std::string const& x, value::tag_type t)
+    value qbk_value(std::string const& x, unsigned qbk_version, value::tag_type t)
     {
-        return value(new detail::value_qbk_string_impl(x, t));
+        return value(new detail::value_qbk_string_impl(x, qbk_version, t));
     }
 
     value bbk_value(std::string const& x, value::tag_type t)

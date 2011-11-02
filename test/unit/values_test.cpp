@@ -25,8 +25,8 @@ void empty_tests()
 
 void qbk_tests()
 {
-    quickbook::file fake_file;
-    fake_file.source = "Source";
+    quickbook::file fake_file(
+        "(fake file)", "Source", 105u);
     quickbook::value q = quickbook::qbk_value_ref(
         &fake_file,
         fake_file.source.begin(),

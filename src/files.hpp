@@ -14,6 +14,7 @@
 #include <string>
 #include <boost/filesystem/v3/path.hpp>
 #include <stdexcept>
+#include <cassert>
 
 namespace quickbook {
 
@@ -27,11 +28,34 @@ namespace quickbook {
 
     struct file
     {
-        fs::path path;
-        std::string source;
+        fs::path const path;
+        std::string const source;
+    private:
+        unsigned qbk_version;
+    public:
+
+        file(fs::path const& path, std::string const& source,
+                unsigned qbk_version) :
+            path(path), source(source), qbk_version(qbk_version)
+        {}
+
+        unsigned version() const {
+            assert(qbk_version);
+            return qbk_version;
+        }
+
+        void version(unsigned v) {
+            // Check that either version hasn't been set, or it was
+            // previously set to the same version (because the same
+            // file has been loaded twice).
+            assert(!qbk_version || qbk_version == v);
+            qbk_version = v;
+        }
     };
 
-    file const* load(fs::path const& filename);
+    // If version isn't supplied then it must be set later.
+    file* load(fs::path const& filename,
+        unsigned qbk_version = 0);
 }
 
 #endif // BOOST_QUICKBOOK_FILES_HPP

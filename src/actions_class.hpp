@@ -49,6 +49,9 @@ namespace quickbook
         int                     context;
         bool                    conditional;
         id_manager&             ids;
+        file*                   current_file_tmp;   // Temporary non-const pointer to new
+                                                    // current_file so that the
+                                                    // version can be written to.
 
     // state saved for files and templates.
         bool                    imported;

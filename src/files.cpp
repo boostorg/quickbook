@@ -96,17 +96,13 @@ namespace quickbook
         boost::unordered_map<fs::path, file> files;
     }
 
-    file const* load(fs::path const& filename)
+    file* load(fs::path const& filename, unsigned qbk_version)
     {
-        boost::unordered_map<fs::path, file>::iterator pos;
-        bool inserted;
+        boost::unordered_map<fs::path, file>::iterator pos
+            = files.find(filename);
 
-        boost::tie(pos, inserted) = files.emplace(filename, file());
-
-        if (inserted)
+        if (pos == files.end())
         {
-            pos->second.path = filename;
-
             fs::ifstream in(filename, std::ios_base::in);
 
             if (!in)
@@ -115,10 +111,21 @@ namespace quickbook
             // Turn off white space skipping on the stream
             in.unsetf(std::ios::skipws);
 
+            std::string source;
             normalize(
                 std::istream_iterator<char>(in),
                 std::istream_iterator<char>(),
-                std::back_inserter(pos->second.source));
+                std::back_inserter(source));
+
+            bool inserted;
+
+            boost::tie(pos, inserted) = files.emplace(
+                boost::unordered::piecewise_construct,
+                boost::make_tuple(filename),
+                boost::make_tuple(filename, source, qbk_version)
+                );
+
+            assert(inserted);
         }
 
         return &pos->second;

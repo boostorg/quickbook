@@ -677,10 +677,10 @@ namespace quickbook
         if (program.size() == 0)
             return; // Nothing left to do here. The program is empty.
 
-        file fake_file;
-
-        fake_file.path = actions.current_file->path;
-        fake_file.source = program;
+        file fake_file(
+            actions.current_file->path,
+            program,
+            qbk_version_n);
 
         parse_iterator first_(fake_file.source.begin());
         parse_iterator last_(fake_file.source.end());
@@ -852,7 +852,8 @@ namespace quickbook
            //    fit in a tiny box (IE7).
            //
 
-           attributes.insert(attribute_map::value_type("format", qbk_value("SVG")));
+           attributes.insert(attribute_map::value_type("format",
+                qbk_value("SVG", qbk_version_n)));
 
            //
            // Image paths are relative to the html subdirectory:
@@ -890,7 +891,8 @@ namespace quickbook
            {
               attributes.insert(std::make_pair(
                 "contentwidth", qbk_value(std::string(
-                    svg_text.begin() + a + 1, svg_text.begin() + b))
+                    svg_text.begin() + a + 1, svg_text.begin() + b),
+                    qbk_version_n)
                 ));
            }
            a = svg_text.find("height");
@@ -901,7 +903,8 @@ namespace quickbook
            {
               attributes.insert(std::make_pair(
                 "contentdepth", qbk_value(std::string(
-                    svg_text.begin() + a + 1, svg_text.begin() + b))
+                    svg_text.begin() + a + 1, svg_text.begin() + b),
+                    qbk_version_n)
                 ));
            }
         }
@@ -1135,47 +1138,32 @@ namespace quickbook
         
         bool parse_template(
             template_body const& body
-          , bool escape
           , quickbook::actions& actions
         )
         {
-            if (escape)
-            {
-                // TODO: Should this be surrounded in escape comments?
-                //  escape the body of the template
-                //  we just copy out the literal body
-                (body.is_block() ? actions.out : actions.phrase) << body.content.get_quickbook();
-                return true;
-            }
-            else if (body.type == template_body::raw_output)
-            {
-                (body.is_block() ? actions.out : actions.phrase) << body.content.get_boostbook();
-                return true;
-            }
-            else
-            {
-                file const* saved_current_file = actions.current_file;
+            assert(body.type != template_body::raw_output);
 
-                actions.current_file = body.content.get_file();
-                string_ref source = body.content.get_quickbook();
+            file const* saved_current_file = actions.current_file;
 
-                parse_iterator first(source.begin());
-                parse_iterator last(source.end());
+            actions.current_file = body.content.get_file();
+            string_ref source = body.content.get_quickbook();
 
-                bool r = cl::parse(first, last,
-                        body.is_block() ?
-                            actions.grammar().block :
-                            actions.grammar().simple_phrase
-                    ).full;
+            parse_iterator first(source.begin());
+            parse_iterator last(source.end());
 
-                boost::swap(actions.current_file, saved_current_file);
+            bool r = cl::parse(first, last,
+                    body.is_block() ?
+                        actions.grammar().block :
+                        actions.grammar().simple_phrase
+                ).full;
 
-                return r;
-            }
+            boost::swap(actions.current_file, saved_current_file);
+
+            return r;
         }
     }
 
-    void call_template(quickbook::actions& actions, bool template_escape,
+    void call_template(quickbook::actions& actions,
             template_symbol const* symbol,
             std::vector<template_body> const& args,
             string_iterator first)
@@ -1193,6 +1181,8 @@ namespace quickbook
         {
             template_state state(actions);
 
+            qbk_version_n = symbol->body.content.get_file()->version();
+
             ++actions.template_depth;
             if (actions.template_depth > actions.max_template_depth)
             {
@@ -1206,7 +1196,7 @@ namespace quickbook
             // [section] and [endsect] tags in the template are balanced.
             actions.min_section_level = actions.ids.section_level();
 
-            // Quickbook 1.4-: When expanding the tempalte continue to use the
+            // Quickbook 1.4-: When expanding the template continue to use the
             //                 current scope (the dynamic scope).
             // Quickbook 1.5+: Use the scope the template was defined in
             //                 (the static scope).
@@ -1228,7 +1218,7 @@ namespace quickbook
             ///////////////////////////////////
             // parse the template body:
 
-            if (!parse_template(symbol->body, template_escape, actions))
+            if (!parse_template(symbol->body, actions))
             {
                 detail::outerr(actions.current_file, first)
                     << "Expanding "
@@ -1269,7 +1259,6 @@ namespace quickbook
     }
 
     void call_code_snippet(quickbook::actions& actions,
-            bool template_escape,
             template_symbol const* symbol,
             string_iterator first)
     {
@@ -1296,7 +1285,7 @@ namespace quickbook
             callout_ids.push_back(callout_id2);
         }
 
-        call_template(actions, template_escape, symbol, args, first);
+        call_template(actions, symbol, args, first);
 
         std::string block;
 
@@ -1314,8 +1303,7 @@ namespace quickbook
                     template_state state(actions);
                     ++actions.template_depth;
 
-                    bool r = parse_template(
-                        template_body(c), false, actions);
+                    bool r = parse_template(template_body(c), actions);
 
                     if(!r)
                     {
@@ -1368,6 +1356,30 @@ namespace quickbook
         template_symbol const* symbol = actions.templates.find(identifier);
         BOOST_ASSERT(symbol);
 
+        // Deal with raw templates and escaped templates.
+
+        if (symbol->body.type == template_body::raw_output)
+        {
+            // Note: 'raw_output' is currently only used for callouts in code_snippets.
+            (symbol->body.is_block() ? actions.out : actions.phrase)
+                << symbol->body.content.get_boostbook();
+            return;
+        }
+        else if (template_escape)
+        {
+            if (!args.empty())
+            {
+                detail::outerr(actions.current_file, first)
+                    << "Arguments for escaped template."
+                    <<std::endl;
+                ++actions.error_count;
+            }
+
+            (symbol->body.is_block() ? actions.out : actions.phrase)
+                << symbol->body.content.get_quickbook();
+            return;
+        }
+
         ///////////////////////////////////
         // Initialise the arguments
         
@@ -1391,7 +1403,7 @@ namespace quickbook
                 return;
             }
 
-            call_template(actions, template_escape, symbol, args, first);
+            call_template(actions, symbol, args, first);
         }
         else
         {
@@ -1405,7 +1417,7 @@ namespace quickbook
                 args.clear();
             }
 
-            call_code_snippet(actions, template_escape, symbol, first);
+            call_code_snippet(actions, symbol, first);
         }
     }
 
@@ -1807,7 +1819,8 @@ namespace quickbook
                 qbk_version_n >= 106u ? file_state::scope_callables :
                 file_state::scope_macros);
 
-            actions.current_file = load(paths.filename); // Throws load_error
+            actions.current_file_tmp = load(paths.filename); // Throws load_error
+            actions.current_file = actions.current_file_tmp;
             actions.filename_relative = paths.filename_relative;
             actions.imported = (load_type == block_tags::import);
 
@@ -1871,7 +1884,7 @@ namespace quickbook
                 if (tname == "!")
                 {
                     ts.parent = &actions.templates.top_scope();
-                    call_code_snippet(actions, false, &ts, first);
+                    call_code_snippet(actions, &ts, first);
                 }
             }
 
