@@ -50,6 +50,7 @@ test-suite quickbook.test :
     [ quickbook-test include-1_5 ]
     [ quickbook-test include-1_6 ]
     [ quickbook-test include2-1_6 ]
+    [ quickbook-error-test include_win_path-1_6-fail ]
     [ quickbook-test link-1_1 ]
     [ quickbook-test list_test-1_5 ]
     [ quickbook-test macro-1_5 ]

@@ -752,11 +752,14 @@ namespace quickbook
 
         if(fileref.find('\\') != std::string::npos)
         {
-            detail::outwarn(attributes["fileref"].get_file(), attributes["fileref"].get_position())
+            (qbk_version_n >= 106u ?
+                detail::outerr(attributes["fileref"].get_file(), attributes["fileref"].get_position()) :
+                detail::outwarn(attributes["fileref"].get_file(), attributes["fileref"].get_position()))
                 << "Image path isn't portable: '"
                 << detail::utf8(fileref)
                 << "'"
                 << std::endl;
+            if (qbk_version_n >= 106u) ++actions.error_count;
         }
 
         boost::replace(fileref, '\\', '/');
@@ -1671,10 +1674,14 @@ namespace quickbook
 
         if(path_text.find('\\') != std::string::npos)
         {
-            detail::outwarn(path.get_file(), path.get_position())
-                << "Path isn't portable: "
+            (qbk_version_n >= 106u ?
+                detail::outerr(path.get_file(), path.get_position()) :
+                detail::outwarn(path.get_file(), path.get_position()))
+                << "Path isn't portable: '"
                 << detail::utf8(path_text)
+                << "'"
                 << std::endl;
+            if (qbk_version_n >= 106u) ++actions.error_count;
         }
         
         boost::replace(path_text, '\\', '/');
