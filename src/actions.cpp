@@ -58,7 +58,8 @@ namespace quickbook
         
         std::string add_anchor(quickbook::actions& actions,
                 std::string const& id,
-                id_category::categories category = id_category::explicit_id)
+                id_category::categories category =
+                    id_category::explicit_anchor_id)
         {
             std::string placeholder = actions.ids.add_anchor(id, category);
             actions.anchors.push_back(placeholder);
@@ -1572,7 +1573,7 @@ namespace quickbook
                 element_id.get_quickbook() :
                 detail::make_identifier(content.get_quickbook()),
             !element_id.empty() ?
-                id_category::explicit_id :
+                id_category::explicit_section_id :
                 id_category::generated_section);
 
         actions.out << "\n<section id=\"" << full_id << "\">\n";

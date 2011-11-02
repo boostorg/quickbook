@@ -28,7 +28,9 @@ namespace quickbook
             generated_heading,  // Generated ids for headings.
             generated_section,  // Generated ids for sections.
             generated_doc,      // Generated ids for document.
-            explicit_id         // Explicitly given by user
+            explicit_id,        // Explicitly given by user
+            explicit_section_id,
+            explicit_anchor_id
         };
 
         id_category() : c(default_category) {}

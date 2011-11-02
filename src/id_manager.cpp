@@ -390,7 +390,7 @@ namespace quickbook
 
         id_category category =
             !id.empty() || !include_doc_id.empty() ?
-                id_category::explicit_id :
+                id_category::explicit_section_id :
                 id_category::generated_doc;
 
         if (doc_id_result) *doc_id_result = initial_doc_id;
@@ -549,7 +549,7 @@ namespace quickbook
 
             id_category category =
                 !include_doc_id.empty() || !id.empty() ?
-                    id_category::explicit_id :
+                    id_category::explicit_section_id :
                     id_category::generated_doc;
 
             if (doc_id_result) *doc_id_result = initial_doc_id;
@@ -594,7 +594,7 @@ namespace quickbook
             id_category category)
     {
         return ids.add_placeholder(
-            category.c == id_category::explicit_id ? id : normalize_id(id),
+            category.c >= id_category::explicit_id ? id : normalize_id(id),
             category, current_placeholder)->to_string();
     }
 
@@ -612,7 +612,7 @@ namespace quickbook
         ++level;
 
         current_placeholder = ids.add_placeholder(
-            category.c == id_category::explicit_id ? id : normalize_id(id),
+            category.c >= id_category::explicit_id ? id : normalize_id(id),
             category, current_placeholder);
 
         return current_placeholder->to_string();
@@ -851,16 +851,16 @@ namespace quickbook
     //
     // index_placeholders
     //
-    // Create a sorted index of the placeholders, in ordered
-    // to make numbering duplicates easy.
+    // Create a sorted index of the placeholders, in order
+    // to make numbering duplicates easy. A total order.
     //
 
     struct placeholder_compare
     {
         bool operator()(id_placeholder* x, id_placeholder* y) const
         {
-            bool x_explicit = x->category.c == id_category::explicit_id;
-            bool y_explicit = y->category.c == id_category::explicit_id;
+            bool x_explicit = x->category.c >= id_category::explicit_id;
+            bool y_explicit = y->category.c >= id_category::explicit_id;
 
             return
                 x->level < y->level ? true :
