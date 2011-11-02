@@ -304,7 +304,7 @@ namespace quickbook
             size += prefix;
 
             if (src >= id.length()) {
-                return id_;
+                return id;
             }
 
             while (src < id.length() && id[src] == '_') {
@@ -312,8 +312,8 @@ namespace quickbook
             }
 
             if (src >= id.length()) {
-                id_.append('_');
-                return id_;
+                id += '_';
+                return id;
             }
 
             while (src < id.length() && dst < size) {
