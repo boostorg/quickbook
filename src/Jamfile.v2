@@ -26,6 +26,7 @@ exe quickbook
     doc_info_actions.cpp
     actions_class.cpp
     utils.cpp
+    string_ref.cpp
     input_path.cpp
     values.cpp
     id_manager.cpp

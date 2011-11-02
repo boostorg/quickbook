@@ -8,6 +8,7 @@
 
 #include "id_manager.hpp"
 #include "utils.hpp"
+#include "string_ref.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/lexical_cast.hpp>
@@ -22,82 +23,11 @@ namespace quickbook
     // Forward declarations
     //
 
-    struct string_ref;
     struct id_placeholder;
     struct id_data;
     std::string process_ids(id_state&, std::string const&);
 
     static const std::size_t max_size = 32;
-
-    //
-    // string_ref
-    //
-
-    struct string_ref
-    {
-    public:
-        typedef std::string::const_iterator iterator;
-
-    private:
-        iterator begin_, end_;
-
-    public:
-        string_ref() : begin_(), end_() {}
-
-        explicit string_ref(iterator b, iterator e)
-            : begin_(b), end_(e) {}
-
-        explicit string_ref(std::string const& x)
-            : begin_(x.begin()), end_(x.end()) {}
-
-        iterator begin() const { return begin_; }
-        iterator end() const { return end_; }
-
-        std::size_t size() const
-        {
-            return static_cast<std::size_t>(end_ - begin_);
-        }
-
-        std::string to_string() const
-        {
-            return std::string(begin_, end_);
-        }
-    };
-
-    bool operator==(string_ref const& x, string_ref const& y);
-    bool operator<(string_ref const& x, string_ref const& y);
-
-    inline bool operator==(string_ref const& x, std::string const& y)
-    {
-        return x == string_ref(y);
-    }
-
-    inline bool operator==(std::string const& x, string_ref const& y)
-    {
-        return string_ref(x) == y;
-    }
-
-    inline bool operator<(string_ref const& x, std::string const& y)
-    {
-        return x < string_ref(y);
-    }
-
-    inline bool operator<(std::string const& x, string_ref const& y)
-    {
-        return string_ref(x) < y;
-    }
-
-    bool operator==(string_ref const& x, string_ref const& y)
-    {
-        return x.size() == y.size() &&
-            std::equal(x.begin(), x.end(), y.begin());
-    }
-
-    bool operator<(string_ref const& x, string_ref const& y)
-    {
-        return std::lexicographical_compare(
-            x.begin(), x.end(), y.begin(), y.end());
-    }
 
     //
     // id_placeholder
