@@ -34,11 +34,10 @@ namespace quickbook
             raw_output
         };
     
-        template_body(value const&, fs::path const&, content_type = quickbook);
+        template_body(value const&, content_type = quickbook);
         bool is_block() const;
 
-        stored_value content;
-        fs::path filename;        
+        value content;
         content_type type;
     };
 
@@ -61,11 +60,10 @@ namespace quickbook
                 std::string const& identifier,
                 std::vector<std::string> const& params,
                 value const& content,
-                fs::path const& filename,
                 template_scope const* parent = 0)
            : identifier(identifier)
            , params(params)
-           , body(content, filename)
+           , body(content)
            , parent(parent)
            , callouts() {}
 
@@ -78,7 +76,7 @@ namespace quickbook
         // or static_parent for clarity.
         template_scope const* parent;
 
-        stored_value callouts;
+        value callouts;
     };
 
     typedef boost::spirit::classic::symbols<template_symbol> template_symbols;

@@ -11,6 +11,7 @@
 
 #include <boost/operators.hpp>
 #include <string>
+#include <iosfwd>
 
 namespace quickbook
 {
@@ -56,6 +57,7 @@ namespace quickbook
 
     bool operator==(string_ref const& x, string_ref const& y);
     bool operator<(string_ref const& x, string_ref const& y);
+    std::ostream& operator<<(std::ostream&, string_ref const& x);
 
     inline bool operator==(string_ref const& x, std::string const& y)
     {

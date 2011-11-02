@@ -13,6 +13,7 @@
 #include <boost/range/algorithm/equal.hpp>
 #include <vector>
 #include "values.hpp"
+#include "files.hpp"
 
 void empty_tests()
 {
@@ -24,11 +25,13 @@ void empty_tests()
 
 void qbk_tests()
 {
-    std::string src = "Source";
-    quickbook::value q = quickbook::qbk_value(
-        quickbook::iterator(src.begin()),
-        quickbook::iterator(src.end()));
-    BOOST_TEST_EQ(q.get_quickbook(), src);
+    quickbook::file fake_file;
+    fake_file.source = "Source";
+    quickbook::value q = quickbook::qbk_value_ref(
+        &fake_file,
+        fake_file.source.begin(),
+        fake_file.source.end());
+    BOOST_TEST_EQ(q.get_quickbook(), fake_file.source);
 }
 
 void sort_test()
@@ -79,59 +82,6 @@ void multiple_list_test()
     BOOST_TEST(!l2.check());
 }
 
-void store_test1()
-{
-    quickbook::stored_value q;
-    
-    {
-        std::string src = "Hello";
-        quickbook::value q1 = quickbook::qbk_value(
-            quickbook::iterator(src.begin()),
-            quickbook::iterator(src.end()),
-            5);
-
-        BOOST_TEST_EQ(q1.get_quickbook(), "Hello");
-        q = q1;
-        BOOST_TEST_EQ(q.get_quickbook(), "Hello");
-        BOOST_TEST_EQ(q1.get_quickbook(), "Hello");
-    }
-
-    BOOST_TEST_EQ(q.get_quickbook(), "Hello");
-}
-
-void store_test2_check(quickbook::value const& q)
-{
-    quickbook::value_consumer l1 = q;
-    BOOST_TEST(l1.check(5));
-    BOOST_TEST_EQ(l1.consume(5).get_quickbook(), "Hello");
-    BOOST_TEST(l1.check(10));
-    BOOST_TEST_EQ(l1.consume(10).get_boostbook(), "World");
-    BOOST_TEST(!l1.check());
-}
-
-void store_test2()
-{
-    quickbook::stored_value q;
-    
-    {
-        quickbook::value_builder list1;
-        std::string src = "Hello";
-        list1.insert(quickbook::qbk_value(
-            quickbook::iterator(src.begin()),
-            quickbook::iterator(src.end()),
-            5));
-        list1.insert(quickbook::bbk_value("World", 10));
-        
-        quickbook::value q2 = list1.release();
-
-        store_test2_check(q2);
-        q = q2;
-        store_test2_check(q);
-        store_test2_check(q2);
-    }
-    store_test2_check(q);
-}
-
 void equality_tests()
 {
     std::vector<quickbook::value> distinct_values;
@@ -165,8 +115,6 @@ int main()
     qbk_tests();
     sort_test();
     multiple_list_test();
-    store_test1();
-    store_test2();
     equality_tests();
 
     return boost::report_errors();

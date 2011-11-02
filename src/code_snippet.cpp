@@ -17,6 +17,7 @@
 #include "template_stack.hpp"
 #include "actions.hpp"
 #include "values.hpp"
+#include "files.hpp"
 
 namespace quickbook
 {
@@ -25,20 +26,20 @@ namespace quickbook
     struct code_snippet_actions
     {
         code_snippet_actions(std::vector<template_symbol>& storage,
-                                 fs::path const& filename,
-                                 char const* source_type)
+                                file const* source_file,
+                                char const* source_type)
             : callout_id(0)
             , storage(storage)
-            , filename(filename)
+            , source_file(source_file)
             , source_type(source_type)
         {}
 
         void pass_thru_char(char);
-        void pass_thru(iterator first, iterator last);
-        void escaped_comment(iterator first, iterator last);
-        void start_snippet(iterator first, iterator last);
-        void end_snippet(iterator first, iterator last);
-        void callout(iterator first, iterator last);
+        void pass_thru(string_iterator first, string_iterator last);
+        void escaped_comment(string_iterator first, string_iterator last);
+        void start_snippet(string_iterator first, string_iterator last);
+        void end_snippet(string_iterator first, string_iterator last);
+        void callout(string_iterator first, string_iterator last);
         
         void append_code();
         void close_code();
@@ -83,7 +84,7 @@ namespace quickbook
         std::string code;
         std::string id;
         std::vector<template_symbol>& storage;
-        fs::path filename;
+        file const* source_file;
         char const* const source_type;
     };
 
@@ -310,7 +311,7 @@ namespace quickbook
     };
 
     int load_snippets(
-        fs::path const& file
+        fs::path const& filename
       , std::vector<template_symbol>& storage   // snippets are stored in a
                                                 // vector of template_symbols
       , std::string const& extension
@@ -319,15 +320,13 @@ namespace quickbook
         assert(load_type == block_tags::include ||
             load_type == block_tags::import);
 
-        std::string code;
-        detail::load(file, code); // Throws detail::load_error.
-
-        iterator first(code.begin());
-        iterator last(code.end());
-
         bool is_python = extension == ".py";
-        code_snippet_actions a(storage, file, is_python ? "[python]" : "[c++]");
+        code_snippet_actions a(storage, load(filename), is_python ? "[python]" : "[c++]");
+
         // TODO: Should I check that parse succeeded?
+
+        string_iterator first(a.source_file->source.begin());
+        string_iterator last(a.source_file->source.end());
 
         if(is_python) {
             boost::spirit::classic::parse(first, last, python_code_snippet_grammar(a));
@@ -378,7 +377,7 @@ namespace quickbook
         }
     }
 
-    void code_snippet_actions::pass_thru(iterator first, iterator last)
+    void code_snippet_actions::pass_thru(string_iterator first, string_iterator last)
     {
         if(!snippet_stack) return;
         code.append(first, last);
@@ -390,16 +389,16 @@ namespace quickbook
         code += c;
     }
 
-    void code_snippet_actions::callout(iterator first, iterator last)
+    void code_snippet_actions::callout(string_iterator first, string_iterator last)
     {
         if(!snippet_stack) return;
         code += "``[[callout" + boost::lexical_cast<std::string>(callout_id) + "]]``";
     
-        snippet_stack->callouts.insert(qbk_value(first, last, template_tags::block));
+        snippet_stack->callouts.insert(qbk_value_ref(source_file, first, last, template_tags::block));
         ++callout_id;
     }
 
-    void code_snippet_actions::escaped_comment(iterator first, iterator last)
+    void code_snippet_actions::escaped_comment(string_iterator first, string_iterator last)
     {
        if (!snippet_stack)
        {
@@ -425,14 +424,14 @@ namespace quickbook
         }
     }
 
-    void code_snippet_actions::start_snippet(iterator, iterator)
+    void code_snippet_actions::start_snippet(string_iterator, string_iterator)
     {
         append_code();
         push_snippet_data(id, callout_id);
         id.clear();
     }
 
-    void code_snippet_actions::end_snippet(iterator first, iterator)
+    void code_snippet_actions::end_snippet(string_iterator first, string_iterator)
     {
         // TODO: Error?
         if(!snippet_stack) return;
@@ -462,9 +461,7 @@ namespace quickbook
         }
         
         // TODO: Save position in start_snippet
-        template_symbol symbol(snippet->id, params,
-            qbk_value(body, first.get_position(), template_tags::block),
-            filename);
+        template_symbol symbol(snippet->id, params, qbk_value(body, template_tags::block));
         symbol.callouts = callouts;
         storage.push_back(symbol);
 

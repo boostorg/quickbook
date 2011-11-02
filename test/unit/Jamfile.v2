@@ -9,12 +9,14 @@
 import testing ;
 
 project quickbook-unit-tests
-    : requirements <include>../../src <warnings>all
+    : requirements
+        <include>../../src
+        <warnings>all
+        <library>/boost//filesystem
     ;
 
-run values_test.cpp ../../src/values.cpp ;
+run values_test.cpp ../../src/values.cpp ../../src/string_ref.cpp ;
 run post_process_test.cpp ../../src/post_process.cpp ;
-run iterator_tests.cpp ../../src/values.cpp ;
 
 # Copied from spirit
 run symbols_tests.cpp ;

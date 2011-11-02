@@ -57,22 +57,20 @@ namespace quickbook {
             typedef void type;
         };
 
-        value_entry(value_builder& b)
-            : b(b) {}
+        value_entry(value_builder& b, file const** current_file)
+            : b(b), current_file(current_file) {}
 
-        template <typename Iterator>
-        void operator()(Iterator begin, Iterator end,
+        void operator()(parse_iterator begin, parse_iterator end,
                 value::tag_type tag = value::default_tag) const
         {
-            b.insert(qbk_value(begin, end, tag));
+            b.insert(qbk_value_ref(*current_file, begin.base(), end.base(), tag));
         }
 
-        template <typename Iterator>
-        void operator()(Iterator begin, Iterator,
+        void operator()(parse_iterator begin, parse_iterator,
                 std::string const& v,
                 value::tag_type tag = value::default_tag) const
         {
-            b.insert(qbk_value(v, begin.get_position(), tag));
+            b.insert(qbk_value(v, tag));
         }
         
         void operator()(int v,
@@ -82,6 +80,7 @@ namespace quickbook {
         }
 
         value_builder& b;
+        file const** current_file;
     };
 
     struct value_reset
@@ -114,11 +113,11 @@ namespace quickbook {
 
     struct value_parser
     {
-        value_parser()
+        value_parser(file const** current_file)
             : builder()
             , save(builder)
             , list(builder)
-            , entry(builder)
+            , entry(value_entry(builder, current_file))
             , reset(builder)
             , sort(builder)
             {}

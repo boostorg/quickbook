@@ -12,6 +12,7 @@
 #include "actions_class.hpp"
 #include "post_process.hpp"
 #include "utils.hpp"
+#include "files.hpp"
 #include "input_path.hpp"
 #include "id_manager.hpp"
 #include <boost/program_options.hpp>
@@ -57,8 +58,8 @@ namespace quickbook
                 it != end; ++it)
         {
             // TODO: Set filename in actor???
-            iterator first(it->begin());
-            iterator last(it->end());
+            parse_iterator first(it->begin());
+            parse_iterator last(it->end());
 
             cl::parse(first, last, actor.grammar().command_line_macro);
             // TODO: Check result?
@@ -70,14 +71,10 @@ namespace quickbook
     //  Parse a file
     //
     ///////////////////////////////////////////////////////////////////////////
-    void parse_file(fs::path const& filein_, actions& actor,
-            value include_doc_id, bool nested_file)
+    void parse_file(actions& actor, value include_doc_id, bool nested_file)
     {
-        std::string storage;
-        detail::load(filein_, storage); // Throws detail::load_error
-
-        iterator first(storage.begin());
-        iterator last(storage.end());
+        parse_iterator first(actor.current_file->source.begin());
+        parse_iterator last(actor.current_file->source.end());
 
         // This is awkward. When not ignoring docinfo, the source_mode should be
         // reset, but the code doesn't find out if the docinfo is ignored until
@@ -86,7 +83,7 @@ namespace quickbook
         std::string saved_source_mode = actor.source_mode;
         if (qbk_version_n >= 106) actor.source_mode = "c++";
 
-        cl::parse_info<iterator> info = cl::parse(first, last, actor.grammar().doc_info);
+        cl::parse_info<parse_iterator> info = cl::parse(first, last, actor.grammar().doc_info);
 
         docinfo_types docinfo_type =
             !nested_file ? docinfo_main :
@@ -108,32 +105,11 @@ namespace quickbook
 
         if (!info.full)
         {
-            file_position const& pos = info.stop.get_position();
-            detail::outerr(actor.filename, pos.line)
+            file_position const& pos = get_position(info.stop, actor.current_file->source);
+            detail::outerr(actor.current_file->path, pos.line)
                 << "Syntax Error near column " << pos.column << ".\n";
             ++actor.error_count;
         }
-    }
-
-    static int
-    parse_document(
-        fs::path const& filein_,
-        actions& actor)
-    {        
-        try {
-            parse_file(filein_, actor);
-
-            if(actor.error_count) {
-                detail::outerr()
-                    << "Error count: " << actor.error_count << ".\n";
-            }
-        }
-        catch (detail::load_error& e) {
-            ++actor.error_count;
-            detail::outerr(filein_) << detail::utf8(e.what()) << std::endl;
-        }
-
-        return !!actor.error_count;
     }
 
     static int
@@ -147,10 +123,28 @@ namespace quickbook
     {
         string_stream buffer;
         id_manager ids;
-        actions actor(filein_, xinclude_base_, buffer, ids);
-        set_macros(actor);
 
-        int result = parse_document(filein_, actor);
+        int result = 0;
+
+        try {
+            actions actor(filein_, xinclude_base_, buffer, ids);
+            set_macros(actor);
+
+            actor.current_file = load(filein_); // Throws load_error
+
+            parse_file(actor);
+
+            if(actor.error_count) {
+                detail::outerr()
+                    << "Error count: " << actor.error_count << ".\n";
+            }
+
+            result = !!actor.error_count;
+        }
+        catch (load_error& e) {
+            detail::outerr(filein_) << detail::utf8(e.what()) << std::endl;
+            result = 1;
+        }
 
         std::string stage2 = ids.replace_placeholders(buffer.str());
 

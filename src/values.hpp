@@ -16,14 +16,13 @@
 #include <cassert>
 #include <boost/scoped_ptr.hpp>
 #include <boost/iterator/iterator_traits.hpp>
-#include <boost/range/iterator_range.hpp>
 #include <stdexcept>
 #include "fwd.hpp"
+#include "string_ref.hpp"
 
 namespace quickbook
 {
     struct value;
-    struct stored_value;
     struct value_builder;
     struct value_error;
 
@@ -40,7 +39,6 @@ namespace quickbook
 
         public:
             typedef int tag_type;
-            typedef boost::iterator_range<quickbook::iterator> qbk_range;
 
         protected:
             explicit value_node(tag_type);
@@ -49,12 +47,11 @@ namespace quickbook
         public:
             virtual char const* type_name() const = 0;
             virtual value_node* clone() const = 0;
-            virtual value_node* store();
 
-            virtual file_position get_position() const;
-            virtual std::string get_quickbook() const;
+            virtual file const* get_file() const;
+            virtual string_iterator get_position() const;
+            virtual string_ref get_quickbook() const;
             virtual std::string get_boostbook() const;
-            virtual qbk_range get_quickbook_range() const;
             virtual int get_int() const;
 
             virtual bool check() const;
@@ -89,7 +86,6 @@ namespace quickbook
             typedef iterator const_iterator;
             typedef value_node::tag_type tag_type;
             enum { default_tag = 0 };
-            typedef boost::iterator_range<quickbook::iterator> qbk_range;
 
         protected:
             explicit value_base(value_node* base)
@@ -112,12 +108,12 @@ namespace quickbook
 
             // Item accessors
             int get_tag() const { return value_->tag_; }
-            file_position get_position() const
+            file const* get_file() const
+            { return value_->get_file(); }
+            string_iterator get_position() const
             { return value_->get_position(); }
-            std::string get_quickbook() const
+            string_ref get_quickbook() const
             { return value_->get_quickbook(); }
-            qbk_range get_quickbook_range() const
-            { return value_->get_quickbook_range(); }
             std::string get_boostbook() const
             { return value_->get_boostbook(); }
             int get_int() const
@@ -134,7 +130,6 @@ namespace quickbook
             // value_builder needs to access 'value_' to get the node
             // from a value.
             friend struct quickbook::value_builder;
-            friend struct quickbook::stored_value;
         };
         
         ////////////////////////////////////////////////////////////////////////
@@ -237,16 +232,6 @@ namespace quickbook
         void swap(value& x) { detail::value_counted::swap(x); }
     };
     
-    struct stored_value : public detail::value_counted
-    {
-    public:
-        stored_value();
-        stored_value(stored_value const&);
-        stored_value(detail::value_base const&);
-        stored_value& operator=(stored_value);
-        void swap(stored_value& x) { detail::value_counted::swap(x); }
-    };
-
     // Empty
     value empty_value(value::tag_type = value::default_tag);
 
@@ -254,14 +239,10 @@ namespace quickbook
     value int_value(int, value::tag_type = value::default_tag);
 
     // Boostbook and quickbook strings
-    value qbk_value(iterator, iterator, value::tag_type = value::default_tag);
-    value qbk_value(std::string const&,
-            file_position = file_position(),
-            value::tag_type = value::default_tag);
+    value qbk_value_ref(file const*, string_iterator, string_iterator, value::tag_type = value::default_tag);
+    value qbk_value(std::string const&, value::tag_type = value::default_tag);
     value bbk_value(std::string const&, value::tag_type = value::default_tag);
-    value qbk_bbk_value(std::string const&,
-            value::tag_type = value::default_tag);
-    value qbk_bbk_value(iterator, iterator, std::string const&,
+    value qbk_bbk_value(file const*, string_iterator, string_iterator, std::string const&,
             value::tag_type = value::default_tag);
 
     ////////////////////////////////////////////////////////////////////////////

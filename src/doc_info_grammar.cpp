@@ -58,7 +58,7 @@ namespace quickbook
                 : l(l)
             {}
 
-            void operator()(iterator, iterator) const {
+            void operator()(parse_iterator, parse_iterator) const {
                 l.attribute_rule = l.doc_fallback;
                 l.attribute_tag = value::default_tag;
             }

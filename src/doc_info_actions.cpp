@@ -14,6 +14,7 @@
 #include <boost/foreach.hpp>
 #include "quickbook.hpp"
 #include "utils.hpp"
+#include "files.hpp"
 #include "input_path.hpp"
 #include "actions_class.hpp"
 #include "doc_info_tags.hpp"
@@ -120,7 +121,7 @@ namespace quickbook
 
         if(!duplicates.empty())
         {
-            detail::outwarn(actions.filename,1)
+            detail::outwarn(actions.current_file->path,1)
                 << (duplicates.size() > 1 ?
                     "Duplicate attributes" : "Duplicate attribute")
                 << ":" << detail::utf8(boost::algorithm::join(duplicates, ", "))
@@ -128,15 +129,24 @@ namespace quickbook
                 ;
         }
 
+        std::string include_doc_id_, id_;
+
+        if (!include_doc_id.empty())
+            include_doc_id_.assign(
+                include_doc_id.get_quickbook().begin(),
+                include_doc_id.get_quickbook().end());
+
+        if (!id.empty())
+            id_.assign(
+                id.get_quickbook().begin(),
+                id.get_quickbook().end());
+
         // if we're ignoring the document info, just start the file
         // and we're done.
 
         if (!docinfo_type)
         {
-            actions.ids.start_file(
-                include_doc_id.empty() ? "" : include_doc_id.get_quickbook(),
-                id.empty() ? "" : id.get_quickbook(),
-                actions.doc_title_qbk);
+            actions.ids.start_file(include_doc_id_, id_, actions.doc_title_qbk);
 
             return;
         }
@@ -151,7 +161,7 @@ namespace quickbook
             qbk_major_version = 1;
             qbk_minor_version = 1;
             qbk_version_n = 101;
-            detail::outwarn(actions.filename,1)
+            detail::outwarn(actions.current_file->path,1)
                 << "Quickbook version undefined. "
                 "Version 1.1 is assumed" << std::endl;
         }
@@ -168,13 +178,13 @@ namespace quickbook
 
         if (qbk_version_n == 106)
         {
-            detail::outwarn(actions.filename,1)
+            detail::outwarn(actions.current_file->path,1)
                 << "Quickbook 1.6 is still under development and is "
                 "likely to change in the future." << std::endl;
         }
         else if(qbk_version_n < 100 || qbk_version_n > 106)
         {
-            detail::outerr(actions.filename,1)
+            detail::outerr(actions.current_file->path,1)
                 << "Unknown version of quickbook: quickbook "
                 << qbk_major_version
                 << "."
@@ -185,9 +195,7 @@ namespace quickbook
 
         id_manager::start_file_info start_file_info =
             actions.ids.start_file_with_docinfo(
-                qbk_version_n,
-                include_doc_id.empty() ? "" : include_doc_id.get_quickbook(),
-                id.empty() ? "" : id.get_quickbook(),
+                qbk_version_n, include_doc_id_, id_,
                 actions.doc_title_qbk);
 
         // if we're ignoring the document info, we're done.
@@ -201,33 +209,6 @@ namespace quickbook
 
         assert(doc_title.check() && !actions.doc_type.empty() &&
             !start_file_info.doc_id.empty());
-
-        // Set defaults for dirname + last_revision
-
-        if (dirname.empty() && actions.doc_type == "library") {
-            if (!id.empty()) {
-                dirname = id;
-            }
-            else {
-                dirname = qbk_bbk_value(start_file_info.doc_id,
-                    doc_info_attributes::dirname);
-            }
-        }
-
-        if (last_revision.empty())
-        {
-            // default value for last-revision is now
-
-            char strdate[64];
-            strftime(
-                strdate, sizeof(strdate),
-                (debug_mode ?
-                    "DEBUG MODE Date: %Y/%m/%d %H:%M:%S $" :
-                    "$" /* prevent CVS substitution */ "Date: %Y/%m/%d %H:%M:%S $"),
-                current_gm_time
-            );
-            last_revision = qbk_bbk_value(strdate, doc_info_attributes::last_revision);
-        }
 
         // Warn about invalid fields
 
@@ -246,7 +227,7 @@ namespace quickbook
 
             if(!invalid_attributes.empty())
             {
-                detail::outwarn(actions.filename,1)
+                detail::outwarn(actions.current_file->path,1)
                     << (invalid_attributes.size() > 1 ?
                         "Invalid attributes" : "Invalid attribute")
                     << " for '" << detail::utf8(actions.doc_type) << " document info': "
@@ -285,16 +266,40 @@ namespace quickbook
             out << "    name=\"" << doc_info_output(doc_title, 106) << "\"\n";
         }
 
-        if(!dirname.empty())
+        // Set defaults for dirname + last_revision
+
+        if(!dirname.empty() || actions.doc_type == "library")
         {
-            out << "    dirname=\""
-                << doc_info_output(dirname, 106)
-                << "\"\n";
+            out << "    dirname=\"";
+            if (!dirname.empty())
+                out << doc_info_output(dirname, 106);
+            else
+                out << start_file_info.doc_id;
+            out << "\"\n";
         }
 
-        out << "    last-revision=\""
-            << doc_info_output(last_revision, 106)
-            << "\" \n"
+        out << "    last-revision=\"";
+        if (!last_revision.empty())
+        {
+            out << doc_info_output(last_revision, 106);
+        }
+        else
+        {
+            // default value for last-revision is now
+
+            char strdate[64];
+            strftime(
+                strdate, sizeof(strdate),
+                (debug_mode ?
+                    "DEBUG MODE Date: %Y/%m/%d %H:%M:%S $" :
+                    "$" /* prevent CVS substitution */ "Date: %Y/%m/%d %H:%M:%S $"),
+                current_gm_time
+            );
+
+            out << strdate;
+        }
+
+        out << "\" \n"
             << "    xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n";
 
         std::ostringstream tmp;
@@ -329,7 +334,8 @@ namespace quickbook
     
                 while(copyright.check(doc_info_tags::copyright_year))
                 {
-                    int year_start = copyright.consume().get_int();
+                    value year_start_value = copyright.consume();
+                    int year_start = year_start_value.get_int();
                     int year_end =
                         copyright.check(doc_info_tags::copyright_year_end) ?
                         copyright.consume().get_int() :
@@ -338,8 +344,7 @@ namespace quickbook
                     if (year_end < year_start) {
                         ++actions.error_count;
     
-                        detail::outerr(actions.filename,
-                            copyright.begin()->get_position().line)
+                        detail::outerr(actions.current_file, copyright.begin()->get_position())
                             << "Invalid year range: "
                             << year_start
                             << "-"
@@ -436,7 +441,7 @@ namespace quickbook
 
         // Close any open sections.
         if (docinfo_type && actions.ids.section_level() > 1) {
-            detail::outwarn(actions.filename)
+            detail::outwarn(actions.current_file->path)
                 << "Missing [endsect] detected at end of file."
                 << std::endl;
 

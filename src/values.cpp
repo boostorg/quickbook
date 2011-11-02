@@ -7,6 +7,7 @@
 =============================================================================*/
 
 #include "values.hpp"
+#include "files.hpp"
 #include <boost/intrusive_ptr.hpp>
 #include <boost/current_function.hpp>
 #include <boost/lexical_cast.hpp>
@@ -47,12 +48,10 @@ namespace quickbook
         value_node::~value_node() {
         }
         
-        value_node* value_node::store() { return this; }
-
-        file_position value_node::get_position() const { UNDEFINED_ERROR(); }
+        file const* value_node::get_file() const { UNDEFINED_ERROR(); }
+        string_iterator value_node::get_position() const { UNDEFINED_ERROR(); }
         int value_node::get_int() const { UNDEFINED_ERROR(); }
-        std::string value_node::get_quickbook() const { UNDEFINED_ERROR(); }
-        value_node::qbk_range value_node::get_quickbook_range() const { UNDEFINED_ERROR(); }
+        string_ref value_node::get_quickbook() const { UNDEFINED_ERROR(); }
         std::string value_node::get_boostbook() const { UNDEFINED_ERROR(); }
         value_node* value_node::get_list() const { UNDEFINED_ERROR(); }
 
@@ -232,30 +231,6 @@ namespace quickbook
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // stored_value
-
-    stored_value::stored_value()
-        : detail::value_counted()
-    {
-    }
-
-    stored_value::stored_value(stored_value const& x)
-        : detail::value_counted(x)
-    {
-    }
-
-    stored_value::stored_value(detail::value_base const& x)
-        : detail::value_counted(x.value_->store())
-    {
-    }
-
-    stored_value& stored_value::operator=(stored_value x)
-    {
-        swap(x);
-        return *this;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
     // Integers
 
     namespace detail
@@ -268,7 +243,6 @@ namespace quickbook
             char const* type_name() const { return "integer"; }
             virtual value_node* clone() const;
             virtual int get_int() const;
-            virtual std::string get_quickbook() const;
             virtual std::string get_boostbook() const;
             virtual bool empty() const;
             virtual bool equals(value_node*) const;
@@ -289,11 +263,6 @@ namespace quickbook
         int value_int_impl::get_int() const
         {
             return value_;
-        }
-
-        std::string value_int_impl::get_quickbook() const
-        {
-            return boost::lexical_cast<std::string>(value_);
         }
 
         std::string value_int_impl::get_boostbook() const
@@ -346,46 +315,46 @@ namespace quickbook
         struct value_qbk_string_impl : public value_node
         {
         public:
-            explicit value_qbk_string_impl(
-                    std::string const&, file_position, value::tag_type);
-            explicit value_qbk_string_impl(
-                    quickbook::iterator begin, quickbook::iterator end,
-                    value::tag_type);
+            explicit value_qbk_string_impl(std::string const&, value::tag_type);
+            explicit value_qbk_string_impl(file const&, value::tag_type);
         private:
             char const* type_name() const { return "quickbook"; }
 
             virtual ~value_qbk_string_impl();
             virtual value_node* clone() const;
-            virtual file_position get_position() const;
-            virtual std::string get_quickbook() const;
-            qbk_range get_quickbook_range() const;
+            virtual file const* get_file() const;
+            virtual string_iterator get_position() const;
+            virtual string_ref get_quickbook() const;
             virtual bool is_string() const;
             virtual bool empty() const;
             virtual bool equals(value_node*) const;
-    
-            std::string value_;
-            file_position position_;
+
+            file fake_file_;
         };
 
         struct value_qbk_ref_impl : public value_node
         {
         public:
-            explicit value_qbk_ref_impl(quickbook::iterator begin, quickbook::iterator end, value::tag_type);
+            explicit value_qbk_ref_impl(
+                    file const*,
+                    string_iterator begin,
+                    string_iterator end,
+                    value::tag_type);
         private:
             char const* type_name() const { return "quickbook"; }
 
             virtual ~value_qbk_ref_impl();
             virtual value_node* clone() const;
-            virtual value_node* store();
-            virtual file_position get_position() const;
-            virtual std::string get_quickbook() const;
-            qbk_range get_quickbook_range() const;
+            virtual file const* get_file() const;
+            virtual string_iterator get_position() const;
+            virtual string_ref get_quickbook() const;
             virtual bool is_string() const;
             virtual bool empty() const;
             virtual bool equals(value_node*) const;
 
-            quickbook::iterator begin_;
-            quickbook::iterator end_;
+            file const* file_;
+            string_iterator begin_;
+            string_iterator end_;
         };
     
         struct value_qbk_bbk_impl : public value_node
@@ -393,32 +362,27 @@ namespace quickbook
         private:
             char const* type_name() const { return "quickbook/boostbook"; }
 
-            value_qbk_bbk_impl(
-                std::string const& qbk, std::string const& bbk,
-                file_position const&, value::tag_type);
-            value_qbk_bbk_impl(std::string const&, value::tag_type);
-            value_qbk_bbk_impl(
-                    quickbook::iterator, quickbook::iterator,
+            value_qbk_bbk_impl(file const*,
+                    string_iterator, string_iterator,
                     std::string const&, value::tag_type);
     
             virtual ~value_qbk_bbk_impl();
             virtual value_node* clone() const;
-            virtual file_position get_position() const;
-            virtual std::string get_quickbook() const;
-            qbk_range get_quickbook_range() const;
+            virtual file const* get_file() const;
+            virtual string_iterator get_position() const;
+            virtual string_ref get_quickbook() const;
             virtual std::string get_boostbook() const;
             virtual bool is_string() const;
             virtual bool empty() const;
             virtual bool equals(value_node*) const;
 
-            std::string qbk_value_;
+            file const* file_;
+            string_iterator begin_;
+            string_iterator end_;
             std::string bbk_value_;
-            file_position position_;
             
             friend quickbook::value quickbook::qbk_bbk_value(
-                    std::string const&, quickbook::value::tag_type);
-            friend quickbook::value quickbook::qbk_bbk_value(
-                    quickbook::iterator, quickbook::iterator,
+                    file const*, string_iterator, string_iterator,
                     std::string const&, quickbook::value::tag_type);
         };
 
@@ -463,49 +427,47 @@ namespace quickbook
     
         value_qbk_string_impl::value_qbk_string_impl(
                 std::string const& v,
-                file_position p,
                 value::tag_type tag)
             : value_node(tag)
-            , value_(v)
-            , position_(p)
-        {}
+            , fake_file_()
+        {
+            fake_file_.source = v;
+            fake_file_.path = "(generated code)";
+        }
 
         value_qbk_string_impl::value_qbk_string_impl(
-                quickbook::iterator begin, quickbook::iterator end,
-                value::tag_type tag)
+                file const& f, value::tag_type tag)
             : value_node(tag)
-            , value_(begin, end)
-            , position_(begin.get_position())
-        {}
+            , fake_file_(f)
+        {
+        }
     
         value_qbk_string_impl::~value_qbk_string_impl()
         {}
     
         value_node* value_qbk_string_impl::clone() const
         {
-            return new value_qbk_string_impl(value_, position_, tag_);
+            return new value_qbk_string_impl(fake_file_, tag_);
         }
 
-        file_position value_qbk_string_impl::get_position() const
-            { return position_; }
+        file const* value_qbk_string_impl::get_file() const
+            { return &fake_file_; }
 
-        std::string value_qbk_string_impl::get_quickbook() const
-            { return value_; }
+        string_iterator value_qbk_string_impl::get_position() const
+            { return fake_file_.source.begin(); }
 
-        value::qbk_range value_qbk_string_impl::get_quickbook_range() const
-            { return qbk_range(
-                iterator(value_.begin(), position_),
-                iterator(value_.end())); }
+        string_ref value_qbk_string_impl::get_quickbook() const
+            { return string_ref(fake_file_.source); }
 
         bool value_qbk_string_impl::is_string() const
             { return true; }
 
         bool value_qbk_string_impl::empty() const
-            { return value_.empty(); }
+            { return fake_file_.source.empty(); }
 
         bool value_qbk_string_impl::equals(value_node* other) const {
             try {
-                return value_ == other->get_quickbook();
+                return fake_file_.source == other->get_quickbook();
             }
             catch(value_undefined_method&) {
                 return false;
@@ -515,9 +477,11 @@ namespace quickbook
         // value_qbk_ref_impl
     
         value_qbk_ref_impl::value_qbk_ref_impl(
-                quickbook::iterator begin, quickbook::iterator end,
+                file const* f,
+                string_iterator begin,
+                string_iterator end,
                 value::tag_type tag
-            ) : value_node(tag), begin_(begin), end_(end)
+            ) : value_node(tag), file_(f), begin_(begin), end_(end)
         {
         }
     
@@ -527,22 +491,17 @@ namespace quickbook
     
         value_node* value_qbk_ref_impl::clone() const
         {
-            return new value_qbk_ref_impl(begin_, end_, tag_);
+            return new value_qbk_ref_impl(file_, begin_, end_, tag_);
         }
 
-        value_node* value_qbk_ref_impl::store()
-        {
-            return new value_qbk_string_impl(begin_, end_, tag_);
-        }
+        file const* value_qbk_ref_impl::get_file() const
+            { return file_; }
 
-        file_position value_qbk_ref_impl::get_position() const
-            { return begin_.get_position(); }
+        string_iterator value_qbk_ref_impl::get_position() const
+            { return begin_; }
 
-        std::string value_qbk_ref_impl::get_quickbook() const
-            { return std::string(begin_.base(), end_.base()); }
-
-        value::qbk_range value_qbk_ref_impl::get_quickbook_range() const
-            { return qbk_range(begin_, end_); }
+        string_ref value_qbk_ref_impl::get_quickbook() const
+            { return string_ref(begin_, end_); }
 
         bool value_qbk_ref_impl::is_string() const
             { return true; }
@@ -562,38 +521,17 @@ namespace quickbook
         // value_qbk_bbk_impl
     
         value_qbk_bbk_impl::value_qbk_bbk_impl(
-                std::string const& qbk,
-                std::string const& bbk,
-                file_position const& pos,
-                value::tag_type tag)
-            : value_node(tag)
-            , qbk_value_(qbk)
-            , bbk_value_(bbk)
-            , position_(pos)
-            
-        {
-        }
-    
-        value_qbk_bbk_impl::value_qbk_bbk_impl(
-                quickbook::iterator begin,
-                quickbook::iterator end,
+                file const* f,
+                string_iterator begin,
+                string_iterator end,
                 std::string const& bbk,
                 value::tag_type tag)
             : value_node(tag)
-            , qbk_value_(begin.base(), end.base())
+            , file_(f)
+            , begin_(begin)
+            , end_(end)
             , bbk_value_(bbk)
-            , position_(begin.get_position())
             
-        {
-        }
-    
-        value_qbk_bbk_impl::value_qbk_bbk_impl(
-                std::string const& val,
-                value::tag_type tag)
-            : value_node(tag)
-            , qbk_value_(val)
-            , bbk_value_(val)
-            , position_()
         {
         }
     
@@ -604,19 +542,17 @@ namespace quickbook
         value_node* value_qbk_bbk_impl::clone() const
         {
             return new value_qbk_bbk_impl(
-                    qbk_value_, bbk_value_, position_, tag_);
+                    file_, begin_, end_, bbk_value_, tag_);
         }
 
-        file_position value_qbk_bbk_impl::get_position() const
-            { return position_; }
+        file const* value_qbk_bbk_impl::get_file() const
+            { return file_; }
 
-        std::string value_qbk_bbk_impl::get_quickbook() const
-            { return qbk_value_; }
+        string_iterator value_qbk_bbk_impl::get_position() const
+            { return begin_; }
 
-        value::qbk_range value_qbk_bbk_impl::get_quickbook_range() const
-            { return qbk_range(
-                iterator(qbk_value_.begin(), position_),
-                iterator(qbk_value_.end())); }
+        string_ref value_qbk_bbk_impl::get_quickbook() const
+            { return string_ref(begin_, end_); }
 
         std::string value_qbk_bbk_impl::get_boostbook() const
             { return bbk_value_; }
@@ -643,14 +579,14 @@ namespace quickbook
         }
     }
 
-    value qbk_value(iterator x, iterator y, value::tag_type t)
+    value qbk_value_ref(file const* f, string_iterator x, string_iterator y, value::tag_type t)
     {
-        return value(new detail::value_qbk_ref_impl(x, y, t));
+        return value(new detail::value_qbk_ref_impl(f, x, y, t));
     }
 
-    value qbk_value(std::string const& x, file_position pos, value::tag_type t)
+    value qbk_value(std::string const& x, value::tag_type t)
     {
-        return value(new detail::value_qbk_string_impl(x, pos, t));
+        return value(new detail::value_qbk_string_impl(x, t));
     }
 
     value bbk_value(std::string const& x, value::tag_type t)
@@ -658,16 +594,11 @@ namespace quickbook
         return value(new detail::value_string_impl(x, t));
     }
 
-    value qbk_bbk_value(std::string const& x, value::tag_type t)
-    {
-        return value(new detail::value_qbk_bbk_impl(x,t));
-    }
-
     value qbk_bbk_value(
-            iterator x, iterator y,
+            file const* f, string_iterator x, string_iterator y,
             std::string const& z, value::tag_type t)
     {
-        return value(new detail::value_qbk_bbk_impl(x,y,z,t));
+        return value(new detail::value_qbk_bbk_impl(f,x,y,z,t));
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -789,7 +720,6 @@ namespace quickbook
 
             virtual ~value_list_impl();
             virtual value_node* clone() const;
-            virtual value_node* store();
             virtual bool empty() const;
             virtual bool equals(value_node*) const;
 
@@ -823,35 +753,6 @@ namespace quickbook
         value_node* value_list_impl::clone() const
         {
             return new value_list_impl(*this);
-        }
-
-        value_node* value_list_impl::store()
-        {
-            value_node* pos = head_;
-            boost::intrusive_ptr<value_node> new_node;
-
-            for(;;) {
-                if(pos == &value_list_end_impl::instance)
-                    return this;
-                new_node = pos->store();
-                if(new_node.get() != pos) break;
-                pos = pos->next_;
-            }
-
-            value_list_builder build;
-
-            value_node* pos2 = head_;
-
-            for(;pos2 != pos; pos2 = pos2->next_)
-                build.append(pos2);
-
-            build.append(new_node.get());
-            pos2 = pos2->next_;
-
-            for(;pos2 != &value_list_end_impl::instance; pos2 = pos2->next_)
-                build.append(pos2->store());
-
-            return new value_list_impl(build, tag_);
         }
 
         bool value_list_impl::empty() const

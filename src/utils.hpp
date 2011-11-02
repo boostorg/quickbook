@@ -11,19 +11,11 @@
 #define BOOST_SPIRIT_QUICKBOOK_UTILS_HPP
 
 #include <string>
-#include <cctype>
-#include <boost/assert.hpp>
-#include <boost/filesystem/v3/path.hpp>
+#include <ostream>
 #include <boost/range/algorithm_ext/push_back.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 
-
-namespace quickbook {
-
-    namespace fs = boost::filesystem;
-
-namespace detail
-{
+namespace quickbook { namespace detail {
     void print_char(char ch, std::ostream& out);
     void print_string(std::basic_string<char> const& str, std::ostream& out);
     void print_space(char ch, std::ostream& out);
@@ -45,15 +37,6 @@ namespace detail
     void unindent(std::string& program);
 
     std::string escape_uri(std::string uri);
-    
-    class load_error : public std::runtime_error
-    {
-    public:
-        explicit load_error(std::string const& arg)
-            : std::runtime_error(arg) {}
-    };
-
-    void load(fs::path const& filename, std::string& storage);
 
     // given a file extension, return the type of the source file
     // we'll have an internal database for known file types.

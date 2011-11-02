@@ -10,6 +10,7 @@
 #include <iostream>
 #include "input_path.hpp"
 #include "utils.hpp"
+#include "files.hpp"
 
 #if QUICKBOOK_WIDE_PATHS || QUICKBOOK_WIDE_STREAMS
 #include <boost/scoped_ptr.hpp>
@@ -229,6 +230,11 @@ namespace detail {
         }
     }
 
+    ostream& outerr(file const* f, string_iterator pos)
+    {
+        return outerr(f->path, get_position(pos, f->source).line);
+    }
+
     ostream& outwarn(fs::path const& file, int line)
     {
         if (line >= 0)
@@ -242,5 +248,10 @@ namespace detail {
         {
             return error_stream() << path_to_stream(file) << ": warning: ";
         }
+    }
+
+    ostream& outwarn(file const* f, string_iterator pos)
+    {
+        return outwarn(f->path, get_position(pos, f->source).line);
     }
 }}

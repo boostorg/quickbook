@@ -9,6 +9,7 @@
 #include "string_ref.hpp"
 #include <boost/range/algorithm/equal.hpp>
 #include <boost/range/algorithm/lexicographical_compare.hpp>
+#include <ostream>
 
 namespace quickbook
 {
@@ -20,5 +21,10 @@ namespace quickbook
     bool operator<(string_ref const& x, string_ref const& y)
     {
         return boost::lexicographical_compare(x, y);
+    }
+
+    std::ostream& operator<<(std::ostream& out, string_ref const& x)
+    {
+        return out.write(&*x.begin(), x.end() - x.begin());
     }
 }

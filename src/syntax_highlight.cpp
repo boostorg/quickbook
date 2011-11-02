@@ -396,7 +396,8 @@ namespace quickbook
     };
 
     std::string syntax_highlight(
-        iterator first, iterator last,
+        parse_iterator first,
+        parse_iterator last,
         actions& escape_actions,
         std::string const& source_mode)
     {

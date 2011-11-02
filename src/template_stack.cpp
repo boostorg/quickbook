@@ -18,11 +18,9 @@ namespace quickbook
 {
     template_body::template_body(
             value const& content,
-            fs::path const& filename,
             content_type type
         )
         : content(content)
-        , filename(filename)
         , type(type)
     {
         assert(content.get_tag() == template_tags::block ||

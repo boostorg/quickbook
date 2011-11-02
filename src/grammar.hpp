@@ -21,7 +21,7 @@ namespace quickbook
     // spirit implementation detail, but since classic is no longer under
     // development, it won't change. And spirit 2 won't require such a hack.
 
-    typedef cl::scanner<iterator, cl::scanner_policies <
+    typedef cl::scanner<parse_iterator, cl::scanner_policies <
         cl::iteration_policy, cl::match_policy, cl::action_policy> > scanner;
 
     struct grammar

@@ -20,8 +20,10 @@ namespace quickbook
     struct collector;
     struct id_manager;
     struct section_info;
+    struct file;
 
-    typedef position_iterator<std::string::const_iterator> iterator;
+    typedef std::string::const_iterator string_iterator;
+    typedef lookback_iterator<string_iterator> parse_iterator;
 
     inline void ignore_variable(void const*) {} 
 }
