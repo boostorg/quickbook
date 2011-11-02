@@ -303,6 +303,19 @@ namespace quickbook
             std::size_t dst = prefix;
             size += prefix;
 
+            if (src >= id.length()) {
+                return id_;
+            }
+
+            while (src < id.length() && id[src] == '_') {
+                ++src;
+            }
+
+            if (src >= id.length()) {
+                id_.append('_');
+                return id_;
+            }
+
             while (src < id.length() && dst < size) {
                 if (id[src] == '_') {
                     do {
