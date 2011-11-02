@@ -294,7 +294,8 @@ namespace quickbook
 
         out << '<' << actions.doc_type << "\n"
             << "    id=\""
-            << actions.ids.add(actions.section->doc_id, generated_id ?
+            << actions.section->fully_qualified_id(actions.ids,
+                std::string(), generated_id ?
                 id_generator::generated_doc : id_generator::explicit_id)
             << "\"\n"
             ;
@@ -390,7 +391,7 @@ namespace quickbook
         if (!license.empty())
         {
             tmp << "    <legalnotice id=\""
-                << actions.ids.add(actions.section->doc_id + ".legal",
+                << actions.section->fully_qualified_id(actions.ids, "legal",
                     id_generator::generated)
                 << "\">\n"
                 << "      <para>\n"
