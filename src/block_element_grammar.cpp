@@ -237,13 +237,13 @@ namespace quickbook
             >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
             >>  (+eol)
             |   cl::eps_p(qbk_since(106))
-            >>  actions.scoped_output()
+            >>  actions.to_value(table_tags::title)
                 [
-                    (*(escape
+                    *(escape
                     |   line_comment
                     |   (cl::anychar_p - (*(line_comment | cl::blank_p) >> (cl::eol_p | '[' | ']')))
                                                 [actions.plain_char]
-                    ))                          [actions.docinfo_value(ph::arg1, ph::arg2, table_tags::title)]
+                    )
                 ]
             >>  (*eol)
             ;
@@ -294,16 +294,16 @@ namespace quickbook
             ;
 
         local.inner_block =
-            actions.scoped_output()
+            actions.to_value()
             [
-                inside_paragraph                [actions.to_value]
+                inside_paragraph
             ]
             ;
 
         local.inner_phrase =
-            actions.scoped_output()
+            actions.to_value()
             [
-                paragraph_phrase                [actions.docinfo_value(ph::arg1, ph::arg2)]
+                paragraph_phrase
             ]
             ;
     }

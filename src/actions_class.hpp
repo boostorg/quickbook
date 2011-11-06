@@ -77,13 +77,10 @@ namespace quickbook
     // actions
     ///////////////////////////////////////////////////////////////////////////
 
-        to_value_action         to_value;
-        phrase_to_docinfo_action docinfo_value;
-        
+        scoped_parser<to_value_scoped_action>
+                                to_value;
         scoped_parser<cond_phrase_push>
                                 scoped_cond_phrase;
-        scoped_parser<scoped_output_push>
-                                scoped_output;
         scoped_parser<set_no_eols_scoped>
                                 scoped_no_eols;
 

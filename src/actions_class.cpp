@@ -48,11 +48,9 @@ namespace quickbook
         , out(out_)
         , phrase()
         , values(&current_file)
-        , to_value(*this)
-        , docinfo_value(*this)
 
+        , to_value(*this)
         , scoped_cond_phrase(*this)
-        , scoped_output(*this)
         , scoped_no_eols(*this)
 
         , element(*this)

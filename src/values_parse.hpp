@@ -44,7 +44,7 @@ namespace quickbook {
             return true;
         }
 
-        void success() { builder.finish_list(); }
+        void success(parse_iterator, parse_iterator) { builder.finish_list(); }
         void failure() { builder.clear_list(); }
 
         value_builder& builder;
@@ -76,20 +76,6 @@ namespace quickbook {
         file const** current_file;
     };
 
-    struct value_reset
-    {
-        typedef void result_type;
-    
-        value_reset(value_builder& b)
-            : b(b) {}
-
-        void operator()() const {
-            b.reset();
-        }
-
-        value_builder& b;
-    };
-    
     struct value_sort
     {
         typedef void result_type;
@@ -111,7 +97,6 @@ namespace quickbook {
             , save(builder)
             , list(builder)
             , entry(value_entry(builder, current_file))
-            , reset(builder)
             , sort(builder)
             {}
     
@@ -121,7 +106,6 @@ namespace quickbook {
         scoped_parser<value_builder_save> save;
         scoped_parser<value_builder_list> list;
         ph::function<value_entry> entry;
-        ph::function<value_reset> reset;
         ph::function<value_sort> sort;
     };
 }

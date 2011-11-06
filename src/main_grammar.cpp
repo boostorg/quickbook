@@ -70,7 +70,7 @@ namespace quickbook
                 return true;
             }
 
-            void success() { l.element_type = info_.type; }
+            void success(parse_iterator, parse_iterator) { l.element_type = info_.type; }
             void failure() { l.element_type = element_info::nothing; }
 
             main_grammar_local& l;
@@ -175,27 +175,30 @@ namespace quickbook
         // brackets.
         nested_phrase =
             actions.values.save()
-            [*( ~cl::eps_p(']')
-            >>  local.common(element_info::in_phrase)
-            )]
+            [   *( ~cl::eps_p(']')
+                >>  local.common(element_info::in_phrase)
+                )
+            ]
             ;
 
         // paragraph_phrase is like a nested_phrase but is also terminated
         // by a paragraph end.
         paragraph_phrase =
             actions.values.save()
-            [*( ~cl::eps_p(phrase_end)
-            >>  local.common(element_info::in_phrase)
-            )]
+            [   *( ~cl::eps_p(phrase_end)
+                >>  local.common(element_info::in_phrase)
+                )
+            ]
             ;
 
         // extended_phrase is like a paragraph_phrase but allows some block
         // elements.
         extended_phrase =
             actions.values.save()
-            [*( ~cl::eps_p(phrase_end)
-            >>  local.common(element_info::in_conditional)
-            )]
+            [   *( ~cl::eps_p(phrase_end)
+                >>  local.common(element_info::in_conditional)
+                )
+            ]
             ;
 
         // inline_phrase is used a phrase that isn't nested inside
@@ -296,18 +299,14 @@ namespace quickbook
 
         local.list =
                 cl::eps_p(cl::ch_p('*') | '#')
-                                            [actions.values.reset()]
-            >>  actions.scoped_output()
-                [
-                actions.values.list(block_tags::list)
+            >>  actions.values.list(block_tags::list)
                 [   +actions.values.list()
                     [   (*cl::blank_p)      [actions.values.entry(ph::arg1, ph::arg2, general_tags::list_indent)]
                     >>  (cl::ch_p('*') | '#')
                                             [actions.values.entry(ph::arg1, ph::arg2, general_tags::list_mark)]
                     >>  *cl::blank_p
-                    >>  local.list_item     [actions.to_value]
+                    >>  actions.to_value() [ local.list_item ]
                     ]
-                ]
                 ]                           [actions.element]
             ;
 
@@ -475,18 +474,17 @@ namespace quickbook
                 ]
             >>  actions.values.save()
                 [
-                    actions.scoped_output()
+                    actions.to_value()
                     [
-                        (   cl::eps_p(actions.macro >> local.simple_markup_end)
-                        >>  actions.macro       [actions.do_macro]
-                        |   ~cl::eps_p(cl::f_ch_p(local.simple_markup.mark))
-                        >>  +(  ~cl::eps_p
-                                (   lookback [~cl::f_ch_p(local.simple_markup.mark)]
-                                >>  local.simple_markup_end
-                                )
-                            >>  cl::anychar_p   [actions.plain_char]
+                        cl::eps_p(actions.macro >> local.simple_markup_end)
+                    >>  actions.macro       [actions.do_macro]
+                    |   ~cl::eps_p(cl::f_ch_p(local.simple_markup.mark))
+                    >>  +(  ~cl::eps_p
+                            (   lookback [~cl::f_ch_p(local.simple_markup.mark)]
+                            >>  local.simple_markup_end
                             )
-                        )                       [actions.to_value]
+                        >>  cl::anychar_p   [actions.plain_char]
+                        )
                     ]
                 >>  cl::f_ch_p(local.simple_markup.mark)
                                                 [actions.simple_markup]
@@ -539,10 +537,10 @@ namespace quickbook
             >>  *cl::space_p
             >>  (   '='
                 >>  *cl::space_p
-                >>  inline_phrase
+                >>  actions.to_value() [ inline_phrase ]
                 >>  *cl::space_p
                 |   cl::eps_p
-                )                               [actions.to_value]
+                )
             ]                                   [actions.element]
             ;
 

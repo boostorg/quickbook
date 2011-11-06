@@ -12,8 +12,6 @@
 
 #include <string>
 #include <vector>
-#include <boost/spirit/include/phoenix1_functions.hpp>
-#include <boost/spirit/include/classic_symbols_fwd.hpp>
 #include "fwd.hpp"
 #include "template_stack.hpp"
 #include "utils.hpp"
@@ -23,8 +21,6 @@
 
 namespace quickbook
 {
-    namespace cl = boost::spirit::classic;
-
     extern unsigned qbk_version_n; // qbk_major_version * 100 + qbk_minor_version
 
     struct quickbook_range {
@@ -293,48 +289,18 @@ namespace quickbook
     void pre(collector& out, quickbook::actions& actions, value include_doc_id, docinfo_types);
     void post(collector& out, quickbook::actions& actions, docinfo_types);
 
-    struct phrase_to_docinfo_action_impl
+    struct to_value_scoped_action : scoped_action_base
     {
-        template <typename Arg1, typename Arg2, typename Arg3 = void>
-        struct result { typedef void type; };
-    
-        phrase_to_docinfo_action_impl(quickbook::actions& actions)
+        to_value_scoped_action(quickbook::actions& actions)
             : actions(actions) {}
 
-        void operator()(parse_iterator first, parse_iterator last) const;
-        void operator()(parse_iterator first, parse_iterator last, value::tag_type) const;
-
-        quickbook::actions& actions;
-    };
-    
-    typedef phoenix::function<phrase_to_docinfo_action_impl> phrase_to_docinfo_action;
-
-    struct to_value_action
-    {
-        to_value_action(quickbook::actions& actions, int tag = value::default_tag)
-            : actions(actions)
-            , tag(tag)
-            {}
-
-        void operator()(parse_iterator first, parse_iterator last) const;
-
-        to_value_action operator()(int tag)
-            { return to_value_action(actions, tag); }
-
-        quickbook::actions& actions;
-        int tag;
-    };
-
-    struct scoped_output_push : scoped_action_base
-    {
-        scoped_output_push(quickbook::actions& actions)
-            : actions(actions) {}
-
-        bool start();
+        bool start(value::tag_type = value::default_tag);
+        void success(parse_iterator, parse_iterator);
         void cleanup();
 
         quickbook::actions& actions;
         std::vector<std::string> saved_anchors;
+        value::tag_type tag;
     };
 
     struct set_no_eols_scoped : scoped_action_base

@@ -138,9 +138,7 @@ namespace quickbook
 
         local.inner_phrase =
                 blank
-            >>  actions.scoped_output()
-                [   paragraph_phrase                [actions.to_value]
-                ]
+            >>  actions.to_value() [ paragraph_phrase ]
             ;
     }
 }

@@ -1947,23 +1947,17 @@ namespace quickbook
         }
     }
 
-    void phrase_to_docinfo_action_impl::operator()(parse_iterator first, parse_iterator last,
-            value::tag_type tag) const
+    bool to_value_scoped_action::start(value::tag_type t)
     {
-        write_anchors(actions, actions.phrase);
+        actions.out.push();
+        actions.phrase.push();
+        actions.anchors.swap(saved_anchors);
+        tag = t;
 
-        std::string encoded;
-        actions.phrase.swap(encoded);
-        actions.values.builder.insert(
-            qbk_bbk_value(actions.current_file, first.base(), last.base(), encoded, tag));
+        return true;
     }
 
-    void phrase_to_docinfo_action_impl::operator()(parse_iterator first, parse_iterator last) const
-    {
-        return (*this)(first, last, value::default_tag);
-    }
-    
-    void to_value_action::operator()(parse_iterator, parse_iterator) const
+    void to_value_scoped_action::success(parse_iterator first, parse_iterator last)
     {
         std::string value;
 
@@ -1979,19 +1973,12 @@ namespace quickbook
             actions.phrase.swap(value);
         }
 
-        actions.values.builder.insert(bbk_value(value, tag));
+        actions.values.builder.insert(qbk_bbk_value(
+            actions.current_file, first.base(), last.base(), value, tag));
     }
     
-    bool scoped_output_push::start()
-    {
-        actions.out.push();
-        actions.phrase.push();
-        actions.anchors.swap(saved_anchors);
-
-        return true;
-    }
     
-    void scoped_output_push::cleanup()
+    void to_value_scoped_action::cleanup()
     {
         actions.phrase.pop();
         actions.out.pop();
