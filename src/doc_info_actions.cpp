@@ -112,6 +112,7 @@ namespace quickbook
         std::vector<value> copyrights = consume_multiple(values, doc_info_attributes::copyright);
         value license = consume_last_single(values, doc_info_attributes::license, &duplicates);
         std::vector<value> biblioids = consume_multiple(values, doc_info_attributes::biblioid);
+        value compatibility_mode = consume_last(values, doc_info_attributes::compatibility_mode, &duplicates);
         
         // Skip over source-mode tags (already dealt with)
 
@@ -155,6 +156,7 @@ namespace quickbook
         // Quickbook version
 
         int qbk_major_version, qbk_minor_version;
+        unsigned compatibility_version;
 
         if (qbk_version.empty())
         {
@@ -176,7 +178,7 @@ namespace quickbook
             qbk_version_n = ((unsigned) qbk_major_version * 100) +
                 (unsigned) qbk_minor_version;
         }
-
+        
         if (qbk_version_n == 106)
         {
             detail::outwarn(actions.current_file->path,1)
@@ -193,12 +195,38 @@ namespace quickbook
                 << std::endl;
             ++actions.error_count;
         }
+        
+        if (compatibility_mode.empty())
+        {
+            compatibility_version = qbk_version_n;
+        }
+        else
+        {
+            value_consumer values(compatibility_mode);
+            int compatibility_major_version = values.consume().get_int();
+            int compatibility_minor_version = values.consume().get_int();
+            values.finish();
+
+            compatibility_version = ((unsigned) compatibility_major_version * 100) +
+                (unsigned) compatibility_minor_version;
+
+            if (compatibility_version < 100 || compatibility_version > 106)
+            {
+                detail::outerr(actions.current_file->path,1)
+                    << "Unknown compatibility version of quickbook: "
+                    << qbk_major_version
+                    << "."
+                    << qbk_minor_version
+                    << std::endl;
+                ++actions.error_count;
+            }
+        }
 
         actions.current_file_tmp->version(qbk_version_n);
 
         id_manager::start_file_info start_file_info =
             actions.ids.start_file_with_docinfo(
-                qbk_version_n, include_doc_id_, id_,
+                compatibility_version, include_doc_id_, id_,
                 actions.doc_title_qbk);
 
         // if we're ignoring the document info, we're done.

@@ -70,7 +70,7 @@ namespace quickbook
                         doc_title, doc_simple, doc_phrase, doc_fallback,
                         doc_authors, doc_author,
                         doc_copyright, doc_copyright_holder,
-                        doc_source_mode, doc_biblioid,
+                        doc_source_mode, doc_biblioid, doc_compatibility_mode,
                         quickbook_version, char_;
         cl::uint_parser<int, 10, 4, 4> doc_copyright_year;
         cl::symbols<> doc_types;
@@ -236,6 +236,14 @@ namespace quickbook
             ;
 
         local.attribute_rules[doc_info_attributes::biblioid] = &local.doc_biblioid;
+        
+        local.doc_compatibility_mode =
+                cl::uint_p                  [actions.values.entry(ph::arg1)]
+            >>  '.'
+            >>  uint2_t()                   [actions.values.entry(ph::arg1)]
+            ;
+
+        local.attribute_rules[doc_info_attributes::compatibility_mode] = &local.doc_compatibility_mode;
 
         local.char_ =
                 cl::str_p("\\n")            [actions.break_]

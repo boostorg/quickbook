@@ -136,9 +136,9 @@ namespace quickbook
     {
         section_manager(
                 id_state& ids,
-                unsigned qbk_version)
+                unsigned compatibility_version)
           : ids(ids),
-            qbk_version(qbk_version),
+            compatibility_version(compatibility_version),
             level(0)
         {}
 
@@ -148,7 +148,7 @@ namespace quickbook
 
         virtual std::auto_ptr<section_manager> start_file(
                 bool have_docinfo,
-                unsigned qbk_version,
+                unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
                 std::string const& title,
@@ -176,7 +176,7 @@ namespace quickbook
         virtual void end_section() = 0;
 
         id_state& ids;
-        unsigned qbk_version;
+        unsigned compatibility_version;
         int level;
         boost::scoped_ptr<section_manager> parent;
     };
@@ -188,7 +188,7 @@ namespace quickbook
     namespace {
         std::auto_ptr<section_manager> create_section_manager(
                 id_state& ids,
-                unsigned qbk_version);
+                unsigned compatibility_version);
     }
 
     id_manager::id_manager()
@@ -205,7 +205,7 @@ namespace quickbook
             std::string const& title)
     {
         boost::scoped_ptr<section_manager> new_section(
-            current_section->start_file(false, current_section->qbk_version,
+            current_section->start_file(false, current_section->compatibility_version,
                 include_doc_id, id, title, 0, 0));
 
         if (new_section) {
@@ -215,7 +215,7 @@ namespace quickbook
     }
 
     id_manager::start_file_info id_manager::start_file_with_docinfo(
-            unsigned qbk_version,
+            unsigned compatibility_version,
             std::string const& include_doc_id,
             std::string const& id,
             std::string const& title)
@@ -223,7 +223,7 @@ namespace quickbook
         start_file_info result;
 
         boost::scoped_ptr<section_manager> new_section(
-            current_section->start_file(true, qbk_version,
+            current_section->start_file(true, compatibility_version,
                 include_doc_id, id, title,
                 &result.doc_id, &result.placeholder));
 
@@ -281,6 +281,11 @@ namespace quickbook
     {
         assert(current_section && !current_section->parent);
         return process_ids(*state, xml);
+    }
+
+    unsigned id_manager::compatibility_version() const
+    {
+        return current_section->compatibility_version;
     }
 
     //
@@ -345,8 +350,8 @@ namespace quickbook
     {
         section_manager_1_1(
                 id_state& ids,
-                unsigned qbk_version)
-          : section_manager(ids, qbk_version),
+                unsigned compatibility_version)
+          : section_manager(ids, compatibility_version),
             doc_id(),
             section_id(),
             qualified_id()
@@ -354,7 +359,7 @@ namespace quickbook
 
         virtual std::auto_ptr<section_manager> start_file(
                 bool have_docinfo,
-                unsigned qbk_version,
+                unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
                 std::string const& title,
@@ -389,7 +394,7 @@ namespace quickbook
 
     std::auto_ptr<section_manager> section_manager_1_1::start_file(
             bool have_docinfo,
-            unsigned qbk_version,
+            unsigned compatibility_version,
             std::string const& include_doc_id,
             std::string const& id,
             std::string const& title,
@@ -410,7 +415,7 @@ namespace quickbook
 
         if (have_docinfo) {
             std::auto_ptr<section_manager> new_section_manager =
-                create_section_manager(ids, qbk_version);
+                create_section_manager(ids, compatibility_version);
             std::string initial_placeholder = new_section_manager->docinfo(
                 initial_doc_id, category);
             if (placeholder) *placeholder = initial_placeholder;
@@ -460,7 +465,7 @@ namespace quickbook
         std::string const& id,
         id_category category)
     {
-        return qbk_version < 103 ?
+        return compatibility_version < 103 ?
             ids.add_placeholder(section_id + "." + id, category)->to_string() :
             add_id(id, category);
     }
@@ -473,7 +478,7 @@ namespace quickbook
         qualified_id += id;
         section_id = id;
         ++level;
-        return (qbk_version < 103u ?
+        return (compatibility_version < 103u ?
             ids.add_placeholder(doc_id + "." + id, category) :
             ids.add_placeholder(doc_id + "." + qualified_id, category))->to_string();
     }
@@ -506,15 +511,15 @@ namespace quickbook
     {
         section_manager_1_6(
                 id_state& ids,
-                unsigned qbk_version)
-          : section_manager(ids, qbk_version),
+                unsigned compatibility_version)
+          : section_manager(ids, compatibility_version),
             current_placeholder(0),
             depth(0)
         {}
 
         virtual std::auto_ptr<section_manager> start_file(
                 bool have_docinfo,
-                unsigned qbk_version,
+                unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
                 std::string const& title,
@@ -547,7 +552,7 @@ namespace quickbook
 
     std::auto_ptr<section_manager> section_manager_1_6::start_file(
             bool have_docinfo,
-            unsigned qbk_version,
+            unsigned compatibility_version,
             std::string const& include_doc_id,
             std::string const& id,
             std::string const& title,
@@ -568,7 +573,7 @@ namespace quickbook
             if (doc_id_result) *doc_id_result = initial_doc_id;
 
             std::auto_ptr<section_manager> new_section_manager =
-                create_section_manager(ids, qbk_version);
+                create_section_manager(ids, compatibility_version);
             std::string initial_placeholder = new_section_manager->docinfo(
                 initial_doc_id, category);
             if (placeholder) *placeholder = initial_placeholder;
@@ -644,11 +649,11 @@ namespace quickbook
     namespace {
         std::auto_ptr<section_manager> create_section_manager(
                 id_state& ids,
-                unsigned qbk_version)
+                unsigned compatibility_version)
         {
-            return std::auto_ptr<section_manager>(qbk_version < 106u ?
-                (section_manager*)(new section_manager_1_1(ids, qbk_version)) :
-                (section_manager*)(new section_manager_1_6(ids, qbk_version)));
+            return std::auto_ptr<section_manager>(compatibility_version < 106u ?
+                (section_manager*)(new section_manager_1_1(ids, compatibility_version)) :
+                (section_manager*)(new section_manager_1_6(ids, compatibility_version)));
         }
     }
 

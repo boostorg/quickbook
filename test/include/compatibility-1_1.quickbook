@@ -1,0 +1,9 @@
+[article Test Compatibility Mode
+[quickbook 1.6]
+[compatibility-mode 1.1]
+[id compatibility]
+]
+
+[section Outer]
+[include compatibility-inc.qbk]
+[endsect]

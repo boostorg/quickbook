@@ -372,7 +372,16 @@ namespace quickbook
 
         write_anchors(actions, actions.out);
 
-        if (!generic && qbk_version_n < 103) // version 1.2 and below
+        if (!element_id.empty())
+        {
+            std::string anchor = actions.ids.add_id(
+                element_id.get_quickbook(),
+                id_category::explicit_id);
+
+            write_bridgehead(actions, level,
+                content.get_boostbook(), anchor, true);
+        }
+        else if (!generic && actions.ids.compatibility_version() < 103) // version 1.2 and below
         {
             // This generates the old id style if both the interpreting
             // version and the generation version are less then 103u.
@@ -383,24 +392,17 @@ namespace quickbook
 
             write_bridgehead(actions, level,
                 content.get_boostbook(), anchor, false);
+
         }
         else
         {
-            id_category::categories category =
-                !element_id.empty() ?
-                    id_category::explicit_id :
-                    id_category::generated_heading;
-
-            std::string id =
-                !element_id.empty() ?
-                    element_id.get_quickbook() :
-                    detail::make_identifier(
-                        qbk_version_n >= 106 ?
-                            content.get_quickbook() :
-                            content.get_boostbook()
-                    );
-
-            std::string anchor = actions.ids.add_id(id, category);
+            std::string anchor = actions.ids.add_id(
+                detail::make_identifier(
+                    actions.ids.compatibility_version() >= 106 ?
+                        content.get_quickbook() :
+                        content.get_boostbook()
+                ),
+                id_category::generated_heading);
 
             write_bridgehead(actions, level,
                 content.get_boostbook(), anchor, true);
@@ -1490,17 +1492,17 @@ namespace quickbook
         bool has_title = !title.empty();
         
         std::string table_id;
-        if(qbk_version_n >= 105) {
-            if(!element_id.empty()) {
-                table_id = actions.ids.add_id(element_id, id_category::explicit_id);
-            }
-            else if(has_title) {
+
+        if (!element_id.empty()) {
+            table_id = actions.ids.add_id(element_id, id_category::explicit_id);
+        }
+        else if (has_title) {
+            if (actions.ids.compatibility_version() >= 105) {
                 table_id = actions.ids.add_id(detail::make_identifier(title), id_category::generated);
             }
-        }
-        else if (has_title)
-        {
-            table_id = actions.ids.add_id("t", id_category::numbered);
+            else {
+                table_id = actions.ids.add_id("t", id_category::numbered);
+            }
         }
 
         // Emulating the old behaviour which used the width of the final
@@ -1590,7 +1592,7 @@ namespace quickbook
 
         write_anchors(actions, actions.out);
 
-        if (qbk_version_n < 103) // version 1.2 and below
+        if (actions.ids.compatibility_version() < 103) // version 1.2 and below
         {
             actions.out << content.get_boostbook();
         }

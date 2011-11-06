@@ -56,7 +56,7 @@ namespace quickbook
         };
 
         start_file_info start_file_with_docinfo(
-                unsigned qbk_version,
+                unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
                 std::string const& title);
@@ -77,6 +77,8 @@ namespace quickbook
         std::string add_anchor(std::string const&, id_category);
 
         std::string replace_placeholders(std::string const&) const;
+        
+        unsigned compatibility_version() const;
     private:
         boost::scoped_ptr<id_state> state;
         boost::scoped_ptr<section_manager> current_section;

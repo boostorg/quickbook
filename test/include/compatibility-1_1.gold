@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
+<article id="compatibility" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
+ xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Test Compatibility Mode</title>
+  <section id="compatibility.outer">
+    <title>Outer</title>
+    <section id="test_compatibility_mode.inner">
+      <title>Inner</title>
+      <bridgehead renderas="sect4" id="test_compatibility_mode.outer.inner.h0">
+        <phrase id="test_compatibility_mode.outer.inner.header"/><link linkend="test_compatibility_mode.outer.inner.header">Header</link>
+      </bridgehead>
+      <bridgehead renderas="sect1" id="inner.heading1">
+        Heading1
+      </bridgehead>
+      <bridgehead renderas="sect4" id="test_compatibility_mode.outer.inner.h1">
+        <phrase id="test_compatibility_mode.outer.inner.x1"/><link linkend="test_compatibility_mode.outer.inner.x1">Header
+        with id</link>
+      </bridgehead>
+      <bridgehead renderas="sect1" id="test_compatibility_mode.outer.inner.h2">
+        <phrase id="test_compatibility_mode.outer.inner.x2"/><link linkend="test_compatibility_mode.outer.inner.x2">Heading1
+        with id</link>
+      </bridgehead>
+      <informaltable frame="all">
+        <tgroup cols="1">
+          <thead>
+            <row>
+              <entry>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+      <informaltable frame="all" id="test_compatibility_mode.outer.inner.withid">
+        <tgroup cols="1">
+          <thead>
+            <row>
+              <entry>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+      <table frame="all" id="test_compatibility_mode.outer.inner.t0">
+        <title>With Title</title>
+        <tgroup cols="1">
+          <thead>
+            <row>
+              <entry>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table frame="all" id="test_compatibility_mode.outer.inner.x">
+        <title>Id and Title</title>
+        <tgroup cols="1">
+          <thead>
+            <row>
+              <entry>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="test_compatibility_mode.x">
+      <title>Inner with id</title>
+    </section>
+  </section>
+</article>

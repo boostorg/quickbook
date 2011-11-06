@@ -36,6 +36,7 @@ namespace quickbook
         ((license)("license"))
         ((biblioid)("biblioid"))
         ((source_mode)("source-mode"))
+        ((compatibility_mode)("compatibility-mode"))
     )
 }
 
