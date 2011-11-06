@@ -75,6 +75,7 @@ namespace quickbook
         cl::rule<scanner> inside_paragraph;
         cl::rule<scanner> command_line;
         cl::rule<scanner> escape;
+        cl::rule<scanner> raw_escape;
 
         // Miscellaneous stuff
         cl::rule<scanner> hard_space;

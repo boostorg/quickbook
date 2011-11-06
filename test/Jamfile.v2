@@ -21,6 +21,7 @@ import quickbook-testing : quickbook-test quickbook-error-test ;
 
 test-suite quickbook.test :
     [ quickbook-test anchor-1_1 ]
+    [ quickbook-test anchor-1_6 ]
     [ quickbook-test blocks-1_5 ]
     [ quickbook-test callouts-1_5 ]
     [ quickbook-test code-1_1 ]
@@ -36,6 +37,7 @@ test-suite quickbook.test :
     [ quickbook-test elements-1_5 ]
     [ quickbook-test elements-1_6 ]
     [ quickbook-test escape-1_1 ]
+    [ quickbook-test escape-1_6 ]
     [ quickbook-error-test escape-mismatched-1_5-fail ]
     [ quickbook-test heading-1_1 ]
     [ quickbook-test heading-1_3 ]
@@ -47,6 +49,7 @@ test-suite quickbook.test :
     [ quickbook-test identifier-1_5 ]
     [ quickbook-test identifier-1_6 ]
     [ quickbook-test image-1_5 ]
+    [ quickbook-test image-1_6 ]
     [ quickbook-error-test import-1_1-fail ]
     [ quickbook-error-test include-1_1-fail ]
     [ quickbook-test include-1_5 ]
@@ -54,6 +57,7 @@ test-suite quickbook.test :
     [ quickbook-test include2-1_6 ]
     [ quickbook-error-test include_win_path-1_6-fail ]
     [ quickbook-test link-1_1 ]
+    [ quickbook-test link-1_6 ]
     [ quickbook-test list_test-1_5 ]
     [ quickbook-test macro-1_5 ]
     [ quickbook-test macro-1_6 ]

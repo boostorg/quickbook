@@ -92,7 +92,7 @@ namespace quickbook
         inline_code_action      inline_code;
         paragraph_action        paragraph;
         phrase_end_action       phrase_end;
-        space_action            space_char;
+        raw_char_action         raw_char;
         plain_char_action       plain_char;
         escape_unicode_action   escape_unicode;
 

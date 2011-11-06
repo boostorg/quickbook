@@ -18,7 +18,6 @@
 namespace quickbook { namespace detail {
     void print_char(char ch, std::ostream& out);
     void print_string(std::basic_string<char> const& str, std::ostream& out);
-    void print_space(char ch, std::ostream& out);
     char filter_identifier_char(char ch);
 
     template <typename Range>

@@ -54,18 +54,38 @@ namespace quickbook
         local.image =
                 qbk_since(105u)
             >>  blank
-            >>  (+(
-                    *cl::space_p
-                >>  +(cl::anychar_p - (cl::space_p | phrase_end | '['))
-                ))                      [actions.values.entry(ph::arg1, ph::arg2)]
+            >>  (   qbk_before(106u)
+                >>  (+(
+                        *cl::space_p
+                    >>  +(cl::anychar_p - (cl::space_p | phrase_end | '['))
+                    ))                  [actions.values.entry(ph::arg1, ph::arg2)]
+                |   qbk_since(106u)
+                >>  actions.to_value()
+                    [   +(  raw_escape
+                        |   (+cl::space_p >> ~cl::eps_p(phrase_end | '['))
+                                        [actions.raw_char]
+                        |   (cl::anychar_p - (cl::space_p | phrase_end | '['))
+                                        [actions.raw_char]
+                        )
+                    ]
+                )
             >>  hard_space
             >>  *actions.values.list()
                 [   '['
                 >>  (*(cl::alnum_p | '_')) 
                                         [actions.values.entry(ph::arg1, ph::arg2)]
                 >>  space
-                >>  (*(cl::anychar_p - (phrase_end | '[')))
+                >>  (   qbk_before(106u)
+                    >>  (*(cl::anychar_p - (phrase_end | '[')))
                                         [actions.values.entry(ph::arg1, ph::arg2)]
+                    |   qbk_since(106u)
+                    >>  actions.to_value()
+                        [   *(  raw_escape
+                            |   (cl::anychar_p - (phrase_end | '['))
+                                                        [actions.raw_char]
+                            )
+                        ]
+                    )
                 >>  ']'
                 >>  space
                 ]
@@ -91,8 +111,17 @@ namespace quickbook
 
         local.link =
                 space
-            >>  (*(cl::anychar_p - (']' | space)))
+            >>  (   qbk_before(106u)
+                >>  (*(cl::anychar_p - (']' | space)))
                                                 [actions.values.entry(ph::arg1, ph::arg2)]
+                |   qbk_since(106u)
+                >>  actions.to_value()
+                    [   *(  raw_escape
+                        |   (cl::anychar_p - (']' | space))
+                                                [actions.raw_char]
+                        )
+                    ]
+                )
             >>  hard_space
             >>  local.inner_phrase
             ;
@@ -103,7 +132,16 @@ namespace quickbook
 
         local.anchor =
                 blank
-            >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
+            >>  (   qbk_before(106u)
+                >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
+                |   qbk_since(106u)
+                >>  actions.to_value()
+                    [   *(  raw_escape
+                        |   (cl::anychar_p - phrase_end)
+                                                    [actions.raw_char]
+                        )
+                    ]
+                )
             ;
 
         elements.add

@@ -31,7 +31,7 @@ namespace quickbook
                         table, table_title, table_row, variablelist,
                         varlistentry, varlistterm, list, cell,
                         preformatted, begin_section, end_section,
-                        xinclude, include,
+                        xinclude, include, include_filename,
                         template_, template_id, template_formal_arg,
                         template_body, identifier, import,
                         element_id, element_id_1_5, element_id_1_6,
@@ -273,12 +273,12 @@ namespace quickbook
 
         local.xinclude =
                space
-            >> (*(cl::anychar_p - phrase_end))  [actions.values.entry(ph::arg1, ph::arg2)]
+            >> local.include_filename
             ;
 
         local.import =
                space
-            >> (*(cl::anychar_p - phrase_end))  [actions.values.entry(ph::arg1, ph::arg2)]
+            >> local.include_filename
             ;
 
         local.include =
@@ -290,7 +290,19 @@ namespace quickbook
                                                 [actions.values.entry(ph::arg1, ph::arg2, general_tags::include_id)]
                 >> space
             )
-            >> (*(cl::anychar_p - phrase_end))  [actions.values.entry(ph::arg1, ph::arg2)]
+            >> local.include_filename
+            ;
+
+        local.include_filename =
+                qbk_before(106u)
+            >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
+            |   qbk_since(106u)
+            >>  actions.to_value()
+                [   *(  raw_escape
+                    |   (cl::anychar_p - phrase_end)
+                                                [actions.raw_char]
+                    )
+                ]
             ;
 
         local.inner_block =

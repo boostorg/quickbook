@@ -187,11 +187,11 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
-    struct space_action
+    struct raw_char_action
     {
         // Prints a space
 
-        space_action(collector& out)
+        raw_char_action(collector& out)
             : out(out) {}
 
         void operator()(char ch) const;

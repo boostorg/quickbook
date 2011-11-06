@@ -334,7 +334,7 @@ namespace quickbook
             |   escape
             |   comment
             |   qbk_since(106u) >> local.square_brackets
-            |   cl::space_p                 [actions.space_char]
+            |   cl::space_p                 [actions.raw_char]
             |   cl::anychar_p               [actions.plain_char]
             ;
 
@@ -521,6 +521,21 @@ namespace quickbook
                     |   cl::eps_p               [actions.error("Unclosed boostbook escape.")]
                     )                           [actions.element]
                 ]
+            ;
+
+        raw_escape =
+                cl::str_p("\\n")                [actions.error("Newlines invalid here.")]
+            |   cl::str_p("\\ ")                // ignore an escaped space
+            |   '\\' >> cl::punct_p             [actions.raw_char]
+            |   "\\u" >> cl::repeat_p(4) [cl::chset<>("0-9a-fA-F")]
+                                                [actions.escape_unicode]
+            |   "\\U" >> cl::repeat_p(8) [cl::chset<>("0-9a-fA-F")]
+                                                [actions.escape_unicode]
+            |   ("'''" >> !eol)                 [actions.error("Boostbook escape invalid here.")]
+            >>  (*(cl::anychar_p - "'''"))
+            >>  (   cl::str_p("'''")
+                |   cl::eps_p                   [actions.error("Unclosed boostbook escape.")]
+                )                               [actions.element]
             ;
 
         //

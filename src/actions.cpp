@@ -579,7 +579,11 @@ namespace quickbook
     void anchor_action(quickbook::actions& actions, value anchor)
     {
         value_consumer values = anchor;
-        add_anchor(actions, values.consume().get_quickbook());
+        value anchor_id = values.consume();
+        // Note: anchor_id is never encoded as boostbook. If it
+        // is encoded, it's just things like escapes.
+        add_anchor(actions, anchor_id.is_encoded() ?
+            anchor_id.get_boostbook() : anchor_id.get_quickbook());
         values.finish();
     }
 
@@ -605,15 +609,15 @@ namespace quickbook
         }
     }
 
-    void space_action::operator()(char ch) const
+    void raw_char_action::operator()(char ch) const
     {
-        detail::print_space(ch, out.get());
+        out << ch;
     }
 
-    void space_action::operator()(parse_iterator first, parse_iterator last) const
+    void raw_char_action::operator()(parse_iterator first, parse_iterator last) const
     {
         while (first != last)
-            detail::print_space(*first++, out.get());
+            out << *first++;
     }
 
     void source_mode_action(quickbook::actions& actions, value source_mode)
@@ -719,6 +723,8 @@ namespace quickbook
     {
         write_anchors(actions, actions.phrase);
 
+        // Note: attributes are never encoded as boostbook, if they're
+        // encoded, it's just things like escapes.
         typedef std::map<std::string, value> attribute_map;
         attribute_map attributes;
 
@@ -747,7 +753,9 @@ namespace quickbook
         // Not using Boost.Filesystem because I want to stay in UTF-8.
         // Need to think about uri encoding.
         
-        std::string fileref = attributes["fileref"].get_quickbook();
+        std::string fileref = attributes["fileref"].is_encoded() ?
+            attributes["fileref"].get_boostbook() :
+            attributes["fileref"].get_quickbook();
 
         // Check for windows paths, then convert.
         // A bit crude, but there you go.
@@ -772,7 +780,7 @@ namespace quickbook
         // Need to think about uri encoding.
 
         std::string::size_type pos;
-        std::string stem,extension;
+        std::string stem, extension;
 
         pos = fileref.rfind('/');
         stem = pos == std::string::npos ?
@@ -792,8 +800,9 @@ namespace quickbook
         //       be empty or missing.
 
         attribute_map::iterator alt_pos = attributes.find("alt");
-        std::string alt_text = alt_pos != attributes.end() ?
-            alt_pos->second.get_quickbook() : stem;
+        std::string alt_text = alt_pos == attributes.end() ? stem :
+            alt_pos->second.is_encoded() ? alt_pos->second.get_boostbook() :
+            alt_pos->second.get_quickbook();
         attributes.erase("alt");
 
         if(extension == ".svg")
@@ -875,13 +884,20 @@ namespace quickbook
         {
             actions.phrase << " " << attr.first << "=\"";
 
-            std::string value = attr.second.get_quickbook();
-            for(std::string::const_iterator
-                first = value.begin(), last  = value.end();
-                first != last; ++first)
+            if (attr.second.is_encoded())
             {
-                if (*first == '\\' && ++first == last) break;
-                detail::print_char(*first, actions.phrase.get());
+                detail::print_string(attr.second.get_boostbook(),
+                    actions.phrase.get());
+            }
+            else {
+                std::string value = attr.second.get_quickbook();
+                for(std::string::const_iterator
+                    first = value.begin(), last  = value.end();
+                    first != last; ++first)
+                {
+                    if (*first == '\\' && ++first == last) break;
+                    detail::print_char(*first, actions.phrase.get());
+                }
             }
 
             actions.phrase << "\"";
@@ -1426,16 +1442,21 @@ namespace quickbook
         detail::markup markup = detail::get_markup(link.get_tag());
 
         value_consumer values = link;
-        value dst = values.consume();
+        value dst_value = values.consume();
         value content = values.consume();
         values.finish();
+
+        // Note: dst is never actually encoded as boostbook, which
+        // is why the result is called with 'print_string' later.
+        std::string dst = dst_value.is_encoded() ?
+            dst_value.get_boostbook() : dst_value.get_quickbook();
         
         actions.phrase << markup.pre;
-        detail::print_string(dst.get_quickbook(), actions.phrase.get());
+        detail::print_string(dst, actions.phrase.get());
         actions.phrase << "\">";
 
         if (content.empty())
-            detail::print_string(dst.get_quickbook(), actions.phrase.get());
+            detail::print_string(dst, actions.phrase.get());
         else
             actions.phrase << content.get_boostbook();
 

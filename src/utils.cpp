@@ -38,11 +38,6 @@ namespace quickbook { namespace detail
         }
     }
 
-    void print_space(char ch, std::ostream& out)
-    {
-        out << ch;
-    }
-
     char filter_identifier_char(char ch)
     {
         if (!std::isalnum(static_cast<unsigned char>(ch)))
