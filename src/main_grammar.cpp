@@ -102,7 +102,6 @@ namespace quickbook
                         blocks, paragraph_separator,
                         code, code_line, blank_line, hr,
                         list, list_item,
-                        escape,
                         inline_code,
                         template_,
                         code_block, macro,
@@ -113,7 +112,7 @@ namespace quickbook
                         template_inner_arg_1_5, brackets_1_5,
                         break_,
                         command_line_macro_identifier, command_line_phrase,
-                        dummy_block, line_dummy_block
+                        dummy_block, line_dummy_block, mismatched_square_bracket
                         ;
 
         struct simple_markup_closure
@@ -175,6 +174,7 @@ namespace quickbook
 
         phrase_start =
             (*( local.common(element_info::in_phrase)
+            |   local.mismatched_square_bracket
             |   cl::anychar_p                   [actions.plain_char]
             ))                                  [actions.phrase_end]
             ;
@@ -188,6 +188,7 @@ namespace quickbook
                                                 [local.top_level.parse_blocks = true]
                 |   local.paragraph_separator   [local.top_level.parse_blocks = true]
                 |   (   local.common(element_info::in_phrase)
+                    |   local.mismatched_square_bracket
                     |   cl::space_p             [actions.space_char]
                     |   cl::anychar_p           [actions.plain_char]
                     )                           [local.top_level.parse_blocks = false]
@@ -274,6 +275,7 @@ namespace quickbook
             actions.values.save()
             [
                 *(  local.common(element_info::in_phrase)
+                |   local.mismatched_square_bracket
                 |   (cl::anychar_p -
                         (   cl::eol_p >> *cl::blank_p
                         >>  (cl::ch_p('*') | '#' | cl::eol_p)
@@ -292,9 +294,22 @@ namespace quickbook
             |   local.code_block
             |   local.inline_code
             |   local.simple_markup
-            |   local.escape
+            |   escape
             |   comment
+            |   cl::eps_p(qbk_since(106u))
+            >>  (   cl::ch_p('[')           [actions.plain_char]
+                >>  simple_phrase
+                >>  (   cl::ch_p(']')       [actions.plain_char]
+                    |   cl::eps_p           [actions.error("Missing close bracket")]
+                    )
+                )
             ;
+
+        local.mismatched_square_bracket =
+                cl::eps_p(qbk_since(106u))
+            >>  cl::ch_p(']')               [actions.plain_char]
+            >>  cl::eps_p                   [actions.error("Mismatched close bracket")]
+                ;
 
         local.macro =
             // must not be followed by alpha or underscore
@@ -484,7 +499,7 @@ namespace quickbook
             ]                                   [actions.paragraph]
             ;
 
-        local.escape =
+        escape =
                 cl::str_p("\\n")                [actions.break_]
             |   cl::str_p("\\ ")                // ignore an escaped space
             |   '\\' >> cl::punct_p             [actions.plain_char]
@@ -514,6 +529,16 @@ namespace quickbook
             ]
             ;
 
+        template_phrase =
+            actions.values.save()
+            [
+           *(   local.common(element_info::in_phrase)
+            |   local.mismatched_square_bracket
+            |   cl::anychar_p                   [actions.plain_char]
+            )
+            ]
+            ;
+
         //
         // Command line
         //
@@ -534,14 +559,17 @@ namespace quickbook
             ;
 
         local.command_line_macro_identifier =
-            +(cl::anychar_p - (cl::space_p | ']' | '='))
+                cl::eps_p(qbk_since(106u))
+            >>  +(cl::anychar_p - (cl::space_p | '[' | '\\' | ']' | '='))
+            |   +(cl::anychar_p - (cl::space_p | ']' | '='))
             ;
 
 
         local.command_line_phrase =
             actions.values.save()
             [   *(   local.common(element_info::in_phrase)
-                |   (cl::anychar_p - ']')       [actions.plain_char]
+                |   local.mismatched_square_bracket
+                |   cl::anychar_p               [actions.plain_char]
                 )
             ]
             ;
@@ -589,9 +617,12 @@ namespace quickbook
             '[' >> *(local.line_dummy_block | (cl::anychar_p - (cl::eol_p | ']'))) >> ']'
             ;
 
+        // TODO: Prevent an old macro from being used in a 1.6 file.
         macro_identifier =
-            +(cl::anychar_p - (cl::space_p | ']'))
+                cl::eps_p(qbk_since(106u))
+            >>  +(cl::anychar_p - (cl::space_p | '[' | '\\' | ']'))
+            |   cl::eps_p(qbk_before(106u))
+            >>  +(cl::anychar_p - (cl::space_p | ']'))
             ;
-
     }
 }

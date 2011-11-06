@@ -16,7 +16,7 @@ namespace quickbook
    quickbook_grammar::quickbook_grammar(quickbook::actions& a)
         : impl_(new impl(a))
         , command_line_macro(impl_->command_line, "command_line_macro")
-        , simple_phrase(impl_->simple_phrase, "simple_phrase")
+        , template_phrase(impl_->template_phrase, "template_phrase")
         , phrase(impl_->phrase_start, "phrase")
         , block(impl_->block_start, "block")
         , block_skip_initial_spaces(impl_->block_skip_initial_spaces, "block")

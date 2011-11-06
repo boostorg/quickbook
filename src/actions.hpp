@@ -301,12 +301,18 @@ namespace quickbook
 
     struct to_value_action
     {
-        to_value_action(quickbook::actions& actions)
-            : actions(actions) {}
+        to_value_action(quickbook::actions& actions, int tag = value::default_tag)
+            : actions(actions)
+            , tag(tag)
+            {}
 
         void operator()(parse_iterator first, parse_iterator last) const;
 
+        to_value_action operator()(int tag)
+            { return to_value_action(actions, tag); }
+
         quickbook::actions& actions;
+        int tag;
     };
 
     struct scoped_output_push : scoped_action_base

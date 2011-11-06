@@ -28,7 +28,7 @@ namespace quickbook
     {
         cl::rule<scanner>
                         heading, inner_block, inner_phrase, def_macro,
-                        table, table_row, variablelist,
+                        table, table_title, table_row, variablelist,
                         varlistentry, varlistterm, list, cell,
                         preformatted, begin_section, end_section,
                         xinclude, include,
@@ -171,8 +171,7 @@ namespace quickbook
 
         local.variablelist =
                 (cl::eps_p(*cl::blank_p >> cl::eol_p) | space)
-            >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
-            >>  (+eol)
+            >>  local.table_title
             >>  *local.varlistentry
             ;
 
@@ -213,8 +212,7 @@ namespace quickbook
                 local.same_line
             >>  local.element_id_1_5
             >>  local.same_line
-            >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
-            >>  (+eol)
+            >>  local.table_title
             >>  *local.table_row
             ;
 
@@ -232,6 +230,22 @@ namespace quickbook
                 )
                 | cl::eps_p                     [actions.error]
             )
+            ;
+
+        local.table_title =
+                cl::eps_p(qbk_before(106))
+            >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
+            >>  (+eol)
+            |   cl::eps_p(qbk_since(106))
+            >>  actions.scoped_output()
+                [
+                    (*(escape
+                    |   line_comment
+                    |   (cl::anychar_p - (*(line_comment | cl::blank_p) >> (cl::eol_p | '[' | ']')))
+                                                [actions.plain_char]
+                    ))                          [actions.docinfo_value(ph::arg1, ph::arg2, table_tags::title)]
+                ]
+            >>  (*eol)
             ;
 
         elements.add

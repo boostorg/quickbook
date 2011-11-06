@@ -54,7 +54,7 @@ namespace quickbook
 
     public:
         grammar command_line_macro;
-        grammar simple_phrase;
+        grammar template_phrase;
         grammar phrase;
         grammar block;
         grammar block_skip_initial_spaces;

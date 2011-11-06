@@ -27,3 +27,8 @@ __foo__
 
 [foo2]
 __foo__
+
+[def __crazy[1]]
+[def __crazy2\m2]
+__crazy
+__crazy2

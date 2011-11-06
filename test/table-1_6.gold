@@ -2,7 +2,7 @@
 <!DOCTYPE article PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
 <article id="table_tests" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
-  <title>Table 1.5</title>
+  <title>Table 1.6</title>
   <table frame="all" id="table_tests.table1">
     <title>Table 1</title>
     <tgroup cols="1">
@@ -93,7 +93,7 @@
       </tbody>
     </tgroup>
   </informaltable>
-  <table frame="all" id="table_tests._table5_">
+  <table frame="all" id="table_tests.table5">
     <title>-table5-</title>
     <tgroup cols="1">
       <thead>
@@ -162,8 +162,8 @@
       </tbody>
     </tgroup>
   </table>
-  <table frame="all" id="table_tests.title_______containing_a_comment">
-    <title>Title [/ ] containing a comment</title>
+  <table frame="all" id="table_tests.title_containing_a_comment">
+    <title>Title containing a comment</title>
     <tgroup cols="1">
       <thead>
         <row>
@@ -208,8 +208,7 @@
       </tbody>
     </tgroup>
   </table>
-  <table frame="all" id="table_tests.__title__">
-    <title>[[Title]]</title>
+  <informaltable frame="all">
     <tgroup cols="1">
       <thead>
         <row>
@@ -224,13 +223,20 @@
         <row>
           <entry>
             <para>
-              cell
+              Cell 1
+            </para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para>
+              Cell 2
             </para>
           </entry>
         </row>
       </tbody>
     </tgroup>
-  </table>
+  </informaltable>
   <section id="table_tests.section1">
     <title><link linkend="table_tests.section1">Section 1</link></title>
     <table frame="all" id="table_tests.section1.table1">
@@ -256,7 +262,7 @@
         </tbody>
       </tgroup>
     </table>
-    <table frame="all" id="table_tests.section1.a___b">
+    <table frame="all" id="table_tests.section1.a_b">
       <title>A &amp; B</title>
       <tgroup cols="2">
         <thead>

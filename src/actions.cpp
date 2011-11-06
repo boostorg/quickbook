@@ -1110,7 +1110,7 @@ namespace quickbook
             bool r = cl::parse(first, last,
                     content.get_tag() == template_tags::block ?
                         actions.grammar().block :
-                        actions.grammar().simple_phrase
+                        actions.grammar().template_phrase
                 ).full;
 
             boost::swap(actions.current_file, saved_current_file);
@@ -1488,7 +1488,7 @@ namespace quickbook
         if(values.check(general_tags::element_id))
             element_id = values.consume().get_quickbook();
 
-        std::string title = values.consume(table_tags::title).get_quickbook();
+        value title = values.consume(table_tags::title);
         bool has_title = !title.empty();
         
         std::string table_id;
@@ -1498,7 +1498,7 @@ namespace quickbook
         }
         else if (has_title) {
             if (actions.ids.compatibility_version() >= 105) {
-                table_id = actions.ids.add_id(detail::make_identifier(title), id_category::generated);
+                table_id = actions.ids.add_id(detail::make_identifier(title.get_quickbook()), id_category::generated);
             }
             else {
                 table_id = actions.ids.add_id("t", id_category::numbered);
@@ -1524,7 +1524,12 @@ namespace quickbook
                 actions.out << " id=\"" << table_id << "\"";
             actions.out << ">\n";
             actions.out << "<title>";
-            detail::print_string(title, actions.out.get());
+            if (qbk_version_n < 106u) {
+                detail::print_string(title.get_quickbook(), actions.out.get());
+            }
+            else {
+                actions.out << title.get_boostbook();
+            }
             actions.out << "</title>";
         }
         else
@@ -1977,7 +1982,7 @@ namespace quickbook
             actions.phrase.swap(value);
         }
 
-        actions.values.builder.insert(bbk_value(value, value::default_tag));
+        actions.values.builder.insert(bbk_value(value, tag));
     }
     
     bool scoped_output_push::start()

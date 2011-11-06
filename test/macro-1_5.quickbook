@@ -21,8 +21,14 @@ two [/This shouldn't expand]
 __foo__
 
 [template foo2[]
-[def __foo__ 2]
+[def __foo__ 3]
 __foo__
 ]
 
 [foo2]
+__foo__
+
+[def __crazy[macro__ 1]
+[def __crazy\macro__ 2]
+__crazy[macro__
+__crazy\macro__

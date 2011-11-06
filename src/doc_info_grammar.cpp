@@ -245,23 +245,6 @@ namespace quickbook
 
         local.attribute_rules[doc_info_attributes::compatibility_mode] = &local.doc_compatibility_mode;
 
-        local.char_ =
-                cl::str_p("\\n")            [actions.break_]
-            |   "\\ "                       // ignore an escaped space
-            |   '\\' >> cl::punct_p         [actions.plain_char]
-            |   "\\u" >> cl::repeat_p(4)
-                    [cl::chset<>("0-9a-fA-F")]
-                                            [actions.escape_unicode]
-            |   "\\U" >> cl::repeat_p(8)
-                    [cl::chset<>("0-9a-fA-F")]
-                                            [actions.escape_unicode]
-            |   ("'''" >> !eol)
-            >>  actions.values.save()
-                [  (*(cl::anychar_p - "'''"))
-                                            [actions.values.entry(ph::arg1, ph::arg2, phrase_tags::escape)]
-                >>  cl::str_p("'''")        [actions.element]
-                ]
-            |   cl::anychar_p               [actions.plain_char]
-            ;
+        local.char_ = escape | cl::anychar_p[actions.plain_char];
     }
 }

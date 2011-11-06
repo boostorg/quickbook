@@ -9,6 +9,11 @@
 [template foo2[x] [foo1]]
 [foo2 dynamic scoping]
 
+[/ This should be '[a]' because [a] isn't matched. ]
+[template test1[] [a]]
+[template test2[a] [test1]]
+[test2 1]
+
 [/ In 1.5 template arguments are scoped at the point they are defined]
 
 [template y new]

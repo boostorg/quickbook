@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE article PUBLIC "-//Boost//DTD BoostBook XML V1.0//EN" "http://www.boost.org/tools/boostbook/dtd/boostbook.dtd">
-<article id="table_1_3" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $" xmlns:xi="http://www.w3.org/2001/XInclude">
+<article id="table_tests" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
+ xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Table 1.3</title>
-  <table frame="all" id="table_1_3.t0">
+  <table frame="all" id="table_tests.t0">
     <title>Table 2</title>
     <tgroup cols="1">
       <thead>
@@ -47,7 +48,7 @@
       </tbody>
     </tgroup>
   </informaltable>
-  <table frame="all" id="table_1_3.t1">
+  <table frame="all" id="table_tests.t1">
     <title>Title</title>
     <tgroup cols="1">
       <thead>
@@ -70,7 +71,7 @@
       </tbody>
     </tgroup>
   </table>
-  <table frame="all" id="table_1_3.t2">
+  <table frame="all" id="table_tests.t2">
     <title>Title</title>
     <tgroup cols="1">
       <thead>
@@ -93,7 +94,7 @@
       </tbody>
     </tgroup>
   </table>
-  <table frame="all" id="table_1_3.t3">
+  <table frame="all" id="table_tests.t3">
     <title>Title [/ ] containing a comment</title>
     <tgroup cols="1">
       <thead>
@@ -116,7 +117,7 @@
       </tbody>
     </tgroup>
   </table>
-  <table frame="all" id="table_1_3.t4">
+  <table frame="all" id="table_tests.t4">
     <title>Title</title>
     <tgroup cols="1">
       <thead>
@@ -139,7 +140,7 @@
       </tbody>
     </tgroup>
   </table>
-  <table frame="all" id="table_1_3.t5">
+  <table frame="all" id="table_tests.t5">
     <title>[[Title]]</title>
     <tgroup cols="1">
       <thead>
@@ -162,9 +163,9 @@
       </tbody>
     </tgroup>
   </table>
-  <section id="table_1_3.section1">
-    <title><link linkend="table_1_3.section1">Section 1</link></title>
-    <table frame="all" id="table_1_3.section1.t0">
+  <section id="table_tests.section1">
+    <title><link linkend="table_tests.section1">Section 1</link></title>
+    <table frame="all" id="table_tests.section1.t0">
       <title>A &amp; B</title>
       <tgroup cols="2">
         <thead>
@@ -197,14 +198,14 @@
         </tbody>
       </tgroup>
     </table>
-    <table frame="all" id="table_1_3.section1.t1">
+    <table frame="all" id="table_tests.section1.t1">
       <title>Empty Table</title>
       <tgroup cols="0">
         <tbody>
         </tbody>
       </tgroup>
     </table>
-    <table frame="all" id="table_1_3.section1.t2">
+    <table frame="all" id="table_tests.section1.t2">
       <title>Table with an empty cell</title>
       <tgroup cols="1">
         <tbody>
@@ -218,7 +219,7 @@
         </tbody>
       </tgroup>
     </table>
-    <table frame="all" id="table_1_3.section1.t3">
+    <table frame="all" id="table_tests.section1.t3">
       <title>Indentation</title>
       <tgroup cols="2">
         <thead>
@@ -257,7 +258,7 @@
         </tbody>
       </tgroup>
     </table>
-    <table frame="all" id="table_1_3.section1.t4">
+    <table frame="all" id="table_tests.section1.t4">
       <title>Nested Tables</title>
       <tgroup cols="1">
         <thead>
@@ -277,7 +278,7 @@
         <tbody>
           <row>
             <entry>
-              <table frame="all" id="table_1_3.section1.t5">
+              <table frame="all" id="table_tests.section1.t5">
                 <title>Inner Table</title>
                 <tgroup cols="2">
                   <thead>
@@ -323,7 +324,7 @@
       </tgroup>
     </table>
     <anchor id="id1"/>
-    <table frame="all" id="table_1_3.section1.t6">
+    <table frame="all" id="table_tests.section1.t6">
       <title>Table with anchors</title>
       <tgroup cols="1">
         <thead>
