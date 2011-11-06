@@ -54,7 +54,6 @@ namespace quickbook
 
     public:
         grammar command_line_macro;
-        grammar common;
         grammar simple_phrase;
         grammar phrase;
         grammar block;

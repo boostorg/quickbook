@@ -39,7 +39,7 @@ namespace quickbook
 
             bool start()
             {
-                if (!(l.info.type & l.context) ||
+                if (!(l.info.type & l.element.context()) ||
                         qbk_version_n < l.info.qbk_version)
                     return false;
 
@@ -49,7 +49,7 @@ namespace quickbook
                     l.actions_.paragraph();
 
                 if ((info_.type & element_info::contextual_block) &&
-                        l.parse_blocks)
+                        l.top_level.parse_blocks())
                 {
                     info_.type = element_info::type_enum(
                         info_.type & ~element_info::in_phrase);
@@ -95,38 +95,11 @@ namespace quickbook
             main_grammar_local& l_;
         };
 
-        struct scoped_context_impl : scoped_action_base
-        {
-            scoped_context_impl(main_grammar_local& l)
-                : l_(l) {}
-    
-            bool start(int new_context)
-            {
-                saved_context_ = l_.context;
-                saved_parse_blocks_ = l_.parse_blocks;
-                l_.context = new_context;
-                l_.parse_blocks = l_.context != element_info::in_phrase;
-        
-                return true;
-            }
-        
-            void cleanup()
-            {
-                l_.context = saved_context_;
-                l_.parse_blocks = saved_parse_blocks_;
-            }
-
-        private:
-            main_grammar_local& l_;
-            int saved_context_;
-            bool saved_parse_blocks_;
-        };
-
         ////////////////////////////////////////////////////////////////////////
         // Local members
 
         cl::rule<scanner>
-                        top_level, blocks, paragraph_separator,
+                        blocks, paragraph_separator,
                         code, code_line, blank_line, hr,
                         list, list_item,
                         escape,
@@ -143,24 +116,34 @@ namespace quickbook
                         dummy_block
                         ;
 
-        cl::rule<scanner> element;
-
         struct simple_markup_closure
             : cl::closure<simple_markup_closure, char>
         {
             member1 mark;
         };
 
+        struct block_parse_closure
+            : cl::closure<block_parse_closure, bool>
+        {
+            member1 parse_blocks;
+        };
+
+        struct context_closure : cl::closure<context_closure, element_info::context>
+        {
+            member1 context;
+        };
+
         cl::rule<scanner, simple_markup_closure::context_t> simple_markup;
         cl::rule<scanner> simple_markup_end;
 
-        int context;
-        bool parse_blocks;
+        cl::rule<scanner, block_parse_closure::context_t> top_level;
+        cl::rule<scanner, context_closure::context_t> common;
+        cl::rule<scanner, context_closure::context_t> element;
+
         element_info info;
         element_info::type_enum element_type;
 
         quickbook::actions& actions_;
-        scoped_parser<scoped_context_impl> scoped_context;
         scoped_parser<process_element_impl> process_element;
         is_block_type is_block;
 
@@ -169,7 +152,6 @@ namespace quickbook
 
         main_grammar_local(quickbook::actions& actions)
             : actions_(actions)
-            , scoped_context(*this)
             , process_element(*this)
             , is_block(*this)
             {}
@@ -192,28 +174,25 @@ namespace quickbook
             ;
 
         phrase_start =
-            local.scoped_context(element_info::in_phrase)
-            [
-               *(   common
-                |   cl::anychar_p               [actions.plain_char]
-                )
-            ]                                   [actions.phrase_end]
+            (*( local.common(element_info::in_phrase)
+            |   cl::anychar_p                   [actions.plain_char]
+            ))                                  [actions.phrase_end]
             ;
 
         local.top_level =
-            local.scoped_context(element_info::in_block)
-            [   *(  cl::eps_p(ph::var(local.parse_blocks)) >> local.blocks
-                |   local.element               [ph::var(local.parse_blocks) = false]
+                cl::eps_p[local.top_level.parse_blocks = true]
+            >>  *(  cl::eps_p(local.top_level.parse_blocks) >> local.blocks
+                |   local.element(element_info::in_block)
+                                                [local.top_level.parse_blocks = false]
                 >>  !(cl::eps_p(local.is_block) >> +eol)
-                                                [ph::var(local.parse_blocks) = true]
-                |   local.paragraph_separator   [ph::var(local.parse_blocks) = true]
-                |   (   common
+                                                [local.top_level.parse_blocks = true]
+                |   local.paragraph_separator   [local.top_level.parse_blocks = true]
+                |   (   local.common(element_info::in_phrase)
                     |   cl::space_p             [actions.space_char]
                     |   cl::anychar_p           [actions.plain_char]
-                    )                           [ph::var(local.parse_blocks) = false]
+                    )                           [local.top_level.parse_blocks = false]
                 )
             >>  cl::eps_p                       [actions.paragraph]
-            ]
             ;
 
         local.blocks =
@@ -288,11 +267,9 @@ namespace quickbook
             ;
 
         local.list_item =
-            local.scoped_context(element_info::in_phrase)
-            [
             actions.values.save()
             [
-                *(  common
+                *(  local.common(element_info::in_phrase)
                 |   (cl::anychar_p -
                         (   cl::eol_p >> *cl::blank_p
                         >>  (cl::ch_p('*') | '#' | cl::eol_p)
@@ -300,13 +277,12 @@ namespace quickbook
                     )                       [actions.plain_char]
                 )
             ]
-            ]
             >> (+eol | cl::end_p)
             ;
 
-        common =
+        local.common =
                 local.macro
-            |   local.element
+            |   local.element(local.common.context)
             |   local.template_
             |   local.break_
             |   local.code_block
@@ -477,40 +453,31 @@ namespace quickbook
                 ;
 
         phrase =
-            local.scoped_context(element_info::in_phrase)
-            [
             actions.values.save()
-            [   *(  common
+            [   *(  local.common(element_info::in_phrase)
                 |   (cl::anychar_p - phrase_end)
                                                 [actions.plain_char]
                 )
-            ]
             ]
             ;
 
         extended_phrase =
-            local.scoped_context(element_info::in_conditional)
-            [
             actions.values.save()
-            [  *(   common
+            [  *(   local.common(element_info::in_conditional)
                 |   (cl::anychar_p - phrase_end)
                                                 [actions.plain_char]
                 )
-            ]
             ]
             ;
 
         inside_paragraph =
-            local.scoped_context(element_info::in_nested_block)
-            [
             actions.values.save()
             [   *(  local.paragraph_separator   [actions.paragraph]
-                |   common
+                |   local.common(element_info::in_nested_block)
                 |   (cl::anychar_p - phrase_end)
                                                 [actions.plain_char]
                 )
             ]                                   [actions.paragraph]
-            ]
             ;
 
         local.escape =
@@ -535,14 +502,11 @@ namespace quickbook
         //
 
         simple_phrase =
-            local.scoped_context(element_info::in_phrase)
-            [
             actions.values.save()
             [
-           *(   common
+           *(   local.common(element_info::in_phrase)
             |   (cl::anychar_p - ']')           [actions.plain_char]
             )
-            ]
             ]
             ;
 
@@ -571,13 +535,10 @@ namespace quickbook
 
 
         local.command_line_phrase =
-            local.scoped_context(element_info::in_phrase)
-            [
             actions.values.save()
-            [   *(   common
+            [   *(   local.common(element_info::in_phrase)
                 |   (cl::anychar_p - ']')       [actions.plain_char]
                 )
-            ]
             ]
             ;
 
