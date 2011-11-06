@@ -75,7 +75,7 @@
             </listitem>
             <listitem>
               <simpara>
-                <anchor id="a16"/> Nested Item 3
+                <anchor id="a16"/>Nested Item 3
               </simpara>
             </listitem>
           </itemizedlist>
@@ -94,7 +94,7 @@
       <anchor id="t1"/>Some text.
     </para>
     <para>
-      <anchor id="t2"/> Text content
+      <anchor id="t2"/>Text content
     </para>
   </section>
   <section id="anchor_test.anchors_in_syntax_highlighted_code">
@@ -127,7 +127,7 @@
           <row>
             <entry>
               <para>
-                <anchor id="table2"/> Cell 2
+                <anchor id="table2"/>Cell 2
               </para>
             </entry>
           </row>

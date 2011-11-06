@@ -112,7 +112,7 @@ namespace quickbook
                         template_inner_arg_1_5, brackets_1_5,
                         break_,
                         command_line_macro_identifier,
-                        dummy_block, line_dummy_block, mismatched_square_bracket
+                        dummy_block, line_dummy_block, square_brackets
                         ;
 
         struct simple_markup_closure
@@ -175,33 +175,27 @@ namespace quickbook
         // brackets.
         nested_phrase =
             actions.values.save()
-            [
-           *(   local.common(element_info::in_phrase)
-            |   (cl::anychar_p - ']')           [actions.plain_char]
-            )
-            ]
+            [*( ~cl::eps_p(']')
+            >>  local.common(element_info::in_phrase)
+            )]
             ;
 
         // paragraph_phrase is like a nested_phrase but is also terminated
         // by a paragraph end.
         paragraph_phrase =
             actions.values.save()
-            [   *(  local.common(element_info::in_phrase)
-                |   (cl::anychar_p - phrase_end)
-                                                [actions.plain_char]
-                )
-            ]
+            [*( ~cl::eps_p(phrase_end)
+            >>  local.common(element_info::in_phrase)
+            )]
             ;
 
         // extended_phrase is like a paragraph_phrase but allows some block
         // elements.
         extended_phrase =
             actions.values.save()
-            [  *(   local.common(element_info::in_conditional)
-                |   (cl::anychar_p - phrase_end)
-                                                [actions.plain_char]
-                )
-            ]
+            [*( ~cl::eps_p(phrase_end)
+            >>  local.common(element_info::in_conditional)
+            )]
             ;
 
         // inline_phrase is used a phrase that isn't nested inside
@@ -210,11 +204,7 @@ namespace quickbook
         // is part of the paragraph that contains it.
         inline_phrase =
             actions.values.save()
-            [
-           *(   local.common(element_info::in_phrase)
-            |   local.mismatched_square_bracket
-            |   cl::anychar_p                   [actions.plain_char]
-            )
+            [   *local.common(element_info::in_phrase)
             ]
             ;
 
@@ -222,18 +212,16 @@ namespace quickbook
         block_start = local.top_level;
 
         local.top_level =
-                cl::eps_p[local.top_level.parse_blocks = true]
-            >>  *(  cl::eps_p(local.top_level.parse_blocks) >> local.blocks
+                cl::eps_p                       [local.top_level.parse_blocks = true]
+            >>  *(  cl::eps_p(local.top_level.parse_blocks)
+                >>  local.blocks
                 |   local.element(element_info::in_block)
                                                 [local.top_level.parse_blocks = false]
                 >>  !(cl::eps_p(local.is_block) >> +eol)
                                                 [local.top_level.parse_blocks = true]
                 |   local.paragraph_separator   [local.top_level.parse_blocks = true]
-                |   (   local.common(element_info::in_phrase)
-                    |   local.mismatched_square_bracket
-                    |   cl::space_p             [actions.space_char]
-                    |   cl::anychar_p           [actions.plain_char]
-                    )                           [local.top_level.parse_blocks = false]
+                |   local.common(element_info::in_phrase)
+                                                [local.top_level.parse_blocks = false]
                 )
             >>  cl::eps_p                       [actions.paragraph]
             ;
@@ -242,9 +230,8 @@ namespace quickbook
         inside_paragraph =
             actions.values.save()
             [   *(  local.paragraph_separator   [actions.paragraph]
-                |   local.common(element_info::in_nested_block)
-                |   (cl::anychar_p - phrase_end)
-                                                [actions.plain_char]
+                |   ~cl::eps_p(']')
+                >>  local.common(element_info::in_nested_block)
                 )
             ]                                   [actions.paragraph]
             ;
@@ -327,13 +314,11 @@ namespace quickbook
         local.list_item =
             actions.values.save()
             [
-                *(  local.common(element_info::in_phrase)
-                |   local.mismatched_square_bracket
-                |   (cl::anychar_p -
-                        (   cl::eol_p >> *cl::blank_p
-                        >>  (cl::ch_p('*') | '#' | cl::eol_p)
-                        )
-                    )                       [actions.plain_char]
+                *(  ~cl::eps_p
+                    (   cl::eol_p >> *cl::blank_p
+                    >>  (cl::ch_p('*') | '#' | cl::eol_p)
+                    )
+                >>  local.common(element_info::in_phrase)
                 )
             ]
             >> (+eol | cl::end_p)
@@ -349,20 +334,21 @@ namespace quickbook
             |   local.simple_markup
             |   escape
             |   comment
-            |   cl::eps_p(qbk_since(106u))
-            >>  (   cl::ch_p('[')           [actions.plain_char]
-                >>  nested_phrase
-                >>  (   cl::ch_p(']')       [actions.plain_char]
-                    |   cl::eps_p           [actions.error("Missing close bracket")]
-                    )
-                )
+            |   cl::eps_p(qbk_since(106u)) >> local.square_brackets
+            |   cl::space_p                 [actions.space_char]
+            |   cl::anychar_p               [actions.plain_char]
             ;
 
-        local.mismatched_square_bracket =
-                cl::eps_p(qbk_since(106u))
-            >>  cl::ch_p(']')               [actions.plain_char]
-            >>  cl::eps_p                   [actions.error("Mismatched close bracket")]
-                ;
+        local.square_brackets =
+            (   cl::ch_p('[')           [actions.plain_char]
+            >>  paragraph_phrase
+            >>  (   cl::ch_p(']')       [actions.plain_char]
+                |   cl::eps_p           [actions.error("Missing close bracket")]
+                )
+            |   cl::ch_p(']')           [actions.plain_char]
+            >>  cl::eps_p               [actions.error("Mismatched close bracket")]
+            )
+            ;
 
         local.macro =
             // must not be followed by alpha or underscore
