@@ -29,7 +29,12 @@ namespace quickbook
         return (qbk_version_n < version) ? p.get_quickbook() : p.get_boostbook();
     }
 
-    value consume_last(value_consumer& c, value::tag_type tag,
+    // Each docinfo attribute is stored in a value list, these are then stored
+    // in a sorted value list. The following convenience methods extract all the
+    // values for an attribute tag.
+
+    // Expecting at most one attribute, with several values in the list.
+    value consume_list(value_consumer& c, value::tag_type tag,
             std::vector<std::string>* duplicates)
     {
         value p;
@@ -45,10 +50,12 @@ namespace quickbook
         return p;
     }
 
-    value consume_last_single(value_consumer& c, value::tag_type tag,
+    // Expecting at most one attribute, with a single value, so extract that
+    // immediately.
+    value consume_value_in_list(value_consumer& c, value::tag_type tag,
             std::vector<std::string>* duplicates)
     {
-        value l = consume_last(c, tag, duplicates);
+        value l = consume_list(c, tag, duplicates);
         if(l.empty()) return l;
 
         assert(l.is_list());
@@ -59,7 +66,8 @@ namespace quickbook
         return p;
     }
 
-    std::vector<value> consume_multiple(value_consumer& c, value::tag_type tag)
+    // Any number of attributes, so stuff them into a vector.
+    std::vector<value> consume_multiple_lists(value_consumer& c, value::tag_type tag)
     {
         std::vector<value> values;
         
@@ -101,19 +109,19 @@ namespace quickbook
 
         std::vector<std::string> duplicates;
 
-        value id = consume_last_single(values, doc_info_attributes::id, &duplicates);
-        value dirname = consume_last_single(values, doc_info_attributes::dirname, &duplicates);
-        value last_revision = consume_last_single(values, doc_info_attributes::last_revision, &duplicates);
-        value purpose = consume_last_single(values, doc_info_attributes::purpose, &duplicates);
-        std::vector<value> categories = consume_multiple(values, doc_info_attributes::category);
-        value lang = consume_last_single(values, doc_info_attributes::lang, &duplicates);
-        value version = consume_last_single(values, doc_info_attributes::version, &duplicates);
-        std::vector<value> authors = consume_multiple(values, doc_info_attributes::authors);
-        std::vector<value> copyrights = consume_multiple(values, doc_info_attributes::copyright);
-        value license = consume_last_single(values, doc_info_attributes::license, &duplicates);
-        std::vector<value> biblioids = consume_multiple(values, doc_info_attributes::biblioid);
-        value compatibility_mode = consume_last(values, doc_info_attributes::compatibility_mode, &duplicates);
-        value xmlbase = consume_last_single(values, doc_info_attributes::xmlbase, &duplicates);
+        value id = consume_value_in_list(values, doc_info_attributes::id, &duplicates);
+        value dirname = consume_value_in_list(values, doc_info_attributes::dirname, &duplicates);
+        value last_revision = consume_value_in_list(values, doc_info_attributes::last_revision, &duplicates);
+        value purpose = consume_value_in_list(values, doc_info_attributes::purpose, &duplicates);
+        std::vector<value> categories = consume_multiple_lists(values, doc_info_attributes::category);
+        value lang = consume_value_in_list(values, doc_info_attributes::lang, &duplicates);
+        value version = consume_value_in_list(values, doc_info_attributes::version, &duplicates);
+        std::vector<value> authors = consume_multiple_lists(values, doc_info_attributes::authors);
+        std::vector<value> copyrights = consume_multiple_lists(values, doc_info_attributes::copyright);
+        value license = consume_value_in_list(values, doc_info_attributes::license, &duplicates);
+        std::vector<value> biblioids = consume_multiple_lists(values, doc_info_attributes::biblioid);
+        value compatibility_mode = consume_list(values, doc_info_attributes::compatibility_mode, &duplicates);
+        value xmlbase = consume_value_in_list(values, doc_info_attributes::xmlbase, &duplicates);
         
         // Skip over source-mode tags (already dealt with)
 
