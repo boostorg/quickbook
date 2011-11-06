@@ -42,6 +42,8 @@ test-suite quickbook.test :
     [ quickbook-test heading-1_5 ]
     [ quickbook-test heading-1_6 ]
     [ quickbook-error-test heading_unclosed-1_4-fail ]
+    [ quickbook-test hr-1_5 ]
+    [ quickbook-test hr-1_6 ]
     [ quickbook-test identifier-1_5 ]
     [ quickbook-test identifier-1_6 ]
     [ quickbook-test image-1_5 ]

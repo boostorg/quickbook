@@ -82,6 +82,7 @@ namespace quickbook
         cl::rule<scanner> eol;
         cl::rule<scanner> phrase_end;
         cl::rule<scanner> comment;
+        cl::rule<scanner> line_comment;
         cl::rule<scanner> macro_identifier;
 
         // Element Symbols       

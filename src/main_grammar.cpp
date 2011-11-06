@@ -113,7 +113,7 @@ namespace quickbook
                         template_inner_arg_1_5, brackets_1_5,
                         break_,
                         command_line_macro_identifier, command_line_phrase,
-                        dummy_block
+                        dummy_block, line_dummy_block
                         ;
 
         struct simple_markup_closure
@@ -212,8 +212,12 @@ namespace quickbook
         local.hr =
                 cl::str_p("----")
             >>  actions.values.list(block_tags::hr)
-                [   *(cl::anychar_p - eol)
-                >>  (+eol | cl::end_p)
+                [   (   cl::eps_p(qbk_since(106u))
+                    >>  *(line_comment | (cl::anychar_p - (cl::eol_p | '[' | ']')))
+                    |   cl::eps_p(qbk_before(106u))
+                    >>	*(line_comment | (cl::anychar_p - (cl::eol_p | "[/")))
+                    )
+                >>  *eol
                 ]                               [actions.element]
             ;
 
@@ -575,6 +579,14 @@ namespace quickbook
 
         local.dummy_block =
             '[' >> *(local.dummy_block | (cl::anychar_p - ']')) >> ']'
+            ;
+
+        line_comment =
+            "[/" >> *(local.line_dummy_block | (cl::anychar_p - (cl::eol_p | ']'))) >> ']'
+            ;
+
+        local.line_dummy_block =
+            '[' >> *(local.line_dummy_block | (cl::anychar_p - (cl::eol_p | ']'))) >> ']'
             ;
 
         macro_identifier =
