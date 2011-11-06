@@ -17,6 +17,9 @@
       <conceptname alt="foo">link text</conceptname> <globalname alt="foo">foo</globalname>
       <globalname alt="foo">link text</globalname>
     </para>
+    <para>
+      <link linkend="link">description</link>
+    </para>
   </section>
   <section id="link_tests.side_by_side_links">
     <title>Side-by-side links</title>

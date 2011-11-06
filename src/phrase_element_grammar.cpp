@@ -91,7 +91,7 @@ namespace quickbook
 
         local.link =
                 space
-            >>  (*(cl::anychar_p - (']' | hard_space)))
+            >>  (*(cl::anychar_p - (']' | space)))
                                                 [actions.values.entry(ph::arg1, ph::arg2)]
             >>  hard_space
             >>  local.inner_phrase

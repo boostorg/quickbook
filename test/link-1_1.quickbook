@@ -25,6 +25,8 @@
 [globalref foo]
 [globalref foo link text]
 
+[link link[/ comment]description]
+
 [endsect]
 
 [section Side-by-side links]
