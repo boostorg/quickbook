@@ -195,7 +195,7 @@ namespace quickbook
 
         local.attribute_rules[doc_info_attributes::copyright] = &local.doc_copyright;
 
-        local.doc_phrase = simple_phrase [actions.docinfo_value(ph::arg1, ph::arg2)];
+        local.doc_phrase = nested_phrase [actions.docinfo_value(ph::arg1, ph::arg2)];
         local.attribute_rules[doc_info_attributes::purpose] = &local.doc_phrase;
         local.attribute_rules[doc_info_attributes::license] = &local.doc_phrase;
 

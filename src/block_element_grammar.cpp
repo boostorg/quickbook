@@ -303,7 +303,7 @@ namespace quickbook
         local.inner_phrase =
             actions.scoped_output()
             [
-                phrase                          [actions.docinfo_value(ph::arg1, ph::arg2)]
+                paragraph_phrase                [actions.docinfo_value(ph::arg1, ph::arg2)]
             ]
             ;
     }

@@ -111,7 +111,7 @@ namespace quickbook
                         template_args_1_5, template_arg_1_5, template_arg_1_5_content,
                         template_inner_arg_1_5, brackets_1_5,
                         break_,
-                        command_line_macro_identifier, command_line_phrase,
+                        command_line_macro_identifier,
                         dummy_block, line_dummy_block, mismatched_square_bracket
                         ;
 
@@ -164,20 +164,62 @@ namespace quickbook
         main_grammar_local& local = cleanup_.add(
             new main_grammar_local(actions));
 
-        block_skip_initial_spaces =
-            *(cl::blank_p | comment) >> block_start
-            ;
-
-        block_start =
-            local.top_level >> blank
-            ;
-
+        // phrase/phrase_start is used for an entirely self-contained
+        // phrase. For example, any remaining anchors are written out
+        // at the end instead of being saved for any following content.
         phrase_start =
-            (*( local.common(element_info::in_phrase)
+            inline_phrase                       [actions.phrase_end]
+            ;
+
+        // nested_phrase is used for a phrase nested inside square
+        // brackets.
+        nested_phrase =
+            actions.values.save()
+            [
+           *(   local.common(element_info::in_phrase)
+            |   (cl::anychar_p - ']')           [actions.plain_char]
+            )
+            ]
+            ;
+
+        // paragraph_phrase is like a nested_phrase but is also terminated
+        // by a paragraph end.
+        paragraph_phrase =
+            actions.values.save()
+            [   *(  local.common(element_info::in_phrase)
+                |   (cl::anychar_p - phrase_end)
+                                                [actions.plain_char]
+                )
+            ]
+            ;
+
+        // extended_phrase is like a paragraph_phrase but allows some block
+        // elements.
+        extended_phrase =
+            actions.values.save()
+            [  *(   local.common(element_info::in_conditional)
+                |   (cl::anychar_p - phrase_end)
+                                                [actions.plain_char]
+                )
+            ]
+            ;
+
+        // inline_phrase is used a phrase that isn't nested inside
+        // brackets, but is not self contained. An example of this
+        // is expanding a template, which is parsed separately but
+        // is part of the paragraph that contains it.
+        inline_phrase =
+            actions.values.save()
+            [
+           *(   local.common(element_info::in_phrase)
             |   local.mismatched_square_bracket
             |   cl::anychar_p                   [actions.plain_char]
-            ))                                  [actions.phrase_end]
+            )
+            ]
             ;
+
+        // Top level blocks
+        block_start = local.top_level;
 
         local.top_level =
                 cl::eps_p[local.top_level.parse_blocks = true]
@@ -194,6 +236,17 @@ namespace quickbook
                     )                           [local.top_level.parse_blocks = false]
                 )
             >>  cl::eps_p                       [actions.paragraph]
+            ;
+
+        // Blocks contains within an element, e.g. a table cell or a footnote.
+        inside_paragraph =
+            actions.values.save()
+            [   *(  local.paragraph_separator   [actions.paragraph]
+                |   local.common(element_info::in_nested_block)
+                |   (cl::anychar_p - phrase_end)
+                                                [actions.plain_char]
+                )
+            ]                                   [actions.paragraph]
             ;
 
         local.blocks =
@@ -298,7 +351,7 @@ namespace quickbook
             |   comment
             |   cl::eps_p(qbk_since(106u))
             >>  (   cl::ch_p('[')           [actions.plain_char]
-                >>  simple_phrase
+                >>  nested_phrase
                 >>  (   cl::ch_p(']')       [actions.plain_char]
                     |   cl::eps_p           [actions.error("Missing close bracket")]
                     )
@@ -471,34 +524,6 @@ namespace quickbook
             |   phrase_end
                 ;
 
-        phrase =
-            actions.values.save()
-            [   *(  local.common(element_info::in_phrase)
-                |   (cl::anychar_p - phrase_end)
-                                                [actions.plain_char]
-                )
-            ]
-            ;
-
-        extended_phrase =
-            actions.values.save()
-            [  *(   local.common(element_info::in_conditional)
-                |   (cl::anychar_p - phrase_end)
-                                                [actions.plain_char]
-                )
-            ]
-            ;
-
-        inside_paragraph =
-            actions.values.save()
-            [   *(  local.paragraph_separator   [actions.paragraph]
-                |   local.common(element_info::in_nested_block)
-                |   (cl::anychar_p - phrase_end)
-                                                [actions.plain_char]
-                )
-            ]                                   [actions.paragraph]
-            ;
-
         escape =
                 cl::str_p("\\n")                [actions.break_]
             |   cl::str_p("\\ ")                // ignore an escaped space
@@ -517,29 +542,6 @@ namespace quickbook
             ;
 
         //
-        // Simple phrase grammar
-        //
-
-        simple_phrase =
-            actions.values.save()
-            [
-           *(   local.common(element_info::in_phrase)
-            |   (cl::anychar_p - ']')           [actions.plain_char]
-            )
-            ]
-            ;
-
-        template_phrase =
-            actions.values.save()
-            [
-           *(   local.common(element_info::in_phrase)
-            |   local.mismatched_square_bracket
-            |   cl::anychar_p                   [actions.plain_char]
-            )
-            ]
-            ;
-
-        //
         // Command line
         //
 
@@ -551,7 +553,7 @@ namespace quickbook
             >>  *cl::space_p
             >>  (   '='
                 >>  *cl::space_p
-                >>  local.command_line_phrase
+                >>  inline_phrase
                 >>  *cl::space_p
                 |   cl::eps_p
                 )                               [actions.to_value]
@@ -562,16 +564,6 @@ namespace quickbook
                 cl::eps_p(qbk_since(106u))
             >>  +(cl::anychar_p - (cl::space_p | '[' | '\\' | ']' | '='))
             |   +(cl::anychar_p - (cl::space_p | ']' | '='))
-            ;
-
-
-        local.command_line_phrase =
-            actions.values.save()
-            [   *(   local.common(element_info::in_phrase)
-                |   local.mismatched_square_bracket
-                |   cl::anychar_p               [actions.plain_char]
-                )
-            ]
             ;
 
         // Miscellaneous stuff

@@ -68,10 +68,9 @@ namespace quickbook
         // Main Grammar
         cl::rule<scanner> block_start;
         cl::rule<scanner> phrase_start;
-        cl::rule<scanner> block_skip_initial_spaces;
-        cl::rule<scanner> simple_phrase;
-        cl::rule<scanner> template_phrase;
-        cl::rule<scanner> phrase;
+        cl::rule<scanner> nested_phrase;
+        cl::rule<scanner> inline_phrase;
+        cl::rule<scanner> paragraph_phrase;
         cl::rule<scanner> extended_phrase;
         cl::rule<scanner> inside_paragraph;
         cl::rule<scanner> command_line;
