@@ -2017,6 +2017,8 @@ See the actual code here: [@boost:/tools/quickbook/test/stub.cpp]
 
 [endsect] [/Syntax Summary]
 
+[include 1_6.qbk]
+
 [section:install Installation and configuration]
 
 This section provides some guidelines on how to install and configure
