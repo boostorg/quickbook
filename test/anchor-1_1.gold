@@ -73,6 +73,11 @@
                 Nested Item 2
               </simpara>
             </listitem>
+            <listitem>
+              <simpara>
+                <anchor id="a16"/> Nested Item 3
+              </simpara>
+            </listitem>
           </itemizedlist>
         </simpara>
       </listitem>
@@ -96,5 +101,45 @@
     <title>Anchors in syntax highlighted code</title>
 <programlisting><phrase role="keyword">int</phrase> <anchor id="s1"/><phrase role="identifier">main</phrase><phrase role="special">()</phrase> <phrase role="special">{}</phrase>
 </programlisting>
+  </section>
+  <section id="anchor_test.nested_anchors">
+    <title>Nested anchors</title>
+    <table frame="all" id="anchor_test.nested_anchors.t0">
+      <title>Table with anchors</title>
+      <tgroup cols="1">
+        <thead>
+          <row>
+            <entry>
+              <para>
+                Heading
+              </para>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <para>
+                <anchor id="table1"/>Cell 1
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                <anchor id="table2"/> Cell 2
+              </para>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <para>
+                Cell 3<anchor id="table3"/>
+              </para>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
   </section>
 </article>

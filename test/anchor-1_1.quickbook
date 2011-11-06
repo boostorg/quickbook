@@ -43,6 +43,7 @@ they appear in the correct place. [#a3]
   [#a15]
   * Nested Item 1
   * Nested Item 2
+  * [#a16] Nested Item 3
 * Item 3
 
 [endsect]
@@ -66,4 +67,14 @@ Some text.
 
     int ``[#s1]``main() {}
 
+[endsect]
+
+[section Nested anchors]
+
+[table Table with anchors
+    [[Heading]]
+    [[[#table1]Cell 1]]
+    [[[#table2] Cell 2]]
+    [[Cell 3[#table3]]]
+]
 [endsect]
