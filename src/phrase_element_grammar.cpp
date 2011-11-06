@@ -52,7 +52,7 @@ namespace quickbook
             ;
 
         local.image =
-                cl::eps_p(qbk_since(105u))
+                qbk_since(105u)
             >>  blank
             >>  (+(
                     *cl::space_p
@@ -70,7 +70,7 @@ namespace quickbook
                 >>  space
                 ]
             >>  cl::eps_p(']')
-            |   cl::eps_p(qbk_before(105u))
+            |   qbk_before(105u)
             >>  blank
             >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
             >>  cl::eps_p(']')

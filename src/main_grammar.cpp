@@ -256,9 +256,9 @@ namespace quickbook
         local.hr =
                 cl::str_p("----")
             >>  actions.values.list(block_tags::hr)
-                [   (   cl::eps_p(qbk_since(106u))
+                [   (   qbk_since(106u)
                     >>  *(line_comment | (cl::anychar_p - (cl::eol_p | '[' | ']')))
-                    |   cl::eps_p(qbk_before(106u))
+                    |   qbk_before(106u)
                     >>	*(line_comment | (cl::anychar_p - (cl::eol_p | "[/")))
                     )
                 >>  *eol
@@ -333,7 +333,7 @@ namespace quickbook
             |   local.simple_markup
             |   escape
             |   comment
-            |   cl::eps_p(qbk_since(106u)) >> local.square_brackets
+            |   qbk_since(106u) >> local.square_brackets
             |   cl::space_p                 [actions.space_char]
             |   cl::anychar_p               [actions.plain_char]
             ;
@@ -374,10 +374,8 @@ namespace quickbook
             ;
 
         local.template_args =
-                cl::eps_p(qbk_since(105u))
-            >>  local.template_args_1_5
-            |   cl::eps_p(qbk_before(105u))
-            >>  local.template_args_1_4
+                qbk_since(105u) >> local.template_args_1_5
+            |   qbk_before(105u) >> local.template_args_1_4
             ;
 
         local.template_args_1_4 = local.template_arg_1_4 >> *(".." >> local.template_arg_1_4);
@@ -545,7 +543,7 @@ namespace quickbook
             ;
 
         local.command_line_macro_identifier =
-                cl::eps_p(qbk_since(106u))
+                qbk_since(106u)
             >>  +(cl::anychar_p - (cl::space_p | '[' | '\\' | ']' | '='))
             |   +(cl::anychar_p - (cl::space_p | ']' | '='))
             ;
@@ -595,9 +593,9 @@ namespace quickbook
 
         // TODO: Prevent an old macro from being used in a 1.6 file.
         macro_identifier =
-                cl::eps_p(qbk_since(106u))
+                qbk_since(106u)
             >>  +(cl::anychar_p - (cl::space_p | '[' | '\\' | ']'))
-            |   cl::eps_p(qbk_before(106u))
+            |   qbk_before(106u)
             >>  +(cl::anychar_p - (cl::space_p | ']'))
             ;
     }
