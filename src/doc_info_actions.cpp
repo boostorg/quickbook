@@ -113,6 +113,7 @@ namespace quickbook
         value license = consume_last_single(values, doc_info_attributes::license, &duplicates);
         std::vector<value> biblioids = consume_multiple(values, doc_info_attributes::biblioid);
         value compatibility_mode = consume_last(values, doc_info_attributes::compatibility_mode, &duplicates);
+        value xmlbase = consume_last_single(values, doc_info_attributes::xmlbase, &duplicates);
         
         // Skip over source-mode tags (already dealt with)
 
@@ -241,6 +242,18 @@ namespace quickbook
         assert(doc_title.check() && !actions.doc_type.empty() &&
             !start_file_info.doc_id.empty());
 
+        // Set xmlbase
+
+        std::string xmlbase_value;
+
+        if (!xmlbase.empty())
+        {
+            xinclude_path x = calculate_xinclude_path(xmlbase, actions);
+
+            xmlbase_value = x.uri;
+            actions.xinclude_base = x.path;
+        }
+
         // Warn about invalid fields
 
         if (actions.doc_type != "library")
@@ -330,8 +343,16 @@ namespace quickbook
             out << strdate;
         }
 
-        out << "\" \n"
-            << "    xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n";
+        out << "\" \n";
+
+        if (!xmlbase.empty())
+        {
+            out << "    xml:base=\""
+                << xmlbase_value
+                << "\"\n";
+        }
+
+        out << "    xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n";
 
         std::ostringstream tmp;
 

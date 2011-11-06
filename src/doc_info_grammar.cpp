@@ -164,6 +164,7 @@ namespace quickbook
         local.attribute_rules[doc_info_attributes::category] = &local.doc_simple;
         local.attribute_rules[doc_info_attributes::last_revision] = &local.doc_simple;
         local.attribute_rules[doc_info_attributes::lang] = &local.doc_simple;
+        local.attribute_rules[doc_info_attributes::xmlbase] = &local.doc_simple;
 
         local.doc_copyright_holder
             =   *(  ~cl::eps_p

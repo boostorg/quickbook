@@ -39,6 +39,7 @@ namespace quickbook
         std::string doc_type;
         file const* current_file;
         fs::path filename_relative;
+        fs::path xinclude_base;
         std::string source_mode;
         string_symbols macro;
     private:

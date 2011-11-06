@@ -97,6 +97,7 @@ namespace quickbook
         , doc_type(a.doc_type)
         , current_file(a.current_file)
         , filename_relative(a.filename_relative)
+        , xinclude_base(a.xinclude_base)
         , source_mode(a.source_mode)
         , macro()
     {
@@ -117,6 +118,7 @@ namespace quickbook
         boost::swap(a.doc_type, doc_type);
         boost::swap(a.current_file, current_file);
         boost::swap(a.filename_relative, filename_relative);
+        boost::swap(a.xinclude_base, xinclude_base);
         boost::swap(a.source_mode, source_mode);
         if (scope & scope_output) {
             a.out.pop();

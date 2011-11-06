@@ -1711,9 +1711,10 @@ namespace quickbook
         return result;
     }
 
-    std::string check_path(value const& path, quickbook::actions& actions)
+    fs::path check_path(value const& path, quickbook::actions& actions)
     {
-        std::string path_text = path.get_quickbook();
+        std::string path_text = path.is_encoded() ? path.get_boostbook() :
+            path.get_quickbook();
 
         if(path_text.find('\\') != std::string::npos)
         {
@@ -1729,26 +1730,24 @@ namespace quickbook
         
         boost::replace(path_text, '\\', '/');
         
-        return path_text;
+        return detail::generic_to_path(path_text);
     }
 
-    fs::path calculate_relative_path(std::string const& name, quickbook::actions& actions)
+    xinclude_path calculate_xinclude_path(value const& p, quickbook::actions& actions)
     {
-        // Given a source file and the current filename, calculate the
-        // path to the source file relative to the output directory.
+        fs::path path = check_path(p, actions);
 
-        fs::path path = detail::generic_to_path(name);
-        if (path.has_root_directory())
+        // If the path is relative
+        if (!path.has_root_directory())
         {
-            return path;
+            // Resolve the path from the current file
+            path = actions.current_file->path.parent_path() / path;
+
+            // Then calculate relative to the current xinclude_base.
+            path = path_difference(actions.xinclude_base, path);
         }
-        else
-        {
-            return path_difference(
-                actions.xinclude_base,
-                actions.current_file->path.parent_path() / path);
-                
-        }
+
+        return xinclude_path(path, detail::escape_uri(detail::path_to_generic(path)));
     }
 
     void xinclude_action(quickbook::actions& actions, value xinclude)
@@ -1756,12 +1755,11 @@ namespace quickbook
         write_anchors(actions, actions.out);
 
         value_consumer values = xinclude;
-        fs::path path = calculate_relative_path(
-            check_path(values.consume(), actions), actions);
+        xinclude_path x = calculate_xinclude_path(values.consume(), actions);
         values.finish();
 
         actions.out << "\n<xi:include href=\"";
-        detail::print_string(detail::escape_uri(path.generic_string()), actions.out.get());
+        detail::print_string(x.uri, actions.out.get());
         actions.out << "\" />\n";
     }
 
@@ -1776,11 +1774,10 @@ namespace quickbook
             fs::path filename_relative;
         };
 
-        include_search_return include_search(std::string const & name,
+        include_search_return include_search(fs::path const& path,
                 quickbook::actions const& actions)
         {
             fs::path current = actions.current_file->path.parent_path();
-            fs::path path = detail::generic_to_path(name);
 
             // If the path is relative, try and resolve it.
             if (!path.has_root_directory() && !path.has_root_name())

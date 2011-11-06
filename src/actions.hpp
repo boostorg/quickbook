@@ -61,6 +61,16 @@ namespace quickbook
         actions& escape_actions,
         std::string const& source_mode);        
 
+    struct xinclude_path {
+        xinclude_path(fs::path& path, std::string const& uri) :
+            path(path), uri(uri) {}
+
+        fs::path path;
+        std::string uri;
+    };
+
+    xinclude_path calculate_xinclude_path(value const&, quickbook::actions&);
+
     struct error_message_action
     {
         // Prints an error message to std::cerr
