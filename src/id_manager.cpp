@@ -16,6 +16,7 @@
 #include <boost/foreach.hpp>
 #include <deque>
 #include <vector>
+#include <cctype>
 
 namespace quickbook
 {
@@ -826,6 +827,74 @@ namespace quickbook
     // process_ids
     //
 
+    //
+    // Data used for generating placeholders that have duplicates.
+    //
+
+    struct id_generation_data
+    {
+        id_generation_data(std::string const& src_id)
+          : child_start(src_id.rfind('.') + 1),
+            id(normalize_id(src_id, child_start, max_size - 1)),
+                // 'max_size - 1' leaves a character to append
+                // a number.
+            count(0)
+        {
+            if (std::isdigit(id[id.length() - 1]))
+            {
+                if (child_length() < max_size - 1)
+                    id += '_';
+                else
+                    reduce_id();
+            }
+        }
+
+        void reduce_id()
+        {
+            assert(id.length() > child_start);
+            std::size_t length = id.length() - 1;
+            while(length > child_start && std::isdigit(id[length - 1])) --length;
+            id.erase(length);
+            count = 0;
+        }
+
+        std::size_t child_length() const
+        {
+            return id.length() - child_start;
+        }
+
+        std::size_t child_start;
+        std::string id;
+        int count;
+    };
+
+    // Created for all desired ids, either when resolving an id or due to
+    // generating a new id to avoid duplicates.
+    struct id_data
+    {
+        id_data()
+          : category(id_category::numbered),
+            used(false),
+            generation_data()
+        {}
+
+        void update_category(id_category c)
+        {
+            if (c.c > category.c) category = c;
+        }
+
+        id_category category;   // The highest priority category of the
+                                // placeholders that want to use this id.
+        bool used;              // Whether this id has been used.
+        boost::shared_ptr<id_generation_data> generation_data;
+                                // If a duplicates are found, this is
+                                // created to generate new ids.
+                                //
+                                // Many to one relationship, because truncation
+                                // can lead to different ids contending for the
+                                // same id prefix.
+    };
+
     typedef boost::unordered_map<std::string, id_data> allocated_ids;
     typedef std::vector<id_placeholder*> placeholder_index;
 
@@ -930,74 +999,6 @@ namespace quickbook
 
         return sorted_placeholders;
     }
-
-    //
-    // Data used for generating placeholders that have duplicates.
-    //
-
-    struct id_generation_data
-    {
-        id_generation_data(std::string const& src_id)
-          : child_start(src_id.rfind('.') + 1),
-            id(normalize_id(src_id, child_start, max_size - 1)),
-                // 'max_size - 1' leaves a character to append
-                // a number.
-            count(0)
-        {
-            if (std::isdigit(id[id.length() - 1]))
-            {
-                if (child_length() < max_size - 1)
-                    id += '_';
-                else
-                    reduce_id();
-            }
-        }
-
-        void reduce_id()
-        {
-            assert(id.length() > child_start);
-            std::size_t length = id.length() - 1;
-            while(length > child_start && std::isdigit(id[length - 1])) --length;
-            id.erase(length);
-            count = 0;
-        }
-
-        std::size_t child_length() const
-        {
-            return id.length() - child_start;
-        }
-
-        std::size_t child_start;
-        std::string id;
-        int count;
-    };
-
-    // Created for all desired ids, either when resolving an id or due to
-    // generating a new id to avoid duplicates.
-    struct id_data
-    {
-        id_data()
-          : category(id_category::numbered),
-            used(false),
-            generation_data()
-        {}
-
-        void update_category(id_category c)
-        {
-            if (c.c > category.c) category = c;
-        }
-
-        id_category category;   // The highest priority category of the
-                                // placeholders that want to use this id.
-        bool used;              // Whether this id has been used.
-        boost::shared_ptr<id_generation_data> generation_data;
-                                // If a duplicates are found, this is
-                                // created to generate new ids.
-                                //
-                                // Many to one relationship, because truncation
-                                // can lead to different ids contending for the
-                                // same id prefix.
-    };
 
     //
     // resolve_id
