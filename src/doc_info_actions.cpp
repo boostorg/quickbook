@@ -92,9 +92,7 @@ namespace quickbook
         // Skip over invalid attributes
 
         while (values.check(value::default_tag)) values.consume();
-        
-        value qbk_version = values.optional_consume(doc_info_tags::qbk_version);
-        
+                
         value doc_title;
         if (values.check())
         {
@@ -109,6 +107,7 @@ namespace quickbook
 
         std::vector<std::string> duplicates;
 
+        value qbk_version = consume_list(values, doc_info_attributes::qbk_version, &duplicates);
         value id = consume_value_in_list(values, doc_info_attributes::id, &duplicates);
         value dirname = consume_value_in_list(values, doc_info_attributes::dirname, &duplicates);
         value last_revision = consume_value_in_list(values, doc_info_attributes::last_revision, &duplicates);

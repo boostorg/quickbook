@@ -112,11 +112,6 @@ namespace quickbook
             >> hard_space
             >>  actions.to_value(doc_info_tags::title)
                 [  *(~cl::eps_p(cl::ch_p('[') | ']' | cl::eol_p) >> local.char_) ]
-            >>  !(
-                    space >> '[' >>
-                        local.quickbook_version
-                    >> space >> ']'
-                )
             >>  *(
                     space
                 >>  '['
@@ -139,19 +134,7 @@ namespace quickbook
             >>  (+cl::eol_p | cl::end_p)
             ;
 
-        local.quickbook_version =
-            actions.values.list(doc_info_tags::qbk_version)
-            [   "quickbook"
-            >>  hard_space
-            >>  (   cl::uint_p              [actions.values.entry(ph::arg1)]
-                    >> '.' 
-                    >>  uint2_t()           [actions.values.entry(ph::arg1)]
-                )
-            ]
-            ;
-
         // TODO: Clear phrase afterwards?
-
         local.doc_fallback = (*(~cl::eps_p(']') >> local.char_));
 
         // TODO: Restrictions on doc_id and doc_dirname?
@@ -164,6 +147,14 @@ namespace quickbook
         local.attribute_rules[doc_info_attributes::last_revision] = &local.doc_simple;
         local.attribute_rules[doc_info_attributes::lang] = &local.doc_simple;
         local.attribute_rules[doc_info_attributes::xmlbase] = &local.doc_simple;
+
+        local.quickbook_version =
+                cl::uint_p                  [actions.values.entry(ph::arg1)]
+            >>  '.' 
+            >>  uint2_t()                   [actions.values.entry(ph::arg1)]
+            ;
+
+        local.attribute_rules[doc_info_attributes::qbk_version] = &local.quickbook_version;
 
         local.doc_copyright_holder
             =   *(  ~cl::eps_p

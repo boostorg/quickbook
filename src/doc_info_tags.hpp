@@ -14,7 +14,6 @@
 namespace quickbook
 {
     QUICKBOOK_VALUE_TAGS(doc_info_tags, 0x400,
-        (qbk_version)
         (type)
         (title)
         (author_surname)(author_first)
@@ -24,6 +23,7 @@ namespace quickbook
     )
 
     QUICKBOOK_VALUE_NAMED_TAGS(doc_info_attributes, 0x450,
+        ((qbk_version)("quickbook"))
         ((id)("id"))
         ((dirname)("dirname"))
         ((last_revision)("last-revision"))
