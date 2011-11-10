@@ -379,7 +379,7 @@ namespace quickbook
                 id_category::explicit_id);
 
             write_bridgehead(actions, level,
-                content.get_boostbook(), anchor, true);
+                content.get_boostbook(), anchor, self_linked_headers);
         }
         else if (!generic && actions.ids.compatibility_version() < 103) // version 1.2 and below
         {
@@ -405,7 +405,7 @@ namespace quickbook
                 id_category::generated_heading);
 
             write_bridgehead(actions, level,
-                content.get_boostbook(), anchor, true);
+                content.get_boostbook(), anchor, self_linked_headers);
         }
     }
 
@@ -1618,16 +1618,16 @@ namespace quickbook
 
         write_anchors(actions, actions.out);
 
-        if (actions.ids.compatibility_version() < 103) // version 1.2 and below
-        {
-            actions.out << content.get_boostbook();
-        }
-        else // version 1.3 and above
+        if (self_linked_headers && actions.ids.compatibility_version() >= 103)
         {
             actions.out << "<link linkend=\"" << full_id << "\">"
                 << content.get_boostbook()
                 << "</link>"
                 ;
+        }
+        else
+        {
+            actions.out << content.get_boostbook();
         }
         
         actions.out << "</title>\n";

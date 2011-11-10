@@ -26,6 +26,7 @@ namespace quickbook
     extern tm* current_time; // the current time
     extern tm* current_gm_time; // the current UTC time
     extern bool debug_mode;
+    extern bool self_linked_headers;
     extern std::vector<fs::path> include_path;
     extern std::vector<std::string> preset_defines;
 

@@ -46,6 +46,7 @@ namespace quickbook
     tm* current_time; // the current time
     tm* current_gm_time; // the current UTC time
     bool debug_mode; // for quickbook developers only
+    bool self_linked_headers;
     bool ms_errors = false; // output errors/warnings as if for VS
     std::vector<fs::path> include_path;
     std::vector<std::string> preset_defines;
@@ -223,6 +224,7 @@ main(int argc, char* argv[])
             ("help", "produce help message")
             ("version", "print version string")
             ("no-pretty-print", "disable XML pretty printing")
+            ("no-self-linked-headers", "stop headers linking to themselves")
             ("indent", PO_VALUE<int>(), "indent spaces")
             ("linewidth", PO_VALUE<int>(), "line width")
             ("input-file", PO_VALUE<input_string>(), "input file")
@@ -312,6 +314,8 @@ main(int argc, char* argv[])
 
         if (vm.count("no-pretty-print"))
             pretty_print = false;
+
+        quickbook::self_linked_headers = !vm.count("no-self-link-headers");
 
         if (vm.count("indent"))
             indent = vm["indent"].as<int>();
