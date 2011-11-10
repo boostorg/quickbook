@@ -442,18 +442,18 @@ namespace quickbook
                 (
                     "```" >>
                     (
-                       *(cl::anychar_p - "```")
-                            >> cl::eps_p("```")
+                       *(cl::anychar_p - (*cl::blank_p >> "```"))
+                            >> cl::eps_p(*cl::blank_p >> "```")
                     )                           [actions.code_block]
-                    >>  "```"
+                    >> *cl::blank_p >> "```"
                 )
             |   (
                     "``" >>
                     (
-                       *(cl::anychar_p - "``")
-                            >> cl::eps_p("``")
+                       *(cl::anychar_p - (*cl::blank_p >> "``"))
+                            >> cl::eps_p(*cl::blank_p >> "``")
                     )                           [actions.code_block]
-                    >>  "``"
+                    >> *cl::blank_p >> "``"
                 )
             ;
 
