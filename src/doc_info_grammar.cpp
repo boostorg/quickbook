@@ -146,11 +146,10 @@ namespace quickbook
                     [local.attribute_rule]
                 >>  space
                 >>  ']'
-                >>  +cl::eol_p
                 )
             >>  space                       [actions.values.sort()]
             >>  ']'
-            >>  (+cl::eol_p | cl::end_p)
+            >>  (+eol | cl::end_p)
             ;
 
         // TODO: Clear phrase afterwards?
