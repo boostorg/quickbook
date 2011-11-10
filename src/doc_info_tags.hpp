@@ -35,9 +35,10 @@ namespace quickbook
         ((copyright)("copyright"))
         ((license)("license"))
         ((biblioid)("biblioid"))
-        ((source_mode)("source-mode"))
         ((compatibility_mode)("compatibility-mode"))
         ((xmlbase)("xmlbase"))
+        // Source mode must come last.
+        ((source_mode)("source-mode"))
     )
 }
 
