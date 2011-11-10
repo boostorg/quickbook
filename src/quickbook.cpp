@@ -98,10 +98,8 @@ namespace quickbook
             pre(actor.out, actor, include_doc_id, docinfo_type);
 
             info = cl::parse(info.hit ? info.stop : first, last, actor.grammar().block);
-            if (info.full)
-            {
-                post(actor.out, actor, docinfo_type);
-            }
+
+            post(actor.out, actor, docinfo_type);
         }
 
         if (!info.full)
@@ -148,10 +146,10 @@ namespace quickbook
             result = 1;
         }
 
-        std::string stage2 = ids.replace_placeholders(buffer.str());
-
         if (result == 0)
         {
+            std::string stage2 = ids.replace_placeholders(buffer.str());
+
             fs::ofstream fileout(fileout_);
 
             if (pretty_print)

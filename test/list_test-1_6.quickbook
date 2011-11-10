@@ -1,5 +1,5 @@
 [article List Test
-[quickbook 1.5]
+[quickbook 1.6]
 ]
 
 Simple list:
@@ -96,5 +96,19 @@ Don't end list with comment 2:
 * One
 * Two
 * Three
+
+[endsect]
+
+[section Paragraphs in list items]
+
+* One
+
+  Two
+
+* Three
+  * Four
+
+    Five
+* Six
 
 [endsect]

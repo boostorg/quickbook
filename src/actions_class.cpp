@@ -59,6 +59,7 @@ namespace quickbook
         , code_block(phrase, phrase, *this)
         , inline_code(phrase, *this)
         , paragraph(*this)
+        , list_item(*this)
         , phrase_end(*this)
         , raw_char(phrase)
         , plain_char(phrase, *this)

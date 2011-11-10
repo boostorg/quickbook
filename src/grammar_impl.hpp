@@ -22,26 +22,21 @@ namespace quickbook
 
     struct element_info
     {
-        enum context {
-            in_block = 1,
-            in_phrase = 2,
-            in_conditional = 4,
-            in_nested_block = 8,
-            // This is a magic value to indicate an element that
-            // might be a block or might be a phrase. It isn't
-            // perfect, if a contextual_block appears at the
-            // beginning of a paragraph it might interpreted as
-            // a block when is should be a phrase.
-            contextual_block = 16
-        };
-
         enum type_enum {
             nothing = 0,
-            block = in_block,
-            conditional_or_block = block | in_conditional,
-            nested_block = conditional_or_block | in_nested_block,
-            phrase = nested_block | in_phrase,
-            maybe_block = phrase | contextual_block
+            block = 1,
+            conditional_or_block = 2,
+            nested_block = 4,
+            phrase = 8,
+            maybe_block = 16
+        };
+
+        enum context {
+            in_phrase = phrase | maybe_block,
+            in_conditional = in_phrase | conditional_or_block,
+            in_nested_block = in_conditional | nested_block,
+            only_block = block | conditional_or_block | nested_block,
+            only_contextual_block = block | conditional_or_block | nested_block | maybe_block
         };
 
         element_info()

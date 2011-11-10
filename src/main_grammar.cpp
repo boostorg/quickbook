@@ -16,6 +16,7 @@
 #include "phrase_tags.hpp"
 #include "parsers.hpp"
 #include "scoped.hpp"
+#include "input_path.hpp"
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_chset.hpp>
 #include <boost/spirit/include/classic_if.hpp>
@@ -23,15 +24,64 @@
 #include <boost/spirit/include/classic_attribute.hpp>
 #include <boost/spirit/include/classic_lazy.hpp>
 #include <boost/spirit/include/phoenix1_primitives.hpp>
+#include <boost/range/algorithm/find_first_of.hpp>
+#include <boost/range/as_literal.hpp>
+
+#include <iostream>
 
 namespace quickbook
 {
     namespace cl = boost::spirit::classic;
 
+    struct list_stack_item {
+        bool root;
+        unsigned int indent;
+        unsigned int indent2;
+        char mark;
+
+        list_stack_item() :
+            root(true), indent(0), indent2(0), mark('\0') {}
+
+        list_stack_item(char mark, unsigned int indent, unsigned int indent2) :
+            root(false), indent(indent), indent2(indent2), mark(mark)
+        {}
+
+    };
+
+    struct block_types {
+        enum values {
+            none, code, list, paragraph
+        };
+    };
+
+    template <typename T>
+    struct member_action
+    {
+        typedef void(T::*member_function)(parse_iterator, parse_iterator);
+
+        T& l;
+        member_function mf;
+
+        member_action(T& l, member_function mf) : l(l), mf(mf) {}
+
+        void operator()(parse_iterator first, parse_iterator last) const {
+            (l.*mf)(first, last);
+        }
+    };
+
     struct main_grammar_local
     {
         ////////////////////////////////////////////////////////////////////////
         // Local actions
+
+        void start_blocks_impl(parse_iterator first, parse_iterator last);
+        void end_blocks_impl(parse_iterator first, parse_iterator last);
+        void check_indentation_impl(parse_iterator first, parse_iterator last);
+        void check_code_block_impl(parse_iterator first, parse_iterator last);
+        void plain_block(string_iterator first, string_iterator last);
+        void list_block(string_iterator first, string_iterator mark_pos,
+                string_iterator last);
+        void clear_stack();
 
         struct process_element_impl : scoped_action_base {
             process_element_impl(main_grammar_local& l)
@@ -45,15 +95,9 @@ namespace quickbook
 
                 info_ = l.info;
 
-                if (!(info_.type & element_info::in_phrase))
+                if (info_.type != element_info::phrase &&
+                        info_.type != element_info::maybe_block)
                     l.actions_.paragraph();
-
-                if ((info_.type & element_info::contextual_block) &&
-                        l.top_level.parse_blocks())
-                {
-                    info_.type = element_info::type_enum(
-                        info_.type & ~element_info::in_phrase);
-                }
 
                 l.actions_.values.builder.reset();
                 
@@ -76,32 +120,25 @@ namespace quickbook
             main_grammar_local& l;
             element_info info_;
         };
-        
-        struct is_block_type
-        {
-            typedef bool result_type;
-            template <typename Arg1 = void>
-            struct result { typedef bool type; };
-        
-            is_block_type(main_grammar_local& l)
-                : l_(l)
-            {}
 
-            bool operator()() const
-            {
-                return l_.element_type && !(l_.element_type & element_info::in_phrase);
+        struct in_list_impl {
+            main_grammar_local& l;
+
+            in_list_impl(main_grammar_local& l) :
+                l(l) {}
+
+            bool operator()() const {
+                return !l.list_stack.top().root;
             }
-            
-            main_grammar_local& l_;
         };
 
         ////////////////////////////////////////////////////////////////////////
         // Local members
 
         cl::rule<scanner>
-                        blocks, paragraph_separator,
+                        top_level, indent_check,
+                        paragraph_separator,
                         code, code_line, blank_line, hr,
-                        list, list_item,
                         inline_code,
                         template_,
                         code_block, macro,
@@ -121,10 +158,9 @@ namespace quickbook
             member1 mark;
         };
 
-        struct block_parse_closure
-            : cl::closure<block_parse_closure, bool>
+        struct block_item_closure : cl::closure<block_item_closure, bool>
         {
-            member1 parse_blocks;
+            member1 still_in_block;
         };
 
         struct context_closure : cl::closure<context_closure, element_info::context>
@@ -135,24 +171,39 @@ namespace quickbook
         cl::rule<scanner, simple_markup_closure::context_t> simple_markup;
         cl::rule<scanner> simple_markup_end;
 
-        cl::rule<scanner, block_parse_closure::context_t> top_level;
+        cl::rule<scanner, block_item_closure::context_t> paragraph;
+        cl::rule<scanner, context_closure::context_t> paragraph_item;
+        cl::rule<scanner, block_item_closure::context_t> list;
+        cl::rule<scanner, context_closure::context_t> list_item;
         cl::rule<scanner, context_closure::context_t> common;
         cl::rule<scanner, context_closure::context_t> element;
+
+        std::stack<list_stack_item> list_stack;
+        unsigned int list_indent;
+        block_types::values block_type;
 
         element_info info;
         element_info::type_enum element_type;
 
         quickbook::actions& actions_;
+        member_action<main_grammar_local> check_indentation;
+        member_action<main_grammar_local> check_code_block;
+        member_action<main_grammar_local> start_blocks;
+        member_action<main_grammar_local> end_blocks;
+        in_list_impl in_list;
         scoped_parser<process_element_impl> process_element;
-        is_block_type is_block;
 
         ////////////////////////////////////////////////////////////////////////
         // Local constructor
 
         main_grammar_local(quickbook::actions& actions)
             : actions_(actions)
+            , check_indentation(*this, &main_grammar_local::check_indentation_impl)
+            , check_code_block(*this, &main_grammar_local::check_indentation_impl)
+            , start_blocks(*this, &main_grammar_local::start_blocks_impl)
+            , end_blocks(*this, &main_grammar_local::end_blocks_impl)
+            , in_list(*this)
             , process_element(*this)
-            , is_block(*this)
             {}
     };
 
@@ -219,45 +270,83 @@ namespace quickbook
             ]
             ;
         // Top level blocks
-        block_start = local.top_level;
+        block_start =
+                (*eol)                          [local.start_blocks]
+            >>  (*local.top_level)              [local.end_blocks]
+            ;
 
         local.top_level =
-                cl::eps_p                       [local.top_level.parse_blocks = true]
-            >>  *(  cl::eps_p(local.top_level.parse_blocks)
-                >>  local.blocks
-                |   local.element(element_info::in_block)
-                                                [local.top_level.parse_blocks = false]
-                >>  !(cl::eps_p(local.is_block) >> +eol)
-                                                [local.top_level.parse_blocks = true]
-                |   local.paragraph_separator   [local.top_level.parse_blocks = true]
-                |   local.common(element_info::in_phrase)
-                                                [local.top_level.parse_blocks = false]
+                cl::eps_p(local.indent_check)
+            >>  (   cl::eps_p(ph::var(local.block_type) == block_types::code)
+                >>  local.code
+                |   cl::eps_p(ph::var(local.block_type) == block_types::list)
+                >>  local.list
+                |   cl::eps_p(ph::var(local.block_type) == block_types::paragraph)
+                >>  (   local.hr
+                    |   local.paragraph
+                    )
+                )
+            >>  *eol
+            ;
+
+        local.indent_check =
+            (   *cl::blank_p
+            >>  !(  (cl::ch_p('*') | '#')
+                >> *cl::blank_p)
+            )                                   [local.check_indentation]
+            ;
+
+        local.paragraph =
+                cl::eps_p                       [local.paragraph.still_in_block = true]
+            >>  local.paragraph_item(element_info::only_contextual_block)
+            >>  *(  cl::eps_p(local.paragraph.still_in_block)
+                >>  local.paragraph_item(element_info::only_block)
                 )
             >>  cl::eps_p                       [actions.paragraph]
+            ;
+
+        local.paragraph_item =
+                local.element(local.paragraph_item.context)
+            >>  !eol                            [local.paragraph.still_in_block = false]
+            |   local.paragraph_separator       [local.paragraph.still_in_block = false]
+            |   local.common(element_info::in_phrase)
+            ;
+
+        local.list =
+                *cl::blank_p
+            >>  (cl::ch_p('*') | '#')
+            >>  *cl::blank_p                    [local.list.still_in_block = true]
+            >>  *(  cl::eps_p(local.list.still_in_block)
+                >>  local.list_item
+                )
+            >>  cl::eps_p                       [actions.list_item]
+            ;
+
+        local.list_item =
+                cl::eps_p(local.paragraph_separator) [local.list.still_in_block = false]
+            |   local.common(element_info::in_phrase)
+            ;
+
+        local.paragraph_separator =
+                cl::eol_p
+            >>  cl::eps_p
+                (   *cl::blank_p
+                >>  (   cl::eol_p
+                    |   cl::eps_p(local.in_list) >> (cl::ch_p('*') | '#')
+                    )
+                )
+            >>  *eol
             ;
 
         // Blocks contains within an element, e.g. a table cell or a footnote.
         inside_paragraph =
             actions.values.save()
             [   *(  local.paragraph_separator   [actions.paragraph]
+                >>  *eol
                 |   ~cl::eps_p(']')
                 >>  local.common(element_info::in_nested_block)
                 )
             ]                                   [actions.paragraph]
-            ;
-
-        local.blocks =
-           +(   local.code
-            |   local.list
-            |   local.hr
-            |   +eol
-            )
-            ;
-
-        local.paragraph_separator
-            =   cl::eol_p
-            >> *cl::blank_p
-            >>  cl::eol_p                       [actions.paragraph]
             ;
 
         local.hr =
@@ -297,37 +386,16 @@ namespace quickbook
             ;
 
         local.code_line =
-            cl::blank_p >> *(cl::anychar_p - cl::eol_p) >> (cl::eol_p | cl::end_p)
+            (   *cl::blank_p
+            >>  ~cl::eps_p(cl::eol_p)
+            )                                   [local.check_code_block]
+        >>  cl::eps_p(ph::var(local.block_type) == block_types::code)
+        >>  *(cl::anychar_p - cl::eol_p)
+        >>  (cl::eol_p | cl::end_p)
             ;
 
         local.blank_line =
             *cl::blank_p >> cl::eol_p
-            ;
-
-        local.list =
-                cl::eps_p(cl::ch_p('*') | '#')
-            >>  actions.values.list(block_tags::list)
-                [   +actions.values.list()
-                    [   (*cl::blank_p)      [actions.values.entry(ph::arg1, ph::arg2, general_tags::list_indent)]
-                    >>  (cl::ch_p('*') | '#')
-                                            [actions.values.entry(ph::arg1, ph::arg2, general_tags::list_mark)]
-                    >>  *cl::blank_p
-                    >>  actions.to_value() [ local.list_item ]
-                    ]
-                ]                           [actions.element]
-            ;
-
-        local.list_item =
-            actions.values.save()
-            [
-                *(  ~cl::eps_p
-                    (   cl::eol_p >> *cl::blank_p
-                    >>  (cl::ch_p('*') | '#' | cl::eol_p)
-                    )
-                >>  local.common(element_info::in_phrase)
-                )
-            ]
-            >> (+eol | cl::end_p)
             ;
 
         local.common =
@@ -620,5 +688,161 @@ namespace quickbook
             |   qbk_before(106u)
             >>  +(cl::anychar_p - (cl::space_p | ']'))
             ;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Indentation Handling
+
+    template <typename Iterator>
+    int indent_length(Iterator first, Iterator end)
+    {
+        int length = 0;
+        for(; first != end; ++first)
+        {
+            if (*first == '\t') {
+                // hardcoded tab to 4 for now
+                length = length + 4 - (length % 4);
+            }
+            else {
+                ++length;
+            }
+        }
+
+        return length;
+    }
+
+    void main_grammar_local::start_blocks_impl(parse_iterator, parse_iterator)
+    {
+        list_stack.push(list_stack_item());
+    }
+
+    void main_grammar_local::end_blocks_impl(parse_iterator, parse_iterator)
+    {
+        clear_stack();
+        list_stack.pop();
+    }
+
+    void main_grammar_local::check_indentation_impl(parse_iterator first_, parse_iterator last_)
+    {
+        string_iterator first = first_.base();
+        string_iterator last = last_.base();
+        string_iterator mark_pos = boost::find_first_of(
+            boost::make_iterator_range(first, last),
+            boost::as_literal("#*"));
+
+        if (mark_pos == last) {
+            plain_block(first, last);
+        }
+        else {
+            list_block(first, mark_pos, last);
+        }
+    }
+
+    void main_grammar_local::check_code_block_impl(parse_iterator first, parse_iterator last)
+    {
+        unsigned int new_indent = indent_length(first.base(), last.base());
+
+        block_type = (new_indent > list_stack.top().indent2) ?
+             block_types::code : block_types::none;
+    }
+
+    void main_grammar_local::plain_block(string_iterator first, string_iterator last)
+    {
+        if (qbk_version_n >= 106u) {
+            unsigned int new_indent = indent_length(first, last);
+
+            if (new_indent > list_stack.top().indent2) {
+                block_type = block_types::code;
+            }
+            else {
+                while (!list_stack.top().root && new_indent < list_stack.top().indent)
+                {
+                    actions_.end_list_item();
+                    actions_.end_list(list_stack.top().mark);
+                    list_stack.pop();
+                    list_indent = list_stack.top().indent;
+                }
+
+                if (!list_stack.top().root && new_indent == list_stack.top().indent)
+                {
+                    list_stack_item save = list_stack.top();
+                    list_stack.pop();
+                    if (new_indent == list_stack.top().indent) {
+                        actions_.end_list_item();
+                        actions_.end_list(save.mark);
+                        list_indent = list_stack.top().indent;
+                    }
+                    else {
+                        list_stack.push(save);
+                    }
+                }
+
+                block_type = block_types::paragraph;
+            }
+        }
+        else {
+            clear_stack();
+
+            if (last == first)
+                block_type = block_types::paragraph;
+            else
+                block_type = block_types::code;
+        }
+    }
+
+    void main_grammar_local::list_block(string_iterator first, string_iterator mark_pos,
+            string_iterator last)
+    {
+        unsigned int new_indent = indent_length(first, mark_pos);
+        unsigned int new_indent2 = indent_length(first, last);
+        char mark = *mark_pos;
+
+        if (list_stack.top().root && new_indent > 0) {
+            block_type = block_types::code;
+            return;
+        }
+
+        if (list_stack.top().root || new_indent > list_indent) {
+            list_stack.push(list_stack_item(mark, new_indent, new_indent2));
+            actions_.start_list(mark);
+        }
+        else if (new_indent == list_indent) {
+            actions_.end_list_item();
+        }
+        else {
+            // This should never reach root, since the first list
+            // has indentation 0.
+            while(!list_stack.top().root && new_indent < list_stack.top().indent)
+            {
+                actions_.end_list_item();
+                actions_.end_list(list_stack.top().mark);
+                list_stack.pop();
+            }
+
+            actions_.end_list_item();
+        }
+
+        list_indent = new_indent;
+
+        if (mark != list_stack.top().mark)
+        {
+            detail::outerr(actions_.current_file, first)
+                << "Illegal change of list style.\n";
+            detail::outwarn(actions_.current_file, first)
+                << "Ignoring change of list style." << std::endl;
+            ++actions_.error_count;
+        }
+
+        actions_.start_list_item();
+        block_type = block_types::list;
+    }
+
+    void main_grammar_local::clear_stack()
+    {
+        while (!list_stack.top().root) {
+            actions_.end_list_item();
+            actions_.end_list(list_stack.top().mark);
+            list_stack.pop();
+        }
     }
 }

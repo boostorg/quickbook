@@ -77,6 +77,11 @@ namespace quickbook
     // actions
     ///////////////////////////////////////////////////////////////////////////
 
+        void start_list(char mark);
+        void end_list(char mark);
+        void start_list_item();
+        void end_list_item();
+
         scoped_parser<to_value_scoped_action>
                                 to_value;
         scoped_parser<cond_phrase_push>
@@ -91,6 +96,7 @@ namespace quickbook
         code_action             code_block;
         inline_code_action      inline_code;
         paragraph_action        paragraph;
+        list_item_action        list_item;
         phrase_end_action       phrase_end;
         raw_char_action         raw_char;
         plain_char_action       plain_char;

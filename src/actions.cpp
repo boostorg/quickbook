@@ -67,7 +67,6 @@ namespace quickbook
         }
     }
 
-    void list_action(quickbook::actions&, value);
     void explicit_list_action(quickbook::actions&, value);
     void header_action(quickbook::actions&, value);
     void begin_section_action(quickbook::actions&, value);
@@ -99,8 +98,6 @@ namespace quickbook
         
         switch(v.get_tag())
         {
-        case block_tags::list:
-            return list_action(actions, v);
         case block_tags::ordered_list:
         case block_tags::itemized_list:
             return explicit_list_action(actions, v);
@@ -314,6 +311,14 @@ namespace quickbook
         }
     }
 
+    void list_item_action::operator()() const
+    {
+        std::string str;
+        actions.phrase.swap(str);
+        actions.out << str;
+        write_anchors(actions, actions.out);
+    }
+
     void phrase_end_action::operator()() const
     {
         write_anchors(actions, actions.phrase);
@@ -486,76 +491,30 @@ namespace quickbook
         }
     }
 
-    void list_action(quickbook::actions& actions, value list)
+    void actions::start_list(char mark)
     {
-        write_anchors(actions, actions.out);
+        write_anchors(*this, out);
+        assert(mark == '*' || mark == '#');
+        out << ((mark == '#') ? "<orderedlist>\n" : "<itemizedlist>\n");
+    }
 
-        typedef std::pair<char, int> mark_type;
-        std::stack<mark_type> list_marks;
-        int list_indent = -1;
+    void actions::end_list(char mark)
+    {
+        write_anchors(*this, out);
+        assert(mark == '*' || mark == '#');
+        out << ((mark == '#') ? "\n</orderedlist>" : "\n</itemizedlist>");
+    }
 
-        BOOST_FOREACH(value_consumer values, list)
-        {
-            int new_indent = indent_length(
-                    values.consume(general_tags::list_indent).get_quickbook());
-            value mark_value = values.consume(general_tags::list_mark);
-            std::string content = values.consume().get_boostbook();
-            values.finish();
+    void actions::start_list_item()
+    {
+        out << "<listitem><simpara>";
+        write_anchors(*this, out);
+    }
 
-            char mark = *mark_value.get_quickbook().begin();
-            assert(mark == '*' || mark == '#');
-
-            if(list_indent == -1) {
-                assert(new_indent == 0);
-            }
-
-            if(new_indent > list_indent)
-            {
-                list_indent = new_indent;
-                list_marks.push(mark_type(mark, list_indent));
-
-                actions.out << ((mark == '#') ? "<orderedlist>\n" : "<itemizedlist>\n");
-            }
-            else if (new_indent < list_indent)
-            {
-                BOOST_ASSERT(!list_marks.empty());
-                list_indent = new_indent;
-
-                while (!list_marks.empty() && (list_indent < list_marks.top().second))
-                {
-                    char mark = list_marks.top().first;
-                    list_marks.pop();
-                    actions.out << "</simpara></listitem>";
-                    actions.out << ((mark == '#') ? "\n</orderedlist>" : "\n</itemizedlist>");
-                }
-                actions.out << "</simpara></listitem>";
-            }
-            else
-            {
-                actions.out << "</simpara></listitem>";
-            }
-
-            if (mark != list_marks.top().first) // new_indent == list_indent
-            {
-                detail::outerr(mark_value.get_file(), mark_value.get_position())
-                    << "Illegal change of list style.\n";
-                detail::outwarn(mark_value.get_file(), mark_value.get_position())
-                    << "Ignoring change of list style" << std::endl;
-                ++actions.error_count;
-            }
-            
-            actions.out << "<listitem><simpara>";
-            actions.out << content;
-        }
-
-        assert(!list_marks.empty());
-        while (!list_marks.empty())
-        {
-            char mark = list_marks.top().first;
-            list_marks.pop();
-            actions.out << "</simpara></listitem>";
-            actions.out << ((mark == '#') ? "\n</orderedlist>" : "\n</itemizedlist>");
-        }
+    void actions::end_list_item()
+    {
+        write_anchors(*this, out);
+        out << "</simpara></listitem>";
     }
 
     void explicit_list_action(quickbook::actions& actions, value list)

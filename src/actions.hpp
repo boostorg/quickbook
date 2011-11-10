@@ -131,6 +131,21 @@ namespace quickbook
         quickbook::actions& actions;
     };
 
+    struct list_item_action
+    {
+        //  implicit paragraphs
+        //  doesn't output the paragraph if it's only whitespace.
+
+        list_item_action(
+            quickbook::actions& actions)
+        : actions(actions) {}
+
+        void operator()() const;
+        void operator()(parse_iterator, parse_iterator) const { (*this)(); }
+
+        quickbook::actions& actions;
+    };
+
     struct phrase_end_action
     {
         phrase_end_action(quickbook::actions& actions) :

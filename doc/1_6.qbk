@@ -200,4 +200,37 @@ New elements in 1.6 (to be documented later):
 
 [endsect]
 
+[section:listparagraphs Pargraphs in lists]
+
+I'm still refining this, but paragraphs can now be used in lists:
+
+[pre
+* Para 1
+
+  Para 2
+  * Nested Para 1
+
+    Nested Para 2
+
+        Code block
+  Para 3
+]
+
+generates:
+
+* Para 1
+
+  Para 2
+  * Nested Para 1
+
+    Nested Para 2
+
+        Code block
+  Para 3
+
+/TODO/: Improve code generation.
+/TODO/: Allow block elements in list items.
+
+[endsect]
+
 [endsect] [/1_6]
