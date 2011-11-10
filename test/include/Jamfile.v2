@@ -33,6 +33,6 @@ test-suite quickbook.test :
     [ quickbook-error-test section-fail2 ]
     [ quickbook-test in_section-1_5 ]
     [ quickbook-test in_section-1_6 ]
-    #[ quickbook-test compatibility-1_1 ]
-    #[ quickbook-test compatibility-1_5 ]
+    [ quickbook-test compatibility-1_1 ]
+    [ quickbook-test compatibility-1_5 ]
     ;
