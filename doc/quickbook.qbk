@@ -1,5 +1,6 @@
 [article Quickbook
-    [quickbook 1.5]
+    [quickbook 1.6]
+    [compatibility-mode 1.5]
     [version 1.5]
     [authors [de Guzman, Joel], [Niebler, Eric]]
     [copyright 2002 2004 2006 Joel de Guzman, Eric Niebler]
@@ -445,7 +446,7 @@ the context sensitivity and ambiguity.].
   which can be a common mistake, does not corrupt anything past a single block.
   We do not want the rest of the document to be rendered bold just because we
   forgot a trailing '*'. A single block is terminated by two end of lines or
-  the close bracket: ']'.
+  the close bracket: '\]'.
 * A line starting with the star will be interpreted as an unordered list.
   See __unordered_lists__.
 
@@ -1183,7 +1184,7 @@ allowed. Block level markups like lists, tables etc. are not allowed.
 [section Preformatted]
 
 Sometimes, you don't want some preformatted text to be parsed as C++. In such
-cases, use the [^[pre ... \]] markup block.
+cases, use the [^\[pre ... \]] markup block.
 
 [pre'''
 [pre
