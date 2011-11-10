@@ -211,6 +211,13 @@ namespace quickbook
             ]
             ;
 
+        table_title_phrase =
+            actions.values.save()
+            [   *( ~cl::eps_p(space >> (']' | '[' >> space >> '['))
+                >>  local.common(element_info::in_phrase)
+                )
+            ]
+            ;
         // Top level blocks
         block_start = local.top_level;
 

@@ -239,13 +239,9 @@ namespace quickbook
             |   qbk_since(106)
             >>  actions.to_value(table_tags::title)
                 [
-                    *(escape
-                    |   line_comment
-                    |   (cl::anychar_p - (*(line_comment | cl::blank_p) >> (cl::eol_p | '[' | ']')))
-                                                [actions.plain_char]
-                    )
+                    table_title_phrase
                 ]
-            >>  (*eol)
+            >>  space
             ;
 
         elements.add

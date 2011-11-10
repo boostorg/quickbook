@@ -237,6 +237,36 @@
       </tbody>
     </tgroup>
   </informaltable>
+  <table frame="all" id="table_tests.title_on_multiple_lines_with_bol">
+    <title>Title on multiple lines with <emphasis role="bold">bold</emphasis> text?</title>
+    <tgroup cols="1">
+      <thead>
+        <row>
+          <entry>
+            <para>
+              Heading
+            </para>
+          </entry>
+        </row>
+      </thead>
+      <tbody>
+        <row>
+          <entry>
+            <para>
+              Cell 1
+            </para>
+          </entry>
+        </row>
+        <row>
+          <entry>
+            <para>
+              Cell 2
+            </para>
+          </entry>
+        </row>
+      </tbody>
+    </tgroup>
+  </table>
   <section id="table_tests.section1">
     <title><link linkend="table_tests.section1">Section 1</link></title>
     <table frame="all" id="table_tests.section1.table1">

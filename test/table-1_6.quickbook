@@ -41,8 +41,6 @@ comment] Title
     [[cell]]
 ]
 
-[/ This one might be considered to be a bug. ]
-
 [table [/ Multi line
 comment]
     Title
@@ -52,6 +50,13 @@ comment]
 
 [table [/ Multi line
 comment]
+    [[Heading]]
+    [[Cell 1]]
+    [[Cell 2]]
+]
+
+[table Title on multiple
+    lines with *bold* text?
     [[Heading]]
     [[Cell 1]]
     [[Cell 2]]

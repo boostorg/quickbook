@@ -72,6 +72,7 @@ namespace quickbook
         cl::rule<scanner> inline_phrase;
         cl::rule<scanner> paragraph_phrase;
         cl::rule<scanner> extended_phrase;
+        cl::rule<scanner> table_title_phrase;
         cl::rule<scanner> inside_paragraph;
         cl::rule<scanner> command_line;
         cl::rule<scanner> escape;

@@ -152,21 +152,22 @@ that the closing square bracket isn't bold, now it parses as
 [*\[bold\]]. In this case it's just a subtle visual difference, but it
 could cause odd problems, for example when nested in a table cell.
 
-Also, unescaped square brackets aren't allowed in a table title now. If
-there are any it ends the title. So this is now an empty table:
+[endsect] [/escapes]
 
-    [table Empty]
+[section:table Table Titles]
 
-While an open bracket will be treated as the start of the table rows:
+Table titles are not parsed as phrases, so some markup is allowd:
+
+[table [*bold title]]
+
+Which is an empty table with a bold title. The title is no longer ended
+by a newline, but by either a closing square bracket, or two opening
+square brackets - which you get at the start of the table cells, so
+this now works:
 
     [table Simple[[heading 1][heading 2]][[cell 1][cell 2]]]
 
-I'm not sure if this is the best course as it doesn't allow for any
-markup or templates in the table title in the future. But the problem is
-that if they are allowed in the title it might be ambiguous where the
-title ends and the cells begin.
-
-[endsect] [/escapes]
+[endsect] [/table]
 
 [section:xmlbase XML base]
 
