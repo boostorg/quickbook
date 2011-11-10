@@ -14,6 +14,7 @@
 namespace quickbook
 {
     QUICKBOOK_VALUE_TAGS(doc_info_tags, 0x400,
+        (before_docinfo)
         (type)
         (title)
         (author_surname)(author_first)
@@ -22,8 +23,12 @@ namespace quickbook
         (biblioid_class)(biblioid_value)
     )
 
-    QUICKBOOK_VALUE_NAMED_TAGS(doc_info_attributes, 0x450,
+    QUICKBOOK_VALUE_NAMED_TAGS(doc_attributes, 0x440,
         ((qbk_version)("quickbook"))
+        ((compatibility_mode)("compatibility-mode"))
+    )
+
+    QUICKBOOK_VALUE_NAMED_TAGS(doc_info_attributes, 0x450,
         ((id)("id"))
         ((dirname)("dirname"))
         ((last_revision)("last-revision"))
@@ -35,7 +40,6 @@ namespace quickbook
         ((copyright)("copyright"))
         ((license)("license"))
         ((biblioid)("biblioid"))
-        ((compatibility_mode)("compatibility-mode"))
         ((xmlbase)("xmlbase"))
         // Source mode must come last.
         ((source_mode)("source-mode"))

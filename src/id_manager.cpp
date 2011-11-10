@@ -201,12 +201,13 @@ namespace quickbook
     id_manager::~id_manager() {}
 
     void id_manager::start_file(
+            unsigned compatibility_version,
             std::string const& include_doc_id,
             std::string const& id,
             std::string const& title)
     {
         boost::scoped_ptr<section_manager> new_section(
-            current_section->start_file(false, current_section->compatibility_version,
+            current_section->start_file(false, compatibility_version,
                 include_doc_id, id, title, 0, 0));
 
         if (new_section) {

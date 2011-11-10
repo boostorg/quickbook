@@ -62,6 +62,7 @@ namespace quickbook
                 std::string const& title);
 
         void start_file(
+                unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
                 std::string const& title);

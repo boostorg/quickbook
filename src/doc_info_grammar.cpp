@@ -74,6 +74,7 @@ namespace quickbook
                         quickbook_version, char_;
         cl::uint_parser<int, 10, 4, 4> doc_copyright_year;
         cl::symbols<> doc_types;
+        cl::symbols<value::tag_type> doc_info_attributes;
         cl::symbols<value::tag_type> doc_attributes;
         std::map<value::tag_type, cl::rule<scanner>* > attribute_rules;
         value::tag_type attribute_tag;
@@ -100,23 +101,41 @@ namespace quickbook
           , "reference", "set"
         ;
 
+        BOOST_FOREACH(value::tag_type t, doc_attributes::tags()) {
+            local.doc_attributes.add(doc_attributes::name(t), t);
+            local.doc_info_attributes.add(doc_attributes::name(t), t);
+        }
+
         BOOST_FOREACH(value::tag_type t, doc_info_attributes::tags()) {
-            local.doc_attributes.add(doc_info_attributes::name(t), t);
+            local.doc_info_attributes.add(doc_info_attributes::name(t), t);
         }
         
         doc_info_details =
-            space
-            >> '[' >> space
-            >> (local.doc_types >> cl::eps_p)
+                space
+            >>  *(  '['
+                >>  space
+                >>  local.doc_attributes    [local.assign_attribute]
+                >>  hard_space
+                >>  actions.values.list(ph::var(local.attribute_tag))
+                    [   cl::eps_p           [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::before_docinfo)]
+                    >>  local.attribute_rule
+                    ]
+                >>  space
+                >>  ']'
+                >>  space
+                )
+            >>  '['
+            >>  space
+            >>  (local.doc_types >> cl::eps_p)
                                             [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::type)]
-            >> hard_space
+            >>  hard_space
             >>  actions.to_value(doc_info_tags::title)
                 [  *(~cl::eps_p(cl::ch_p('[') | ']' | cl::eol_p) >> local.char_) ]
             >>  *(
                     space
                 >>  '['
                 >>  space
-                >>  (   local.doc_attributes
+                >>  (   local.doc_info_attributes
                                             [local.assign_attribute]
                     |   (+(cl::alnum_p | '_' | '-'))
                                             [local.fallback_attribute]
@@ -137,6 +156,26 @@ namespace quickbook
         // TODO: Clear phrase afterwards?
         local.doc_fallback = (*(~cl::eps_p(']') >> local.char_));
 
+        // Document Attributes
+
+        local.quickbook_version =
+                cl::uint_p                  [actions.values.entry(ph::arg1)]
+            >>  '.' 
+            >>  uint2_t()                   [actions.values.entry(ph::arg1)]
+            ;
+
+        local.attribute_rules[doc_attributes::qbk_version] = &local.quickbook_version;
+
+        local.doc_compatibility_mode =
+                cl::uint_p                  [actions.values.entry(ph::arg1)]
+            >>  '.'
+            >>  uint2_t()                   [actions.values.entry(ph::arg1)]
+            ;
+
+        local.attribute_rules[doc_attributes::compatibility_mode] = &local.doc_compatibility_mode;
+
+        // Document Info Attributes
+
         // TODO: Restrictions on doc_id and doc_dirname?
 
         local.doc_simple = actions.to_value() [*(~cl::eps_p(']') >> local.char_)];
@@ -147,14 +186,6 @@ namespace quickbook
         local.attribute_rules[doc_info_attributes::last_revision] = &local.doc_simple;
         local.attribute_rules[doc_info_attributes::lang] = &local.doc_simple;
         local.attribute_rules[doc_info_attributes::xmlbase] = &local.doc_simple;
-
-        local.quickbook_version =
-                cl::uint_p                  [actions.values.entry(ph::arg1)]
-            >>  '.' 
-            >>  uint2_t()                   [actions.values.entry(ph::arg1)]
-            ;
-
-        local.attribute_rules[doc_info_attributes::qbk_version] = &local.quickbook_version;
 
         local.doc_copyright_holder
             =   *(  ~cl::eps_p
@@ -227,14 +258,6 @@ namespace quickbook
             ;
 
         local.attribute_rules[doc_info_attributes::biblioid] = &local.doc_biblioid;
-        
-        local.doc_compatibility_mode =
-                cl::uint_p                  [actions.values.entry(ph::arg1)]
-            >>  '.'
-            >>  uint2_t()                   [actions.values.entry(ph::arg1)]
-            ;
-
-        local.attribute_rules[doc_info_attributes::compatibility_mode] = &local.doc_compatibility_mode;
 
         local.char_ = escape | cl::anychar_p[actions.plain_char];
     }

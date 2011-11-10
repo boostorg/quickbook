@@ -117,6 +117,19 @@ compatible with the current document.
 
 [endsect] [/compatibility]
 
+[section:version Version info outside of document info block]
+
+Can now use `quickbook` and `compatibility-mode` tags at the beginning of the
+file. Either before or without a document info block. This is useful for
+files just containing templates, which don't really need a document info
+block.
+
+This change is also backdated to older versions. So when including from an
+older version, the included file's version can be set (older versions
+ignore document info in included files).
+
+[endsect]
+
 [section:heading_ids Explicit Heading Ids]
 
 Headings can now be given explicit ids:

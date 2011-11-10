@@ -78,6 +78,39 @@ namespace quickbook
         return values;
     }
 
+    unsigned get_version(quickbook::actions& actions, bool using_docinfo,
+            value version)
+    {
+        unsigned result = 0;
+    
+        if (!version.empty()) {
+            value_consumer version_values(version);
+            bool before_docinfo = version_values.optional_consume(
+                doc_info_tags::before_docinfo).check();
+            int major_verison = version_values.consume().get_int();
+            int minor_verison = version_values.consume().get_int();
+            version_values.finish();
+    
+            if (before_docinfo || using_docinfo) {
+                result = ((unsigned) major_verison * 100) +
+                    (unsigned) minor_verison;
+            
+                if(result < 100 || result > 106)
+                {
+                    detail::outerr(actions.current_file->path, 1)
+                        << "Unknown version: "
+                        << major_verison
+                        << "."
+                        << minor_verison
+                        << std::endl;
+                    ++actions.error_count;
+                }
+            }
+        }
+        
+        return result;
+    }
+
     void pre(collector& out, quickbook::actions& actions,
             value include_doc_id, docinfo_types docinfo_type)
     {
@@ -94,7 +127,7 @@ namespace quickbook
         while (values.check(value::default_tag)) values.consume();
                 
         value doc_title;
-        if (values.check())
+        if (values.check(doc_info_tags::type))
         {
             actions.doc_type = values.consume(doc_info_tags::type).get_quickbook();
             doc_title = values.consume(doc_info_tags::title);
@@ -107,7 +140,9 @@ namespace quickbook
 
         std::vector<std::string> duplicates;
 
-        value qbk_version = consume_list(values, doc_info_attributes::qbk_version, &duplicates);
+        value qbk_version = consume_list(values, doc_attributes::qbk_version, &duplicates);
+        value compatibility_mode = consume_list(values, doc_attributes::compatibility_mode, &duplicates);
+
         value id = consume_value_in_list(values, doc_info_attributes::id, &duplicates);
         value dirname = consume_value_in_list(values, doc_info_attributes::dirname, &duplicates);
         value last_revision = consume_value_in_list(values, doc_info_attributes::last_revision, &duplicates);
@@ -119,7 +154,6 @@ namespace quickbook
         std::vector<value> copyrights = consume_multiple_lists(values, doc_info_attributes::copyright);
         value license = consume_value_in_list(values, doc_info_attributes::license, &duplicates);
         std::vector<value> biblioids = consume_multiple_lists(values, doc_info_attributes::biblioid);
-        value compatibility_mode = consume_list(values, doc_info_attributes::compatibility_mode, &duplicates);
         value xmlbase = consume_value_in_list(values, doc_info_attributes::xmlbase, &duplicates);
         
         // Skip over source-mode tags (already dealt with)
@@ -150,84 +184,52 @@ namespace quickbook
                 id.get_quickbook().begin(),
                 id.get_quickbook().end());
 
-        // if we're ignoring the document info, just start the file
-        // and we're done.
-
-        if (!docinfo_type)
-        {
-            actions.current_file_tmp->version(qbk_version_n);
-            actions.ids.start_file(include_doc_id_, id_, actions.doc_title_qbk);
-
-            return;
-        }
-
         // Quickbook version
 
-        int qbk_major_version, qbk_minor_version;
-        unsigned compatibility_version;
-
-        if (qbk_version.empty())
-        {
-            // hard code quickbook version to v1.1
-            qbk_major_version = 1;
-            qbk_minor_version = 1;
-            qbk_version_n = 101;
-            detail::outwarn(actions.current_file->path,1)
-                << "Quickbook version undefined. "
-                "Version 1.1 is assumed" << std::endl;
-        }
-        else
-        {
-            value_consumer qbk_version_values(qbk_version);
-            qbk_major_version = qbk_version_values.consume().get_int();
-            qbk_minor_version = qbk_version_values.consume().get_int();
-            qbk_version_values.finish();
-
-            qbk_version_n = ((unsigned) qbk_major_version * 100) +
-                (unsigned) qbk_minor_version;
-        }
-        
-        if (qbk_version_n == 106)
+        unsigned new_version = get_version(actions, docinfo_type, qbk_version);
+        if (new_version != qbk_version_n && new_version == 106)
         {
             detail::outwarn(actions.current_file->path,1)
                 << "Quickbook 1.6 is still under development and is "
                 "likely to change in the future." << std::endl;
         }
-        else if(qbk_version_n < 100 || qbk_version_n > 106)
+
+        unsigned compatibility_version =
+            get_version(actions, docinfo_type, compatibility_mode);
+
+        // if we're ignoring the document info, just start the file
+        // and we're done.
+
+        if (!docinfo_type)
         {
-            detail::outerr(actions.current_file->path,1)
-                << "Unknown version of quickbook: quickbook "
-                << qbk_major_version
-                << "."
-                << qbk_minor_version
-                << std::endl;
-            ++actions.error_count;
+            if (new_version) qbk_version_n = new_version;
+            actions.current_file_tmp->version(qbk_version_n);
+
+            if (!compatibility_version)
+                compatibility_version = actions.ids.compatibility_version();
+
+            actions.ids.start_file(compatibility_version, include_doc_id_, id_,
+                    actions.doc_title_qbk);
+
+            return;
         }
-        
-        if (compatibility_mode.empty())
-        {
+
+        // Otherwise we're starting a new (possiblity nested) document.
+        // So need to set the defaults.
+
+        if (new_version) {
+            qbk_version_n = new_version;
+        }
+        else {
+            // hard code quickbook version to v1.1
+            qbk_version_n = 101;
+            detail::outwarn(actions.current_file->path,1)
+                << "Quickbook version undefined. "
+                "Version 1.1 is assumed" << std::endl;
+        }
+
+        if (!compatibility_version) {
             compatibility_version = qbk_version_n;
-        }
-        else
-        {
-            value_consumer values(compatibility_mode);
-            int compatibility_major_version = values.consume().get_int();
-            int compatibility_minor_version = values.consume().get_int();
-            values.finish();
-
-            compatibility_version = ((unsigned) compatibility_major_version * 100) +
-                (unsigned) compatibility_minor_version;
-
-            if (compatibility_version < 100 || compatibility_version > 106)
-            {
-                detail::outerr(actions.current_file->path,1)
-                    << "Unknown compatibility version of quickbook: "
-                    << qbk_major_version
-                    << "."
-                    << qbk_minor_version
-                    << std::endl;
-                ++actions.error_count;
-            }
         }
 
         actions.current_file_tmp->version(qbk_version_n);
