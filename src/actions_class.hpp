@@ -39,7 +39,6 @@ namespace quickbook
         static int const max_template_depth = 100;
         
     // global state
-        std::string             doc_title_qbk;
         fs::path                xinclude_base;
         template_stack          templates;
         int                     error_count;

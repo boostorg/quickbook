@@ -24,7 +24,6 @@ namespace quickbook
             string_stream& out_, id_manager& ids)
         : grammar_()
 
-        , doc_title_qbk()
         , xinclude_base(xinclude_base_)
 
         , templates()

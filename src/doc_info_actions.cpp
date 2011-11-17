@@ -131,7 +131,6 @@ namespace quickbook
         {
             actions.doc_type = values.consume(doc_info_tags::type).get_quickbook();
             doc_title = values.consume(doc_info_tags::title);
-            actions.doc_title_qbk = doc_title.get_quickbook();
         }
         else
         {
@@ -209,7 +208,7 @@ namespace quickbook
                 compatibility_version = actions.ids.compatibility_version();
 
             actions.ids.start_file(compatibility_version, include_doc_id_, id_,
-                    actions.doc_title_qbk);
+                    doc_title.check() ? doc_title.get_quickbook() : std::string());
 
             return;
         }
@@ -237,7 +236,7 @@ namespace quickbook
         id_manager::start_file_info start_file_info =
             actions.ids.start_file_with_docinfo(
                 compatibility_version, include_doc_id_, id_,
-                actions.doc_title_qbk);
+                doc_title.check() ? doc_title.get_quickbook() : std::string());
 
         // if we're ignoring the document info, we're done.
 

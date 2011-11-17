@@ -101,6 +101,7 @@ namespace quickbook
     struct id_state
     {
         std::deque<id_placeholder> placeholders;
+        std::string last_title_1_1;
 
         id_placeholder* add_placeholder(
                 std::string const&, id_category, id_placeholder* parent = 0);
@@ -403,10 +404,17 @@ namespace quickbook
             std::string* doc_id_result,
             std::string* placeholder)
     {
+        // This is set even when docinfo is otherwise ignored.
+        if (!title.empty()) ids.last_title_1_1 = title;
+
+        // This is true because the first section manager is always v1.1,
+        // and always gets a title.
+        assert(!ids.last_title_1_1.empty());
+
         std::string initial_doc_id =
             !id.empty() ? id :
             !include_doc_id.empty() ? include_doc_id :
-            detail::make_identifier(title);
+            detail::make_identifier(ids.last_title_1_1);
 
         id_category category =
             !id.empty() || !include_doc_id.empty() ?
@@ -566,6 +574,10 @@ namespace quickbook
                 !include_doc_id.empty() ? include_doc_id :
                 !id.empty() ? id :
                 detail::make_identifier(title);
+
+            // Since either: have_docinfo is true => !title.empty()
+            // Or: !include_doc_id.empty()
+            assert(!initial_doc_id.empty());
 
             id_category category =
                 !include_doc_id.empty() || !id.empty() ?
