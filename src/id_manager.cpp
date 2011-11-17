@@ -409,10 +409,19 @@ namespace quickbook
 
     void id_state::restore_section()
     {
-        // TODO: Restore when it's a parent
-        if (current_file->switched_section &&
-                current_file->switched_section == current_file->document->current_section)
-            current_file->document->current_section = current_file->original_section;
+        if (current_file->switched_section) {
+            boost::intrusive_ptr<section_info>* section_ptr =
+                &current_file->document->current_section;
+
+            while (*section_ptr) {
+                if (*section_ptr == current_file->switched_section) {
+                    *section_ptr = current_file->original_section;
+                    break;
+                }
+
+                section_ptr = &(*section_ptr)->parent;
+            }
+        }
     }
 
     std::string id_state::start_file(

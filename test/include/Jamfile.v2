@@ -29,6 +29,7 @@ test-suite quickbook.test :
     [ quickbook-test code-include ]
     [ quickbook-test include-id-1.5 ]
     [ quickbook-test include-id-1.6 ]
+    [ quickbook-test include_id_unbalanced-1_6 ]
     [ quickbook-error-test section-fail1 ]
     [ quickbook-error-test section-fail2 ]
     [ quickbook-test in_section-1_5 ]
