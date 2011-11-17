@@ -39,11 +39,12 @@ namespace quickbook
         enum state_enum { child, unresolved, resolved, generated };
 
         unsigned index;         // The poisition in the placeholder deque.
-        state_enum state;       // Placeholder's position in generation
+        state_enum generation_state;
+                                // Placeholder's position in generation
                                 // process.
         std::string id;         // The id so far.
         id_placeholder* parent; // Placeholder of the parent id.
-                                // Only when state == child
+                                // Only when generation_state == child
         id_category category;
         unsigned level;         // Level in the document.
                                 // 0 = doc_id
@@ -57,7 +58,7 @@ namespace quickbook
                                 // Only set when processing ids.
         id_data* data;          // Assigned data shared by duplicate ids
                                 // used to detect them. Only when
-                                // state == resolved
+                                // generation_state == resolved
 
         id_placeholder(
                 unsigned index,
@@ -65,7 +66,7 @@ namespace quickbook
                 id_category category,
                 id_placeholder* parent_ = 0)
           : index(index),
-            state(parent_ ? child : unresolved),
+            generation_state(parent_ ? child : unresolved),
             id(id),
             parent(parent_),
             category(category),
@@ -84,13 +85,13 @@ namespace quickbook
         bool check_state() const
         {
             return (
-                (state == child) == (bool) parent &&
-                (state == resolved) == (bool) data);
+                (generation_state == child) == (bool) parent &&
+                (generation_state == resolved) == (bool) data);
         }
 
         bool check_state(state_enum s) const
         {
-            return s == state && check_state();
+            return s == generation_state && check_state();
         }
     };
 
@@ -137,9 +138,9 @@ namespace quickbook
     struct section_manager
     {
         section_manager(
-                id_state& ids,
+                id_state& state,
                 unsigned compatibility_version)
-          : ids(ids),
+          : state(state),
             compatibility_version(compatibility_version),
             level(0)
         {}
@@ -177,7 +178,7 @@ namespace quickbook
 
         virtual void end_section() = 0;
 
-        id_state& ids;
+        id_state& state;
         unsigned compatibility_version;
         int level;
         boost::scoped_ptr<section_manager> parent;
@@ -189,7 +190,7 @@ namespace quickbook
 
     namespace {
         std::auto_ptr<section_manager> create_section_manager(
-                id_state& ids,
+                id_state& state,
                 unsigned compatibility_version);
     }
 
@@ -352,9 +353,9 @@ namespace quickbook
     struct section_manager_1_1 : section_manager
     {
         section_manager_1_1(
-                id_state& ids,
+                id_state& state,
                 unsigned compatibility_version)
-          : section_manager(ids, compatibility_version),
+          : section_manager(state, compatibility_version),
             doc_id(),
             section_id(),
             qualified_id()
@@ -405,16 +406,16 @@ namespace quickbook
             std::string* placeholder)
     {
         // This is set even when docinfo is otherwise ignored.
-        if (!title.empty()) ids.last_title_1_1 = title;
+        if (!title.empty()) state.last_title_1_1 = title;
 
         // This is true because the first section manager is always v1.1,
         // and always gets a title.
-        assert(!ids.last_title_1_1.empty());
+        assert(!state.last_title_1_1.empty());
 
         std::string initial_doc_id =
             !id.empty() ? id :
             !include_doc_id.empty() ? include_doc_id :
-            detail::make_identifier(ids.last_title_1_1);
+            detail::make_identifier(state.last_title_1_1);
 
         id_category category =
             !id.empty() || !include_doc_id.empty() ?
@@ -425,7 +426,7 @@ namespace quickbook
 
         if (have_docinfo) {
             std::auto_ptr<section_manager> new_section_manager =
-                create_section_manager(ids, compatibility_version);
+                create_section_manager(state, compatibility_version);
             std::string initial_placeholder = new_section_manager->docinfo(
                 initial_doc_id, category);
             if (placeholder) *placeholder = initial_placeholder;
@@ -445,7 +446,7 @@ namespace quickbook
     {
         doc_id = id;
         ++level;
-        return ids.add_placeholder(id, category)->to_string();
+        return state.add_placeholder(id, category)->to_string();
     }
 
     bool section_manager_1_1::end_file()
@@ -468,7 +469,7 @@ namespace quickbook
         new_id += qualified_id;
         if (!new_id.empty() && !id.empty()) new_id += '.';
         new_id += id;
-        return ids.add_placeholder(new_id, category)->to_string();
+        return state.add_placeholder(new_id, category)->to_string();
     }
 
     std::string section_manager_1_1::old_style_id(
@@ -476,7 +477,7 @@ namespace quickbook
         id_category category)
     {
         return compatibility_version < 103 ?
-            ids.add_placeholder(section_id + "." + id, category)->to_string() :
+            state.add_placeholder(section_id + "." + id, category)->to_string() :
             add_id(id, category);
     }
 
@@ -489,8 +490,8 @@ namespace quickbook
         section_id = id;
         ++level;
         return (compatibility_version < 103u ?
-            ids.add_placeholder(doc_id + "." + id, category) :
-            ids.add_placeholder(doc_id + "." + qualified_id, category))->to_string();
+            state.add_placeholder(doc_id + "." + id, category) :
+            state.add_placeholder(doc_id + "." + qualified_id, category))->to_string();
     }
 
     void section_manager_1_1::end_section()
@@ -520,9 +521,9 @@ namespace quickbook
     struct section_manager_1_6 : section_manager
     {
         section_manager_1_6(
-                id_state& ids,
+                id_state& state,
                 unsigned compatibility_version)
-          : section_manager(ids, compatibility_version),
+          : section_manager(state, compatibility_version),
             current_placeholder(0),
             depth(0)
         {}
@@ -587,7 +588,7 @@ namespace quickbook
             if (doc_id_result) *doc_id_result = initial_doc_id;
 
             std::auto_ptr<section_manager> new_section_manager =
-                create_section_manager(ids, compatibility_version);
+                create_section_manager(state, compatibility_version);
             std::string initial_placeholder = new_section_manager->docinfo(
                 initial_doc_id, category);
             if (placeholder) *placeholder = initial_placeholder;
@@ -625,7 +626,7 @@ namespace quickbook
             std::string const& id,
             id_category category)
     {
-        return ids.add_placeholder(
+        return state.add_placeholder(
             category.c >= id_category::explicit_id ? id : normalize_id(id),
             category, current_placeholder)->to_string();
     }
@@ -643,7 +644,7 @@ namespace quickbook
     {
         ++level;
 
-        current_placeholder = ids.add_placeholder(
+        current_placeholder = state.add_placeholder(
             category.c >= id_category::explicit_id ? id : normalize_id(id),
             category, current_placeholder);
 
@@ -662,12 +663,12 @@ namespace quickbook
 
     namespace {
         std::auto_ptr<section_manager> create_section_manager(
-                id_state& ids,
+                id_state& state,
                 unsigned compatibility_version)
         {
             return std::auto_ptr<section_manager>(compatibility_version < 106u ?
-                (section_manager*)(new section_manager_1_1(ids, compatibility_version)) :
-                (section_manager*)(new section_manager_1_6(ids, compatibility_version)));
+                (section_manager*)(new section_manager_1_1(state, compatibility_version)) :
+                (section_manager*)(new section_manager_1_6(state, compatibility_version)));
         }
     }
 
@@ -973,17 +974,17 @@ namespace quickbook
 
     struct number_placeholders_callback : xml_processor::callback
     {
-        id_state& ids;
+        id_state& state;
         unsigned count;
 
-        number_placeholders_callback(id_state& ids)
-          : ids(ids),
+        number_placeholders_callback(id_state& state)
+          : state(state),
             count(0)
         {}
 
         void id_value(string_ref value)
         {
-            id_placeholder* p = ids.get_placeholder(value);
+            id_placeholder* p = state.get_placeholder(value);
             number(p);
         }
 
@@ -1026,13 +1027,13 @@ namespace quickbook
 
     void resolve_id(id_placeholder& p, allocated_ids& ids)
     {
-        if (p.state == id_placeholder::child)
+        if (p.generation_state == id_placeholder::child)
         {
             assert(p.check_state());
             assert(p.parent->check_state(id_placeholder::generated));
 
             p.id = p.parent->id + "." + p.id;
-            p.state = id_placeholder::unresolved;
+            p.generation_state = id_placeholder::unresolved;
             p.parent = 0;
         }
 
@@ -1042,7 +1043,7 @@ namespace quickbook
         data.update_category(p.category);
 
         p.data = &data;
-        p.state = id_placeholder::resolved;
+        p.generation_state = id_placeholder::resolved;
     }
 
     //
@@ -1063,7 +1064,7 @@ namespace quickbook
             p.category.c != id_category::numbered)
         {
             p.data->used = true;
-            p.state = id_placeholder::generated;
+            p.generation_state = id_placeholder::generated;
             p.data = 0;
             return;
         }
@@ -1092,7 +1093,7 @@ namespace quickbook
 
                 if (ids.find(id) == ids.end()) {
                     p.id.swap(id);
-                    p.state = id_placeholder::generated;
+                    p.generation_state = id_placeholder::generated;
                     p.data = 0;
                     return;
                 }
@@ -1125,12 +1126,12 @@ namespace quickbook
 
     struct replace_ids_callback : xml_processor::callback
     {
-        id_state& ids;
+        id_state& state;
         std::string::const_iterator source_pos;
         std::string result;
 
-        replace_ids_callback(id_state& ids)
-          : ids(ids),
+        replace_ids_callback(id_state& state)
+          : state(state),
             source_pos(),
             result()
         {}
@@ -1142,7 +1143,7 @@ namespace quickbook
 
         void id_value(string_ref value)
         {
-            if (id_placeholder* p = ids.get_placeholder(value))
+            if (id_placeholder* p = state.get_placeholder(value))
             {
                 assert(p->check_state(id_placeholder::generated));
 
