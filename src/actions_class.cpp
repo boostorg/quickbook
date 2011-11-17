@@ -30,7 +30,6 @@ namespace quickbook
         , templates()
         , error_count(0)
         , anchors()
-        , no_eols(true)
         , warned_about_breaks(false)
         , conditional(true)
         , ids(ids)
@@ -51,7 +50,6 @@ namespace quickbook
 
         , to_value(*this)
         , scoped_cond_phrase(*this)
-        , scoped_no_eols(*this)
 
         , element(*this)
         , error(*this)

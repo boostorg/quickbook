@@ -44,7 +44,6 @@ namespace quickbook
         template_stack          templates;
         int                     error_count;
         string_list             anchors;
-        bool                    no_eols;
         bool                    warned_about_breaks;
         bool                    conditional;
         id_manager&             ids;
@@ -86,8 +85,6 @@ namespace quickbook
                                 to_value;
         scoped_parser<cond_phrase_push>
                                 scoped_cond_phrase;
-        scoped_parser<set_no_eols_scoped>
-                                scoped_no_eols;
 
         element_action          element;
         error_action            error;

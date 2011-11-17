@@ -1964,17 +1964,4 @@ namespace quickbook
         actions.out.pop();
         actions.anchors.swap(saved_anchors);
     }
-
-    bool set_no_eols_scoped::start()
-    {
-        saved_no_eols = actions.no_eols;
-        actions.no_eols = false;
-
-        return true;
-    }
-
-    void set_no_eols_scoped::cleanup()
-    {
-        actions.no_eols = saved_no_eols;
-    }
 }

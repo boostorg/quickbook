@@ -113,8 +113,9 @@ namespace quickbook
                 ( qbk_before(106) >> space
                 | qbk_since(106) >> blank >> !eol
                 )
-            >>  actions.scoped_no_eols()
-                [   local.inner_phrase
+            >>  actions.to_value()
+                [
+                    inside_preformatted
                 ]
             ;
 

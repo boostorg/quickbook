@@ -132,6 +132,26 @@ namespace quickbook
             }
         };
 
+        struct set_no_eols_scoped : scoped_action_base
+        {
+            set_no_eols_scoped(main_grammar_local& l)
+                : l(l) {}
+
+            bool start() {
+                saved_no_eols = l.no_eols;
+                l.no_eols = false;
+
+                return true;
+            }
+
+            void cleanup() {
+                l.no_eols = saved_no_eols;
+            }
+
+            main_grammar_local& l;
+            bool saved_no_eols;
+        };
+
         ////////////////////////////////////////////////////////////////////////
         // Local members
 
@@ -178,13 +198,17 @@ namespace quickbook
         cl::rule<scanner, context_closure::context_t> common;
         cl::rule<scanner, context_closure::context_t> element;
 
+        // state
         std::stack<list_stack_item> list_stack;
         unsigned int list_indent;
-        block_types::values block_type;
+        bool no_eols;
 
+        // transitory state
+        block_types::values block_type;
         element_info info;
         element_info::type_enum element_type;
 
+        // actions
         quickbook::actions& actions_;
         member_action<main_grammar_local> check_indentation;
         member_action<main_grammar_local> check_code_block;
@@ -192,18 +216,23 @@ namespace quickbook
         member_action<main_grammar_local> end_blocks;
         in_list_impl in_list;
         scoped_parser<process_element_impl> process_element;
+        scoped_parser<set_no_eols_scoped> scoped_no_eols;
 
         ////////////////////////////////////////////////////////////////////////
         // Local constructor
 
         main_grammar_local(quickbook::actions& actions)
-            : actions_(actions)
+            : list_stack()
+            , list_indent(0)
+            , no_eols(true)
+            , actions_(actions)
             , check_indentation(*this, &main_grammar_local::check_indentation_impl)
             , check_code_block(*this, &main_grammar_local::check_indentation_impl)
             , start_blocks(*this, &main_grammar_local::start_blocks_impl)
             , end_blocks(*this, &main_grammar_local::end_blocks_impl)
             , in_list(*this)
             , process_element(*this)
+            , scoped_no_eols(*this)
             {}
     };
 
@@ -269,6 +298,13 @@ namespace quickbook
                 )
             ]
             ;
+
+        inside_preformatted =
+            local.scoped_no_eols()
+            [   paragraph_phrase
+            ]
+            ;
+
         // Top level blocks
         block_start =
                 (*eol)                          [local.start_blocks]
@@ -659,7 +695,7 @@ namespace quickbook
 
         phrase_end =
                 ']'
-            |   cl::eps_p(ph::var(actions.no_eols))
+            |   cl::eps_p(ph::var(local.no_eols))
             >>  cl::eol_p >> *cl::blank_p >> cl::eol_p
             ;                                   // Make sure that we don't go
                                                 // past a single block, except

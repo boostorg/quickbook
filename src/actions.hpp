@@ -324,18 +324,6 @@ namespace quickbook
         std::vector<std::string> saved_anchors;
         value::tag_type tag;
     };
-
-    struct set_no_eols_scoped : scoped_action_base
-    {
-        set_no_eols_scoped(quickbook::actions& actions)
-            : actions(actions) {}
-
-        bool start();
-        void cleanup();
-
-        quickbook::actions& actions;
-        bool saved_no_eols;
-    };
 }
 
 #endif // BOOST_SPIRIT_QUICKBOOK_ACTIONS_HPP
