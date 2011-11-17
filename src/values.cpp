@@ -8,7 +8,6 @@
 
 #include "values.hpp"
 #include "files.hpp"
-#include <boost/intrusive_ptr.hpp>
 #include <boost/current_function.hpp>
 #include <boost/lexical_cast.hpp>
 
