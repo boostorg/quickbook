@@ -200,6 +200,7 @@ namespace quickbook
         // Quickbook version
 
         unsigned new_version = get_version(actions, use_doc_info, qbk_version);
+
         if (new_version != qbk_version_n && new_version == 106)
         {
             detail::outwarn(actions.current_file->path,1)
@@ -207,33 +208,10 @@ namespace quickbook
                 "likely to change in the future." << std::endl;
         }
 
-        unsigned compatibility_version =
-            get_version(actions, use_doc_info, compatibility_mode);
-
-        // if we're ignoring the document info, just start the file
-        // and we're done.
-
-        if (!use_doc_info)
-        {
-            if (new_version) qbk_version_n = new_version;
-            actions.current_file_tmp->version(qbk_version_n);
-
-            if (!compatibility_version)
-                compatibility_version = actions.ids.compatibility_version();
-
-            actions.ids.start_file(compatibility_version, include_doc_id_, id_,
-                    doc_title.check() ? doc_title.get_quickbook() : std::string());
-
-            return "";
-        }
-
-        // Otherwise we're starting a new (possiblity nested) document.
-        // So need to set the defaults.
-
         if (new_version) {
             qbk_version_n = new_version;
         }
-        else {
+        else if (use_doc_info) {
             // hard code quickbook version to v1.1
             qbk_version_n = 101;
             detail::outwarn(actions.current_file->path,1)
@@ -241,11 +219,26 @@ namespace quickbook
                 "Version 1.1 is assumed" << std::endl;
         }
 
+        actions.current_file_tmp->version(qbk_version_n);
+
+        // Compatibility Version
+
+        unsigned compatibility_version =
+            get_version(actions, use_doc_info, compatibility_mode);
+
         if (!compatibility_version) {
-            compatibility_version = qbk_version_n;
+            compatibility_version = use_doc_info ?
+                qbk_version_n : actions.ids.compatibility_version();
         }
 
-        actions.current_file_tmp->version(qbk_version_n);
+        // Start file, finish here if not generating document info.
+
+        if (!use_doc_info)
+        {
+            actions.ids.start_file(compatibility_version, include_doc_id_, id_,
+                    doc_title.check() ? doc_title.get_quickbook() : std::string());
+            return "";
+        }
 
         std::string id_placeholder =
             actions.ids.start_file_with_docinfo(
