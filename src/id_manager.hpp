@@ -11,6 +11,7 @@
 
 #include <boost/scoped_ptr.hpp>
 #include <string>
+#include "values.hpp"
 
 namespace quickbook
 {
@@ -54,13 +55,13 @@ namespace quickbook
                 unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
-                std::string const& title);
+                value const& title);
 
         void start_file(
                 unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
-                std::string const& title);
+                value const& title);
 
         void end_file();
 

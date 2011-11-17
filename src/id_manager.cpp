@@ -154,12 +154,12 @@ namespace quickbook
                 unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
-                std::string const& title,
+                value const& title,
                 std::string* placeholder) = 0;
 
         virtual std::string docinfo(
-                std::string const& id = std::string(),
-                id_category = id_category()) = 0;
+                std::string const& id,
+                value const& title) = 0;
 
         virtual bool end_file() = 0;
 
@@ -205,7 +205,7 @@ namespace quickbook
             unsigned compatibility_version,
             std::string const& include_doc_id,
             std::string const& id,
-            std::string const& title)
+            value const& title)
     {
         boost::scoped_ptr<section_manager> new_section(
             current_section->start_file(false,
@@ -222,7 +222,7 @@ namespace quickbook
             unsigned compatibility_version,
             std::string const& include_doc_id,
             std::string const& id,
-            std::string const& title)
+            value const& title)
     {
         std::string result;
 
@@ -365,12 +365,12 @@ namespace quickbook
                 unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
-                std::string const& title,
+                value const& title,
                 std::string* placeholder);
 
         virtual std::string docinfo(
                 std::string const& id,
-                id_category);
+                value const& title);
 
         virtual bool end_file();
 
@@ -399,35 +399,26 @@ namespace quickbook
             unsigned compatibility_version,
             std::string const& include_doc_id,
             std::string const& id,
-            std::string const& title,
+            value const& title,
             std::string* placeholder)
     {
         // This is set even when docinfo is otherwise ignored.
-        if (!title.empty()) state.last_title_1_1 = title;
+        if (compatibility_version < 106u && title.check())
+            state.last_title_1_1 = title.get_quickbook();
 
-        // This is true because the first section manager is always v1.1,
-        // and always gets a title.
-        assert(!state.last_title_1_1.empty());
-
-        std::string initial_doc_id =
-            !id.empty() ? id :
-            !include_doc_id.empty() ? include_doc_id :
-            detail::make_identifier(state.last_title_1_1);
-
-        id_category category =
-            !id.empty() || !include_doc_id.empty() ?
-                id_category::explicit_section_id :
-                id_category::generated_doc;
+        std::string initial_doc_id = !id.empty() ? id : include_doc_id;
 
         if (have_docinfo) {
             std::auto_ptr<section_manager> new_section_manager =
                 create_section_manager(state, compatibility_version);
             std::string initial_placeholder = new_section_manager->docinfo(
-                initial_doc_id, category);
+                initial_doc_id, title);
             if (placeholder) *placeholder = initial_placeholder;
             return new_section_manager;
         }
         else {
+            if (initial_doc_id.empty()) initial_doc_id =
+                detail::make_identifier(state.last_title_1_1);
             doc_id_stack.push_back(doc_id);
             doc_id = initial_doc_id;
             if (placeholder) *placeholder = "";
@@ -437,11 +428,17 @@ namespace quickbook
 
     std::string section_manager_1_1::docinfo(
         std::string const& id,
-        id_category category)
+        value const& title)
     {
-        doc_id = id;
         ++level;
-        return state.add_placeholder(id, category)->to_string();
+        if (!id.empty()) {
+            doc_id = id;
+            return state.add_placeholder(id, id_category::explicit_section_id)->to_string();
+        }
+        else {
+            doc_id = detail::make_identifier(state.last_title_1_1);
+            return state.add_placeholder(doc_id, id_category::generated_doc)->to_string();
+        }
     }
 
     bool section_manager_1_1::end_file()
@@ -528,12 +525,12 @@ namespace quickbook
                 unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,
-                std::string const& title,
+                value const& title,
                 std::string* placeholder);
 
         virtual std::string docinfo(
                 std::string const& id,
-                id_category);
+                value const& title);
 
         virtual bool end_file();
 
@@ -560,28 +557,21 @@ namespace quickbook
             unsigned compatibility_version,
             std::string const& include_doc_id,
             std::string const& id,
-            std::string const& title,
+            value const& title,
             std::string* placeholder)
     {
+        // This is set even when docinfo is otherwise ignored.
+        if (compatibility_version < 106u && title.check())
+            state.last_title_1_1 = title.get_quickbook();
+
+        // TODO: This doesn't work when !have_docinfo, !include_doc_id.empty()
         if (have_docinfo || !include_doc_id.empty()) {
-            std::string initial_doc_id =
-                !include_doc_id.empty() ? include_doc_id :
-                !id.empty() ? id :
-                detail::make_identifier(title);
-
-            // Since either: have_docinfo is true => !title.empty()
-            // Or: !include_doc_id.empty()
-            assert(!initial_doc_id.empty());
-
-            id_category category =
-                !include_doc_id.empty() || !id.empty() ?
-                    id_category::explicit_section_id :
-                    id_category::generated_doc;
+            std::string initial_doc_id = !include_doc_id.empty() ? include_doc_id : id;
 
             std::auto_ptr<section_manager> new_section_manager =
                 create_section_manager(state, compatibility_version);
             std::string initial_placeholder = new_section_manager->docinfo(
-                initial_doc_id, category);
+                initial_doc_id, title);
             if (placeholder) *placeholder = initial_placeholder;
             return new_section_manager;
         }
@@ -594,9 +584,17 @@ namespace quickbook
 
     std::string section_manager_1_6::docinfo(
         std::string const& id,
-        id_category category)
+        value const& title)
     {
-        return begin_section(id, category);
+        if (!id.empty()) {
+            return begin_section(id, id_category::explicit_section_id);
+        }
+        else if (!title.empty()) {
+            return begin_section(detail::make_identifier(title.get_quickbook()), id_category::generated_doc);
+        }
+        else {
+            return begin_section("doc", id_category::numbered);
+        }
     }
 
     bool section_manager_1_6::end_file()

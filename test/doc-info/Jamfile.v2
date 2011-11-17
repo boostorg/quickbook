@@ -27,4 +27,7 @@ test-suite quickbook.test :
     [ quickbook-test id1-1.5 ]
     [ quickbook-test title_trailing_space-1_1 ]
     [ quickbook-test title_trailing_space-1_6 ]
+    [ quickbook-test empty_title-1_1 ]
+    [ quickbook-test empty_title-1_5 ]
+    [ quickbook-test empty_title-1_6 ]
     ;

@@ -236,14 +236,13 @@ namespace quickbook
         if (!use_doc_info)
         {
             actions.ids.start_file(compatibility_version, include_doc_id_, id_,
-                    doc_title.check() ? doc_title.get_quickbook() : std::string());
+                    doc_title);
             return "";
         }
 
         std::string id_placeholder =
             actions.ids.start_file_with_docinfo(
-                compatibility_version, include_doc_id_, id_,
-                doc_title.check() ? doc_title.get_quickbook() : std::string());
+                compatibility_version, include_doc_id_, id_, doc_title);
 
         // Make sure we really did have a document info block.
 
@@ -312,7 +311,7 @@ namespace quickbook
                 << "\"\n";
         }
 
-        if(doc_type == "library")
+        if(doc_type == "library" && !doc_title.empty())
         {
             out << "    name=\"" << doc_info_output(doc_title, 106) << "\"\n";
         }
