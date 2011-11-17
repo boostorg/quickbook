@@ -78,7 +78,6 @@ namespace quickbook
         unsigned compatibility_version() const;
     private:
         boost::scoped_ptr<id_state> state;
-        boost::scoped_ptr<section_manager> current_section;
     };
 }
 
