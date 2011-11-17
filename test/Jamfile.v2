@@ -70,6 +70,7 @@ test-suite quickbook.test :
     [ quickbook-test para_test-1_5 ]
     [ quickbook-error-test post_process-fail ]
     [ quickbook-test preformatted-1_1 ]
+    [ quickbook-test preformatted-1_6 ]
     [ quickbook-test role-1_6 ]
     [ quickbook-test section-1_4 ]
     [ quickbook-test section-1_5-unclosed ]

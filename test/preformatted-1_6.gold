@@ -4,7 +4,7 @@
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Preformatted</title>
   <section id="preformatted.preformatted">
-    <title>Preformatted</title>
+    <title><link linkend="preformatted.preformatted">Preformatted</link></title>
     <para>
       Here's the ubiquitous <emphasis>Hello World</emphasis> program in C++.
     </para>
@@ -32,7 +32,7 @@ int main()
     <para>
       And some indented code:
     </para>
-<programlisting>void go()
+<programlisting>    void go()
     {
     }
 </programlisting>
