@@ -77,18 +77,7 @@ namespace quickbook
         parse_iterator first(actor.current_file->source.begin());
         parse_iterator last(actor.current_file->source.end());
 
-        // This is awkward. When not ignoring docinfo, the source_mode should be
-        // reset, but the code doesn't find out if the docinfo is ignored until
-        // too late. So reset it now, but save it in order to undo the reset if
-        // appopriate.
-        std::string saved_source_mode = actor.source_mode;
-        if (qbk_version_n >= 106) actor.source_mode = "c++";
-
         cl::parse_info<parse_iterator> info = cl::parse(first, last, actor.grammar().doc_info);
-
-        // TODO: Fix this:
-        if (!info.hit) actor.source_mode = saved_source_mode;
-
         if (!actor.error_count)
         {
             std::string doc_type = pre(actor.out, actor, include_doc_id, nested_file);

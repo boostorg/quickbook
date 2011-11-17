@@ -151,6 +151,7 @@ namespace quickbook
 
         value qbk_version = consume_list(values, doc_attributes::qbk_version, &duplicates);
         value compatibility_mode = consume_list(values, doc_attributes::compatibility_mode, &duplicates);
+        consume_multiple_lists(values, doc_attributes::source_mode);
 
         value id = consume_value_in_list(values, doc_info_attributes::id, &duplicates);
         value dirname = consume_value_in_list(values, doc_info_attributes::dirname, &duplicates);
@@ -164,10 +165,6 @@ namespace quickbook
         value license = consume_value_in_list(values, doc_info_attributes::license, &duplicates);
         std::vector<value> biblioids = consume_multiple_lists(values, doc_info_attributes::biblioid);
         value xmlbase = consume_value_in_list(values, doc_info_attributes::xmlbase, &duplicates);
-        
-        // Skip over source-mode tags (already dealt with)
-
-        while (values.check(doc_info_attributes::source_mode)) values.consume();
 
         values.finish();
 

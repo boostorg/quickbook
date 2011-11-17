@@ -17,6 +17,7 @@
 #include <boost/spirit/include/classic_chset.hpp>
 #include <boost/spirit/include/classic_numerics.hpp>
 #include <boost/spirit/include/phoenix1_primitives.hpp>
+#include <boost/spirit/include/phoenix1_operators.hpp>
 #include "grammar_impl.hpp"
 #include "actions_class.hpp"
 #include "doc_info_tags.hpp"
@@ -82,11 +83,13 @@ namespace quickbook
         cl::rule<scanner> attribute_rule;
         assign_attribute_type assign_attribute;
         fallback_attribute_type fallback_attribute;
-        
+
         doc_info_grammar_local()
             : assign_attribute(*this)
             , fallback_attribute(*this)
         {}
+
+        bool source_mode_unset;
     };
 
     void quickbook_grammar::impl::init_doc_info()
@@ -112,7 +115,7 @@ namespace quickbook
         }
         
         doc_info_details =
-                space
+                space                       [ph::var(local.source_mode_unset) = true]
             >>  *(  local.doc_attribute
                 >>  space
                 )
@@ -128,6 +131,9 @@ namespace quickbook
             >>  actions.to_value(doc_info_tags::title)
                 [  *(~cl::eps_p(cl::ch_p('[') | ']' | cl::eol_p) >> local.char_) ]
             >>  space
+            >>  !(qbk_since(106u) >> cl::eps_p(ph::var(local.source_mode_unset))
+                                            [cl::assign_a(actions.source_mode, "c++")]
+                )
             >>  (*(  local.doc_info_attribute
                 >>  space
                 ))                          [actions.values.sort()]
@@ -186,6 +192,17 @@ namespace quickbook
             ;
 
         local.attribute_rules[doc_attributes::compatibility_mode] = &local.doc_compatibility_mode;
+
+        local.doc_source_mode =
+                (
+                   cl::str_p("c++")
+                |  "python"
+                |  "teletype"
+                )                           [cl::assign_a(actions.source_mode)]
+                                            [ph::var(local.source_mode_unset) = false]
+            ;
+
+        local.attribute_rules[doc_attributes::source_mode] = &local.doc_source_mode;
 
         // Document Info Attributes
 
@@ -252,16 +269,6 @@ namespace quickbook
             ;
 
         local.attribute_rules[doc_info_attributes::authors] = &local.doc_authors;
-
-        local.doc_source_mode =
-                (
-                   cl::str_p("c++") 
-                |  "python"
-                |  "teletype"
-                )                           [cl::assign_a(actions.source_mode)]
-            ;
-
-        local.attribute_rules[doc_info_attributes::source_mode] = &local.doc_source_mode;
 
         local.doc_biblioid =
                 (+cl::alnum_p)              [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::biblioid_class)]

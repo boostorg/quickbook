@@ -26,6 +26,7 @@ namespace quickbook
     QUICKBOOK_VALUE_NAMED_TAGS(doc_attributes, 0x440,
         ((qbk_version)("quickbook"))
         ((compatibility_mode)("compatibility-mode"))
+        ((source_mode)("source-mode"))
     )
 
     QUICKBOOK_VALUE_NAMED_TAGS(doc_info_attributes, 0x450,
@@ -41,8 +42,6 @@ namespace quickbook
         ((license)("license"))
         ((biblioid)("biblioid"))
         ((xmlbase)("xmlbase"))
-        // Source mode must come last.
-        ((source_mode)("source-mode"))
     )
 }
 
