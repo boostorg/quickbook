@@ -67,6 +67,7 @@ namespace quickbook
         };
 
         cl::rule<scanner>
+                        doc_info_block, doc_attribute, doc_info_attribute,
                         doc_title, doc_simple, doc_phrase, doc_fallback,
                         doc_authors, doc_author,
                         doc_copyright, doc_copyright_holder,
@@ -112,44 +113,55 @@ namespace quickbook
         
         doc_info_details =
                 space
-            >>  *(  '['
-                >>  space
-                >>  local.doc_attributes    [local.assign_attribute]
-                >>  hard_space
-                >>  actions.values.list(ph::var(local.attribute_tag))
-                    [   cl::eps_p           [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::before_docinfo)]
-                    >>  local.attribute_rule
-                    ]
-                >>  space
-                >>  ']'
+            >>  *(  local.doc_attribute
                 >>  space
                 )
-            >>  '['
+            >>  local.doc_info_block
+            ;
+
+        local.doc_info_block =
+                '['
             >>  space
             >>  (local.doc_types >> cl::eps_p)
                                             [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::type)]
             >>  hard_space
             >>  actions.to_value(doc_info_tags::title)
                 [  *(~cl::eps_p(cl::ch_p('[') | ']' | cl::eol_p) >> local.char_) ]
-            >>  *(
-                    space
-                >>  '['
+            >>  space
+            >>  (*(  local.doc_info_attribute
                 >>  space
-                >>  (   local.doc_info_attributes
-                                            [local.assign_attribute]
-                    |   (+(cl::alnum_p | '_' | '-'))
-                                            [local.fallback_attribute]
-                                            [actions.error("Unrecognized document attribute: '%s'.")]
-                    )
-                >>  hard_space
-                >>  actions.values.list(ph::var(local.attribute_tag))
-                    [local.attribute_rule]
-                >>  space
-                >>  ']'
-                )
-            >>  space                       [actions.values.sort()]
+                ))                          [actions.values.sort()]
             >>  ']'
             >>  (+eol | cl::end_p)
+            ;
+
+        local.doc_attribute =
+                '['
+            >>  space
+            >>  local.doc_attributes        [local.assign_attribute]
+            >>  hard_space
+            >>  actions.values.list(ph::var(local.attribute_tag))
+                [   cl::eps_p               [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::before_docinfo)]
+                >>  local.attribute_rule
+                ]
+            >>  space
+            >>  ']'
+            ;
+
+        local.doc_info_attribute =
+                '['
+            >>  space
+            >>  (   local.doc_info_attributes
+                                            [local.assign_attribute]
+                |   (+(cl::alnum_p | '_' | '-'))
+                                            [local.fallback_attribute]
+                                            [actions.error("Unrecognized document attribute: '%s'.")]
+                )
+            >>  hard_space
+            >>  actions.values.list(ph::var(local.attribute_tag))
+                [local.attribute_rule]
+            >>  space
+            >>  ']'
             ;
 
         // TODO: Clear phrase afterwards?
