@@ -43,18 +43,17 @@
         <phrase id="include2.inc2_1"/><link linkend="include2.inc2_1">Heading 1</link>
       </bridgehead>
     </section>
-    <bridgehead renderas="sect3" id="unbalanced.sect1.h1">
-      <phrase id="unbalanced.sect1.inc2_2"/><link linkend="unbalanced.sect1.inc2_2">Heading
-      2</link>
+    <bridgehead renderas="sect3" id="include2.h1">
+      <phrase id="include2.inc2_2"/><link linkend="include2.inc2_2">Heading 2</link>
     </bridgehead>
     <bridgehead renderas="sect3" id="include2a.h0">
       <phrase id="include2a.inc2a_1"/><link linkend="include2a.inc2a_1">Heading 1</link>
     </bridgehead>
   </section>
-  <bridgehead renderas="sect2" id="unbalanced.h0">
-    <phrase id="unbalanced.inc2a_2"/><link linkend="unbalanced.inc2a_2">Heading 2</link>
+  <bridgehead renderas="sect2" id="include2a.h1">
+    <phrase id="include2a.inc2a_2"/><link linkend="include2a.inc2a_2">Heading 2</link>
   </bridgehead>
-  <bridgehead renderas="sect2" id="unbalanced.h1">
-    <phrase id="unbalanced.inc2_3"/><link linkend="unbalanced.inc2_3">Heading 3</link>
+  <bridgehead renderas="sect2" id="include2.h2">
+    <phrase id="include2.inc2_3"/><link linkend="include2.inc2_3">Heading 3</link>
   </bridgehead>
 </article>

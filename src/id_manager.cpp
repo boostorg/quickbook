@@ -164,9 +164,9 @@ namespace quickbook
                 std::string const& id,
                 id_category category);
         void end_section();
-
-        // Used to change section for the duration of a file.
-        // (or until 'endsect').
+        boost::intrusive_ptr<section_info> end_section(
+            boost::intrusive_ptr<file_info> const& file,
+            boost::intrusive_ptr<section_info> const& section);
 
         void switch_section(boost::intrusive_ptr<section_info> const&);
         void restore_section();
@@ -605,8 +605,44 @@ namespace quickbook
     void id_state::end_section()
     {
         current_file->document->current_section =
-            current_file->document->current_section->parent;
+            end_section(current_file, current_file->document->current_section);
+
     }
+
+    boost::intrusive_ptr<section_info> id_state::end_section(
+            boost::intrusive_ptr<file_info> const& file,
+            boost::intrusive_ptr<section_info> const& section)
+    {
+        if (file->switched_section == section) {
+            if (!file->document_root) {
+                file->original_section = end_section(
+                    file->parent, file->original_section);
+            }
+            else {
+                file->original_section =
+                    file->original_section->parent;
+            }
+
+            boost::intrusive_ptr<section_info> alt_section =
+                new section_info(
+                    file->original_section->parent,
+                    file->original_section->compatibility_version,
+                    file->switched_section->placeholder_1_6->id);
+
+            alt_section->placeholder_1_6 =
+                file->switched_section->placeholder_1_6;
+
+            file->switched_section = alt_section;
+            return alt_section;
+        }
+        else {
+            if (!file->switched_section && !file->document_root)
+                return end_section(current_file->parent, section);
+            else
+                return section->parent;
+        }
+    }
+
 
     //
     // Xml subset parser used for finding id values.
