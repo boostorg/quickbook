@@ -50,12 +50,7 @@ namespace quickbook
         id_manager();
         ~id_manager();
 
-        struct start_file_info {
-            std::string doc_id;
-            std::string placeholder;
-        };
-
-        start_file_info start_file_with_docinfo(
+        std::string start_file_with_docinfo(
                 unsigned compatibility_version,
                 std::string const& include_doc_id,
                 std::string const& id,

@@ -247,15 +247,14 @@ namespace quickbook
 
         actions.current_file_tmp->version(qbk_version_n);
 
-        id_manager::start_file_info start_file_info =
+        std::string id_placeholder =
             actions.ids.start_file_with_docinfo(
                 compatibility_version, include_doc_id_, id_,
                 doc_title.check() ? doc_title.get_quickbook() : std::string());
 
         // Make sure we really did have a document info block.
 
-        assert(doc_title.check() && !doc_type.empty() &&
-            !start_file_info.doc_id.empty());
+        assert(doc_title.check() && !doc_type.empty());
 
         // Set xmlbase
 
@@ -310,7 +309,7 @@ namespace quickbook
 
         out << '<' << doc_type << "\n"
             << "    id=\""
-            << start_file_info.placeholder
+            << id_placeholder
             << "\"\n";
 
         if(!lang.empty())
@@ -327,13 +326,25 @@ namespace quickbook
 
         // Set defaults for dirname + last_revision
 
-        if(!dirname.empty() || doc_type == "library")
+        if (!dirname.empty() || doc_type == "library")
         {
             out << "    dirname=\"";
-            if (!dirname.empty())
+            if (!dirname.empty()) {
                 out << doc_info_output(dirname, 106);
-            else
-                out << start_file_info.doc_id;
+            }
+            else if (!id_.empty()) {
+                out << id_;
+            }
+            else if (!include_doc_id_.empty()) {
+                out << include_doc_id_;
+            }
+            else if (!doc_title.empty()) {
+                out << detail::make_identifier(doc_title.get_quickbook());
+            }
+            else {
+                out << "library";
+            }
+
             out << "\"\n";
         }
 

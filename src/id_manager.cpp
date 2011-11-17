@@ -155,7 +155,6 @@ namespace quickbook
                 std::string const& include_doc_id,
                 std::string const& id,
                 std::string const& title,
-                std::string* doc_id_result,
                 std::string* placeholder) = 0;
 
         virtual std::string docinfo(
@@ -209,8 +208,9 @@ namespace quickbook
             std::string const& title)
     {
         boost::scoped_ptr<section_manager> new_section(
-            current_section->start_file(false, compatibility_version,
-                include_doc_id, id, title, 0, 0));
+            current_section->start_file(false,
+                current_section->compatibility_version,
+                include_doc_id, id, title, 0));
 
         if (new_section) {
             boost::swap(current_section, new_section->parent);
@@ -218,18 +218,17 @@ namespace quickbook
         }
     }
 
-    id_manager::start_file_info id_manager::start_file_with_docinfo(
+    std::string id_manager::start_file_with_docinfo(
             unsigned compatibility_version,
             std::string const& include_doc_id,
             std::string const& id,
             std::string const& title)
     {
-        start_file_info result;
+        std::string result;
 
         boost::scoped_ptr<section_manager> new_section(
             current_section->start_file(true, compatibility_version,
-                include_doc_id, id, title,
-                &result.doc_id, &result.placeholder));
+                include_doc_id, id, title, &result));
 
         if (new_section) {
             boost::swap(current_section, new_section->parent);
@@ -367,7 +366,6 @@ namespace quickbook
                 std::string const& include_doc_id,
                 std::string const& id,
                 std::string const& title,
-                std::string* doc_id_result,
                 std::string* placeholder);
 
         virtual std::string docinfo(
@@ -402,7 +400,6 @@ namespace quickbook
             std::string const& include_doc_id,
             std::string const& id,
             std::string const& title,
-            std::string* doc_id_result,
             std::string* placeholder)
     {
         // This is set even when docinfo is otherwise ignored.
@@ -421,8 +418,6 @@ namespace quickbook
             !id.empty() || !include_doc_id.empty() ?
                 id_category::explicit_section_id :
                 id_category::generated_doc;
-
-        if (doc_id_result) *doc_id_result = initial_doc_id;
 
         if (have_docinfo) {
             std::auto_ptr<section_manager> new_section_manager =
@@ -534,7 +529,6 @@ namespace quickbook
                 std::string const& include_doc_id,
                 std::string const& id,
                 std::string const& title,
-                std::string* doc_id_result,
                 std::string* placeholder);
 
         virtual std::string docinfo(
@@ -567,7 +561,6 @@ namespace quickbook
             std::string const& include_doc_id,
             std::string const& id,
             std::string const& title,
-            std::string* doc_id_result,
             std::string* placeholder)
     {
         if (have_docinfo || !include_doc_id.empty()) {
@@ -585,8 +578,6 @@ namespace quickbook
                     id_category::explicit_section_id :
                     id_category::generated_doc;
 
-            if (doc_id_result) *doc_id_result = initial_doc_id;
-
             std::auto_ptr<section_manager> new_section_manager =
                 create_section_manager(state, compatibility_version);
             std::string initial_placeholder = new_section_manager->docinfo(
@@ -596,7 +587,6 @@ namespace quickbook
         }
         else {
             ++depth;
-            if (doc_id_result) *doc_id_result = "";
             if (placeholder) *placeholder = "";
             return std::auto_ptr<section_manager>();
         }
