@@ -78,13 +78,16 @@ namespace quickbook
         parse_iterator last(actor.current_file->source.end());
 
         cl::parse_info<parse_iterator> info = cl::parse(first, last, actor.grammar().doc_info);
+        assert(info.hit);
+
         if (!actor.error_count)
         {
-            std::string doc_type = pre(actor.out, actor, include_doc_id, nested_file);
+            parse_iterator pos = info.stop;
+            std::string doc_type = pre(actor, pos, include_doc_id, nested_file);
 
             info = cl::parse(info.hit ? info.stop : first, last, actor.grammar().block);
 
-            post(actor.out, actor, doc_type);
+            post(actor, doc_type);
 
             if (!info.full)
             {

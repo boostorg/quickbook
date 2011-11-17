@@ -302,8 +302,8 @@ namespace quickbook
    };
 
     // Returns the doc_type, or an empty string if there isn't one.
-    std::string pre(collector& out, quickbook::actions& actions, value include_doc_id, bool nested_file);
-    void post(collector& out, quickbook::actions& actions, std::string const& doc_type);
+    std::string pre(quickbook::actions& actions, parse_iterator pos, value include_doc_id, bool nested_file);
+    void post(quickbook::actions& actions, std::string const& doc_type);
 
     struct to_value_scoped_action : scoped_action_base
     {

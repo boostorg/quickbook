@@ -104,7 +104,7 @@ namespace quickbook
             
                 if(result < 100 || result > 106)
                 {
-                    detail::outerr(actions.current_file->path, 1)
+                    detail::outerr(actions.current_file->path)
                         << "Unknown version: "
                         << major_verison
                         << "."
@@ -118,7 +118,7 @@ namespace quickbook
         return result;
     }
 
-    std::string pre(collector& out, quickbook::actions& actions,
+    std::string pre(quickbook::actions& actions, parse_iterator pos,
             value include_doc_id, bool nested_file)
     {
         // The doc_info in the file has been parsed. Here's what we'll do
@@ -136,6 +136,7 @@ namespace quickbook
         bool use_doc_info = false;
         std::string doc_type;
         value doc_title;
+
         if (values.check(doc_info_tags::type))
         {
             doc_type = values.consume(doc_info_tags::type).get_quickbook();
@@ -146,11 +147,18 @@ namespace quickbook
         {
             if (!nested_file)
             {
-                detail::outerr(actions.current_file->path, 1)
+                detail::outerr(actions.current_file, pos.base())
                     << "No doc_info block."
                     << std::endl;
 
                 ++actions.error_count;
+
+                // Create a fake document info block in order to continue.
+                doc_type = "article";
+                doc_title = qbk_value_ref(actions.current_file,
+                    pos.base(), pos.base(),
+                    doc_info_tags::type);
+                use_doc_info = true;
             }
         }
 
@@ -177,7 +185,8 @@ namespace quickbook
 
         if(!duplicates.empty())
         {
-            detail::outwarn(actions.current_file->path,1)
+            // TODO: This is the *end* of the document info.
+            detail::outwarn(actions.current_file, pos.base())
                 << (duplicates.size() > 1 ?
                     "Duplicate attributes" : "Duplicate attribute")
                 << ":" << detail::utf8(boost::algorithm::join(duplicates, ", "))
@@ -203,7 +212,7 @@ namespace quickbook
 
         if (new_version != qbk_version_n && new_version == 106)
         {
-            detail::outwarn(actions.current_file->path,1)
+            detail::outwarn(actions.current_file->path)
                 << "Quickbook 1.6 is still under development and is "
                 "likely to change in the future." << std::endl;
         }
@@ -214,7 +223,7 @@ namespace quickbook
         else if (use_doc_info) {
             // hard code quickbook version to v1.1
             qbk_version_n = 101;
-            detail::outwarn(actions.current_file->path,1)
+            detail::outwarn(actions.current_file, pos.base())
                 << "Quickbook version undefined. "
                 "Version 1.1 is assumed" << std::endl;
         }
@@ -277,7 +286,7 @@ namespace quickbook
 
             if(!invalid_attributes.empty())
             {
-                detail::outwarn(actions.current_file->path,1)
+                detail::outwarn(actions.current_file->path)
                     << (invalid_attributes.size() > 1 ?
                         "Invalid attributes" : "Invalid attribute")
                     << " for '" << detail::utf8(doc_type) << " document info': "
@@ -291,7 +300,7 @@ namespace quickbook
 
         if (!nested_file)
         {
-            out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            actions.out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 << "<!DOCTYPE "
                 << doc_type
                 << " PUBLIC \"-//Boost//DTD BoostBook XML V1.0//EN\"\n"
@@ -299,51 +308,51 @@ namespace quickbook
                 ;
         }
 
-        out << '<' << doc_type << "\n"
+        actions.out << '<' << doc_type << "\n"
             << "    id=\""
             << id_placeholder
             << "\"\n";
 
         if(!lang.empty())
         {
-            out << "    lang=\""
+            actions.out << "    lang=\""
                 << doc_info_output(lang, 106)
                 << "\"\n";
         }
 
         if(doc_type == "library" && !doc_title.empty())
         {
-            out << "    name=\"" << doc_info_output(doc_title, 106) << "\"\n";
+            actions.out << "    name=\"" << doc_info_output(doc_title, 106) << "\"\n";
         }
 
         // Set defaults for dirname + last_revision
 
         if (!dirname.empty() || doc_type == "library")
         {
-            out << "    dirname=\"";
+            actions.out << "    dirname=\"";
             if (!dirname.empty()) {
-                out << doc_info_output(dirname, 106);
+                actions.out << doc_info_output(dirname, 106);
             }
             else if (!id_.empty()) {
-                out << id_;
+                actions.out << id_;
             }
             else if (!include_doc_id_.empty()) {
-                out << include_doc_id_;
+                actions.out << include_doc_id_;
             }
             else if (!doc_title.empty()) {
-                out << detail::make_identifier(doc_title.get_quickbook());
+                actions.out << detail::make_identifier(doc_title.get_quickbook());
             }
             else {
-                out << "library";
+                actions.out << "library";
             }
 
-            out << "\"\n";
+            actions.out << "\"\n";
         }
 
-        out << "    last-revision=\"";
+        actions.out << "    last-revision=\"";
         if (!last_revision.empty())
         {
-            out << doc_info_output(last_revision, 106);
+            actions.out << doc_info_output(last_revision, 106);
         }
         else
         {
@@ -358,19 +367,19 @@ namespace quickbook
                 current_gm_time
             );
 
-            out << strdate;
+            actions.out << strdate;
         }
 
-        out << "\" \n";
+        actions.out << "\" \n";
 
         if (!xmlbase.empty())
         {
-            out << "    xml:base=\""
+            actions.out << "    xml:base=\""
                 << xmlbase_value
                 << "\"\n";
         }
 
-        out << "    xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n";
+        actions.out << "    xmlns:xi=\"http://www.w3.org/2001/XInclude\">\n";
 
         std::ostringstream tmp;
 
@@ -486,13 +495,13 @@ namespace quickbook
         }
 
         if(doc_type != "library") {
-            write_document_title(out, doc_title, version);
+            write_document_title(actions.out, doc_title, version);
         }
 
         std::string docinfo = tmp.str();
         if(!docinfo.empty())
         {
-            out << "  <" << doc_type << "info>\n"
+            actions.out << "  <" << doc_type << "info>\n"
                 << docinfo
                 << "  </" << doc_type << "info>\n"
                 << "\n"
@@ -500,13 +509,13 @@ namespace quickbook
         }
 
         if(doc_type == "library") {
-            write_document_title(out, doc_title, version);
+            write_document_title(actions.out, doc_title, version);
         }
 
         return doc_type;
     }
-    
-    void post(collector& out, quickbook::actions& actions, std::string const& doc_type)
+
+    void post(quickbook::actions& actions, std::string const& doc_type)
     {
         // We've finished generating our output. Here's what we'll do
         // *after* everything else.
@@ -518,13 +527,13 @@ namespace quickbook
                 << std::endl;
 
             while(actions.ids.section_level() > 1) {
-                out << "</section>";
+                actions.out << "</section>";
                 actions.ids.end_section();
             }
         }
 
         actions.ids.end_file();
-        if (!doc_type.empty()) out << "\n</" << doc_type << ">\n\n";
+        if (!doc_type.empty()) actions.out << "\n</" << doc_type << ">\n\n";
     }
 
     static void write_document_title(collector& out, value const& title, value const& version)

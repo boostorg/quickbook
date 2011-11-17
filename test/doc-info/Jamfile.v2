@@ -30,4 +30,5 @@ test-suite quickbook.test :
     [ quickbook-test empty_title-1_1 ]
     [ quickbook-test empty_title-1_5 ]
     [ quickbook-test empty_title-1_6 ]
+    [ quickbook-error-test missing_doc_info-1_6-fail ]
     ;
