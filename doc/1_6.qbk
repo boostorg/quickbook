@@ -124,6 +124,13 @@ file. Either before or without a document info block. This is useful for
 files just containing templates, which don't really need a document info
 block.
 
+If you don't specify `compatibility-mode`, the behaviour depends on whether or
+not you have a docinfo block. If you do it uses the file's quickbook version,
+if you don't it inherits the parent's compatibility mode even if you specify
+a quickbook version. This is the right thing to do - mixing compatibility modes
+within documents is problematic. It might actually be a mistake to allow them
+to specified outside docinfo blocks.
+
 This change is also backdated to older versions. So when including from an
 older version, the included file's version can be set (older versions
 ignore document info in included files).
