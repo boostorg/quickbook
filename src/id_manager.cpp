@@ -238,48 +238,6 @@ namespace quickbook
     };
 
     //
-    // id_state
-    //
-
-    id_placeholder* id_state::add_placeholder(
-            std::string const& id, id_category category,
-            id_placeholder* parent)
-    {
-        placeholders.push_back(id_placeholder(
-            placeholders.size(), id, category, parent));
-        return &placeholders.back();
-    }
-
-    id_placeholder* id_state::get_placeholder(string_ref value)
-    {
-        // If this isn't a placeholder id.
-        if (value.size() <= 1 || *value.begin() != '$')
-            return 0;
-
-        unsigned index = boost::lexical_cast<int>(std::string(
-                value.begin() + 1, value.end()));
-
-        return &placeholders.at(index);
-    }
-
-    void id_state::switch_section(boost::intrusive_ptr<section_info> const& p)
-    {
-        assert(!current_file->switched_section);
-        current_file->original_section = current_file->document->current_section;
-        current_file->document->current_section = current_file->switched_section = p;
-    }
-
-    void id_state::restore_section()
-    {
-        // TODO: Restore when it's a parent
-        if (current_file->switched_section &&
-                current_file->switched_section == current_file->document->current_section)
-            current_file->document->current_section = current_file->original_section;
-    }
-
-    // (continued later)
-
-    //
     // id_manager
     //
 
@@ -415,6 +373,46 @@ namespace quickbook
 
             return id;
         }
+    }
+
+    //
+    // id_state
+    //
+
+    id_placeholder* id_state::add_placeholder(
+            std::string const& id, id_category category,
+            id_placeholder* parent)
+    {
+        placeholders.push_back(id_placeholder(
+            placeholders.size(), id, category, parent));
+        return &placeholders.back();
+    }
+
+    id_placeholder* id_state::get_placeholder(string_ref value)
+    {
+        // If this isn't a placeholder id.
+        if (value.size() <= 1 || *value.begin() != '$')
+            return 0;
+
+        unsigned index = boost::lexical_cast<int>(std::string(
+                value.begin() + 1, value.end()));
+
+        return &placeholders.at(index);
+    }
+
+    void id_state::switch_section(boost::intrusive_ptr<section_info> const& p)
+    {
+        assert(!current_file->switched_section);
+        current_file->original_section = current_file->document->current_section;
+        current_file->document->current_section = current_file->switched_section = p;
+    }
+
+    void id_state::restore_section()
+    {
+        // TODO: Restore when it's a parent
+        if (current_file->switched_section &&
+                current_file->switched_section == current_file->document->current_section)
+            current_file->document->current_section = current_file->original_section;
     }
 
     std::string id_state::start_file(
