@@ -26,7 +26,14 @@ namespace quickbook
     
     static std::string doc_info_output(value const& p, unsigned version)
     {
-        return (qbk_version_n < version) ? p.get_quickbook() : p.get_boostbook();
+        if (qbk_version_n < version) {
+            std::string value = p.get_quickbook();
+            value.erase(value.find_last_not_of(" \t") + 1);
+            return value;
+        }
+        else {
+            return p.get_boostbook();
+        }
     }
 
     // Each docinfo attribute is stored in a value list, these are then stored

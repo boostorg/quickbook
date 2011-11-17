@@ -25,4 +25,6 @@ test-suite quickbook.test :
     [ quickbook-error-test copyright-fail1 ]
     [ quickbook-error-test copyright-fail2 ]
     [ quickbook-test id1-1.5 ]
+    [ quickbook-test title_trailing_space-1_1 ]
+    [ quickbook-test title_trailing_space-1_6 ]
     ;

@@ -129,7 +129,13 @@ namespace quickbook
                                             [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::type)]
             >>  hard_space
             >>  actions.to_value(doc_info_tags::title)
-                [  *(~cl::eps_p(cl::ch_p('[') | ']' | cl::eol_p) >> local.char_) ]
+                [  *(   ~cl::eps_p(blank >> (cl::ch_p('[') | ']' | cl::eol_p))
+                    >>  local.char_
+                    )
+                    // Include 'blank' here so that it will be included in
+                    // id generation.
+                    >> blank
+                ]
             >>  space
             >>  !(qbk_since(106u) >> cl::eps_p(ph::var(local.source_mode_unset))
                                             [cl::assign_a(actions.source_mode, "c++")]
