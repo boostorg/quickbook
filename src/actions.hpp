@@ -301,15 +301,9 @@ namespace quickbook
         quickbook::actions& actions;
    };
 
-    enum docinfo_types
-    {
-        docinfo_ignore = 0,
-        docinfo_main = 1,
-        docinfo_nested = 2
-    };
-
-    void pre(collector& out, quickbook::actions& actions, value include_doc_id, docinfo_types);
-    void post(collector& out, quickbook::actions& actions, docinfo_types);
+    // Returns the doc_type, or an empty string if there isn't one.
+    std::string pre(collector& out, quickbook::actions& actions, value include_doc_id, bool nested_file);
+    void post(collector& out, quickbook::actions& actions, std::string const& doc_type);
 
     struct to_value_scoped_action : scoped_action_base
     {

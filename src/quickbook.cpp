@@ -86,28 +86,24 @@ namespace quickbook
 
         cl::parse_info<parse_iterator> info = cl::parse(first, last, actor.grammar().doc_info);
 
-        docinfo_types docinfo_type =
-            !nested_file ? docinfo_main :
-            info.hit && qbk_version_n >= 106 ? docinfo_nested :
-            docinfo_ignore;
-        
+        // TODO: Fix this:
         if (!info.hit) actor.source_mode = saved_source_mode;
 
-        if (info.hit || !docinfo_type)
+        if (!actor.error_count)
         {
-            pre(actor.out, actor, include_doc_id, docinfo_type);
+            std::string doc_type = pre(actor.out, actor, include_doc_id, nested_file);
 
             info = cl::parse(info.hit ? info.stop : first, last, actor.grammar().block);
 
-            post(actor.out, actor, docinfo_type);
-        }
+            post(actor.out, actor, doc_type);
 
-        if (!info.full)
-        {
-            file_position const& pos = get_position(info.stop, actor.current_file->source);
-            detail::outerr(actor.current_file->path, pos.line)
-                << "Syntax Error near column " << pos.column << ".\n";
-            ++actor.error_count;
+            if (!info.full)
+            {
+                file_position const& pos = get_position(info.stop, actor.current_file->source);
+                detail::outerr(actor.current_file->path, pos.line)
+                    << "Syntax Error near column " << pos.column << ".\n";
+                ++actor.error_count;
+            }
         }
     }
 

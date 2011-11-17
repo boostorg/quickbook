@@ -34,7 +34,6 @@ namespace quickbook
         , ids(ids)
 
         , imported(false)
-        , doc_type()
         , macro()
         , source_mode("c++")
         , current_file(0)
@@ -90,7 +89,6 @@ namespace quickbook
         , scope(scope)
         , qbk_version(qbk_version_n)
         , imported(a.imported)
-        , doc_type(a.doc_type)
         , current_file(a.current_file)
         , filename_relative(a.filename_relative)
         , xinclude_base(a.xinclude_base)
@@ -111,7 +109,6 @@ namespace quickbook
         a.values.builder.restore();
         boost::swap(qbk_version_n, qbk_version);
         boost::swap(a.imported, imported);
-        boost::swap(a.doc_type, doc_type);
         boost::swap(a.current_file, current_file);
         boost::swap(a.filename_relative, filename_relative);
         boost::swap(a.xinclude_base, xinclude_base);

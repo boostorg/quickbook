@@ -116,7 +116,7 @@ namespace quickbook
             >>  *(  local.doc_attribute
                 >>  space
                 )
-            >>  local.doc_info_block
+            >>  !local.doc_info_block
             ;
 
         local.doc_info_block =
@@ -131,8 +131,10 @@ namespace quickbook
             >>  (*(  local.doc_info_attribute
                 >>  space
                 ))                          [actions.values.sort()]
-            >>  ']'
-            >>  (+eol | cl::end_p)
+            >>  (   ']'
+                >>  (+eol | cl::end_p)
+                |   cl::eps_p               [actions.error]
+                )
             ;
 
         local.doc_attribute =

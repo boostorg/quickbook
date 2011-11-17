@@ -52,7 +52,6 @@ namespace quickbook
 
     // state saved for files and templates.
         bool                    imported;
-        std::string             doc_type;
         string_symbols          macro;
         std::string             source_mode;
         file const*             current_file;
