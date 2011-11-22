@@ -240,7 +240,6 @@ namespace quickbook
 
     // Boostbook and quickbook strings
     value qbk_value_ref(file const*, string_iterator, string_iterator, value::tag_type = value::default_tag);
-    value qbk_value(std::string const&, unsigned qbk_version, value::tag_type = value::default_tag);
     value bbk_value(std::string const&, value::tag_type = value::default_tag);
     value qbk_bbk_value(file const*, string_iterator, string_iterator, std::string const&,
             value::tag_type = value::default_tag);
