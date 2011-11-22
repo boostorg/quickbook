@@ -141,7 +141,7 @@ namespace quickbook
 
     void unexpected_char::operator()(parse_iterator first, parse_iterator last) const
     {
-        file_position const pos = get_position(first, escape_actions.current_file->source);
+        file_position const pos = escape_actions.current_file->position_of(first.base());
 
         detail::outwarn(escape_actions.current_file->path, pos.line)
             << "in column:" << pos.column

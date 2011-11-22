@@ -45,66 +45,6 @@ namespace quickbook { namespace detail
         return static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
     }
 
-    // un-indent a code segment
-    void unindent(std::string& program)
-    {
-        // Erase leading blank lines and newlines:
-        std::string::size_type start = program.find_first_not_of(" \t");
-        if (start != std::string::npos &&
-            (program[start] == '\r' || program[start] == '\n'))
-        {
-            program.erase(0, start);
-        }
-        start = program.find_first_not_of("\r\n");
-        program.erase(0, start);
-
-        if (program.size() == 0)
-            return; // nothing left to do
-
-        // Get the first line indent
-        std::string::size_type indent = program.find_first_not_of(" \t");
-        std::string::size_type pos = 0;
-        if (std::string::npos == indent)
-        {
-            // Nothing left to do here. The code is empty (just spaces).
-            // We clear the program to signal the caller that it is empty
-            // and return early.
-            program.clear();
-            return;
-        }
-
-        // Calculate the minimum indent from the rest of the lines
-        do
-        {
-            pos = program.find_first_not_of("\r\n", pos);
-            if (std::string::npos == pos)
-                break;
-
-            std::string::size_type n = program.find_first_not_of(" \t", pos);
-            if (n != std::string::npos)
-            {
-                char ch = program[n];
-                if (ch != '\r' && ch != '\n') // ignore empty lines
-                    indent = (std::min)(indent, n-pos);
-            }
-        }
-        while (std::string::npos != (pos = program.find_first_of("\r\n", pos)));
-
-        // Trim white spaces from column 0..indent
-        pos = 0;
-        program.erase(0, indent);
-        while (std::string::npos != (pos = program.find_first_of("\r\n", pos)))
-        {
-            if (std::string::npos == (pos = program.find_first_not_of("\r\n", pos)))
-            {
-                break;
-            }
-
-            std::string::size_type next = program.find_first_of("\r\n", pos);
-            program.erase(pos, (std::min)(indent, next-pos));
-        }
-    }
-
     std::string escape_uri(std::string uri)
     {
         for (std::string::size_type n = 0; n < uri.size(); ++n)

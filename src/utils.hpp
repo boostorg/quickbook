@@ -32,9 +32,6 @@ namespace quickbook { namespace detail {
         return out_name;
     }
 
-    // un-indent a code segment
-    void unindent(std::string& program);
-
     std::string escape_uri(std::string uri);
 
     // given a file extension, return the type of the source file

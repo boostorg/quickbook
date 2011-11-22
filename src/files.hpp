@@ -26,10 +26,19 @@ namespace quickbook {
             : std::runtime_error(arg) {}
     };
 
+    struct file_position
+    {
+        file_position() : line(1), column(1) {}
+        file_position(int l, int c) : line(l), column(c) {}
+
+        int line;
+        int column;
+    };
+
     struct file
     {
         fs::path const path;
-        std::string const source;
+        std::string source;
     private:
         unsigned qbk_version;
     public:
@@ -38,6 +47,8 @@ namespace quickbook {
                 unsigned qbk_version) :
             path(path), source(source), qbk_version(qbk_version)
         {}
+
+        ~file() {}
 
         unsigned version() const {
             assert(qbk_version);
@@ -51,11 +62,46 @@ namespace quickbook {
             assert(!qbk_version || qbk_version == v);
             qbk_version = v;
         }
+
+        virtual file_position position_of(std::string::const_iterator) const;
     };
 
     // If version isn't supplied then it must be set later.
     file* load(fs::path const& filename,
         unsigned qbk_version = 0);
+
+    // Interface for creating fake files which are mapped to
+    // real files, so that the position can be found later.
+
+    struct mapped_file_builder_data;
+
+    struct mapped_file_builder
+    {
+        typedef std::string::const_iterator iterator;
+        typedef std::string::size_type pos;
+
+        mapped_file_builder();
+        ~mapped_file_builder();
+
+        void start(file const*);
+        file* release();
+        void clear();
+
+        bool empty() const;
+        pos get_pos() const;
+
+        void add(char const*, iterator);
+        void add(std::string const&, iterator);
+        void add(iterator, iterator);
+        void add(mapped_file_builder const&);
+        void add(mapped_file_builder const&, pos, pos);
+        void unindent_and_add(iterator, iterator);
+    private:
+        mapped_file_builder_data* data;
+
+        mapped_file_builder(mapped_file_builder const&);
+        mapped_file_builder& operator=(mapped_file_builder const&);
+    };
 }
 
 #endif // BOOST_QUICKBOOK_FILES_HPP

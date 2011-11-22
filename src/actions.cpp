@@ -203,7 +203,7 @@ namespace quickbook
 
     void error_message_action::operator()(parse_iterator first, parse_iterator last) const
     {
-        file_position const pos = get_position(first, actions.current_file->source);
+        file_position const pos = actions.current_file->position_of(first.base());
 
         std::string value(first, last);
         std::string formatted_message = message;
@@ -218,7 +218,7 @@ namespace quickbook
 
     void error_action::operator()(parse_iterator first, parse_iterator /*last*/) const
     {
-        file_position const pos = get_position(first, actions.current_file->source);
+        file_position const pos = actions.current_file->position_of(first.base());
 
         detail::outerr(actions.current_file->path, pos.line)
             << "Syntax Error near column " << pos.column << ".\n";
@@ -589,20 +589,19 @@ namespace quickbook
         write_anchors(actions, out);
 
         // preprocess the code section to remove the initial indentation
-        std::string program(first, last);
-        detail::unindent(program);
-        if (program.size() == 0)
+        mapped_file_builder mapped;
+        mapped.start(actions.current_file);
+        mapped.unindent_and_add(first.base(), last.base());
+
+        file const* file_ptr = mapped.release();
+
+        if (file_ptr->source.empty())
             return; // Nothing left to do here. The program is empty.
 
-        file fake_file(
-            actions.current_file->path,
-            program,
-            qbk_version_n);
+        parse_iterator first_(file_ptr->source.begin());
+        parse_iterator last_(file_ptr->source.end());
 
-        parse_iterator first_(fake_file.source.begin());
-        parse_iterator last_(fake_file.source.end());
-
-        file const* saved_file = &fake_file;
+        file const* saved_file = file_ptr;
         boost::swap(actions.current_file, saved_file);
 
         // print the code with syntax coloring
@@ -1588,7 +1587,7 @@ namespace quickbook
 
         if (actions.ids.section_level() <= actions.min_section_level)
         {
-            file_position const pos = get_position(first, actions.current_file->source);
+            file_position const pos = actions.current_file->position_of(first);
 
             detail::outerr(actions.current_file->path, pos.line)
                 << "Mismatched [endsect] near column " << pos.column << ".\n";

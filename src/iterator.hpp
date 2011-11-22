@@ -16,15 +16,6 @@
 
 namespace quickbook
 {
-    struct file_position
-    {
-        file_position() : line(1), column(1) {}
-        file_position(int l, int c) : line(l), column(c) {}
-    
-        int line;
-        int column;
-    };
-    
     template <typename Iterator>
     struct lookback_iterator
         : boost::forward_iterator_helper<
@@ -37,8 +28,6 @@ namespace quickbook
     {
         lookback_iterator() {}
         explicit lookback_iterator(Iterator base)
-            : original_(base), base_(base) {}
-        explicit lookback_iterator(Iterator base, file_position const& position)
             : original_(base), base_(base) {}
     
         friend bool operator==(
@@ -75,56 +64,6 @@ namespace quickbook
         Iterator original_;
         Iterator base_;
     };
-
-    template <typename String, typename Iterator>
-    file_position get_position(
-            Iterator iterator,
-            String const& source)
-    {
-        file_position pos;
-        Iterator line_begin = source.begin();
-
-        Iterator begin = source.begin();
-        while (begin != iterator)
-        {
-            assert(begin != source.end());
-
-            if (*begin == '\r')
-            {
-                ++begin;
-                ++pos.line;
-                line_begin = begin;
-            }
-            else if (*begin == '\n')
-            {
-                ++begin;
-                ++pos.line;
-                line_begin = begin;
-                if (begin == iterator) break;
-                assert(begin != source.end());
-                if (*begin == '\r')
-                {
-                    ++begin;
-                    line_begin = begin;
-                }
-            }
-            else
-            {
-                ++begin;
-            }
-        }
-
-        pos.column = iterator - line_begin + 1;
-        return pos;
-    }
-
-    template <typename String, typename Iterator>
-    file_position get_position(
-            lookback_iterator<Iterator> iterator,
-            String const& source)
-    {
-        return get_position(iterator.base(), source);
-    }
 }
 
 #endif

@@ -391,7 +391,7 @@ namespace quickbook
                 [   (   qbk_since(106u)
                     >>  *(line_comment | (cl::anychar_p - (cl::eol_p | '[' | ']')))
                     |   qbk_before(106u)
-                    >>	*(line_comment | (cl::anychar_p - (cl::eol_p | "[/")))
+                    >>  *(line_comment | (cl::anychar_p - (cl::eol_p | "[/")))
                     )
                 >>  *eol
                 ]                               [actions.element]

@@ -92,7 +92,7 @@ namespace quickbook
 
             if (!info.full)
             {
-                file_position const& pos = get_position(info.stop, actor.current_file->source);
+                file_position const& pos = actor.current_file->position_of(info.stop.base());
                 detail::outerr(actor.current_file->path, pos.line)
                     << "Syntax Error near column " << pos.column << ".\n";
                 ++actor.error_count;
