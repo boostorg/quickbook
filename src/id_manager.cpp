@@ -10,7 +10,6 @@
 #include "utils.hpp"
 #include "string_ref.hpp"
 #include <boost/intrusive_ptr.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/range/algorithm.hpp>
@@ -131,7 +130,6 @@ namespace quickbook
     struct id_state
     {
         boost::intrusive_ptr<file_info> current_file;
-
         std::deque<id_placeholder> placeholders;
 
         // Placeholder methods
@@ -143,32 +141,38 @@ namespace quickbook
 
         // Events
 
-        std::string start_file(
+        id_placeholder* start_file(
+                unsigned compatibility_version,
+                bool document_root,
                 std::string const& include_doc_id,
                 std::string const& id,
                 value const& title);
 
         void end_file();
 
-        std::string add_id(
+        id_placeholder* add_id(
                 std::string const& id,
                 id_category category);
-        id_placeholder* add_id_impl(
-                std::string const& id,
-                id_category category,
-                boost::intrusive_ptr<section_info> const& section);
-        std::string old_style_id(
+        id_placeholder* old_style_id(
             std::string const& id,
             id_category category);
-        std::string begin_section(
+        id_placeholder* begin_section(
                 std::string const& id,
                 id_category category);
         void end_section();
-        boost::intrusive_ptr<section_info> end_section(
-            boost::intrusive_ptr<file_info> const& file,
-            boost::intrusive_ptr<section_info> const& section);
 
-        void switch_section(boost::intrusive_ptr<section_info> const&);
+private:
+        id_placeholder* add_id_to_section(
+                std::string const& id,
+                id_category category,
+                boost::intrusive_ptr<section_info> const& section);
+        id_placeholder* create_new_section(
+                std::string const& id,
+                id_category category);
+
+        void switch_section(id_placeholder*);
+        void reswitch_sections(boost::intrusive_ptr<section_info> const&,
+            boost::intrusive_ptr<section_info> const&);
         void restore_section();
     };
 
@@ -180,7 +184,7 @@ namespace quickbook
         bool document_root; // !parent || document != parent->document
         unsigned compatibility_version;
         boost::intrusive_ptr<section_info> switched_section;
-        boost::intrusive_ptr<section_info> original_section;
+        id_placeholder* original_placeholder;
 
         // The 1.1-1.5 document id would actually change per file due to
         // explicit ids in includes and a bug which would sometimes use the
@@ -191,7 +195,7 @@ namespace quickbook
                 unsigned compatibility_version) :
             parent(parent), document(parent->document), document_root(false),
             compatibility_version(compatibility_version),
-            switched_section(), original_section()
+            switched_section(), original_placeholder()
         {}
 
         file_info(boost::intrusive_ptr<file_info> const& parent,
@@ -199,7 +203,7 @@ namespace quickbook
                 unsigned compatibility_version) :
             parent(parent), document(document), document_root(true),
             compatibility_version(compatibility_version),
-            switched_section(), original_section()
+            switched_section(), original_placeholder()
         {}
     };
 
@@ -254,10 +258,7 @@ namespace quickbook
             std::string const& id,
             value const& title)
     {
-        state->current_file =
-            new file_info(state->current_file, compatibility_version);
-
-        state->start_file(include_doc_id, id, title);
+        state->start_file(compatibility_version, false, include_doc_id, id, title);
     }
 
     std::string id_manager::start_file_with_docinfo(
@@ -266,25 +267,19 @@ namespace quickbook
             std::string const& id,
             value const& title)
     {
-        state->current_file =
-            new file_info(state->current_file, new doc_info(),
-                compatibility_version);
-
-        std::string x = state->start_file(include_doc_id, id, title);
-        return x;
+        return state->start_file(compatibility_version, true, include_doc_id,
+            id, title)->to_string();
     }
 
     void id_manager::end_file()
     {
         state->end_file();
-        state->current_file = state->current_file->parent;
     }
 
     std::string id_manager::begin_section(std::string const& id,
             id_category category)
     {
-        state->current_file->document->section_id_1_1 = id;
-        return state->begin_section(id, category);
+        return state->begin_section(id, category)->to_string();
     }
 
     void id_manager::end_section()
@@ -299,12 +294,12 @@ namespace quickbook
 
     std::string id_manager::old_style_id(std::string const& id, id_category category)
     {
-        return state->old_style_id(id, category);
+        return state->old_style_id(id, category)->to_string();
     }
 
     std::string id_manager::add_id(std::string const& id, id_category category)
     {
-        return state->add_id(id, category);
+        return state->add_id(id, category)->to_string();
     }
 
     std::string id_manager::add_anchor(std::string const& id, id_category category)
@@ -400,41 +395,76 @@ namespace quickbook
         return &placeholders.at(index);
     }
 
-    void id_state::switch_section(boost::intrusive_ptr<section_info> const& p)
+    void id_state::switch_section(id_placeholder* p)
     {
-        assert(!current_file->switched_section);
-        current_file->original_section = current_file->document->current_section;
-        current_file->document->current_section = current_file->switched_section = p;
+        assert(!current_file->original_placeholder);
+        current_file->switched_section = current_file->document->current_section;
+        current_file->original_placeholder = current_file->switched_section->placeholder_1_6;
+        current_file->switched_section->placeholder_1_6 = p;
+    }
+
+    void id_state::reswitch_sections(
+        boost::intrusive_ptr<section_info> const& popped_section,
+        boost::intrusive_ptr<section_info> const& parent_section)
+    {
+        boost::intrusive_ptr<file_info> file = current_file;
+        boost::intrusive_ptr<file_info> first_switched_file;
+
+        for (;;) {
+            if (file->switched_section == popped_section)
+            {
+                first_switched_file = file;
+                file->switched_section = parent_section;
+            }
+            
+            if (file->document_root) break;
+            file = file->parent;
+        }
+        
+        if (first_switched_file) {
+            first_switched_file->original_placeholder =
+                parent_section->placeholder_1_6;
+            parent_section->placeholder_1_6 =
+                popped_section->placeholder_1_6;
+        }
     }
 
     void id_state::restore_section()
     {
-        if (current_file->switched_section) {
-            boost::intrusive_ptr<section_info>* section_ptr =
-                &current_file->document->current_section;
-
-            while (*section_ptr) {
-                if (*section_ptr == current_file->switched_section) {
-                    *section_ptr = current_file->original_section;
-                    break;
-                }
-
-                section_ptr = &(*section_ptr)->parent;
-            }
+        if (current_file->original_placeholder) {
+            current_file->switched_section->placeholder_1_6 =
+                current_file->original_placeholder;        
         }
     }
 
-    std::string id_state::start_file(
+    id_placeholder* id_state::start_file(
+            unsigned compatibility_version,
+            bool document_root,
             std::string const& include_doc_id,
             std::string const& id,
             value const& title)
     {
-        boost::intrusive_ptr<file_info> parent = current_file->parent;
+        // Create new file
+
+        boost::intrusive_ptr<file_info> parent = current_file;
+
+        if (document_root) {
+            current_file = new file_info(parent, new doc_info(),
+                    compatibility_version);
+        }
+        else {
+            current_file =
+                new file_info(parent, compatibility_version);
+        }
+
+        // Choose specified id to use. Prefer 'include_doc_id' (the id
+        // specified in an 'include' element) unless backwards compatibility
+        // is required.
 
         std::string initial_doc_id;
 
-        if (current_file->document_root ||
-            current_file->compatibility_version >= 106u ||
+        if (document_root ||
+            compatibility_version >= 106u ||
             (parent && parent->compatibility_version >= 106u)) {
             initial_doc_id = !include_doc_id.empty() ? include_doc_id : id;
         }
@@ -442,9 +472,13 @@ namespace quickbook
             initial_doc_id = !id.empty() ? id : include_doc_id;
         }
 
-        if (current_file->compatibility_version < 106u) {
-            // To be backwards compatible this is set even when docinfo is
+        // Set variables used for backwards compatible id generation.
+        // They're a bit odd because of old bugs.
+
+        if (document_root || compatibility_version < 106u) {
+            // Note: this is done for older versions even if docinfo is
             // otherwise ignored.
+
             if (title.check())
                 current_file->document->last_title_1_1 =
                     title.get_quickbook();
@@ -456,57 +490,53 @@ namespace quickbook
             current_file->doc_id_1_1 = parent->doc_id_1_1;
         }
 
-        if (current_file->document_root) {
-            // TODO: Revise fallback for old versions
+        if (document_root) {
             if (!initial_doc_id.empty()) {
-                return begin_section(id, id_category::explicit_section_id);
+                return create_new_section(id, id_category::explicit_section_id);
             }
             else if (!title.empty()) {
-                return begin_section(
+                return create_new_section(
                     detail::make_identifier(title.get_quickbook()),
                     id_category::generated_doc);
             }
-            else if (current_file->compatibility_version >= 106u) {
-                return begin_section("doc", id_category::numbered);
+            else if (compatibility_version >= 106u) {
+                return create_new_section("doc", id_category::numbered);
             }
             else {
-                return begin_section("", id_category::generated_doc);
+                return create_new_section("", id_category::generated_doc);
             }
         }
-        else if (current_file->compatibility_version >= 106u &&
-                !initial_doc_id.empty()) {
-
-            boost::intrusive_ptr<section_info> alt_section =
-                new section_info(
-                    this->current_file->document->current_section->parent,
-                    current_file->compatibility_version, initial_doc_id);
-
-            alt_section->placeholder_1_6 = add_id_impl(initial_doc_id,
-                id_category::explicit_section_id,
-                boost::intrusive_ptr<section_info>());
-            switch_section(alt_section);
-
-            return "";
-        }
         else {
-            return "";
+            // If an id was set for the file, then switch the current section
+            // with a new section with this id. This will be maintained in
+            // 'end_section' if the current section ends, and then the original
+            // section restored in 'end_file'
+
+            if (compatibility_version >= 106u && !initial_doc_id.empty()) {
+                switch_section(add_id_to_section(initial_doc_id,
+                    id_category::explicit_section_id,
+                    boost::intrusive_ptr<section_info>()));
+            }
+
+            return 0;
         }
     }
 
     void id_state::end_file()
     {
         restore_section();
+        current_file = current_file->parent;
     }
 
-    std::string id_state::add_id(
+    id_placeholder* id_state::add_id(
             std::string const& id,
             id_category category)
     {
-        return add_id_impl(id, category,
-            current_file->document->current_section)->to_string();
+        return add_id_to_section(id, category,
+            current_file->document->current_section);
     }
 
-    id_placeholder* id_state::add_id_impl(
+    id_placeholder* id_state::add_id_to_section(
             std::string const& id,
             id_category category,
             boost::intrusive_ptr<section_info> const& section)
@@ -541,22 +571,28 @@ namespace quickbook
         }
     }
 
-    std::string id_state::old_style_id(
+    id_placeholder* id_state::old_style_id(
         std::string const& id,
         id_category category)
     {
         return current_file->compatibility_version < 103u ?
             add_placeholder(
-                current_file->document->section_id_1_1 + "." + id, category)
-                    ->to_string() : add_id(id, category);
+                current_file->document->section_id_1_1 + "." + id, category) :
+                add_id(id, category);
     }
 
-    std::string id_state::begin_section(
+    id_placeholder* id_state::begin_section(
             std::string const& id,
             id_category category)
     {
-        // TODO: Begin 1.6 section inside 1.1 section
+        current_file->document->section_id_1_1 = id;
+        return create_new_section(id, category);
+    }
 
+    id_placeholder* id_state::create_new_section(
+            std::string const& id,
+            id_category category)
+    {
         boost::intrusive_ptr<section_info> parent =
             current_file->document->current_section;
 
@@ -566,7 +602,7 @@ namespace quickbook
         id_placeholder* p;
 
         if (new_section->compatibility_version >= 106u) {
-            p = add_id_impl(id, category, parent);
+            p = add_id_to_section(id, category, parent);
             new_section->placeholder_1_6 = p;
         }
         else if (new_section->compatibility_version >= 103u) {
@@ -598,51 +634,18 @@ namespace quickbook
         }
 
         current_file->document->current_section = new_section;
-
-        return p->to_string();
+        
+        return p;
     }
 
     void id_state::end_section()
     {
-        current_file->document->current_section =
-            end_section(current_file, current_file->document->current_section);
+        boost::intrusive_ptr<section_info> popped_section =
+            current_file->document->current_section;
+        current_file->document->current_section = popped_section->parent;
 
+        reswitch_sections(popped_section, popped_section->parent);
     }
-
-    boost::intrusive_ptr<section_info> id_state::end_section(
-            boost::intrusive_ptr<file_info> const& file,
-            boost::intrusive_ptr<section_info> const& section)
-    {
-        if (file->switched_section == section) {
-            if (!file->document_root) {
-                file->original_section = end_section(
-                    file->parent, file->original_section);
-            }
-            else {
-                file->original_section =
-                    file->original_section->parent;
-            }
-
-            boost::intrusive_ptr<section_info> alt_section =
-                new section_info(
-                    file->original_section->parent,
-                    file->original_section->compatibility_version,
-                    file->switched_section->placeholder_1_6->id);
-
-            alt_section->placeholder_1_6 =
-                file->switched_section->placeholder_1_6;
-
-            file->switched_section = alt_section;
-            return alt_section;
-        }
-        else {
-            if (!file->switched_section && !file->document_root)
-                return end_section(current_file->parent, section);
-            else
-                return section->parent;
-        }
-    }
-
 
     //
     // Xml subset parser used for finding id values.
@@ -817,7 +820,7 @@ namespace quickbook
     // Data used for generating placeholders that have duplicates.
     //
 
-    struct id_generation_data
+    struct id_generation_data : intrusive_base
     {
         id_generation_data(std::string const& src_id)
           : child_start(src_id.rfind('.') + 1),
@@ -872,7 +875,7 @@ namespace quickbook
         id_category category;   // The highest priority category of the
                                 // placeholders that want to use this id.
         bool used;              // Whether this id has been used.
-        boost::shared_ptr<id_generation_data> generation_data;
+        boost::intrusive_ptr<id_generation_data> generation_data;
                                 // If a duplicates are found, this is
                                 // created to generate new ids.
                                 //
