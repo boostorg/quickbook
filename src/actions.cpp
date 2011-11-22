@@ -748,13 +748,8 @@ namespace quickbook
 
         // Extract the alt tag, to use as a text description.
         // Or if there isn't one, use the stem of the file name.
-        // TODO: IMO if there isn't an alt tag, then the description should
-        //       be empty or missing.
 
-        attribute_map::iterator alt_pos = attributes.find("alt");
-        std::string alt_text = alt_pos == attributes.end() ? stem :
-            alt_pos->second.is_encoded() ? alt_pos->second.get_encoded() :
-            alt_pos->second.get_quickbook();
+        quickbook::value alt_text = attributes["alt"];
         attributes.erase("alt");
 
         if(extension == "svg")
@@ -855,9 +850,13 @@ namespace quickbook
 
         // Add a textobject containing the alt tag from earlier.
         // This will be used for the alt tag in html.
-        actions.phrase << "<textobject><phrase>";
-        detail::print_string(alt_text, actions.phrase.get());
-        actions.phrase << "</phrase></textobject>";
+        if (alt_text.check()) {
+            actions.phrase << "<textobject><phrase>";
+            detail::print_string(alt_text.is_encoded() ?
+                alt_text.get_encoded() : alt_text.get_quickbook(),
+                actions.phrase.get());
+            actions.phrase << "</phrase></textobject>";
+        }
 
         actions.phrase << "</inlinemediaobject>";
     }
