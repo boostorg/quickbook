@@ -1018,9 +1018,7 @@ namespace quickbook
                     value new_arg(
                         qbk_value(last_arg.get_file(),
                             pos.second, end, template_tags::phrase));
-    
-                    // TODO: Make sure that this is overwriting a reference, not
-                    // a value.
+
                     args.back() = qbk_value(last_arg.get_file(),
                         begin, pos.first, last_arg.get_tag());
                     args.push_back(new_arg);
