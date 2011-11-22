@@ -551,20 +551,20 @@ namespace quickbook
 
         local.code_block =
                 (
-                    "```" >>
+                    "```" >> *(*cl::blank_p >> cl::eol_p) >>
                     (
-                       *(cl::anychar_p - (*cl::blank_p >> "```"))
-                            >> cl::eps_p(*cl::blank_p >> "```")
+                       *(cl::anychar_p - (*cl::space_p >> "```"))
+                            >> cl::eps_p(*cl::space_p >> "```")
                     )                           [actions.code_block]
-                    >> *cl::blank_p >> "```"
+                    >> *cl::space_p >> "```"
                 )
             |   (
-                    "``" >>
+                    "``" >> *(*cl::blank_p >> cl::eol_p) >>
                     (
-                       *(cl::anychar_p - (*cl::blank_p >> "``"))
-                            >> cl::eps_p(*cl::blank_p >> "``")
+                       *(cl::anychar_p - (*cl::space_p >> "``"))
+                            >> cl::eps_p(*cl::space_p >> "``")
                     )                           [actions.code_block]
-                    >> *cl::blank_p >> "``"
+                    >> *cl::space_p >> "``"
                 )
             ;
 

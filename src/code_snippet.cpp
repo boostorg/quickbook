@@ -123,12 +123,19 @@ namespace quickbook
                     ;
 
                 start_snippet =
-                    "#[" >> *cl::space_p
-                    >> identifier                   [cl::assign_a(actions.id)]
+                        *cl::blank_p
+                    >>  !(cl::eol_p >> *cl::blank_p)
+                    >>  "#["
+                    >>  *cl::blank_p
+                    >>  identifier                  [cl::assign_a(actions.id)]
+                    >>  *(cl::anychar_p - cl::eol_p)
                     ;
 
                 end_snippet =
-                    cl::str_p("#]")
+                        *cl::blank_p
+                    >>  !(cl::eol_p >> *cl::blank_p)
+                    >>  "#]"
+                    >>  *(cl::anychar_p - cl::eol_p)
                     ;
 
                 ignore
@@ -222,16 +229,45 @@ namespace quickbook
                     ;
 
                 start_snippet =
-                        "//[" >> *cl::space_p
-                        >> identifier               [cl::assign_a(actions.id)]
+                            *cl::blank_p
+                        >>  !(cl::eol_p >> *cl::blank_p)
+                        >>  "//["
+                        >>  *cl::blank_p
+                        >>  identifier              [cl::assign_a(actions.id)]
+                        >>  *(cl::anychar_p - cl::eol_p)
                     |
-                        "/*[" >> *cl::space_p
-                        >> identifier               [cl::assign_a(actions.id)]
-                        >> *cl::space_p >> "*/"
+                            *cl::blank_p
+                        >>  cl::eol_p
+                        >>  *cl::blank_p
+                        >>  "/*["
+                        >>  *cl::space_p
+                        >>  identifier              [cl::assign_a(actions.id)]
+                        >>  *cl::space_p
+                        >>  "*/"
+                        >>  *cl::blank_p
+                        >>  cl::eps_p(cl::eol_p)
+                    |
+                            "/*["
+                        >>  *cl::space_p
+                        >>  identifier              [cl::assign_a(actions.id)]
+                        >>  *cl::space_p
+                        >>  "*/"
                     ;
 
                 end_snippet =
-                    cl::str_p("//]") | "/*]*/"
+                            *cl::blank_p
+                        >>  !(cl::eol_p >> *cl::blank_p)
+                        >>  "//]"
+                        >>  *(cl::anychar_p - cl::eol_p)
+                    |
+                            *cl::blank_p
+                        >>  cl::eol_p
+                        >>  *cl::blank_p
+                        >>  "/*]*/"
+                        >>  *cl::blank_p
+                        >>  cl::eps_p(cl::eol_p)
+                    |
+                            "/*[*/"
                     ;
 
                 inline_callout
@@ -345,8 +381,6 @@ namespace quickbook
     
         if (!code.empty())
         {
-            detail::unindent(code); // remove all indents
-
             if(snippet.content.empty())
             {
                 snippet.start_code = true;
@@ -357,7 +391,7 @@ namespace quickbook
                 snippet.content += source_type;
                 snippet.content += "```\n";
             }
-            
+
             snippet.content += code;
             snippet.end_code = true;
 
@@ -372,7 +406,7 @@ namespace quickbook
     
         if(snippet.end_code)
         {
-            snippet.content += "```\n\n";
+            snippet.content += "\n```\n\n";
             snippet.end_code = false;
         }
     }
@@ -449,7 +483,7 @@ namespace quickbook
         }
         body += snippet->content;
         if(snippet->end_code) {
-            body += "```\n\n";
+            body += "\n```\n\n";
         }
 
         std::vector<std::string> params;
