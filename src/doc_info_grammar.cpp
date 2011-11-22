@@ -213,8 +213,6 @@ namespace quickbook
 
         // Document Info Attributes
 
-        // TODO: Restrictions on doc_id and doc_dirname?
-
         local.doc_simple = actions.to_value() [*(~cl::eps_p(']') >> local.char_)];
         local.attribute_rules[doc_info_attributes::version] = &local.doc_simple;
         local.attribute_rules[doc_info_attributes::id] = &local.doc_simple;

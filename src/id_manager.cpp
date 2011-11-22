@@ -21,6 +21,9 @@
 
 namespace quickbook
 {
+    // TODO: This should possibly try to make ids are generated:
+    // http://www.w3.org/TR/REC-xml/#NT-NameStartChar
+
     //
     // Forward declarations
     //
