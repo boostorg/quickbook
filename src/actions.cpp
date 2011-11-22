@@ -605,15 +605,9 @@ namespace quickbook
         file const* saved_file = &fake_file;
         boost::swap(actions.current_file, saved_file);
 
-        // TODO: Shouldn't phrase be empty here? Why would it be output
-        // after the code block?
-        std::string save;
-        phrase.swap(save);
-
         // print the code with syntax coloring
         std::string str = syntax_highlight(first_, last_, actions, actions.source_mode);
 
-        phrase.swap(save);
         boost::swap(actions.current_file, saved_file);
 
         //
