@@ -455,7 +455,7 @@ namespace quickbook
             "``[[callout" + boost::lexical_cast<std::string>(callout_id) + "]]``",
             first);
     
-        snippet_stack->callouts.insert(qbk_value_ref(source_file, mark_begin, mark_end, template_tags::block));
+        snippet_stack->callouts.insert(qbk_value(source_file, mark_begin, mark_end, template_tags::block));
         ++callout_id;
     }
 
@@ -525,7 +525,7 @@ namespace quickbook
 
         value_builder builder;
         builder.set_tag(template_tags::snippet);
-        builder.insert(qbk_value_ref(body, body->source.begin(), body->source.end(),
+        builder.insert(qbk_value(body, body->source.begin(), body->source.end(),
             template_tags::block));
         builder.insert(callouts);
 

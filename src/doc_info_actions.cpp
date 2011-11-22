@@ -32,7 +32,7 @@ namespace quickbook
             return value;
         }
         else {
-            return p.get_boostbook();
+            return p.get_encoded();
         }
     }
 
@@ -155,7 +155,7 @@ namespace quickbook
 
                 // Create a fake document info block in order to continue.
                 doc_type = "article";
-                doc_title = qbk_value_ref(actions.current_file,
+                doc_title = qbk_value(actions.current_file,
                     pos.base(), pos.base(),
                     doc_info_tags::type);
                 use_doc_info = true;

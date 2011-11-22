@@ -52,7 +52,7 @@ namespace quickbook
             virtual file_ptr get_file() const;
             virtual string_iterator get_position() const;
             virtual string_ref get_quickbook() const;
-            virtual std::string get_boostbook() const;
+            virtual std::string get_encoded() const;
             virtual int get_int() const;
 
             virtual bool check() const;
@@ -115,8 +115,8 @@ namespace quickbook
             { return value_->get_position(); }
             string_ref get_quickbook() const
             { return value_->get_quickbook(); }
-            std::string get_boostbook() const
-            { return value_->get_boostbook(); }
+            std::string get_encoded() const
+            { return value_->get_encoded(); }
             int get_int() const
             { return value_->get_int(); }
 
@@ -239,11 +239,20 @@ namespace quickbook
     // Integers
     value int_value(int, value::tag_type = value::default_tag);
 
-    // Boostbook and quickbook strings
-    value qbk_value_ref(file_ptr const&, string_iterator, string_iterator, value::tag_type = value::default_tag);
-    value bbk_value(std::string const&, value::tag_type = value::default_tag);
-    value qbk_bbk_value(file_ptr const&, string_iterator, string_iterator, std::string const&,
+    // String types
+
+    // Quickbook strings contain a reference to the original quickbook source.
+    value qbk_value(file_ptr const&, string_iterator, string_iterator,
             value::tag_type = value::default_tag);
+
+    // Encoded strings are either plain text or boostbook.
+    value encoded_value(std::string const&,
+            value::tag_type = value::default_tag);
+
+    // An encoded quickbook string is an encoded string that contains a
+    // reference to the quickbook source it was generated from.
+    value encoded_qbk_value(file_ptr const&, string_iterator, string_iterator,
+            std::string const&, value::tag_type = value::default_tag);
 
     ////////////////////////////////////////////////////////////////////////////
     // Value Builder

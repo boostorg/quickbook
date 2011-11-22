@@ -63,7 +63,7 @@ namespace quickbook {
         void operator()(parse_iterator begin, parse_iterator end,
                 value::tag_type tag = value::default_tag) const
         {
-            b.insert(qbk_value_ref(*current_file, begin.base(), end.base(), tag));
+            b.insert(qbk_value(*current_file, begin.base(), end.base(), tag));
         }
 
         void operator()(int v,

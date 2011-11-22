@@ -232,7 +232,7 @@ namespace quickbook
         detail::markup markup = detail::get_markup(block.get_tag());
 
         value_consumer values = block;
-        actions.out << markup.pre << values.consume().get_boostbook() << markup.post;
+        actions.out << markup.pre << values.consume().get_encoded() << markup.post;
         values.finish();
     }
 
@@ -251,7 +251,7 @@ namespace quickbook
         detail::markup markup = detail::get_markup(phrase.get_tag());
 
         value_consumer values = phrase;
-        actions.phrase << markup.pre << values.consume().get_boostbook() << markup.post;
+        actions.phrase << markup.pre << values.consume().get_encoded() << markup.post;
         values.finish();
     }
 
@@ -265,7 +265,7 @@ namespace quickbook
         detail::print_string(values.consume().get_quickbook(), actions.phrase.get());
         actions.phrase
             << "\">"
-            << values.consume().get_boostbook()
+            << values.consume().get_encoded()
             << "</phrase>";
         values.finish();
     }
@@ -279,7 +279,7 @@ namespace quickbook
             << "<footnote id=\""
             << actions.ids.add_id("f", id_category::numbered)
             << "\"><para>"
-            << values.consume().get_boostbook()
+            << values.consume().get_encoded()
             << "</para></footnote>";
         values.finish();
     }
@@ -384,7 +384,7 @@ namespace quickbook
                 id_category::explicit_id);
 
             write_bridgehead(actions, level,
-                content.get_boostbook(), anchor, self_linked_headers);
+                content.get_encoded(), anchor, self_linked_headers);
         }
         else if (!generic && actions.ids.compatibility_version() < 103) // version 1.2 and below
         {
@@ -392,11 +392,11 @@ namespace quickbook
             // version and the generation version are less then 103u.
 
             std::string anchor = actions.ids.old_style_id(
-                detail::make_identifier(content.get_boostbook()),
+                detail::make_identifier(content.get_encoded()),
                 id_category::generated_heading);
 
             write_bridgehead(actions, level,
-                content.get_boostbook(), anchor, false);
+                content.get_encoded(), anchor, false);
 
         }
         else
@@ -405,12 +405,12 @@ namespace quickbook
                 detail::make_identifier(
                     actions.ids.compatibility_version() >= 106 ?
                         content.get_quickbook() :
-                        content.get_boostbook()
+                        content.get_encoded()
                 ),
                 id_category::generated_heading);
 
             write_bridgehead(actions, level,
-                content.get_boostbook(), anchor, self_linked_headers);
+                content.get_encoded(), anchor, self_linked_headers);
         }
     }
 
@@ -433,7 +433,7 @@ namespace quickbook
         values.finish();
 
         out << markup.pre;
-        out << content.get_boostbook();
+        out << content.get_encoded();
         out << markup.post;
     }
 
@@ -528,7 +528,7 @@ namespace quickbook
         BOOST_FOREACH(value item, list)
         {
             actions.out << "<listitem>";
-            actions.out << item.get_boostbook();
+            actions.out << item.get_encoded();
             actions.out << "</listitem>";
         }
 
@@ -542,7 +542,7 @@ namespace quickbook
         // Note: anchor_id is never encoded as boostbook. If it
         // is encoded, it's just things like escapes.
         add_anchor(actions, anchor_id.is_encoded() ?
-            anchor_id.get_boostbook() : anchor_id.get_quickbook());
+            anchor_id.get_encoded() : anchor_id.get_quickbook());
         values.finish();
     }
 
@@ -706,7 +706,7 @@ namespace quickbook
         // Need to think about uri encoding.
         
         std::string fileref = attributes["fileref"].is_encoded() ?
-            attributes["fileref"].get_boostbook() :
+            attributes["fileref"].get_encoded() :
             attributes["fileref"].get_quickbook();
 
         // Check for windows paths, then convert.
@@ -753,7 +753,7 @@ namespace quickbook
 
         attribute_map::iterator alt_pos = attributes.find("alt");
         std::string alt_text = alt_pos == attributes.end() ? stem :
-            alt_pos->second.is_encoded() ? alt_pos->second.get_boostbook() :
+            alt_pos->second.is_encoded() ? alt_pos->second.get_encoded() :
             alt_pos->second.get_quickbook();
         attributes.erase("alt");
 
@@ -772,7 +772,7 @@ namespace quickbook
            //
 
            attributes.insert(attribute_map::value_type("format",
-                bbk_value("SVG")));
+                encoded_value("SVG")));
 
            //
            // Image paths are relative to the html subdirectory:
@@ -807,7 +807,7 @@ namespace quickbook
            if(a != std::string::npos)
            {
               attributes.insert(std::make_pair(
-                "contentwidth", bbk_value(std::string(
+                "contentwidth", encoded_value(std::string(
                     svg_text.begin() + a + 1, svg_text.begin() + b))
                 ));
            }
@@ -818,7 +818,7 @@ namespace quickbook
            if(a != std::string::npos)
            {
               attributes.insert(std::make_pair(
-                "contentdepth", bbk_value(std::string(
+                "contentdepth", encoded_value(std::string(
                     svg_text.begin() + a + 1, svg_text.begin() + b))
                 ));
            }
@@ -834,7 +834,7 @@ namespace quickbook
 
             if (attr.second.is_encoded())
             {
-                detail::print_string(attr.second.get_boostbook(),
+                detail::print_string(attr.second.get_encoded(),
                     actions.phrase.get());
             }
             else {
@@ -866,7 +866,7 @@ namespace quickbook
     {
         value_consumer values = macro_definition;
         std::string macro_id = values.consume().get_quickbook();
-        std::string phrase = values.consume().get_boostbook();
+        std::string phrase = values.consume().get_encoded();
         values.finish();
 
         std::string* existing_macro =
@@ -1017,12 +1017,12 @@ namespace quickbook
                         find_seperator(begin, end);
                     if (pos.second == end) break;
                     value new_arg(
-                        qbk_value_ref(last_arg.get_file(),
+                        qbk_value(last_arg.get_file(),
                             pos.second, end, template_tags::phrase));
     
                     // TODO: Make sure that this is overwriting a reference, not
                     // a value.
-                    args.back() = qbk_value_ref(last_arg.get_file(),
+                    args.back() = qbk_value(last_arg.get_file(),
                         begin, pos.first, last_arg.get_tag());
                     args.push_back(new_arg);
                 }
@@ -1096,11 +1096,11 @@ namespace quickbook
             if (symbol->content.get_tag() == template_tags::block)
             {
                 actions.paragraph();
-                actions.out << symbol->content.get_boostbook();
+                actions.out << symbol->content.get_encoded();
             }
             else
             {
-                actions.phrase << symbol->content.get_boostbook();
+                actions.phrase << symbol->content.get_encoded();
             }
 
             return;
@@ -1213,7 +1213,7 @@ namespace quickbook
             code += "<co id=\"" + callout_id1 + "\" ";
             code += "linkends=\"" + callout_id2 + "\" />";
 
-            args.push_back(bbk_value(code, template_tags::phrase));
+            args.push_back(encoded_value(code, template_tags::phrase));
             callout_ids.push_back(callout_id1);
             callout_ids.push_back(callout_id2);
         }
@@ -1308,7 +1308,7 @@ namespace quickbook
 
             if (symbol->content.is_encoded())
             {
-                actions.phrase << symbol->content.get_boostbook();
+                actions.phrase << symbol->content.get_encoded();
             }
             else
             {
@@ -1397,7 +1397,7 @@ namespace quickbook
         // Note: dst is never actually encoded as boostbook, which
         // is why the result is called with 'print_string' later.
         std::string dst = dst_value.is_encoded() ?
-            dst_value.get_boostbook() : dst_value.get_quickbook();
+            dst_value.get_encoded() : dst_value.get_quickbook();
         
         actions.phrase << markup.pre;
         detail::print_string(dst, actions.phrase.get());
@@ -1406,7 +1406,7 @@ namespace quickbook
         if (content.empty())
             detail::print_string(dst, actions.phrase.get());
         else
-            actions.phrase << content.get_boostbook();
+            actions.phrase << content.get_encoded();
 
         actions.phrase << markup.post;
     }
@@ -1429,13 +1429,13 @@ namespace quickbook
             
             if(entry.check()) {
                 actions.out << "<term>";
-                actions.out << entry.consume().get_boostbook();
+                actions.out << entry.consume().get_encoded();
                 actions.out << "</term>";
             }
             
             if(entry.check()) {
                 actions.out << "<listitem>";
-                BOOST_FOREACH(value phrase, entry) actions.out << phrase.get_boostbook();
+                BOOST_FOREACH(value phrase, entry) actions.out << phrase.get_encoded();
                 actions.out << "</listitem>";
             }
 
@@ -1497,7 +1497,7 @@ namespace quickbook
                 detail::print_string(title.get_quickbook(), actions.out.get());
             }
             else {
-                actions.out << title.get_boostbook();
+                actions.out << title.get_encoded();
             }
             actions.out << "</title>";
         }
@@ -1515,7 +1515,7 @@ namespace quickbook
         {
             actions.out << "<thead>" << "<row>";
             BOOST_FOREACH(value cell, values.consume()) {
-                actions.out << "<entry>" << cell.get_boostbook() << "</entry>";
+                actions.out << "<entry>" << cell.get_encoded() << "</entry>";
             }
             actions.out << "</row>\n" << "</thead>\n";
         }
@@ -1525,7 +1525,7 @@ namespace quickbook
         BOOST_FOREACH(value row, values) {
             actions.out << "<row>";
             BOOST_FOREACH(value cell, row) {
-                actions.out << "<entry>" << cell.get_boostbook() << "</entry>";
+                actions.out << "<entry>" << cell.get_encoded() << "</entry>";
             }
             actions.out << "</row>\n";
         }
@@ -1569,13 +1569,13 @@ namespace quickbook
         if (self_linked_headers && actions.ids.compatibility_version() >= 103)
         {
             actions.out << "<link linkend=\"" << full_id << "\">"
-                << content.get_boostbook()
+                << content.get_encoded()
                 << "</link>"
                 ;
         }
         else
         {
-            actions.out << content.get_boostbook();
+            actions.out << content.get_encoded();
         }
         
         actions.out << "</title>\n";
@@ -1682,7 +1682,7 @@ namespace quickbook
 
     fs::path check_path(value const& path, quickbook::actions& actions)
     {
-        std::string path_text = path.is_encoded() ? path.get_boostbook() :
+        std::string path_text = path.is_encoded() ? path.get_encoded() :
             path.get_quickbook();
 
         if(path_text.find('\\') != std::string::npos)
@@ -1948,7 +1948,7 @@ namespace quickbook
             actions.phrase.swap(value);
         }
 
-        actions.values.builder.insert(qbk_bbk_value(
+        actions.values.builder.insert(encoded_qbk_value(
             actions.current_file, first.base(), last.base(), value, tag));
     }
     

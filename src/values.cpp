@@ -51,7 +51,7 @@ namespace quickbook
         string_iterator value_node::get_position() const { UNDEFINED_ERROR(); }
         int value_node::get_int() const { UNDEFINED_ERROR(); }
         string_ref value_node::get_quickbook() const { UNDEFINED_ERROR(); }
-        std::string value_node::get_boostbook() const { UNDEFINED_ERROR(); }
+        std::string value_node::get_encoded() const { UNDEFINED_ERROR(); }
         value_node* value_node::get_list() const { UNDEFINED_ERROR(); }
 
         bool value_node::empty() const { return false; }
@@ -102,19 +102,19 @@ namespace quickbook
 
     namespace detail
     {
-        struct value_empty_impl : public value_node
+        struct empty_value_impl : public value_node
         {
             static value_node* new_(value::tag_type t);
 
         protected:
-            explicit value_empty_impl(value::tag_type t)
+            explicit empty_value_impl(value::tag_type t)
                 : value_node(t) {}
 
         private:
             char const* type_name() const { return "empty"; }
         
             virtual value_node* clone() const
-                { return new value_empty_impl(tag_); }
+                { return new empty_value_impl(tag_); }
 
             virtual bool empty() const
                 { return true; }
@@ -128,12 +128,12 @@ namespace quickbook
             friend value quickbook::empty_value(value::tag_type);
         };
     
-        struct value_nil_impl : public value_empty_impl
+        struct value_nil_impl : public empty_value_impl
         {
             static value_nil_impl instance;
         private:
             value_nil_impl()
-                : value_empty_impl(value::default_tag)
+                : empty_value_impl(value::default_tag)
             {
                 intrusive_ptr_add_ref(&instance);
                 next_ = &value_list_end_impl::instance;
@@ -142,7 +142,7 @@ namespace quickbook
 
         value_nil_impl value_nil_impl::instance;
 
-        value_node* value_empty_impl::new_(value::tag_type t) {
+        value_node* empty_value_impl::new_(value::tag_type t) {
             // The return value from this function is always placed in an
             // intrusive_ptr which will manage the memory correctly.
             // Note that value_nil_impl increments its reference count
@@ -152,13 +152,13 @@ namespace quickbook
             if (t == value::default_tag)
                 return &value_nil_impl::instance;
             else
-                return new value_empty_impl(t);
+                return new empty_value_impl(t);
         }
     }
 
     value empty_value(value::tag_type t)
     {
-        return value(detail::value_empty_impl::new_(t));
+        return value(detail::empty_value_impl::new_(t));
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -234,15 +234,15 @@ namespace quickbook
 
     namespace detail
     {
-        struct value_int_impl : public value_node
+        struct int_value_impl : public value_node
         {
         public:
-            explicit value_int_impl(int, value::tag_type);
+            explicit int_value_impl(int, value::tag_type);
         private:
             char const* type_name() const { return "integer"; }
             virtual value_node* clone() const;
             virtual int get_int() const;
-            virtual std::string get_boostbook() const;
+            virtual std::string get_encoded() const;
             virtual bool empty() const;
             virtual bool is_encoded() const;
             virtual bool equals(value_node*) const;
@@ -250,37 +250,37 @@ namespace quickbook
             int value_;
         };
 
-        value_int_impl::value_int_impl(int v, value::tag_type t)
+        int_value_impl::int_value_impl(int v, value::tag_type t)
             : value_node(t)
             , value_(v)
         {}
 
-        value_node* value_int_impl::clone() const
+        value_node* int_value_impl::clone() const
         {
-            return new value_int_impl(value_, tag_);
+            return new int_value_impl(value_, tag_);
         }
 
-        int value_int_impl::get_int() const
+        int int_value_impl::get_int() const
         {
             return value_;
         }
 
-        std::string value_int_impl::get_boostbook() const
+        std::string int_value_impl::get_encoded() const
         {
             return boost::lexical_cast<std::string>(value_);
         }
 
-        bool value_int_impl::empty() const
+        bool int_value_impl::empty() const
         {
             return false;
         }
 
-        bool value_int_impl::is_encoded() const
+        bool int_value_impl::is_encoded() const
         {
             return true;
         }
 
-        bool value_int_impl::equals(value_node* other) const {
+        bool int_value_impl::equals(value_node* other) const {
             try {
                 return value_ == other->get_int();
             }
@@ -292,7 +292,7 @@ namespace quickbook
 
     value int_value(int v, value::tag_type t)
     {
-        return value(new detail::value_int_impl(v, t));
+        return value(new detail::int_value_impl(v, t));
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -300,16 +300,16 @@ namespace quickbook
 
     namespace detail
     {
-        struct value_string_impl : public value_node
+        struct encoded_value_impl : public value_node
         {
         public:
-            explicit value_string_impl(std::string const&, value::tag_type);
+            explicit encoded_value_impl(std::string const&, value::tag_type);
         private:
-            char const* type_name() const { return "boostbook"; }
+            char const* type_name() const { return "encoded text"; }
 
-            virtual ~value_string_impl();
+            virtual ~encoded_value_impl();
             virtual value_node* clone() const;
-            virtual std::string get_boostbook() const;
+            virtual std::string get_encoded() const;
             virtual bool empty() const;
             virtual bool is_encoded() const;
             virtual bool equals(value_node*) const;
@@ -317,10 +317,10 @@ namespace quickbook
             std::string value_;
         };
     
-        struct value_qbk_ref_impl : public value_node
+        struct qbk_value_impl : public value_node
         {
         public:
-            explicit value_qbk_ref_impl(
+            explicit qbk_value_impl(
                     file_ptr const&,
                     string_iterator begin,
                     string_iterator end,
@@ -328,7 +328,7 @@ namespace quickbook
         private:
             char const* type_name() const { return "quickbook"; }
 
-            virtual ~value_qbk_ref_impl();
+            virtual ~qbk_value_impl();
             virtual value_node* clone() const;
             virtual file_ptr get_file() const;
             virtual string_iterator get_position() const;
@@ -341,21 +341,21 @@ namespace quickbook
             string_iterator end_;
         };
     
-        struct value_qbk_bbk_impl : public value_node
+        struct encoded_qbk_value_impl : public value_node
         {
         private:
-            char const* type_name() const { return "quickbook/boostbook"; }
+            char const* type_name() const { return "encoded text with quickbook reference"; }
 
-            value_qbk_bbk_impl(file_ptr const&,
+            encoded_qbk_value_impl(file_ptr const&,
                     string_iterator, string_iterator,
                     std::string const&, value::tag_type);
     
-            virtual ~value_qbk_bbk_impl();
+            virtual ~encoded_qbk_value_impl();
             virtual value_node* clone() const;
             virtual file_ptr get_file() const;
             virtual string_iterator get_position() const;
             virtual string_ref get_quickbook() const;
-            virtual std::string get_boostbook() const;
+            virtual std::string get_encoded() const;
             virtual bool empty() const;
             virtual bool is_encoded() const;
             virtual bool equals(value_node*) const;
@@ -363,16 +363,16 @@ namespace quickbook
             file_ptr file_;
             string_iterator begin_;
             string_iterator end_;
-            std::string bbk_value_;
+            std::string encoded_value_;
             
-            friend quickbook::value quickbook::qbk_bbk_value(
+            friend quickbook::value quickbook::encoded_qbk_value(
                     file_ptr const&, string_iterator, string_iterator,
                     std::string const&, quickbook::value::tag_type);
         };
 
-        // value_string_impl
+        // encoded_value_impl
     
-        value_string_impl::value_string_impl(
+        encoded_value_impl::encoded_value_impl(
                 std::string const& val,
                 value::tag_type tag
             )
@@ -380,36 +380,36 @@ namespace quickbook
         {
         }
     
-        value_string_impl::~value_string_impl()
+        encoded_value_impl::~encoded_value_impl()
         {
         }
 
-        value_node* value_string_impl::clone() const
+        value_node* encoded_value_impl::clone() const
         {
-            return new value_string_impl(value_, tag_);
+            return new encoded_value_impl(value_, tag_);
         }
     
-        std::string value_string_impl::get_boostbook() const
+        std::string encoded_value_impl::get_encoded() const
             { return value_; }
 
-        bool value_string_impl::empty() const
+        bool encoded_value_impl::empty() const
             { return value_.empty(); }
 
-        bool value_string_impl::is_encoded() const
+        bool encoded_value_impl::is_encoded() const
             { return true; }
 
-        bool value_string_impl::equals(value_node* other) const {
+        bool encoded_value_impl::equals(value_node* other) const {
             try {
-                return value_ == other->get_boostbook();
+                return value_ == other->get_encoded();
             }
             catch(value_undefined_method&) {
                 return false;
             }
         }
 
-        // value_qbk_ref_impl
+        // qbk_value_impl
     
-        value_qbk_ref_impl::value_qbk_ref_impl(
+        qbk_value_impl::qbk_value_impl(
                 file_ptr const& f,
                 string_iterator begin,
                 string_iterator end,
@@ -418,28 +418,28 @@ namespace quickbook
         {
         }
     
-        value_qbk_ref_impl::~value_qbk_ref_impl()
+        qbk_value_impl::~qbk_value_impl()
         {
         }
     
-        value_node* value_qbk_ref_impl::clone() const
+        value_node* qbk_value_impl::clone() const
         {
-            return new value_qbk_ref_impl(file_, begin_, end_, tag_);
+            return new qbk_value_impl(file_, begin_, end_, tag_);
         }
 
-        file_ptr value_qbk_ref_impl::get_file() const
+        file_ptr qbk_value_impl::get_file() const
             { return file_; }
 
-        string_iterator value_qbk_ref_impl::get_position() const
+        string_iterator qbk_value_impl::get_position() const
             { return begin_; }
 
-        string_ref value_qbk_ref_impl::get_quickbook() const
+        string_ref qbk_value_impl::get_quickbook() const
             { return string_ref(begin_, end_); }
 
-        bool value_qbk_ref_impl::empty() const
+        bool qbk_value_impl::empty() const
             { return begin_ == end_; }
     
-        bool value_qbk_ref_impl::equals(value_node* other) const {
+        bool qbk_value_impl::equals(value_node* other) const {
             try {
                 return this->get_quickbook() == other->get_quickbook();
             }
@@ -448,60 +448,60 @@ namespace quickbook
             }
         }
 
-        // value_qbk_bbk_impl
+        // encoded_qbk_value_impl
     
-        value_qbk_bbk_impl::value_qbk_bbk_impl(
+        encoded_qbk_value_impl::encoded_qbk_value_impl(
                 file_ptr const& f,
                 string_iterator begin,
                 string_iterator end,
-                std::string const& bbk,
+                std::string const& encoded,
                 value::tag_type tag)
             : value_node(tag)
             , file_(f)
             , begin_(begin)
             , end_(end)
-            , bbk_value_(bbk)
+            , encoded_value_(encoded)
             
         {
         }
     
-        value_qbk_bbk_impl::~value_qbk_bbk_impl()
+        encoded_qbk_value_impl::~encoded_qbk_value_impl()
         {
         }
 
-        value_node* value_qbk_bbk_impl::clone() const
+        value_node* encoded_qbk_value_impl::clone() const
         {
-            return new value_qbk_bbk_impl(
-                    file_, begin_, end_, bbk_value_, tag_);
+            return new encoded_qbk_value_impl(
+                    file_, begin_, end_, encoded_value_, tag_);
         }
 
-        file_ptr value_qbk_bbk_impl::get_file() const
+        file_ptr encoded_qbk_value_impl::get_file() const
             { return file_; }
 
-        string_iterator value_qbk_bbk_impl::get_position() const
+        string_iterator encoded_qbk_value_impl::get_position() const
             { return begin_; }
 
-        string_ref value_qbk_bbk_impl::get_quickbook() const
+        string_ref encoded_qbk_value_impl::get_quickbook() const
             { return string_ref(begin_, end_); }
 
-        std::string value_qbk_bbk_impl::get_boostbook() const
-            { return bbk_value_; }
+        std::string encoded_qbk_value_impl::get_encoded() const
+            { return encoded_value_; }
 
         // Should this test the quickbook, the boostbook or both?
-        bool value_qbk_bbk_impl::empty() const
-            { return bbk_value_.empty(); }
+        bool encoded_qbk_value_impl::empty() const
+            { return encoded_value_.empty(); }
 
-        bool value_qbk_bbk_impl::is_encoded() const
+        bool encoded_qbk_value_impl::is_encoded() const
             { return true; }
 
-        bool value_qbk_bbk_impl::equals(value_node* other) const {
+        bool encoded_qbk_value_impl::equals(value_node* other) const {
             try {
                 return this->get_quickbook() == other->get_quickbook();
             }
             catch(value_undefined_method&) {}
 
             try {
-                return this->get_boostbook() == other->get_boostbook();
+                return this->get_encoded() == other->get_encoded();
             }
             catch(value_undefined_method&) {}
 
@@ -509,21 +509,21 @@ namespace quickbook
         }
     }
 
-    value qbk_value_ref(file_ptr const& f, string_iterator x, string_iterator y, value::tag_type t)
+    value qbk_value(file_ptr const& f, string_iterator x, string_iterator y, value::tag_type t)
     {
-        return value(new detail::value_qbk_ref_impl(f, x, y, t));
+        return value(new detail::qbk_value_impl(f, x, y, t));
     }
 
-    value bbk_value(std::string const& x, value::tag_type t)
+    value encoded_value(std::string const& x, value::tag_type t)
     {
-        return value(new detail::value_string_impl(x, t));
+        return value(new detail::encoded_value_impl(x, t));
     }
 
-    value qbk_bbk_value(
+    value encoded_qbk_value(
             file_ptr const& f, string_iterator x, string_iterator y,
             std::string const& z, value::tag_type t)
     {
-        return value(new detail::value_qbk_bbk_impl(f,x,y,z,t));
+        return value(new detail::encoded_qbk_value_impl(f,x,y,z,t));
     }
 
     //////////////////////////////////////////////////////////////////////////
