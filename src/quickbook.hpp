@@ -29,6 +29,7 @@ namespace quickbook
     extern bool self_linked_headers;
     extern std::vector<fs::path> include_path;
     extern std::vector<std::string> preset_defines;
+    extern fs::path image_location;
 
     void parse_file(actions& actor,
             value include_doc_id = value(),

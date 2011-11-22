@@ -758,7 +758,7 @@ namespace quickbook
             alt_pos->second.get_quickbook();
         attributes.erase("alt");
 
-        if(extension == ".svg")
+        if(extension == "svg")
         {
            //
            // SVG's need special handling:
@@ -773,16 +773,14 @@ namespace quickbook
            //
 
            attributes.insert(attribute_map::value_type("format",
-                qbk_value("SVG", qbk_version_n)));
+                bbk_value("SVG")));
 
            //
            // Image paths are relative to the html subdirectory:
            //
-           // TODO: This seems wrong to me.
-           //
            fs::path img = detail::generic_to_path(fileref);
-           if(img.root_path().empty())
-              img = "html" / img;  // relative path
+           if (!img.has_root_directory())
+              img = quickbook::image_location / img;  // relative path
 
            //
            // Now load the SVG file:
@@ -810,9 +808,8 @@ namespace quickbook
            if(a != std::string::npos)
            {
               attributes.insert(std::make_pair(
-                "contentwidth", qbk_value(std::string(
-                    svg_text.begin() + a + 1, svg_text.begin() + b),
-                    qbk_version_n)
+                "contentwidth", bbk_value(std::string(
+                    svg_text.begin() + a + 1, svg_text.begin() + b))
                 ));
            }
            a = svg_text.find("height");
@@ -822,9 +819,8 @@ namespace quickbook
            if(a != std::string::npos)
            {
               attributes.insert(std::make_pair(
-                "contentdepth", qbk_value(std::string(
-                    svg_text.begin() + a + 1, svg_text.begin() + b),
-                    qbk_version_n)
+                "contentdepth", bbk_value(std::string(
+                    svg_text.begin() + a + 1, svg_text.begin() + b))
                 ));
            }
         }

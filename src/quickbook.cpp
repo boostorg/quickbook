@@ -50,6 +50,7 @@ namespace quickbook
     bool ms_errors = false; // output errors/warnings as if for VS
     std::vector<fs::path> include_path;
     std::vector<std::string> preset_defines;
+    fs::path image_location;
 
     static void set_macros(actions& actor)
     {
@@ -219,6 +220,7 @@ main(int argc, char* argv[])
             ("ms-errors", "use Microsoft Visual Studio style error & warn message format")
             ("include-path,I", PO_VALUE< std::vector<input_string> >(), "include path")
             ("define,D", PO_VALUE< std::vector<input_string> >(), "define macro")
+            ("image-location", PO_VALUE<input_string>(), "image location")
         ;
 
         hidden.add_options()
@@ -380,6 +382,16 @@ main(int argc, char* argv[])
                 xinclude_base = fileout.parent_path();
                 if (xinclude_base.empty())
                     xinclude_base = ".";
+            }
+
+            if (vm.count("image-location"))
+            {
+                quickbook::image_location = quickbook::detail::input_to_path(
+                    vm["image-location"].as<input_string>());
+            }
+            else
+            {
+                quickbook::image_location = filein.parent_path() / "html";
             }
 
             quickbook::detail::out() << "Generating Output File: "
