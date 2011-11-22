@@ -659,12 +659,12 @@ namespace quickbook
             >>  local.command_line_macro_identifier
                                                 [actions.values.entry(ph::arg1, ph::arg2)]
             >>  *cl::space_p
-            >>  (   '='
+            >>  !(   '='
                 >>  *cl::space_p
                 >>  actions.to_value() [ inline_phrase ]
                 >>  *cl::space_p
-                |   cl::eps_p
                 )
+            >>  cl::end_p
             ]                                   [actions.element]
             ;
 

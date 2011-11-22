@@ -59,12 +59,20 @@ namespace quickbook
                 end = preset_defines.end();
                 it != end; ++it)
         {
-            // TODO: Set filename in actor???
             parse_iterator first(it->begin());
             parse_iterator last(it->end());
 
-            cl::parse(first, last, actor.grammar().command_line_macro);
-            // TODO: Check result?
+            cl::parse_info<parse_iterator> info =
+                cl::parse(first, last, actor.grammar().command_line_macro);
+
+            if (!info.full) {
+                detail::outerr()
+                    << "Error parsing command line definition: '"
+                    << *it
+                    << "'"
+                    << std::endl;
+                ++actor.error_count;
+            }
         }
     }
 
@@ -118,16 +126,18 @@ namespace quickbook
             actions actor(filein_, xinclude_base_, buffer, ids);
             set_macros(actor);
 
-            actor.current_file = load(filein_); // Throws load_error
+            if (actor.error_count == 0) {
+                actor.current_file = load(filein_); // Throws load_error
 
-            parse_file(actor);
+                parse_file(actor);
 
-            if(actor.error_count) {
-                detail::outerr()
-                    << "Error count: " << actor.error_count << ".\n";
+                if(actor.error_count) {
+                    detail::outerr()
+                        << "Error count: " << actor.error_count << ".\n";
+                }
             }
 
-            result = !!actor.error_count;
+            result = actor.error_count ? 1 : 0;
         }
         catch (load_error& e) {
             detail::outerr(filein_) << detail::utf8(e.what()) << std::endl;
@@ -161,6 +171,7 @@ namespace quickbook
                 fileout << stage2;
             }
         }
+
         return result;
     }
 }
