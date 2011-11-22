@@ -24,6 +24,11 @@ namespace quickbook
     typedef cl::scanner<parse_iterator, cl::scanner_policies <
         cl::iteration_policy, cl::match_policy, cl::action_policy> > scanner;
 
+    template <typename Scanner>
+    struct Scanner_must_be_the_quickbook_scanner_typedef;
+    template <>
+    struct Scanner_must_be_the_quickbook_scanner_typedef<scanner> {};
+
     struct grammar
         : public cl::grammar<grammar>
     {
@@ -31,14 +36,12 @@ namespace quickbook
             : start_rule(start_rule) {}
 
         template <typename Scanner>
-        struct definition {
-            // TODO: Statically assert that Scanner == scanner.
-        
+        struct definition :
+            Scanner_must_be_the_quickbook_scanner_typedef<Scanner>
+        {
             definition(grammar const& self) : start_rule(self.start_rule) {}
-            
-            cl::rule<Scanner> const& start() const { return start_rule; }
-
-            cl::rule<Scanner> const& start_rule;
+            cl::rule<scanner> const& start() const { return start_rule; }
+            cl::rule<scanner> const& start_rule;
         };
 
         cl::rule<scanner> const& start_rule;
