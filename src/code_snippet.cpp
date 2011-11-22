@@ -43,7 +43,9 @@ namespace quickbook
         void pass_thru(string_iterator first, string_iterator last);
         void escaped_comment(string_iterator first, string_iterator last);
         void start_snippet(string_iterator first, string_iterator last);
+        void start_snippet_impl(std::string const&, string_iterator);
         void end_snippet(string_iterator first, string_iterator last);
+        void end_snippet_impl(string_iterator);
         void callout(string_iterator first, string_iterator last);
         
         void append_code(string_iterator first, string_iterator last);
@@ -470,8 +472,7 @@ namespace quickbook
         {
             if (!snippet_stack)
             {
-                // TODO: This should be: start_snippet(first,first);
-                push_snippet_data("!", callout_id, first);
+                start_snippet_impl("!", first);
             }
     
             snippet_data& snippet = *snippet_stack;
@@ -481,7 +482,7 @@ namespace quickbook
 
             if (snippet.id == "!")
             {
-                end_snippet(last, last);
+                end_snippet_impl(last);
             }
         }
     }
@@ -489,17 +490,25 @@ namespace quickbook
     void code_snippet_actions::start_snippet(string_iterator first, string_iterator last)
     {
         append_code(first, last);
-        std::string id(mark_begin, mark_end);
-        push_snippet_data(id, callout_id, first);
+        start_snippet_impl(std::string(mark_begin, mark_end), first);
     }
 
     void code_snippet_actions::end_snippet(string_iterator first, string_iterator last)
     {
         // TODO: Error?
         if(!snippet_stack) return;
-
         append_code(first, last);
+        end_snippet_impl(first);
+    }
 
+    void code_snippet_actions::start_snippet_impl(std::string const& id,
+            string_iterator position)
+    {
+        push_snippet_data(id, callout_id, position);
+    }
+
+    void code_snippet_actions::end_snippet_impl(string_iterator position)
+    {
         boost::shared_ptr<snippet_data> snippet = pop_snippet_data();
         value callouts = snippet->callouts.release();
 
@@ -512,7 +521,7 @@ namespace quickbook
         }
         f.add(content, snippet->start_pos, content.get_pos());
         if (in_code) {
-            f.add("\n```\n\n", first);
+            f.add("\n```\n\n", position);
         }
 
         std::vector<std::string> params;
