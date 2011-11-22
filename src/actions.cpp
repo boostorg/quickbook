@@ -671,6 +671,24 @@ namespace quickbook
         }
     }
 
+    void write_plain_text(std::ostream& out, value const& v)
+    {
+        if (v.is_encoded())
+        {
+            detail::print_string(v.get_encoded(), out);
+        }
+        else {
+            std::string value = v.get_quickbook();
+            for(std::string::const_iterator
+                first = value.begin(), last  = value.end();
+                first != last; ++first)
+            {
+                if (*first == '\\' && ++first == last) break;
+                detail::print_char(*first, out);
+            }
+        }
+    }
+
     void image_action(quickbook::actions& actions, value image)
     {
         write_anchors(actions, actions.phrase);
@@ -826,23 +844,7 @@ namespace quickbook
         BOOST_FOREACH(attribute_map::value_type const& attr, attributes)
         {
             actions.phrase << " " << attr.first << "=\"";
-
-            if (attr.second.is_encoded())
-            {
-                detail::print_string(attr.second.get_encoded(),
-                    actions.phrase.get());
-            }
-            else {
-                std::string value = attr.second.get_quickbook();
-                for(std::string::const_iterator
-                    first = value.begin(), last  = value.end();
-                    first != last; ++first)
-                {
-                    if (*first == '\\' && ++first == last) break;
-                    detail::print_char(*first, actions.phrase.get());
-                }
-            }
-
+            write_plain_text(actions.phrase.get(), attr.second);
             actions.phrase << "\"";
         }
 
@@ -852,9 +854,7 @@ namespace quickbook
         // This will be used for the alt tag in html.
         if (alt_text.check()) {
             actions.phrase << "<textobject><phrase>";
-            detail::print_string(alt_text.is_encoded() ?
-                alt_text.get_encoded() : alt_text.get_quickbook(),
-                actions.phrase.get());
+            write_plain_text(actions.phrase.get(), alt_text);
             actions.phrase << "</phrase></textobject>";
         }
 

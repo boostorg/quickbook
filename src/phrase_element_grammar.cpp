@@ -51,6 +51,8 @@ namespace quickbook
             ("$", element_info(element_info::phrase, &local.image, phrase_tags::image))
             ;
 
+        // Note that the attribute values here are encoded in plain text not
+        // boostbook.
         local.image =
                 qbk_since(105u)
             >>  blank
