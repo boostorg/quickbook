@@ -368,17 +368,19 @@ namespace quickbook
         bool is_python = extension == ".py";
         code_snippet_actions a(storage, load(filename, qbk_version_n), is_python ? "[python]" : "[c++]");
 
-        // TODO: Should I check that parse succeeded?
-
         string_iterator first(a.source_file->source.begin());
         string_iterator last(a.source_file->source.end());
 
+        cl::parse_info<string_iterator> info;
+
         if(is_python) {
-            boost::spirit::classic::parse(first, last, python_code_snippet_grammar(a));
+            info = boost::spirit::classic::parse(first, last, python_code_snippet_grammar(a));
         }
         else {
-            boost::spirit::classic::parse(first, last, cpp_code_snippet_grammar(a));
+            info = boost::spirit::classic::parse(first, last, cpp_code_snippet_grammar(a));
         }
+
+        assert(info.full);
 
         return 0;
     }
