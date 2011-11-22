@@ -18,6 +18,7 @@
 #include "actions.hpp"
 #include "values.hpp"
 #include "files.hpp"
+#include "input_path.hpp"
 
 namespace quickbook
 {
@@ -35,6 +36,7 @@ namespace quickbook
             , storage(storage)
             , source_file(source_file)
             , source_type(source_type)
+            , error_count(0)
         {
             content.start(source_file);
         }
@@ -47,6 +49,7 @@ namespace quickbook
         void end_snippet(string_iterator first, string_iterator last);
         void end_snippet_impl(string_iterator);
         void callout(string_iterator first, string_iterator last);
+        void end_file(string_iterator, string_iterator);
         
         void append_code(string_iterator first, string_iterator last);
         void close_code();
@@ -97,6 +100,7 @@ namespace quickbook
         std::vector<template_symbol>& storage;
         file_ptr source_file;
         char const* const source_type;
+        int error_count;
     };
 
     struct python_code_snippet_grammar
@@ -118,7 +122,8 @@ namespace quickbook
 
                 actions_type& actions = self.actions;
             
-                start_ = *code_elements;
+                start_ = (*code_elements)           [boost::bind(&actions_type::end_file, &actions, _1, _2)]
+                    ;
 
                 identifier =
                     (cl::alpha_p | '_') >> *(cl::alnum_p | '_')
@@ -222,7 +227,8 @@ namespace quickbook
             {
                 actions_type& actions = self.actions;
             
-                start_ = *code_elements;
+                start_ = (*code_elements)           [boost::bind(&actions_type::end_file, &actions, _1, _2)]
+                    ;
 
                 identifier =
                     (cl::alpha_p | '_') >> *(cl::alnum_p | '_')
@@ -383,8 +389,7 @@ namespace quickbook
         }
 
         assert(info.full);
-
-        return 0;
+        return a.error_count;
     }
 
     void code_snippet_actions::append_code(string_iterator first, string_iterator last)
@@ -408,7 +413,7 @@ namespace quickbook
         
         last_code_pos = last;
     }
-
+    
     void code_snippet_actions::close_code()
     {
         if (!snippet_stack) return;
@@ -495,10 +500,46 @@ namespace quickbook
 
     void code_snippet_actions::end_snippet(string_iterator first, string_iterator last)
     {
-        // TODO: Error?
-        if(!snippet_stack) return;
         append_code(first, last);
+
+        if(!snippet_stack) {
+            if (qbk_version_n >= 106u) {
+                detail::outerr(source_file, first)
+                    << "Mismatched end snippet."
+                    << std::endl;
+                ++error_count;
+            }
+            else {
+                detail::outwarn(source_file, first)
+                    << "Mismatched end snippet."
+                    << std::endl;
+            }
+            return;
+        }
+
         end_snippet_impl(first);
+    }
+    
+    void code_snippet_actions::end_file(string_iterator, string_iterator pos)
+    {
+        append_code(pos, pos);
+        close_code();
+
+        while (snippet_stack) {
+            if (qbk_version_n >= 106u) {
+                detail::outerr(source_file->path)
+                    << "Unclosed snippet '" << snippet_stack->id << "'"
+                    << std::endl;
+                ++error_count;
+            }
+            else {
+                detail::outwarn(source_file->path)
+                    << "Unclosed snippet '" << snippet_stack->id << "'"
+                    << std::endl;
+            }
+            
+            end_snippet_impl(pos);
+        }
     }
 
     void code_snippet_actions::start_snippet_impl(std::string const& id,
@@ -509,6 +550,8 @@ namespace quickbook
 
     void code_snippet_actions::end_snippet_impl(string_iterator position)
     {
+        assert(snippet_stack);
+
         boost::shared_ptr<snippet_data> snippet = pop_snippet_data();
         value callouts = snippet->callouts.release();
 

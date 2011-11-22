@@ -394,29 +394,32 @@ namespace quickbook
         assert(begin <= x.data->new_file->source.size());
         assert(end <= x.data->new_file->source.size());
 
-        std::vector<mapped_file_section>::iterator start =
-            boost::upper_bound(x.data->new_file->mapped_sections,
-                begin, mapped_section_pos_cmp());
-        assert(start != x.data->new_file->mapped_sections.begin());
-        --start;
-
-        std::string::size_type size = data->new_file->source.size();
-
-        data->new_file->mapped_sections.push_back(mapped_file_section(
-                start->to_original_pos(begin), size,
-                start->section_type));
-
-        for (++start; start != x.data->new_file->mapped_sections.end() &&
-                start->our_pos < end; ++start)
+        if (begin != end)
         {
+            std::vector<mapped_file_section>::iterator start =
+                boost::upper_bound(x.data->new_file->mapped_sections,
+                    begin, mapped_section_pos_cmp());
+            assert(start != x.data->new_file->mapped_sections.begin());
+            --start;
+    
+            std::string::size_type size = data->new_file->source.size();
+    
             data->new_file->mapped_sections.push_back(mapped_file_section(
-                start->original_pos, start->our_pos - begin + size,
-                start->section_type));
-        }
-
-        data->new_file->source.append(
-            x.data->new_file->source.begin() + begin,
+                    start->to_original_pos(begin), size,
+                    start->section_type));
+    
+            for (++start; start != x.data->new_file->mapped_sections.end() &&
+                    start->our_pos < end; ++start)
+            {
+                data->new_file->mapped_sections.push_back(mapped_file_section(
+                    start->original_pos, start->our_pos - begin + size,
+                    start->section_type));
+            }
+    
+            data->new_file->source.append(
+                x.data->new_file->source.begin() + begin,
             x.data->new_file->source.begin() + end);
+        }
     }
 
     void mapped_file_builder::unindent_and_add(iterator begin, iterator end)
