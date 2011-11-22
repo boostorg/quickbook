@@ -92,8 +92,8 @@ namespace quickbook
         ostream& outerr();
         ostream& outerr(fs::path const& file, int line = -1);
         ostream& outwarn(fs::path const& file, int line = -1);
-        ostream& outerr(file const*, string_iterator);
-        ostream& outwarn(file const*, string_iterator);
+        ostream& outerr(file_ptr const&, string_iterator);
+        ostream& outwarn(file_ptr const&, string_iterator);
         
         struct utf8_proxy
         {

@@ -37,7 +37,7 @@ namespace quickbook
         unsigned qbk_version;
         bool imported;
         std::string doc_type;
-        file const* current_file;
+        file_ptr current_file;
         fs::path filename_relative;
         fs::path xinclude_base;
         std::string source_mode;

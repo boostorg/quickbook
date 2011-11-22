@@ -13,14 +13,13 @@
 #include <boost/range/algorithm/upper_bound.hpp>
 #include <boost/range/algorithm/transform.hpp>
 #include <fstream>
-#include <list>
 #include <iterator>
 
 namespace quickbook
 {
     namespace
     {
-        boost::unordered_map<fs::path, file> files;
+        boost::unordered_map<fs::path, file_ptr> files;
     }
 
     // Read the first few bytes in a file to see it starts with a byte order
@@ -100,9 +99,9 @@ namespace quickbook
         }
     }
 
-    file* load(fs::path const& filename, unsigned qbk_version)
+    file_ptr load(fs::path const& filename, unsigned qbk_version)
     {
-        boost::unordered_map<fs::path, file>::iterator pos
+        boost::unordered_map<fs::path, file_ptr>::iterator pos
             = files.find(filename);
 
         if (pos == files.end())
@@ -124,15 +123,12 @@ namespace quickbook
             bool inserted;
 
             boost::tie(pos, inserted) = files.emplace(
-                boost::unordered::piecewise_construct,
-                boost::make_tuple(filename),
-                boost::make_tuple(filename, source, qbk_version)
-                );
+                filename, new file(filename, source, qbk_version));
 
             assert(inserted);
         }
 
-        return &pos->second;
+        return pos->second;
     }
 
     file_position relative_position(
@@ -285,11 +281,11 @@ namespace quickbook
     
     struct mapped_file : file
     {
-        mapped_file(file const* original) :
+        mapped_file(file_ptr original) :
             file(original->path, std::string(), original->version()),
             original(original), mapped_sections() {}
 
-        file const* original;
+        file_ptr original;
         std::vector<mapped_file_section> mapped_sections;
         
         void add_empty_mapped_file_section(std::string::const_iterator pos) {
@@ -328,36 +324,33 @@ namespace quickbook
     struct mapped_file_builder_data
     {
         mapped_file_builder_data() { reset(); }
-        void reset() { new_file = mapped_files.end(); }
+        void reset() { new_file.reset(); }
     
-        std::list<mapped_file>::iterator new_file;
+        boost::intrusive_ptr<mapped_file> new_file;
     };
 
     mapped_file_builder::mapped_file_builder() : data(0) {}
     mapped_file_builder::~mapped_file_builder() { delete data; }
 
-    void mapped_file_builder::start(file const* f)
+    void mapped_file_builder::start(file_ptr f)
     {
         if (!data) {
             data = new mapped_file_builder_data;
         }
 
-        assert(data->new_file == mapped_files.end());
-        mapped_files.push_back(mapped_file(f));
-        data->new_file = mapped_files.end();
-        --data->new_file;
+        assert(!data->new_file);
+        data->new_file = new mapped_file(f);
     }
 
-    file* mapped_file_builder::release()
+    file_ptr mapped_file_builder::release()
     {
-        file* r = &*data->new_file;
+        file_ptr r = data->new_file;
         data->reset();
         return r;
     }
 
     void mapped_file_builder::clear()
     {
-        mapped_files.erase(data->new_file);
         data->reset();
     }
     

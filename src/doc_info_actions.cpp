@@ -228,7 +228,7 @@ namespace quickbook
                 "Version 1.1 is assumed" << std::endl;
         }
 
-        actions.current_file_tmp->version(qbk_version_n);
+        actions.current_file->version(qbk_version_n);
 
         // Compatibility Version
 

@@ -57,7 +57,7 @@ namespace quickbook {
             typedef void type;
         };
 
-        value_entry(value_builder& b, file const** current_file)
+        value_entry(value_builder& b, file_ptr* current_file)
             : b(b), current_file(current_file) {}
 
         void operator()(parse_iterator begin, parse_iterator end,
@@ -73,7 +73,7 @@ namespace quickbook {
         }
 
         value_builder& b;
-        file const** current_file;
+        file_ptr* current_file;
     };
 
     struct value_sort
@@ -92,7 +92,7 @@ namespace quickbook {
 
     struct value_parser
     {
-        value_parser(file const** current_file)
+        value_parser(file_ptr* current_file)
             : builder()
             , save(builder)
             , list(builder)

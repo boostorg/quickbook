@@ -25,13 +25,17 @@ void empty_tests()
 
 void qbk_tests()
 {
-    quickbook::file fake_file(
-        "(fake file)", "Source", 105u);
-    quickbook::value q = quickbook::qbk_value_ref(
-        &fake_file,
-        fake_file.source.begin(),
-        fake_file.source.end());
-    BOOST_TEST_EQ(q.get_quickbook(), fake_file.source);
+    std::string source = "Source";
+    quickbook::value q;
+    {
+        quickbook::file_ptr fake_file = new quickbook::file(
+            "(fake file)", source, 105u);
+        q = quickbook::qbk_value_ref(
+            fake_file,
+            fake_file->source.begin(),
+            fake_file->source.end());
+    }
+    BOOST_TEST_EQ(q.get_quickbook(), source);
 }
 
 void sort_test()

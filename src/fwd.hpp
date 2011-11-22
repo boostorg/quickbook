@@ -12,6 +12,7 @@
 #define BOOST_SPIRIT_FWD_HPP
 
 #include "iterator.hpp"
+#include <boost/intrusive_ptr.hpp>
 
 namespace quickbook
 {
@@ -21,6 +22,7 @@ namespace quickbook
     struct id_manager;
     struct section_info;
     struct file;
+    typedef boost::intrusive_ptr<file> file_ptr;
 
     typedef std::string::const_iterator string_iterator;
     typedef lookback_iterator<string_iterator> parse_iterator;

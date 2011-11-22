@@ -9,6 +9,7 @@
 #include "id_manager.hpp"
 #include "utils.hpp"
 #include "string_ref.hpp"
+#include "intrusive_base.hpp"
 #include <boost/intrusive_ptr.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/lexical_cast.hpp>
@@ -29,32 +30,6 @@ namespace quickbook
     std::string process_ids(id_state&, std::string const&);
 
     static const std::size_t max_size = 32;
-
-    //
-    // instructive_base
-    //
-    // I should probably make this a recursive template, or use SFINAE to check
-    // the release is correct, or maybe use a virtual destructor. But I'm
-    // feeling reckless.
-    //
-
-    struct intrusive_base
-    {
-        intrusive_base() : ref_count_(0) {}
-        intrusive_base(intrusive_base const&) : ref_count_(0) {}
-        intrusive_base& operator=(intrusive_base const&) { return *this; }
-        ~intrusive_base() { assert(!ref_count_); }
-
-        unsigned ref_count_;
-
-        friend void intrusive_ptr_add_ref(intrusive_base* ptr)
-            { ++ptr->ref_count_; }
-
-        template <typename T>
-        friend void intrusive_ptr_release(T* ptr)
-            { if(--ptr->ref_count_ == 0) delete ptr; }
-    private:
-    };
 
     //
     // id_placeholder
@@ -176,7 +151,7 @@ private:
         void restore_section();
     };
 
-    struct file_info : intrusive_base
+    struct file_info : intrusive_base<file_info>
     {
         boost::intrusive_ptr<file_info> parent;
         boost::intrusive_ptr<doc_info> document;
@@ -207,7 +182,7 @@ private:
         {}
     };
 
-    struct doc_info : intrusive_base
+    struct doc_info : intrusive_base<doc_info>
     {
         boost::intrusive_ptr<section_info> current_section;
         std::string last_title_1_1;
@@ -218,7 +193,7 @@ private:
         {}
     };
 
-    struct section_info : intrusive_base
+    struct section_info : intrusive_base<section_info>
     {
         boost::intrusive_ptr<section_info> parent;
         unsigned compatibility_version;
@@ -820,7 +795,7 @@ private:
     // Data used for generating placeholders that have duplicates.
     //
 
-    struct id_generation_data : intrusive_base
+    struct id_generation_data : intrusive_base<id_generation_data>
     {
         id_generation_data(std::string const& src_id)
           : child_start(src_id.rfind('.') + 1),

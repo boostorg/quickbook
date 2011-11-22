@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include "fwd.hpp"
 #include "string_ref.hpp"
+#include "files.hpp"
 
 namespace quickbook
 {
@@ -48,7 +49,7 @@ namespace quickbook
             virtual char const* type_name() const = 0;
             virtual value_node* clone() const = 0;
 
-            virtual file const* get_file() const;
+            virtual file_ptr get_file() const;
             virtual string_iterator get_position() const;
             virtual string_ref get_quickbook() const;
             virtual std::string get_boostbook() const;
@@ -108,7 +109,7 @@ namespace quickbook
 
             // Item accessors
             int get_tag() const { return value_->tag_; }
-            file const* get_file() const
+            file_ptr get_file() const
             { return value_->get_file(); }
             string_iterator get_position() const
             { return value_->get_position(); }
@@ -239,9 +240,9 @@ namespace quickbook
     value int_value(int, value::tag_type = value::default_tag);
 
     // Boostbook and quickbook strings
-    value qbk_value_ref(file const*, string_iterator, string_iterator, value::tag_type = value::default_tag);
+    value qbk_value_ref(file_ptr const&, string_iterator, string_iterator, value::tag_type = value::default_tag);
     value bbk_value(std::string const&, value::tag_type = value::default_tag);
-    value qbk_bbk_value(file const*, string_iterator, string_iterator, std::string const&,
+    value qbk_bbk_value(file_ptr const&, string_iterator, string_iterator, std::string const&,
             value::tag_type = value::default_tag);
 
     ////////////////////////////////////////////////////////////////////////////

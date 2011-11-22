@@ -26,7 +26,7 @@ namespace quickbook
     struct code_snippet_actions
     {
         code_snippet_actions(std::vector<template_symbol>& storage,
-                                file* source_file,
+                                file_ptr source_file,
                                 char const* source_type)
             : last_code_pos(source_file->source.begin())
             , in_code(false)
@@ -93,7 +93,7 @@ namespace quickbook
         int callout_id;
         boost::shared_ptr<snippet_data> snippet_stack;
         std::vector<template_symbol>& storage;
-        file* source_file;
+        file_ptr source_file;
         char const* const source_type;
     };
 
@@ -521,7 +521,7 @@ namespace quickbook
             ++i;
         }
 
-        file* body = f.release();
+        file_ptr body = f.release();
 
         value_builder builder;
         builder.set_tag(template_tags::snippet);

@@ -230,7 +230,7 @@ namespace detail {
         }
     }
 
-    ostream& outerr(file const* f, string_iterator pos)
+    ostream& outerr(file_ptr const& f, string_iterator pos)
     {
         return outerr(f->path, f->position_of(pos).line);
     }
@@ -250,7 +250,7 @@ namespace detail {
         }
     }
 
-    ostream& outwarn(file const* f, string_iterator pos)
+    ostream& outwarn(file_ptr const& f, string_iterator pos)
     {
         return outwarn(f->path, f->position_of(pos).line);
     }

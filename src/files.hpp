@@ -13,18 +13,17 @@
 
 #include <string>
 #include <boost/filesystem/v3/path.hpp>
+#include <boost/intrusive_ptr.hpp>
 #include <stdexcept>
 #include <cassert>
+#include "intrusive_base.hpp"
 
 namespace quickbook {
 
     namespace fs = boost::filesystem;
 
-    struct load_error : std::runtime_error
-    {
-        explicit load_error(std::string const& arg)
-            : std::runtime_error(arg) {}
-    };
+    struct file;
+    typedef boost::intrusive_ptr<file> file_ptr;
 
     struct file_position
     {
@@ -35,7 +34,7 @@ namespace quickbook {
         int column;
     };
 
-    struct file
+    struct file : intrusive_base<file>
     {
         fs::path const path;
         std::string source;
@@ -48,7 +47,7 @@ namespace quickbook {
             path(path), source(source), qbk_version(qbk_version)
         {}
 
-        ~file() {}
+        virtual ~file() {}
 
         unsigned version() const {
             assert(qbk_version);
@@ -67,8 +66,14 @@ namespace quickbook {
     };
 
     // If version isn't supplied then it must be set later.
-    file* load(fs::path const& filename,
+    file_ptr load(fs::path const& filename,
         unsigned qbk_version = 0);
+
+    struct load_error : std::runtime_error
+    {
+        explicit load_error(std::string const& arg)
+            : std::runtime_error(arg) {}
+    };
 
     // Interface for creating fake files which are mapped to
     // real files, so that the position can be found later.
@@ -83,8 +88,8 @@ namespace quickbook {
         mapped_file_builder();
         ~mapped_file_builder();
 
-        void start(file const*);
-        file* release();
+        void start(file_ptr);
+        file_ptr release();
         void clear();
 
         bool empty() const;

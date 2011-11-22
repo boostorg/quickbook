@@ -118,8 +118,7 @@ namespace quickbook
             actions actor(filein_, xinclude_base_, buffer, ids);
             set_macros(actor);
 
-            actor.current_file_tmp = load(filein_); // Throws load_error
-            actor.current_file = actor.current_file_tmp;
+            actor.current_file = load(filein_); // Throws load_error
 
             parse_file(actor);
 

@@ -593,15 +593,15 @@ namespace quickbook
         mapped.start(actions.current_file);
         mapped.unindent_and_add(first.base(), last.base());
 
-        file const* file_ptr = mapped.release();
+        file_ptr f = mapped.release();
 
-        if (file_ptr->source.empty())
+        if (f->source.empty())
             return; // Nothing left to do here. The program is empty.
 
-        parse_iterator first_(file_ptr->source.begin());
-        parse_iterator last_(file_ptr->source.end());
+        parse_iterator first_(f->source.begin());
+        parse_iterator last_(f->source.end());
 
-        file const* saved_file = file_ptr;
+        file_ptr saved_file = f;
         boost::swap(actions.current_file, saved_file);
 
         // print the code with syntax coloring
@@ -1063,7 +1063,7 @@ namespace quickbook
           , quickbook::actions& actions
         )
         {
-            file const* saved_current_file = actions.current_file;
+            file_ptr saved_current_file = actions.current_file;
 
             actions.current_file = content.get_file();
             string_ref source = content.get_quickbook();
@@ -1792,8 +1792,7 @@ namespace quickbook
                 qbk_version_n >= 106u ? file_state::scope_callables :
                 file_state::scope_macros);
 
-            actions.current_file_tmp = load(paths.filename); // Throws load_error
-            actions.current_file = actions.current_file_tmp;
+            actions.current_file = load(paths.filename); // Throws load_error
             actions.filename_relative = paths.filename_relative;
             actions.imported = (load_type == block_tags::import);
 

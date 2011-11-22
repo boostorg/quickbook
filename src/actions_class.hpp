@@ -46,15 +46,12 @@ namespace quickbook
         bool                    warned_about_breaks;
         bool                    conditional;
         id_manager&             ids;
-        file*                   current_file_tmp;   // Temporary non-const pointer to new
-                                                    // current_file so that the
-                                                    // version can be written to.
 
     // state saved for files and templates.
         bool                    imported;
         string_symbols          macro;
         std::string             source_mode;
-        file const*             current_file;
+        file_ptr          current_file;
         fs::path                filename_relative;  // for the __FILENAME__ macro.
                                                     // (relative to the original file
                                                     //  or include path).
