@@ -185,8 +185,7 @@ namespace quickbook
 
         if(!duplicates.empty())
         {
-            // TODO: This is the *end* of the document info.
-            detail::outwarn(actions.current_file, pos.base())
+            detail::outwarn(actions.current_file->path)
                 << (duplicates.size() > 1 ?
                     "Duplicate attributes" : "Duplicate attribute")
                 << ":" << detail::utf8(boost::algorithm::join(duplicates, ", "))
