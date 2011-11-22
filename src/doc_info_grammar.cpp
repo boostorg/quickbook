@@ -178,8 +178,9 @@ namespace quickbook
             >>  ']'
             ;
 
-        // TODO: Clear phrase afterwards?
-        local.doc_fallback = (*(~cl::eps_p(']') >> local.char_));
+        local.doc_fallback = actions.to_value() [
+            *(~cl::eps_p(']') >> local.char_)
+        ];
 
         // Document Attributes
 
