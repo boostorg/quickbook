@@ -461,10 +461,14 @@ namespace quickbook
             ;
 
         local.macro =
-            // must not be followed by alpha or underscore
-            cl::eps_p(actions.macro
-                >> (cl::eps_p - (cl::alpha_p | '_')))
-            >> actions.macro                    [actions.do_macro]
+            cl::eps_p
+            (   (   actions.macro
+                >>  ~cl::eps_p(cl::alpha_p | '_')
+                                                // must not be followed by alpha or underscore
+                )
+                &   macro_identifier            // must be a valid macro for the current version
+            )
+            >>  actions.macro                   [actions.do_macro]
             ;
 
         local.template_ =
@@ -585,7 +589,7 @@ namespace quickbook
                 [
                     actions.to_value()
                     [
-                        cl::eps_p(actions.macro >> local.simple_markup_end)
+                        cl::eps_p((actions.macro & macro_identifier) >> local.simple_markup_end)
                     >>  actions.macro       [actions.do_macro]
                     |   ~cl::eps_p(cl::f_ch_p(local.simple_markup.mark))
                     >>  +(  ~cl::eps_p
@@ -717,7 +721,6 @@ namespace quickbook
             '[' >> *(local.line_dummy_block | (cl::anychar_p - (cl::eol_p | ']'))) >> ']'
             ;
 
-        // TODO: Prevent an old macro from being used in a 1.6 file.
         macro_identifier =
                 qbk_since(106u)
             >>  +(cl::anychar_p - (cl::space_p | '[' | '\\' | ']'))

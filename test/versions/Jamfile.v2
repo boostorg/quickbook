@@ -15,4 +15,5 @@ import quickbook-testing : quickbook-test quickbook-error-test ;
 
 test-suite quickbook.test :
     [ quickbook-test versions-1_6 ]
+    [ quickbook-test invalid_macro-1_6 ]
     ;
