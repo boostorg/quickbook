@@ -68,7 +68,6 @@ namespace quickbook
         return scopes.front();
     }
     
-    // TODO: Should symbols defined by '[import]' use the current scope?
     bool template_stack::add(template_symbol const& ts)
     {
         BOOST_ASSERT(!scopes.empty());

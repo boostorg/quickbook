@@ -1787,6 +1787,13 @@ namespace quickbook
         bool keep_inner_source_mode = (qbk_version_n < 106);
         
         {
+            // When importing, state doesn't scope templates and macros so that
+            // they're added to the existing scope. It might be better to add
+            // them to a new scope then explicitly import them into the
+            // existing scope.
+            //
+            // For old versions of quickbook, templates aren't scoped by the
+            // file.
             file_state state(actions,
                 load_type == block_tags::import ? file_state::scope_output :
                 qbk_version_n >= 106u ? file_state::scope_callables :
