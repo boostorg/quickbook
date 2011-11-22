@@ -73,6 +73,10 @@ Markup in list:
 *   [*Bold]
 *   ["Quoted]
 *   [footnote Footnote]
+*   [table [[Heading]][[Cell]]]
+*   [heading The heading for a list item]
+
+    The content of the list item.
 
 Don't end list with comment 1:
 

@@ -209,7 +209,8 @@ New elements in 1.6 (to be documented later):
 
 [section:listparagraphs Pargraphs in lists]
 
-I'm still refining this, but paragraphs can now be used in lists:
+I'm still refining this, but paragraphs and block elements can now be used
+in lists:
 
 [pre
 * Para 1
@@ -236,7 +237,6 @@ generates:
   Para 3
 
 /TODO/: Improve code generation.
-/TODO/: Allow block elements in list items.
 
 [endsect]
 

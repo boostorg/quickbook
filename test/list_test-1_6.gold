@@ -309,6 +309,43 @@
         </footnote>
       </simpara>
     </listitem>
+    <listitem>
+      <simpara>
+        <informaltable frame="all">
+          <tgroup cols="1">
+            <thead>
+              <row>
+                <entry>
+                  <para>
+                    Heading
+                  </para>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry>
+                  <para>
+                    Cell
+                  </para>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </informaltable>
+      </simpara>
+    </listitem>
+    <listitem>
+      <simpara>
+        <bridgehead renderas="sect2" id="list_test.h0">
+          <phrase id="list_test.the_heading_for_a_list_item"/><link linkend="list_test.the_heading_for_a_list_item">The
+          heading for a list item</link>
+        </bridgehead>
+        <para>
+          The content of the list item.
+        </para>
+      </simpara>
+    </listitem>
   </itemizedlist>
   <para>
     Don't end list with comment 1:

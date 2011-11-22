@@ -353,13 +353,15 @@ namespace quickbook
             >>  (cl::ch_p('*') | '#')
             >>  *cl::blank_p                    [local.list.still_in_block = true]
             >>  *(  cl::eps_p(local.list.still_in_block)
-                >>  local.list_item
+                >>  local.list_item(element_info::only_block)
                 )
             >>  cl::eps_p                       [actions.list_item]
             ;
 
         local.list_item =
-                cl::eps_p(local.paragraph_separator) [local.list.still_in_block = false]
+                local.element(local.list_item.context)
+            >>  !eol                            [local.list.still_in_block = false]
+            |   local.paragraph_separator       [local.list.still_in_block = false]
             |   local.common(element_info::in_phrase)
             ;
 
