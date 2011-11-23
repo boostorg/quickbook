@@ -33,11 +33,12 @@ namespace quickbook
 
         enum context {
             in_phrase = phrase | maybe_block,
-            in_conditional = in_phrase | conditional_or_block,
-            in_nested_block = in_conditional | nested_block,
-            only_block = block | conditional_or_block | nested_block,
-            only_nested_block = conditional_or_block | nested_block,
-            only_contextual_block = block | conditional_or_block | nested_block | maybe_block
+            in_nested_block = phrase | maybe_block | nested_block,
+            in_conditional = phrase | maybe_block | nested_block | conditional_or_block,
+            in_block = phrase | maybe_block | nested_block | conditional_or_block | block,
+            only_nested_block = nested_block,
+            only_block = nested_block | conditional_or_block | block,
+            only_contextual_block = maybe_block | nested_block | conditional_or_block | block
         };
 
         element_info()
