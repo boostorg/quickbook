@@ -733,7 +733,8 @@ And one for the little boy who lives down the lane.
 <phrase role="special">{</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;Hello, World!&quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">endl</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">return</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-<phrase role="special">}</phrase></programlisting>
+<phrase role="special">}</phrase>
+</programlisting>
         </para>
       </section>
       <section id="quickbook.syntax.phrase.source_mode">
@@ -1762,7 +1763,11 @@ sf_logo
           Now everywhere the sf_logo is placed, the picture will be inlined.
         </para>
         <para>
-          <inlinemediaobject><imageobject><imagedata fileref="http://sourceforge.net/sflogo.php?group_id=28447&amp;type=1"></imagedata></imageobject></inlinemediaobject>
+          <inlinemediaobject><imageobject><imagedata fileref="http://sourceforge.net/sflogo.php?group_id=28447&amp;type=1"></imagedata></imageobject>
+          <textobject>
+            <phrase>sflogo</phrase>
+          </textobject>
+          </inlinemediaobject>
         </para>
         <tip>
           <para>
@@ -1799,7 +1804,11 @@ sf_logo
         </para>
         <para>
           Hi <ulink url="http://spirit.sourceforge.net">Spirit</ulink> <inlinemediaobject><imageobject><imagedata
-          fileref="images/smiley.png"></imagedata></imageobject></inlinemediaobject>
+          fileref="images/smiley.png"></imagedata></imageobject>
+          <textobject>
+            <phrase>smiley</phrase>
+          </textobject>
+          </inlinemediaobject>
         </para>
       </section>
       <section id="quickbook.syntax.block.predefined_macros">
@@ -2210,8 +2219,12 @@ for the journey to old age.]]]
         </para>
         <sidebar role="blurb">
         <para>
-          <inlinemediaobject><imageobject><imagedata fileref="images/smiley.png"></imagedata></imageobject></inlinemediaobject>
-          <emphasis role="bold">An eye catching advertisement or note...</emphasis>
+          <inlinemediaobject><imageobject><imagedata fileref="images/smiley.png"></imagedata></imageobject>
+          <textobject>
+            <phrase>smiley</phrase>
+          </textobject>
+          </inlinemediaobject> <emphasis role="bold">An eye catching advertisement
+          or note...</emphasis>
         </para>
         <para>
           <ulink url="http://spirit.sourceforge.net">Spirit</ulink> is an object-oriented
@@ -2452,7 +2465,8 @@ for the journey to old age.]]]
 <phrase role="special">{</phrase>
     <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">cout</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="string">&quot;Hello, World!&quot;</phrase> <phrase role="special">&lt;&lt;</phrase> <phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">endl</phrase><phrase role="special">;</phrase>
     <phrase role="keyword">return</phrase> <phrase role="number">0</phrase><phrase role="special">;</phrase>
-<phrase role="special">}</phrase></programlisting>
+<phrase role="special">}</phrase>
+</programlisting>
                   </para>
                 </entry>
               </row>
@@ -2613,7 +2627,8 @@ for the journey to old age.]]]
 <phrase role="special">{</phrase>
     <phrase role="comment">// return 'em, foo man!</phrase>
     <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo&quot;</phrase><phrase role="special">;</phrase>
-<phrase role="special">}</phrase></programlisting>
+<phrase role="special">}</phrase>
+</programlisting>
         </para>
         <para>
           This is the <emphasis role="bold"><emphasis>bar</emphasis></emphasis> function
@@ -2623,7 +2638,8 @@ for the journey to old age.]]]
 <phrase role="special">{</phrase>
     <phrase role="comment">// return 'em, bar man!</phrase>
     <phrase role="keyword">return</phrase> <phrase role="string">&quot;bar&quot;</phrase><phrase role="special">;</phrase>
-<phrase role="special">}</phrase></programlisting>
+<phrase role="special">}</phrase>
+</programlisting>
         </para>
         <para>
           Some trailing text here
@@ -2686,7 +2702,8 @@ for the journey to old age.]]]
 <programlisting><phrase role="identifier">std</phrase><phrase role="special">::</phrase><phrase role="identifier">string</phrase> <phrase role="identifier">foo_bar</phrase><phrase role="special">()</phrase> <co id="quickbook.syntax.block.import.c0" linkends="quickbook.syntax.block.import.c1" />
 <phrase role="special">{</phrase>
     <phrase role="keyword">return</phrase> <phrase role="string">&quot;foo-bar&quot;</phrase><phrase role="special">;</phrase> <co id="quickbook.syntax.block.import.c2" linkends="quickbook.syntax.block.import.c3" />
-<phrase role="special">}</phrase></programlisting>
+<phrase role="special">}</phrase>
+</programlisting>
         </para>
         <calloutlist>
           <callout arearefs="quickbook.syntax.block.import.c0" id="quickbook.syntax.block.import.c1">
@@ -2968,10 +2985,13 @@ for the journey to old age.]]]
     </para>
     <sidebar role="blurb">
     <para>
-      <inlinemediaobject><imageobject><imagedata fileref="images/note.png"></imagedata></imageobject></inlinemediaobject>
-      You may submit your settings, tips, and suggestions to the authors, or through
-      the <ulink url="https://lists.sourceforge.net/lists/listinfo/boost-">docs Boost
-      Docs mailing list</ulink>.
+      <inlinemediaobject><imageobject><imagedata fileref="images/note.png"></imagedata></imageobject>
+      <textobject>
+        <phrase>note</phrase>
+      </textobject>
+      </inlinemediaobject> You may submit your settings, tips, and suggestions to
+      the authors, or through the <ulink url="https://lists.sourceforge.net/lists/listinfo/boost-">docs
+      Boost Docs mailing list</ulink>.
     </para>
     </sidebar>
     <section id="quickbook.editors.scite">
@@ -2987,8 +3007,11 @@ for the journey to old age.]]]
       </para>
       <sidebar role="blurb">
       <para>
-        <inlinemediaobject><imageobject><imagedata fileref="images/tip.png"></imagedata></imageobject></inlinemediaobject>
-        SciTE can be downloaded from <ulink url="http://www.scintilla.org/SciTE.html">http://www.scintilla.org/SciTE.html</ulink>
+        <inlinemediaobject><imageobject><imagedata fileref="images/tip.png"></imagedata></imageobject>
+        <textobject>
+          <phrase>tip</phrase>
+        </textobject>
+        </inlinemediaobject> SciTE can be downloaded from <ulink url="http://www.scintilla.org/SciTE.html">http://www.scintilla.org/SciTE.html</ulink>
       </para>
       </sidebar>
       <para>
@@ -3009,8 +3032,11 @@ comment.box.end.props=]
 <!--quickbook-escape-postfix--></programlisting>
       <sidebar role="blurb">
       <para>
-        <inlinemediaobject><imageobject><imagedata fileref="images/note.png"></imagedata></imageobject></inlinemediaobject>
-        Thanks to Rene Rivera for the above SciTE settings.
+        <inlinemediaobject><imageobject><imagedata fileref="images/note.png"></imagedata></imageobject>
+        <textobject>
+          <phrase>note</phrase>
+        </textobject>
+        </inlinemediaobject> Thanks to Rene Rivera for the above SciTE settings.
       </para>
       </sidebar>
     </section>

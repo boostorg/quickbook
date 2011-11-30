@@ -351,7 +351,7 @@ namespace quickbook
         local.list =
                 *cl::blank_p
             >>  (cl::ch_p('*') | '#')
-            >>  *cl::blank_p                    [local.list.still_in_block = true]
+            >>  (*cl::blank_p)                  [local.list.still_in_block = true]
             >>  *(  cl::eps_p(local.list.still_in_block)
                 >>  local.list_item(element_info::only_block)
                 )
@@ -560,6 +560,7 @@ namespace quickbook
                     "```" >> *(*cl::blank_p >> cl::eol_p) >>
                     (
                        *(cl::anychar_p - (*cl::space_p >> "```"))
+                            >> !(*cl::blank_p >> cl::eol_p)
                             >> cl::eps_p(*cl::space_p >> "```")
                     )                           [actions.code_block]
                     >> *cl::space_p >> "```"
@@ -568,6 +569,7 @@ namespace quickbook
                     "``" >> *(*cl::blank_p >> cl::eol_p) >>
                     (
                        *(cl::anychar_p - (*cl::space_p >> "``"))
+                            >> !(*cl::blank_p >> cl::eol_p)
                             >> cl::eps_p(*cl::space_p >> "``")
                     )                           [actions.code_block]
                     >> *cl::space_p >> "``"
