@@ -12,6 +12,7 @@
 #include <functional>
 #include <vector>
 #include <map>
+#include <set>
 #include <boost/filesystem/v3/convenience.hpp>
 #include <boost/filesystem/v3/fstream.hpp>
 #include <boost/range/distance.hpp>
@@ -32,6 +33,7 @@
 #include "block_tags.hpp"
 #include "phrase_tags.hpp"
 #include "id_manager.hpp"
+#include "glob.hpp"
 
 namespace quickbook
 {
@@ -1688,6 +1690,12 @@ namespace quickbook
         std::string path_text = path.is_encoded() ? path.get_encoded() :
             path.get_quickbook();
 
+        if(qbk_version_n >= 106u && path_text.find_first_of("[]?*"))
+        {
+            // For a glob expression we don't correct '\' as it's could be
+            // an escape for the glob.
+            return detail::generic_to_path(path_text);
+        }
         if(path_text.find('\\') != std::string::npos)
         {
             (qbk_version_n >= 106u ?
@@ -1744,37 +1752,124 @@ namespace quickbook
 
             fs::path filename;
             fs::path filename_relative;
+
+            bool operator < (include_search_return const & other) const
+            {
+                if (filename_relative < other.filename_relative) return true;
+                else if (other.filename_relative < filename_relative) return false;
+                else return filename < other.filename;
+            }
         };
 
-        include_search_return include_search(fs::path const& path,
-                quickbook::actions const& actions)
+        #if QUICKBOOK_WIDE_PATHS
+        typedef std::wstring path_string_t;
+        inline path_string_t path_to_string(fs::path const & p)
         {
-            fs::path current = actions.current_file->path.parent_path();
+            return p.generic_wstring();
+        }
+        #else
+        typedef std::string path_string_t;
+        inline path_string_t path_to_string(fs::path const & p)
+        {
+            return p.generic_string();
+        }
+        #endif
 
-            // If the path is relative, try and resolve it.
-            if (!path.has_root_directory() && !path.has_root_name())
+        void include_search_glob(std::set<include_search_return> & result,
+            fs::path dir, fs::path path, quickbook::actions const & actions)
+        {
+            // Split the glob into the current dir/glob/rest to search.
+            fs::path glob;
+            fs::path rest;
+            fs::path::iterator i = path.begin();
+            fs::path::iterator e = path.end();
+            for (; i != e; ++i)
             {
-                // See if it can be found locally first.
-                if (fs::exists(current / path))
+                if (path_to_string(*i).find_first_of("[]?*") != path_string_t::npos)
                 {
-                    return include_search_return(
-                        current / path,
-                        actions.filename_relative.parent_path() / path);
+                    glob = *i;
+                    for (++i; i != e; ++i) rest /= *i;
+                    break;
                 }
-
-                // Search in each of the include path locations.
-                BOOST_FOREACH(fs::path full, include_path)
+                else
                 {
-                    full /= path;
-                    if (fs::exists(full))
-                    {
-                        return include_search_return(full, path);
-                    }
+                    dir /= *i;
                 }
             }
+            // Walk through the dir for matches.
+            fs::directory_iterator dir_i(dir);
+            fs::directory_iterator dir_e;
+            for (; dir_i != dir_e; ++dir_i)
+            {
+                fs::path f = dir_i->path().filename();
+                // Skip if the dir item doesn't match.
+                if (!quickbook::glob(path_to_string(glob).c_str(),path_to_string(f).c_str())) continue;
+                // If it's a file we add it to the results.
+                if (fs::is_regular_file(dir_i->status()))
+                {
+                    result.insert(include_search_return(
+                        dir/f,
+                        actions.filename_relative.parent_path()/dir/f
+                        ));
+                }
+                // If it's a matching dir, we recurse looking for more files.
+                else
+                {
+                    include_search_glob(result,dir,f/rest,actions);
+                }
+            }
+        }
 
-            return include_search_return(path,
-                actions.filename_relative.parent_path() / path);
+        std::set<include_search_return> include_search(fs::path const& path,
+                quickbook::actions const& actions)
+        {
+            std::set<include_search_return> result;
+            fs::path current = actions.current_file->path.parent_path();
+
+            // If the path has some glob match characters
+            // we do a discovery of all the matches..
+            if (qbk_version_n >= 106u && path_to_string(path).find_first_of("[]?*") != path_string_t::npos)
+            {
+                // Search for the current dir accumulating to the result.
+                include_search_glob(result,current,path,actions);
+                // Search the include path dirs accumulating to the result.
+                BOOST_FOREACH(fs::path dir, include_path)
+                {
+                    include_search_glob(result,dir,path,actions);
+                }
+                // Done.
+                return result;
+            }
+            else
+            {
+                // If the path is relative, try and resolve it.
+                if (!path.has_root_directory() && !path.has_root_name())
+                {
+                    // See if it can be found locally first.
+                    if (fs::exists(current / path))
+                    {
+                        result.insert(include_search_return(
+                            current / path,
+                            actions.filename_relative.parent_path() / path));
+                        return result;
+                    }
+
+                    // Search in each of the include path locations.
+                    BOOST_FOREACH(fs::path full, include_path)
+                    {
+                        full /= path;
+                        if (fs::exists(full))
+                        {
+                            result.insert(include_search_return(full, path));
+                            return result;
+                        }
+                    }
+                }
+
+                result.insert(include_search_return(path,
+                    actions.filename_relative.parent_path() / path));
+                return result;
+            }
         }
     }
     
@@ -1880,48 +1975,54 @@ namespace quickbook
 
         value_consumer values = include;
         value include_doc_id = values.optional_consume(general_tags::include_id);
-        include_search_return paths = include_search(
+        std::set<include_search_return> search = include_search(
             check_path(values.consume(), actions), actions);
         values.finish();
 
-        try {
-            if (qbk_version_n >= 106)
-            {
-                if (actions.imported && include.get_tag() == block_tags::include)
-                    return;
-
-                std::string ext = paths.filename.extension().generic_string();
-                
-                if (ext == ".qbk" || ext == ".quickbook")
+        std::set<include_search_return>::iterator i = search.begin();
+        std::set<include_search_return>::iterator e = search.end();
+        for (; i != e; ++i)
+        {
+            include_search_return const & paths = *i;
+            try {
+                if (qbk_version_n >= 106)
                 {
-                    load_quickbook(actions, paths, include.get_tag(), include_doc_id);
+                    if (actions.imported && include.get_tag() == block_tags::include)
+                        return;
+
+                    std::string ext = paths.filename.extension().generic_string();
+
+                    if (ext == ".qbk" || ext == ".quickbook")
+                    {
+                        load_quickbook(actions, paths, include.get_tag(), include_doc_id);
+                    }
+                    else
+                    {
+                        load_source_file(actions, paths, include.get_tag(), first, include_doc_id);
+                    }
                 }
                 else
                 {
-                    load_source_file(actions, paths, include.get_tag(), first, include_doc_id);
+                    if (include.get_tag() == block_tags::include)
+                    {
+                        load_quickbook(actions, paths, include.get_tag(), include_doc_id);
+                    }
+                    else
+                    {
+                        load_source_file(actions, paths, include.get_tag(), first, include_doc_id);
+                    }
                 }
             }
-            else
-            {
-                if (include.get_tag() == block_tags::include)
-                {
-                    load_quickbook(actions, paths, include.get_tag(), include_doc_id);
-                }
-                else
-                {
-                    load_source_file(actions, paths, include.get_tag(), first, include_doc_id);
-                }
-            }
-        }
-        catch (load_error& e) {
-            ++actions.error_count;
+            catch (load_error& e) {
+                ++actions.error_count;
 
-            detail::outerr(actions.current_file, first)
-                << "Loading file:"
-                << paths.filename
-                << ": "
-                << detail::utf8(e.what())
-                << std::endl;
+                detail::outerr(actions.current_file, first)
+                    << "Loading file:"
+                    << paths.filename
+                    << ": "
+                    << detail::utf8(e.what())
+                    << std::endl;
+            }
         }
     }
 
