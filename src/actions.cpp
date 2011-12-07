@@ -1807,7 +1807,7 @@ namespace quickbook
                 }
             }
             // Walk through the dir for matches.
-            fs::directory_iterator dir_i(dir);
+            fs::directory_iterator dir_i(dir.empty() ? fs::path(".") : dir);
             fs::directory_iterator dir_e;
             for (; dir_i != dir_e; ++dir_i)
             {
