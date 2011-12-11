@@ -26,6 +26,7 @@ test-suite quickbook.test :
     [ quickbook-test anchor-1_6 ]
     [ quickbook-test blocks-1_5 ]
     [ quickbook-test callouts-1_5 ]
+    [ quickbook-test callouts-1_7 ]
     [ quickbook-test code-1_1 ]
     [ quickbook-test code-1_5 ]
     [ quickbook-test code_cpp-1_5 ]

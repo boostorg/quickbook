@@ -62,7 +62,8 @@ namespace quickbook
     std::string syntax_highlight(
         parse_iterator first, parse_iterator last,
         actions& escape_actions,
-        std::string const& source_mode);        
+        std::string const& source_mode,
+        bool is_block);
 
     struct xinclude_path {
         xinclude_path(fs::path const& path, std::string const& uri) :

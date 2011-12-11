@@ -93,9 +93,17 @@ namespace quickbook
         quickbook::actions& escape_actions;
         do_macro_action do_macro_impl;
 
-        syntax_highlight_actions(quickbook::actions& escape_actions) :
+        // State
+        bool support_callouts;
+        string_ref marked_text;
+
+        syntax_highlight_actions(quickbook::actions& escape_actions,
+                bool is_block) :
             out(), escape_actions(escape_actions),
-            do_macro_impl(out, escape_actions)
+            do_macro_impl(out, escape_actions),
+            support_callouts(is_block && (qbk_version_n >= 107u ||
+                escape_actions.current_file->is_code_snippets)),
+            marked_text()
         {}
 
         void span(parse_iterator, parse_iterator, char const*);
@@ -106,6 +114,9 @@ namespace quickbook
         void pre_escape_back(parse_iterator, parse_iterator);
         void post_escape_back(parse_iterator, parse_iterator);
         void do_macro(std::string const&);
+
+        void mark_text(parse_iterator, parse_iterator);
+        void callout(parse_iterator, parse_iterator);
     };
 
     void syntax_highlight_actions::span(parse_iterator first,
@@ -175,6 +186,19 @@ namespace quickbook
         do_macro_impl(v);
     }
 
+    void syntax_highlight_actions::mark_text(parse_iterator first,
+            parse_iterator last)
+    {
+        marked_text = string_ref(first.base(), last.base());
+    }
+
+    void syntax_highlight_actions::callout(parse_iterator, parse_iterator)
+    {
+        out << escape_actions.add_callout(qbk_value(escape_actions.current_file,
+            marked_text.begin(), marked_text.end()));
+        marked_text.clear();
+    }
+
     // Syntax
 
     struct keywords_holder
@@ -242,7 +266,9 @@ namespace quickbook
                     unexpected_char(self.actions, &syntax_highlight_actions::unexpected_char),
                     plain_char(self.actions, &syntax_highlight_actions::plain_char),
                     pre_escape_back(self.actions, &syntax_highlight_actions::pre_escape_back),
-                    post_escape_back(self.actions, &syntax_highlight_actions::post_escape_back);
+                    post_escape_back(self.actions, &syntax_highlight_actions::post_escape_back),
+                    mark_text(self.actions, &syntax_highlight_actions::mark_text),
+                    callout(self.actions, &syntax_highlight_actions::callout);
                 member_action_value<syntax_highlight_actions, std::string const&>
                     do_macro(self.actions, &syntax_highlight_actions::do_macro);
 
@@ -252,6 +278,10 @@ namespace quickbook
                     |   macro
                     |   escape
                     |   preprocessor                    [span("preprocessor")]
+                    |   cl::eps_p(ph::var(self.actions.support_callouts))
+                    >>  (   line_callout                [callout]
+                        |   inline_callout              [callout]
+                        )
                     |   comment
                     |   keyword                         [span("keyword")]
                     |   identifier                      [span("identifier")]
@@ -292,6 +322,23 @@ namespace quickbook
 
                 preprocessor
                     =   '#' >> *cl::space_p >> ((cl::alpha_p | '_') >> *(cl::alnum_p | '_'))
+                    ;
+
+                inline_callout
+                    =   cl::confix_p(
+                            "/*<" >> *cl::space_p,
+                            (*cl::anychar_p)            [mark_text],
+                            ">*/"
+                        )
+                        ;
+
+                line_callout
+                    =   cl::confix_p(
+                            "/*<<" >> *cl::space_p,
+                            (*cl::anychar_p)            [mark_text],
+                            ">>*/"
+                        )
+                    >>  *cl::space_p
                     ;
 
                 comment
@@ -342,7 +389,9 @@ namespace quickbook
             }
 
             cl::rule<Scanner>
-                            program, macro, preprocessor, comment, special, string_, 
+                            program, macro, preprocessor,
+                            inline_callout, line_callout, comment,
+                            special, string_, 
                             char_, number, identifier, keyword, escape,
                             string_char;
 
@@ -377,7 +426,9 @@ namespace quickbook
                     unexpected_char(self.actions, &syntax_highlight_actions::unexpected_char),
                     plain_char(self.actions, &syntax_highlight_actions::plain_char),
                     pre_escape_back(self.actions, &syntax_highlight_actions::pre_escape_back),
-                    post_escape_back(self.actions, &syntax_highlight_actions::post_escape_back);
+                    post_escape_back(self.actions, &syntax_highlight_actions::post_escape_back),
+                    mark_text(self.actions, &syntax_highlight_actions::mark_text),
+                    callout(self.actions, &syntax_highlight_actions::callout);
                 member_action_value<syntax_highlight_actions, std::string const&>
                     do_macro(self.actions, &syntax_highlight_actions::do_macro);
 
@@ -560,9 +611,10 @@ namespace quickbook
         parse_iterator first,
         parse_iterator last,
         actions& escape_actions,
-        std::string const& source_mode)
+        std::string const& source_mode,
+        bool is_block)
     {
-        syntax_highlight_actions syn_actions(escape_actions);
+        syntax_highlight_actions syn_actions(escape_actions, is_block);
 
         // print the code with syntax coloring
         if (source_mode == "c++")

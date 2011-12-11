@@ -536,6 +536,83 @@ namespace quickbook
         out << "</simpara></listitem>";
     }
 
+    namespace
+    {
+        bool parse_template(value const&, quickbook::actions& actions);
+    }
+
+    void actions::start_callouts()
+    {
+        ++callout_depth;
+    }
+
+    std::string actions::add_callout(value v)
+    {
+        std::string callout_id1 = ids.add_id("c", id_category::numbered);
+        std::string callout_id2 = ids.add_id("c", id_category::numbered);
+
+        callouts.insert(encoded_value(callout_id1));
+        callouts.insert(encoded_value(callout_id2));
+        callouts.insert(v);
+
+        std::string code;
+        code += "<co id=\"" + callout_id1 + "\" ";
+        code += "linkends=\"" + callout_id2 + "\" />";
+
+        return code;
+    }
+
+    std::string actions::end_callouts()
+    {
+        assert(callout_depth > 0);
+        std::string block;
+
+        --callout_depth;
+        if (callout_depth > 0) return block;
+
+        value_consumer c = callouts.release();
+        if (!c.check()) return block;
+
+        block += "<calloutlist>";
+        while (c.check())
+        {
+            std::string callout_id1 = c.consume().get_encoded();
+            std::string callout_id2 = c.consume().get_encoded();
+            value callout_body = c.consume();
+
+            std::string callout_value;
+
+            {
+                template_state state(*this);
+                ++template_depth;
+
+                bool r = parse_template(callout_body, *this);
+
+                if(!r)
+                {
+                    detail::outerr(callout_body.get_file(), callout_body.get_position())
+                        << "Expanding callout." << std::endl
+                        << "------------------begin------------------" << std::endl
+                        << detail::utf8(callout_body.get_quickbook())
+                        << std::endl
+                        << "------------------end--------------------" << std::endl
+                        ;
+                    ++error_count;
+                }
+
+                out.swap(callout_value);
+            }
+            
+            block += "<callout arearefs=\"" + callout_id1 + "\" ";
+            block += "id=\"" + callout_id2 + "\">";
+            block += callout_value;
+            block += "</callout>";
+        }
+        block += "</calloutlist>";
+        
+        return block;
+    }
+
     void explicit_list_action(quickbook::actions& actions, value list)
     {
         write_anchors(actions, actions.out);
@@ -645,6 +722,8 @@ namespace quickbook
             if (f->source.empty())
                 return; // Nothing left to do here. The program is empty.
 
+            if (qbk_version_n >= 107u) actions.start_callouts();
+
             parse_iterator first_(f->source.begin());
             parse_iterator last_(f->source.end());
 
@@ -653,7 +732,7 @@ namespace quickbook
 
             // print the code with syntax coloring
             std::string str = syntax_highlight(first_, last_, actions,
-                source_mode);
+                source_mode, block);
 
             boost::swap(actions.current_file, saved_file);
 
@@ -665,12 +744,14 @@ namespace quickbook
             output << "<programlisting>";
             output << str;
             output << "</programlisting>\n";
+
+            if (qbk_version_n >= 107u) output << actions.end_callouts();
         }
         else {
             parse_iterator first_(code_value.begin());
             parse_iterator last_(code_value.end());
             std::string str = syntax_highlight(first_, last_, actions,
-                source_mode);
+                source_mode, block);
 
             actions.phrase << "<code>";
             actions.phrase << str;
@@ -1118,9 +1199,9 @@ namespace quickbook
             parse_iterator last(source.end());
 
             bool r = cl::parse(first, last,
-                    content.get_tag() == template_tags::block ?
-                        actions.grammar().block :
-                        actions.grammar().inline_phrase
+                    content.get_tag() == template_tags::phrase ?
+                        actions.grammar().inline_phrase :
+                        actions.grammar().block
                 ).full;
 
             boost::swap(actions.current_file, saved_current_file);
@@ -1134,12 +1215,14 @@ namespace quickbook
             std::vector<value> const& args,
             string_iterator first)
     {
+        bool is_block = symbol->content.get_tag() != template_tags::phrase;
+
         // If this template contains already encoded text, then just
         // write it out, without going through any of the rigamarole.
 
         if (symbol->content.is_encoded())
         {
-            if (symbol->content.get_tag() == template_tags::block)
+            if (is_block)
             {
                 actions.paragraph();
                 actions.out << symbol->content.get_encoded();
@@ -1200,7 +1283,7 @@ namespace quickbook
             {
                 detail::outerr(actions.current_file, first)
                     << "Expanding "
-                    << (symbol->content.get_tag() == template_tags::block ? "block" : "phrase")
+                    << (is_block ? "block" : "phrase")
                     << " template: " << detail::utf8(symbol->identifier) << std::endl
                     << std::endl
                     << "------------------begin------------------" << std::endl
@@ -1225,7 +1308,7 @@ namespace quickbook
             actions.phrase.swap(phrase);
         }
 
-        if(symbol->content.get_tag() == template_tags::block || !block.empty()) {
+        if(is_block || !block.empty()) {
             actions.paragraph(); // For paragraphs before the template call.
             actions.out << block;
             actions.phrase << phrase;
@@ -1240,81 +1323,19 @@ namespace quickbook
             template_symbol const* symbol,
             string_iterator first)
     {
-        value_consumer values = symbol->content;
-        value content = values.consume(template_tags::block);
-        value callouts = values.consume();
-        values.finish();
-
-        std::vector<std::string> callout_ids;
+        assert(symbol->params.size() == 0);
         std::vector<value> args;
-        unsigned int size = symbol->params.size();
-        std::string callout_base("c");
-
-        for(unsigned int i = 0; i < size; ++i)
-        {
-            std::string callout_id1 = actions.ids.add_id(callout_base, id_category::numbered);
-            std::string callout_id2 = actions.ids.add_id(callout_base, id_category::numbered);
-
-            std::string code;
-            code += "<co id=\"" + callout_id1 + "\" ";
-            code += "linkends=\"" + callout_id2 + "\" />";
-
-            args.push_back(encoded_value(code, template_tags::phrase));
-            callout_ids.push_back(callout_id1);
-            callout_ids.push_back(callout_id2);
-        }
 
         // Create a fake symbol for call_template
         template_symbol t(
             symbol->identifier,
             symbol->params,
-            content,
+            symbol->content,
             symbol->lexical_parent);
+
+        actions.start_callouts();
         call_template(actions, &t, args, first);
-
-        std::string block;
-
-        if(!callouts.empty())
-        {
-            block += "<calloutlist>";
-            int i = 0;
-            BOOST_FOREACH(value c, callouts)
-            {
-                std::string callout_id1 = callout_ids[i++];
-                std::string callout_id2 = callout_ids[i++];
-    
-                std::string callout_value;
-                {
-                    template_state state(actions);
-                    ++actions.template_depth;
-
-                    bool r = parse_template(c, actions);
-
-                    if(!r)
-                    {
-                        detail::outerr(c.get_file(), c.get_position())
-                            << "Expanding callout." << std::endl
-                            << "------------------begin------------------" << std::endl
-                            << detail::utf8(c.get_quickbook())
-                            << std::endl
-                            << "------------------end--------------------" << std::endl
-                            ;
-                        ++actions.error_count;
-                        return;
-                    }
-    
-                    actions.out.swap(callout_value);
-                }
-                
-                block += "<callout arearefs=\"" + callout_id1 + "\" ";
-                block += "id=\"" + callout_id2 + "\">";
-                block += callout_value;
-                block += "</callout>";
-            }
-            block += "</calloutlist>";
-        }
-
-        actions.out << block;
+        actions.out << actions.end_callouts();
     }
 
     void do_template_action(quickbook::actions& actions, value template_list,

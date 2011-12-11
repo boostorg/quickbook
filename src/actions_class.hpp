@@ -46,6 +46,8 @@ namespace quickbook
         bool                    warned_about_breaks;
         bool                    conditional;
         id_manager&             ids;
+        value_builder           callouts;           // callouts are global as
+        int                     callout_depth;      // they don't nest.
 
     // state saved for files and templates.
         bool                    imported;
@@ -76,6 +78,10 @@ namespace quickbook
         void end_list(char mark);
         void start_list_item();
         void end_list_item();
+
+        void start_callouts();
+        std::string add_callout(value);
+        std::string end_callouts();
 
         scoped_parser<to_value_scoped_action>
                                 to_value;
