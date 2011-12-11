@@ -103,7 +103,7 @@ namespace quickbook
                 result = ((unsigned) major_verison * 100) +
                     (unsigned) minor_verison;
             
-                if(result < 100 || result > 106)
+                if(result < 100 || result > 107)
                 {
                     detail::outerr(actions.current_file->path)
                         << "Unknown version: "
@@ -205,10 +205,11 @@ namespace quickbook
 
         unsigned new_version = get_version(actions, use_doc_info, qbk_version);
 
-        if (new_version != qbk_version_n && new_version == 106)
+        if (new_version != qbk_version_n && new_version >= 106)
         {
             detail::outwarn(actions.current_file->path)
-                << "Quickbook 1.6 is still under development and is "
+                << "Quickbook " << (new_version / 100) << "." << (new_version % 100)
+                << " is still under development and is "
                 "likely to change in the future." << std::endl;
         }
 

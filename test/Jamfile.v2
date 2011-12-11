@@ -106,7 +106,7 @@ test-suite quickbook.test :
     [ quickbook-error-test variablelist-1_5-fail ]
     [ quickbook-test variablelist-1_5 ]
     [ quickbook-error-test version-0_1-fail ]
-    [ quickbook-error-test version-1_7-fail ]
+    [ quickbook-error-test version-1_8-fail ]
     [ quickbook-error-test version-2_0-fail ]
     [ quickbook-test xml_escape-1_2 ]
     [ quickbook-test xml_escape-1_5 ]

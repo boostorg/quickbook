@@ -1699,7 +1699,7 @@ namespace quickbook
         std::string path_text = path.is_encoded() ? path.get_encoded() :
             path.get_quickbook();
 
-        if(qbk_version_n >= 106u && path_text.find_first_of("[]?*"))
+        if(qbk_version_n >= 107u && path_text.find_first_of("[]?*"))
         {
             // For a glob expression we don't correct '\' as it's could be
             // an escape for the glob.
@@ -1838,7 +1838,7 @@ namespace quickbook
 
             // If the path has some glob match characters
             // we do a discovery of all the matches..
-            if (qbk_version_n >= 106u && path_to_string(path).find_first_of("[]?*") != path_string_t::npos)
+            if (qbk_version_n >= 107u && path_to_string(path).find_first_of("[]?*") != path_string_t::npos)
             {
                 // Search for the current dir accumulating to the result.
                 include_search_glob(result,current,path,actions);
