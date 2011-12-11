@@ -34,6 +34,7 @@ test-suite quickbook.test :
     [ quickbook-error-test code_python_mismatched_escape-1_4-fail ]
     [ quickbook-test code_snippet-1_1 ]
     [ quickbook-test code_teletype-1_5 ]
+    [ quickbook-error-test code_unclosed_block-1_6-fail ]
     [ quickbook-test command_line_macro-1_1 : : :
         <quickbook-test-define>__macro__=*bold*
         <quickbook-test-define>__empty__ ]

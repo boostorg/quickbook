@@ -51,9 +51,6 @@ namespace quickbook
 
         , element(*this)
         , error(*this)
-        , code(code_action::block, *this)
-        , code_block(code_action::inline_block, *this)
-        , inline_code(code_action::inline_, *this)
         , paragraph(*this)
         , list_item(*this)
         , phrase_end(*this)

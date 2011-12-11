@@ -425,10 +425,11 @@ namespace quickbook
             ;
 
         local.code =
-            (
-                local.code_line
+            actions.values.list(code_tags::code_block)
+            [(  local.code_line
                 >> *(*local.blank_line >> local.code_line)
-            )                                   [actions.code]
+            )                                   [actions.values.entry(ph::arg1, ph::arg2)]
+            ]                                   [actions.element]
             >> *eol
             ;
 
@@ -552,44 +553,51 @@ namespace quickbook
                 ;
 
         local.inline_code =
-            '`' >>
-            (
+            '`' >> actions.values.list(code_tags::inline_code)
+            [(
                *(cl::anychar_p -
                     (   '`'
                     |   (cl::eol_p >> *cl::blank_p >> cl::eol_p)
                                                 // Make sure that we don't go
                     )                           // past a single block
                 ) >> cl::eps_p('`')
-            )                                   [actions.inline_code]
+            )                                   [actions.values.entry(ph::arg1, ph::arg2)]
             >>  '`'
+            ]                                   [actions.element]
             ;
 
         local.code_block =
                 "```"
             >>  ~cl::eps_p("`")
-            >>  *(*cl::blank_p >> cl::eol_p)
-            >>  (   *(  "````" >> *cl::ch_p('`')
-                    |   (   cl::anychar_p
-                        -   (*cl::space_p >> "```" >> ~cl::eps_p("`"))
-                        )
-                    )
-                    >>  !(*cl::blank_p >> cl::eol_p)
-                )                           [actions.code_block]
-            >>  (   *cl::space_p >> "```"
+            >>  (   actions.values.list(code_tags::inline_code_block)
+                    [   *(*cl::blank_p >> cl::eol_p)
+                    >>  (   *(  "````" >> *cl::ch_p('`')
+                            |   (   cl::anychar_p
+                                -   (*cl::space_p >> "```" >> ~cl::eps_p("`"))
+                                )
+                            )
+                            >>  !(*cl::blank_p >> cl::eol_p)
+                        )                   [actions.values.entry(ph::arg1, ph::arg2)]
+                    >>  (*cl::space_p >> "```")
+                    ]                       [actions.element]
                 |   cl::eps_p               [actions.error("Unfinished code block")]
+                >>  *cl::anychar_p
                 )
             |   "``"
             >>  ~cl::eps_p("`")
-            >>  *(*cl::blank_p >> cl::eol_p)
-            >>  (   *(  "```" >> *cl::ch_p('`')
-                    |   (   cl::anychar_p
-                        -   (*cl::space_p >> "``" >> ~cl::eps_p("`"))
-                        )
-                    )
-                    >>  !(*cl::blank_p >> cl::eol_p)
-                )                           [actions.code_block]
-            >>  (   *cl::space_p >> "``"
+            >>  (   actions.values.list(code_tags::inline_code_block)
+                    [   *(*cl::blank_p >> cl::eol_p)
+                    >>  (   *(  "```" >> *cl::ch_p('`')
+                            |   (   cl::anychar_p
+                                -   (*cl::space_p >> "``" >> ~cl::eps_p("`"))
+                                )
+                            )
+                            >>  !(*cl::blank_p >> cl::eol_p)
+                        )                   [actions.values.entry(ph::arg1, ph::arg2)]
+                    >>  (*cl::space_p >> "``")
+                    ]                       [actions.element]
                 |   cl::eps_p               [actions.error("Unfinished code block")]
+                >>  *cl::anychar_p
                 )
             ;
 

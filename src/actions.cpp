@@ -89,6 +89,7 @@ namespace quickbook
     void footnote_action(quickbook::actions&, value);
     void raw_phrase_action(quickbook::actions&, value);
     void source_mode_action(quickbook::actions&, value);
+    void code_action(quickbook::actions&, value);
     void do_template_action(quickbook::actions&, value, string_iterator);
     
     void element_action::operator()(parse_iterator first, parse_iterator) const
@@ -173,6 +174,10 @@ namespace quickbook
         case source_mode_tags::python:
         case source_mode_tags::teletype:
             return source_mode_action(actions, v);
+        case code_tags::code_block:
+        case code_tags::inline_code_block:
+        case code_tags::inline_code:
+            return code_action(actions, v);
         case template_tags::template_:
             return do_template_action(actions, v, first.base());
         default:
@@ -586,11 +591,17 @@ namespace quickbook
         actions.source_mode = source_mode_tags::name(source_mode.get_tag());
     }
 
-    void code_action::operator()(parse_iterator first, parse_iterator last) const
+    void code_action(quickbook::actions& actions, value code_block)
     {
-        bool inline_code = type == inline_ ||
-            (type == inline_block && qbk_version_n < 106u);
-        bool block = type != inline_;
+        int code_tag = code_block.get_tag();
+
+        value_consumer values = code_block;
+        string_ref code_value = values.consume().get_quickbook();
+        values.finish();
+
+        bool inline_code = code_tag == code_tags::inline_code ||
+            (code_tag == code_tags::inline_code_block && qbk_version_n < 106u);
+        bool block = code_tag != code_tags::inline_code;
 
         if (inline_code) {
             write_anchors(actions, actions.phrase);
@@ -600,13 +611,11 @@ namespace quickbook
             write_anchors(actions, actions.out);
         }
 
-        std::string str;
-
         if (block) {
             // preprocess the code section to remove the initial indentation
             mapped_file_builder mapped;
             mapped.start(actions.current_file);
-            mapped.unindent_and_add(first.base(), last.base());
+            mapped.unindent_and_add(code_value.begin(), code_value.end());
 
             file_ptr f = mapped.release();
 
@@ -620,16 +629,11 @@ namespace quickbook
             boost::swap(actions.current_file, saved_file);
 
             // print the code with syntax coloring
-            str = syntax_highlight(first_, last_, actions, actions.source_mode);
+            std::string str = syntax_highlight(first_, last_, actions,
+                actions.source_mode);
 
             boost::swap(actions.current_file, saved_file);
-        }
-        else {
-            parse_iterator first_(first);
-            str = syntax_highlight(first_, last, actions, actions.source_mode);
-        }
 
-        if (block) {
             collector& output = inline_code ? actions.phrase : actions.out;
 
             // We must not place a \n after the <programlisting> tag
@@ -640,6 +644,11 @@ namespace quickbook
             output << "</programlisting>\n";
         }
         else {
+            parse_iterator first_(code_value.begin());
+            parse_iterator last_(code_value.end());
+            std::string str = syntax_highlight(first_, last_, actions,
+                actions.source_mode);
+
             actions.phrase << "<code>";
             actions.phrase << str;
             actions.phrase << "</code>";
