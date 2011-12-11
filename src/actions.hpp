@@ -65,7 +65,7 @@ namespace quickbook
         std::string const& source_mode);        
 
     struct xinclude_path {
-        xinclude_path(fs::path& path, std::string const& uri) :
+        xinclude_path(fs::path const& path, std::string const& uri) :
             path(path), uri(uri) {}
 
         fs::path path;

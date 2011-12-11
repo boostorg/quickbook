@@ -1694,37 +1694,66 @@ namespace quickbook
         return result;
     }
 
-    fs::path check_path(value const& path, quickbook::actions& actions)
-    {
-        std::string path_text = path.is_encoded() ? path.get_encoded() :
-            path.get_quickbook();
+    struct path_details {
+        // Will possibly add 'url' to this list later:
+        enum path_type { path, glob };
 
-        if(qbk_version_n >= 107u && path_text.find_first_of("[]?*"))
+        std::string value;
+        path_type type;
+
+        path_details(std::string const& value, path_type type) :
+            value(value), type(type)
         {
-            // For a glob expression we don't correct '\' as it's could be
-            // an escape for the glob.
-            return detail::generic_to_path(path_text);
         }
-        if(path_text.find('\\') != std::string::npos)
-        {
-            (qbk_version_n >= 106u ?
-                detail::outerr(path.get_file(), path.get_position()) :
-                detail::outwarn(path.get_file(), path.get_position()))
-                << "Path isn't portable: '"
-                << detail::utf8(path_text)
-                << "'"
-                << std::endl;
-            if (qbk_version_n >= 106u) ++actions.error_count;
+    };
+
+    path_details check_path(value const& path, quickbook::actions& actions)
+    {
+        // Paths are encoded for quickbook 1.6+ and also xmlbase
+        // values (technically xmlbase is a 1.6 feature, but that
+        // isn't enforced as it's backwards compatible).
+        //
+        // Counter-intuitively: encoded == plain text here.
+        if (qbk_version_n < 106u && !path.is_encoded()) {
+            std::string path_text = path.get_quickbook();
+
+            if(path_text.find('\\') != std::string::npos)
+            {
+                detail::outwarn(path.get_file(), path.get_position())
+                    << "Path isn't portable: '"
+                    << detail::utf8(path_text)
+                    << "'"
+                    << std::endl;
+            }
+
+            boost::replace(path_text, '\\', '/');
+
+            return path_details(path_text, path_details::path);
         }
-        
-        boost::replace(path_text, '\\', '/');
-        
-        return detail::generic_to_path(path_text);
+        else {
+            std::string path_text = path.get_encoded();
+            return path_details(path_text,
+                qbk_version_n >= 107u &&
+                path_text.find_first_of("[]?*") != std::string::npos ?
+                    path_details::glob : path_details::path) ;
+        }
     }
 
     xinclude_path calculate_xinclude_path(value const& p, quickbook::actions& actions)
     {
-        fs::path path = check_path(p, actions);
+        path_details details = check_path(p, actions);
+
+        if (details.type == path_details::glob) {
+            // TODO: Should know if this is an xinclude or an xmlbase.
+            // Would also help with implementation of 'check_path'.
+            detail::outerr(p.get_file(), p.get_position())
+                << "Glob used in xinclude/xmlbase."
+                << std::endl;
+            ++actions.error_count;
+            return xinclude_path(actions.current_file->path.parent_path(), "");
+        }
+
+        fs::path path = detail::generic_to_path(details.value);
         fs::path full_path = path;
 
         // If the path is relative
@@ -1830,7 +1859,7 @@ namespace quickbook
             }
         }
 
-        std::set<include_search_return> include_search(fs::path const& path,
+        std::set<include_search_return> include_search(path_details const& details,
                 quickbook::actions const& actions)
         {
             std::set<include_search_return> result;
@@ -1838,8 +1867,10 @@ namespace quickbook
 
             // If the path has some glob match characters
             // we do a discovery of all the matches..
-            if (qbk_version_n >= 107u && path_to_string(path).find_first_of("[]?*") != path_string_t::npos)
+            if (details.type == path_details::glob)
             {
+                fs::path path(details.value);
+
                 // Search for the current dir accumulating to the result.
                 include_search_glob(result,current,path,actions);
                 // Search the include path dirs accumulating to the result.
@@ -1852,6 +1883,8 @@ namespace quickbook
             }
             else
             {
+                fs::path path(details.value);
+
                 // If the path is relative, try and resolve it.
                 if (!path.has_root_directory() && !path.has_root_name())
                 {
@@ -1985,10 +2018,10 @@ namespace quickbook
 
         value_consumer values = include;
         value include_doc_id = values.optional_consume(general_tags::include_id);
-        std::set<include_search_return> search = include_search(
-            check_path(values.consume(), actions), actions);
+        path_details details = check_path(values.consume(), actions);
         values.finish();
 
+        std::set<include_search_return> search = include_search(details, actions);
         std::set<include_search_return>::iterator i = search.begin();
         std::set<include_search_return>::iterator e = search.end();
         for (; i != e; ++i)
