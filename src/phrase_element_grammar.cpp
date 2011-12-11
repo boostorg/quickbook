@@ -27,7 +27,7 @@ namespace quickbook
     {
         cl::rule<scanner>
                         image, anchor, link, empty, cond_phrase, inner_phrase,
-                        role
+                        role, source_mode
                         ;
     };
 
@@ -156,6 +156,15 @@ namespace quickbook
             ("~", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::replaceable))
             ("footnote", element_info(element_info::phrase, &local.inner_phrase, phrase_tags::footnote))
             ;
+
+        elements.add("!", element_info(element_info::maybe_block, &local.source_mode, code_tags::next_source_mode, 107u))
+            ;
+
+        local.source_mode =
+            (   cl::str_p("c++")
+            |   "python"
+            |   "teletype"
+            )                                       [actions.values.entry(ph::arg1, ph::arg2)];
 
         elements.add
             ("c++", element_info(element_info::phrase, &local.empty, source_mode_tags::cpp))

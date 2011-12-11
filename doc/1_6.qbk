@@ -302,4 +302,32 @@ a double "\\"; i.e. and escaped back-slash.]
 
 [endsect]
 
+[section:source-mode Source mode for single entities]
+
+1.7 introduces a new `!` element type for setting the source mode of a single
+entity without changing the source mode otherwise. This can be used for
+code blocks and other elements. For example:
+
+```
+[!c++]
+    void foo() {};
+
+[!python]``\`\`\`\ ``def foo():``\`\`\`\ ``
+```
+
+It can also be used to set the source mode for elements:
+
+[!teletype][table
+    [[code][meaning]]
+    [[`+`][addition]]
+]
+
+When used a section, it's only set for the section element, not the
+whole section.
+
+Currently it does support other syntactic entities such as paragraphs
+and lists. I'm not sure if it would be a good idea.
+
+[endsect]
+
 [endsect] [/ Quickbok 1.7]

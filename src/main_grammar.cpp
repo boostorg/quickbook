@@ -108,6 +108,14 @@ namespace quickbook
                     l.actions_.paragraph();
 
                 l.actions_.values.builder.reset();
+
+                if (!l.actions_.source_mode_next.empty() &&
+                    info_.type != element_info::maybe_block)
+                {
+                    l.actions_.source_mode.swap(saved_source_mode_);
+                    l.actions_.source_mode = l.actions_.source_mode_next;
+                    l.actions_.source_mode_next.clear();
+                }
                 
                 return true;
             }
@@ -125,8 +133,14 @@ namespace quickbook
             void success(parse_iterator, parse_iterator) { l.element_type = info_.type; }
             void failure() { l.element_type = element_info::nothing; }
 
+            void cleanup() {
+                if (!saved_source_mode_.empty())
+                    l.actions_.source_mode.swap(saved_source_mode_);
+            }
+
             main_grammar_local& l;
             element_info info_;
+            std::string saved_source_mode_;
         };
 
         struct in_list_impl {

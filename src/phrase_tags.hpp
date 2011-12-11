@@ -35,6 +35,7 @@ namespace quickbook
         (code_block)
         (inline_code)
         (inline_code_block)
+        (next_source_mode)
     )
 }
 

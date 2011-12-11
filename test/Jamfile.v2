@@ -83,6 +83,7 @@ test-suite quickbook.test :
     [ quickbook-test section-1_5-unclosed ]
     [ quickbook-test section-1_5 ]
     [ quickbook-test simple_markup-1_5 ]
+    [ quickbook-test source_mode-1_7 ]
     [ quickbook-test svg-1_1 ]
     [ quickbook-test table-1_3 ]
     [ quickbook-test table-1_5 ]

@@ -45,6 +45,15 @@ namespace quickbook
     namespace {
         void write_anchors(quickbook::actions& actions, collector& tgt)
         {
+            // TODO: This works but is a bit of an odd place to put it.
+            // Might need to redefine the purpose of this function.
+            if (!actions.source_mode_next.empty()) {
+                detail::outwarn(actions.current_file, actions.source_mode_next.begin())
+                    << "Temporary source mode unsupported here."
+                    << std::endl;
+                actions.source_mode_next.clear();
+            }
+
             for(quickbook::actions::string_list::iterator
                 it = actions.anchors.begin(),
                 end = actions.anchors.end();
@@ -89,6 +98,7 @@ namespace quickbook
     void footnote_action(quickbook::actions&, value);
     void raw_phrase_action(quickbook::actions&, value);
     void source_mode_action(quickbook::actions&, value);
+    void next_source_mode_action(quickbook::actions&, value);
     void code_action(quickbook::actions&, value);
     void do_template_action(quickbook::actions&, value, string_iterator);
     
@@ -174,6 +184,8 @@ namespace quickbook
         case source_mode_tags::python:
         case source_mode_tags::teletype:
             return source_mode_action(actions, v);
+        case code_tags::next_source_mode:
+            return next_source_mode_action(actions, v);
         case code_tags::code_block:
         case code_tags::inline_code_block:
         case code_tags::inline_code:
@@ -591,6 +603,13 @@ namespace quickbook
         actions.source_mode = source_mode_tags::name(source_mode.get_tag());
     }
 
+    void next_source_mode_action(quickbook::actions& actions, value source_mode)
+    {
+        value_consumer values = source_mode;
+        actions.source_mode_next = values.consume().get_quickbook();
+        values.finish();
+    }
+
     void code_action(quickbook::actions& actions, value code_block)
     {
         int code_tag = code_block.get_tag();
@@ -602,6 +621,10 @@ namespace quickbook
         bool inline_code = code_tag == code_tags::inline_code ||
             (code_tag == code_tags::inline_code_block && qbk_version_n < 106u);
         bool block = code_tag != code_tags::inline_code;
+
+        std::string source_mode = actions.source_mode_next.empty() ?
+            actions.source_mode : actions.source_mode_next;
+        actions.source_mode_next.clear();
 
         if (inline_code) {
             write_anchors(actions, actions.phrase);
@@ -630,7 +653,7 @@ namespace quickbook
 
             // print the code with syntax coloring
             std::string str = syntax_highlight(first_, last_, actions,
-                actions.source_mode);
+                source_mode);
 
             boost::swap(actions.current_file, saved_file);
 
@@ -647,7 +670,7 @@ namespace quickbook
             parse_iterator first_(code_value.begin());
             parse_iterator last_(code_value.end());
             std::string str = syntax_highlight(first_, last_, actions,
-                actions.source_mode);
+                source_mode);
 
             actions.phrase << "<code>";
             actions.phrase << str;

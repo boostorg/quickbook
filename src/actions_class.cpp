@@ -36,6 +36,7 @@ namespace quickbook
         , imported(false)
         , macro()
         , source_mode("c++")
+        , source_mode_next()
         , current_file(0)
         , filename_relative(filein_.filename())
 
