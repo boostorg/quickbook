@@ -1768,29 +1768,35 @@ namespace quickbook
         // isn't enforced as it's backwards compatible).
         //
         // Counter-intuitively: encoded == plain text here.
-        if (qbk_version_n < 106u && !path.is_encoded()) {
-            std::string path_text = path.get_quickbook();
 
-            if(path_text.find('\\') != std::string::npos)
-            {
-                detail::outwarn(path.get_file(), path.get_position())
-                    << "Path isn't portable: '"
-                    << detail::utf8(path_text)
-                    << "'"
-                    << std::endl;
+        std::string path_text = qbk_version_n >= 106u || path.is_encoded() ?
+                path.get_encoded() : path.get_quickbook();
+
+        bool is_glob = qbk_version_n >= 107u &&
+            path_text.find_first_of("[]?*") != std::string::npos;
+
+        if(!is_glob && path_text.find('\\') != std::string::npos)
+        {
+            quickbook::detail::ostream* err;
+
+            if (qbk_version_n >= 106u) {
+                err = &detail::outerr(path.get_file(), path.get_position());
+                ++actions.error_count;
+            }
+            else {
+                err = &detail::outwarn(path.get_file(), path.get_position());
             }
 
-            boost::replace(path_text, '\\', '/');
+            *err << "Path isn't portable: '"
+                << detail::utf8(path_text)
+                << "'"
+                << std::endl;
 
-            return path_details(path_text, path_details::path);
+            boost::replace(path_text, '\\', '/');
         }
-        else {
-            std::string path_text = path.get_encoded();
-            return path_details(path_text,
-                qbk_version_n >= 107u &&
-                path_text.find_first_of("[]?*") != std::string::npos ?
-                    path_details::glob : path_details::path) ;
-        }
+
+        return path_details(path_text,
+            is_glob ? path_details::glob : path_details::path);
     }
 
     xinclude_path calculate_xinclude_path(value const& p, quickbook::actions& actions)
