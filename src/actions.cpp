@@ -48,10 +48,11 @@ namespace quickbook
             // TODO: This works but is a bit of an odd place to put it.
             // Might need to redefine the purpose of this function.
             if (!actions.source_mode_next.empty()) {
-                detail::outwarn(actions.current_file, actions.source_mode_next.begin())
+                detail::outwarn(actions.source_mode_next.get_file(),
+                    actions.source_mode_next.get_position())
                     << "Temporary source mode unsupported here."
                     << std::endl;
-                actions.source_mode_next.clear();
+                actions.source_mode_next = value();
             }
 
             for(quickbook::actions::string_list::iterator
@@ -683,7 +684,7 @@ namespace quickbook
     void next_source_mode_action(quickbook::actions& actions, value source_mode)
     {
         value_consumer values = source_mode;
-        actions.source_mode_next = values.consume().get_quickbook();
+        actions.source_mode_next = values.consume();
         values.finish();
     }
 
@@ -700,8 +701,8 @@ namespace quickbook
         bool block = code_tag != code_tags::inline_code;
 
         std::string source_mode = actions.source_mode_next.empty() ?
-            actions.source_mode : actions.source_mode_next;
-        actions.source_mode_next.clear();
+            actions.source_mode : actions.source_mode_next.get_quickbook();
+        actions.source_mode_next = value();
 
         if (inline_code) {
             write_anchors(actions, actions.phrase);

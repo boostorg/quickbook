@@ -113,8 +113,8 @@ namespace quickbook
                     info_.type != element_info::maybe_block)
                 {
                     l.actions_.source_mode.swap(saved_source_mode_);
-                    l.actions_.source_mode = l.actions_.source_mode_next;
-                    l.actions_.source_mode_next.clear();
+                    l.actions_.source_mode = l.actions_.source_mode_next.get_quickbook();
+                    l.actions_.source_mode_next = value();
                 }
                 
                 return true;
