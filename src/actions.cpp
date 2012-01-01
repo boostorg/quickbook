@@ -1859,12 +1859,14 @@ namespace quickbook
         {
             return p.generic_wstring();
         }
+        static const path_string_t::value_type* glob_chars = L"[]?*";
         #else
         typedef std::string path_string_t;
         inline path_string_t path_to_string(fs::path const & p)
         {
             return p.generic_string();
         }
+        static const path_string_t::value_type* glob_chars = "[]?*";
         #endif
 
         void include_search_glob(std::set<include_search_return> & result,
@@ -1877,7 +1879,7 @@ namespace quickbook
             fs::path::iterator e = path.end();
             for (; i != e; ++i)
             {
-                if (path_to_string(*i).find_first_of("[]?*") != path_string_t::npos)
+                if (path_to_string(*i).find_first_of(glob_chars) != path_string_t::npos)
                 {
                     glob = *i;
                     for (++i; i != e; ++i) rest /= *i;
