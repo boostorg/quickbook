@@ -119,10 +119,13 @@ namespace quickbook
                 |   qbk_since(106u)
                 >>  actions.to_value()
                     [   *(  raw_escape
-                        |   (cl::anychar_p - (']' | space))
+                        |   (cl::anychar_p - (cl::ch_p('[') | ']' | space))
                                                 [actions.raw_char]
                         )
                     ]
+                    >>  !(  ~cl::eps_p(comment)
+                        >>  cl::eps_p('[')      [actions.error("Open bracket in link value.")]
+                        )
                 )
             >>  hard_space
             >>  local.inner_phrase
