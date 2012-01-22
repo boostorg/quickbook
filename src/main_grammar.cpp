@@ -468,9 +468,9 @@ namespace quickbook
         local.hr =
                 cl::str_p("----")
             >>  state.values.list(block_tags::hr)
-                [   (   qbk_since(106u)
+                [   (   qbk_ver(106u)
                     >>  *(line_comment | (cl::anychar_p - (cl::eol_p | '[' | ']')))
-                    |   qbk_before(106u)
+                    |   qbk_ver(0, 106u)
                     >>  *(line_comment | (cl::anychar_p - (cl::eol_p | "[/")))
                     )
                 >>  *eol
@@ -525,7 +525,7 @@ namespace quickbook
             |   local.simple_markup
             |   escape
             |   comment
-            |   qbk_since(106u) >> local.square_brackets
+            |   qbk_ver(106u) >> local.square_brackets
             |   cl::space_p                 [raw_char]
             |   cl::anychar_p               [plain_char]
             ;
@@ -570,8 +570,8 @@ namespace quickbook
             ;
 
         local.template_args =
-                qbk_since(105u) >> local.template_args_1_5
-            |   qbk_before(105u) >> local.template_args_1_4
+                qbk_ver(105u) >> local.template_args_1_5
+            |   qbk_ver(0, 105u) >> local.template_args_1_4
             ;
 
         local.template_args_1_4 = local.template_arg_1_4 >> *(".." >> local.template_arg_1_4);
@@ -773,7 +773,7 @@ namespace quickbook
             ;
 
         local.command_line_macro_identifier =
-                qbk_since(106u)
+                qbk_ver(106u)
             >>  +(cl::anychar_p - (cl::space_p | '[' | '\\' | ']' | '='))
             |   +(cl::anychar_p - (cl::space_p | ']' | '='))
             ;
@@ -822,9 +822,9 @@ namespace quickbook
             ;
 
         macro_identifier =
-                qbk_since(106u)
+                qbk_ver(106u)
             >>  +(cl::anychar_p - (cl::space_p | '[' | '\\' | ']'))
-            |   qbk_before(106u)
+            |   qbk_ver(0, 106u)
             >>  +(cl::anychar_p - (cl::space_p | ']'))
             ;
     }

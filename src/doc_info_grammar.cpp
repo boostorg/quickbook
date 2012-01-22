@@ -144,7 +144,7 @@ namespace quickbook
                     >> blank
                 ]
             >>  space
-            >>  !(qbk_since(106u) >> cl::eps_p(ph::var(local.source_mode_unset))
+            >>  !(qbk_ver(106u) >> cl::eps_p(ph::var(local.source_mode_unset))
                                             [cl::assign_a(state.source_mode, "c++")]
                 )
             >>  (   *(  (  local.doc_info_attribute

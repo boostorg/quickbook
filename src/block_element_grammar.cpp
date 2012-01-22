@@ -52,7 +52,7 @@ namespace quickbook
 
         local.element_id =
             !(  ':'
-            >>  (   !(qbk_since(105u) >> space)
+            >>  (   !(qbk_ver(105u) >> space)
                 >>  (+(cl::alnum_p | '_'))      [state.values.entry(ph::arg1, ph::arg2, general_tags::element_id)]
                 |   cl::eps_p                   [element_id_warning]
                 )
@@ -60,10 +60,10 @@ namespace quickbook
             ;
         
         local.element_id_1_5 =
-                !(qbk_since(105u) >> local.element_id);
+                !(qbk_ver(105u) >> local.element_id);
 
         local.element_id_1_6 =
-                !(qbk_since(106u) >> local.element_id);
+                !(qbk_ver(106u) >> local.element_id);
 
         elements.add
             ("section", element_info(element_info::block, &local.begin_section, block_tags::begin_section))
@@ -117,8 +117,8 @@ namespace quickbook
             ;
 
         local.preformatted =
-                ( qbk_before(106) >> space
-                | qbk_since(106) >> blank >> !eol
+                ( qbk_ver(0, 106) >> space
+                | qbk_ver(106) >> blank >> !eol
                 )
             >>  to_value()
                 [
@@ -242,10 +242,10 @@ namespace quickbook
             ;
 
         local.table_title =
-                qbk_before(106)
+                qbk_ver(0, 106)
             >>  (*(cl::anychar_p - eol))        [state.values.entry(ph::arg1, ph::arg2, table_tags::title)]
             >>  (+eol)
-            |   qbk_since(106)
+            |   qbk_ver(106)
             >>  to_value(table_tags::title)
                 [
                     table_title_phrase
@@ -299,9 +299,9 @@ namespace quickbook
             ;
 
         local.include_filename =
-                qbk_before(106u)
+                qbk_ver(0, 106u)
             >>  (*(cl::anychar_p - phrase_end)) [state.values.entry(ph::arg1, ph::arg2)]
-            |   qbk_since(106u)
+            |   qbk_ver(106u)
             >>  to_value()
                 [   *(  raw_escape
                     |   (cl::anychar_p - phrase_end)

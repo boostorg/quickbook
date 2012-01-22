@@ -23,8 +23,8 @@ namespace quickbook
     namespace cl = boost::spirit::classic;
 
     struct quickbook_range : cl::parser<quickbook_range> {
-        quickbook_range(unsigned min_, unsigned max_)
-            : min_(min_), max_(max_) {}
+        quickbook_range(unsigned lower, unsigned upper)
+            : lower(lower), upper(upper) {}
 
         bool in_range() const;
         
@@ -35,15 +35,11 @@ namespace quickbook
             return in_range() ? scan.empty_match() : scan.no_match();
         }
 
-        unsigned min_, max_;
+        unsigned lower, upper;
     };
     
-    inline quickbook_range qbk_since(unsigned min_) {
-        return quickbook_range(min_, 999);
-    }
-    
-    inline quickbook_range qbk_before(unsigned max_) {
-        return quickbook_range(0, max_);
+    inline quickbook_range qbk_ver(unsigned lower, unsigned upper = 999u) {
+        return quickbook_range(lower, upper);
     }
 
     // Throws load_error

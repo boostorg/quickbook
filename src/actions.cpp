@@ -75,7 +75,7 @@ namespace quickbook
     }
 
     bool quickbook_range::in_range() const {
-        return qbk_version_n >= min_ && qbk_version_n < max_;
+        return qbk_version_n >= lower && qbk_version_n < upper;
     }
 
     void explicit_list_action(quickbook::state&, value);

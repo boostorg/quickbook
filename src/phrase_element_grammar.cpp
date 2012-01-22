@@ -59,14 +59,14 @@ namespace quickbook
         // Note that the attribute values here are encoded in plain text not
         // boostbook.
         local.image =
-                qbk_since(105u)
+                qbk_ver(105u)
             >>  blank
-            >>  (   qbk_before(106u)
+            >>  (   qbk_ver(0, 106u)
                 >>  (+(
                         *cl::space_p
                     >>  +(cl::anychar_p - (cl::space_p | phrase_end | '['))
                     ))                  [state.values.entry(ph::arg1, ph::arg2)]
-                |   qbk_since(106u)
+                |   qbk_ver(106u)
                 >>  to_value()
                     [   +(  raw_escape
                         |   (+cl::space_p >> ~cl::eps_p(phrase_end | '['))
@@ -82,10 +82,10 @@ namespace quickbook
                 >>  (*(cl::alnum_p | '_')) 
                                         [state.values.entry(ph::arg1, ph::arg2)]
                 >>  space
-                >>  (   qbk_before(106u)
+                >>  (   qbk_ver(0, 106u)
                     >>  (*(cl::anychar_p - (phrase_end | '[')))
                                         [state.values.entry(ph::arg1, ph::arg2)]
-                    |   qbk_since(106u)
+                    |   qbk_ver(106u)
                     >>  to_value()
                         [   *(  raw_escape
                             |   (cl::anychar_p - (phrase_end | '['))
@@ -97,7 +97,7 @@ namespace quickbook
                 >>  space
                 ]
             >>  cl::eps_p(']')
-            |   qbk_before(105u)
+            |   qbk_ver(0, 105u)
             >>  blank
             >>  (*(cl::anychar_p - phrase_end)) [state.values.entry(ph::arg1, ph::arg2)]
             >>  cl::eps_p(']')
@@ -118,10 +118,10 @@ namespace quickbook
 
         local.link =
                 space
-            >>  (   qbk_before(106u)
+            >>  (   qbk_ver(0, 106u)
                 >>  (*(cl::anychar_p - (']' | space)))
                                                 [state.values.entry(ph::arg1, ph::arg2)]
-                |   qbk_since(106u)
+                |   qbk_ver(106u)
                 >>  to_value()
                     [   *(  raw_escape
                         |   (cl::anychar_p - (cl::ch_p('[') | ']' | space))
@@ -142,9 +142,9 @@ namespace quickbook
 
         local.anchor =
                 blank
-            >>  (   qbk_before(106u)
+            >>  (   qbk_ver(0, 106u)
                 >>  (*(cl::anychar_p - phrase_end)) [state.values.entry(ph::arg1, ph::arg2)]
-                |   qbk_since(106u)
+                |   qbk_ver(106u)
                 >>  to_value()
                     [   *(  raw_escape
                         |   (cl::anychar_p - phrase_end)
