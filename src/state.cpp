@@ -8,8 +8,8 @@
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
-#include "actions_class.hpp"
-#include "actions_state.hpp"
+#include "state.hpp"
+#include "state_save.hpp"
 #include "quickbook.hpp"
 #include "grammar.hpp"
 #include "input_path.hpp"
@@ -25,7 +25,7 @@ namespace quickbook
 
     unsigned qbk_version_n = 0; // qbk_major_version * 100 + qbk_minor_version
 
-    actions::actions(fs::path const& filein_, fs::path const& xinclude_base_,
+    state::state(fs::path const& filein_, fs::path const& xinclude_base_,
             string_stream& out_, id_manager& ids)
         : grammar_()
 
@@ -60,63 +60,63 @@ namespace quickbook
             ("__TIME__", std::string(quickbook_get_time))
             ("__FILENAME__", detail::path_to_generic(filename_relative))
         ;
-        
+
         boost::scoped_ptr<quickbook_grammar> g(
             new quickbook_grammar(*this));
         grammar_.swap(g);
     }
 
-    quickbook_grammar& actions::grammar() const {
+    quickbook_grammar& state::grammar() const {
         return *grammar_;
     }
 
-    file_state::file_state(actions& a, scope_flags scope)
-        : a(a)
+    file_state::file_state(quickbook::state& state, scope_flags scope)
+        : state(state)
         , scope(scope)
         , qbk_version(qbk_version_n)
-        , imported(a.imported)
-        , current_file(a.current_file)
-        , filename_relative(a.filename_relative)
-        , xinclude_base(a.xinclude_base)
-        , source_mode(a.source_mode)
+        , imported(state.imported)
+        , current_file(state.current_file)
+        , filename_relative(state.filename_relative)
+        , xinclude_base(state.xinclude_base)
+        , source_mode(state.source_mode)
         , macro()
     {
-        if (scope & scope_macros) macro = a.macro;
-        if (scope & scope_templates) a.templates.push();
+        if (scope & scope_macros) macro = state.macro;
+        if (scope & scope_templates) state.templates.push();
         if (scope & scope_output) {
-            a.out.push();
-            a.phrase.push();
+            state.out.push();
+            state.phrase.push();
         }
-        a.values.builder.save();
+        state.values.builder.save();
     }
 
     file_state::~file_state()
     {
-        a.values.builder.restore();
+        state.values.builder.restore();
         boost::swap(qbk_version_n, qbk_version);
-        boost::swap(a.imported, imported);
-        boost::swap(a.current_file, current_file);
-        boost::swap(a.filename_relative, filename_relative);
-        boost::swap(a.xinclude_base, xinclude_base);
-        boost::swap(a.source_mode, source_mode);
+        boost::swap(state.imported, imported);
+        boost::swap(state.current_file, current_file);
+        boost::swap(state.filename_relative, filename_relative);
+        boost::swap(state.xinclude_base, xinclude_base);
+        boost::swap(state.source_mode, source_mode);
         if (scope & scope_output) {
-            a.out.pop();
-            a.phrase.pop();
+            state.out.pop();
+            state.phrase.pop();
         }
-        if (scope & scope_templates) a.templates.pop();
-        if (scope & scope_macros) a.macro = macro;
+        if (scope & scope_templates) state.templates.pop();
+        if (scope & scope_macros) state.macro = macro;
     }
-    
-    template_state::template_state(actions& a)
-        : file_state(a, file_state::scope_all)
-        , template_depth(a.template_depth)
-        , min_section_level(a.min_section_level)
+
+    template_state::template_state(quickbook::state& state)
+        : file_state(state, file_state::scope_all)
+        , template_depth(state.template_depth)
+        , min_section_level(state.min_section_level)
     {
     }
 
     template_state::~template_state()
     {
-        boost::swap(a.template_depth, template_depth);
-        boost::swap(a.min_section_level, min_section_level);
+        boost::swap(state.template_depth, template_depth);
+        boost::swap(state.min_section_level, min_section_level);
     }
 }

@@ -22,9 +22,9 @@ namespace quickbook
     namespace cl = boost::spirit::classic;
     namespace fs = boost::filesystem;
 
-    struct actions
+    struct state
     {
-        actions(fs::path const& filein_, fs::path const& xinclude_base, string_stream& out_,
+        state(fs::path const& filein_, fs::path const& xinclude_base, string_stream& out_,
                 id_manager&);
 
     private:
@@ -38,7 +38,7 @@ namespace quickbook
         typedef std::vector<std::string> string_list;
 
         static int const max_template_depth = 100;
-        
+
     // global state
         fs::path                xinclude_base;
         template_stack          templates;
@@ -91,4 +91,3 @@ namespace quickbook
 }
 
 #endif // BOOST_SPIRIT_ACTIONS_CLASS_HPP
-

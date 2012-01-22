@@ -19,7 +19,7 @@
 #include <boost/spirit/include/phoenix1_primitives.hpp>
 #include <boost/spirit/include/phoenix1_operators.hpp>
 #include "grammar_impl.hpp"
-#include "actions_class.hpp"
+#include "state.hpp"
 #include "actions.hpp"
 #include "doc_info_tags.hpp"
 #include "phrase_tags.hpp"
@@ -116,9 +116,9 @@ namespace quickbook
         }
 
         // Actions
-        error_action error(actions);
-        plain_char_action plain_char(actions.phrase, actions);
-        scoped_parser<to_value_scoped_action> to_value(actions);
+        error_action error(state);
+        plain_char_action plain_char(state.phrase, state);
+        scoped_parser<to_value_scoped_action> to_value(state);
         
         doc_info_details =
                 space                       [ph::var(local.source_mode_unset) = true]
@@ -132,7 +132,7 @@ namespace quickbook
                 '['
             >>  space
             >>  (local.doc_types >> cl::eps_p)
-                                            [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::type)]
+                                            [state.values.entry(ph::arg1, ph::arg2, doc_info_tags::type)]
             >>  hard_space
             >>  to_value(doc_info_tags::title)
                 [  *(   ~cl::eps_p(blank >> (cl::ch_p('[') | ']' | cl::eol_p))
@@ -144,11 +144,11 @@ namespace quickbook
                 ]
             >>  space
             >>  !(qbk_since(106u) >> cl::eps_p(ph::var(local.source_mode_unset))
-                                            [cl::assign_a(actions.source_mode, "c++")]
+                                            [cl::assign_a(state.source_mode, "c++")]
                 )
             >>  (*(  local.doc_info_attribute
                 >>  space
-                ))                          [actions.values.sort()]
+                ))                          [state.values.sort()]
             >>  (   ']'
                 >>  (+eol | cl::end_p)
                 |   cl::eps_p               [error]
@@ -160,8 +160,8 @@ namespace quickbook
             >>  space
             >>  local.doc_attributes        [local.assign_attribute]
             >>  hard_space
-            >>  actions.values.list(ph::var(local.attribute_tag))
-                [   cl::eps_p               [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::before_docinfo)]
+            >>  state.values.list(ph::var(local.attribute_tag))
+                [   cl::eps_p               [state.values.entry(ph::arg1, ph::arg2, doc_info_tags::before_docinfo)]
                 >>  local.attribute_rule
                 ]
             >>  space
@@ -178,7 +178,7 @@ namespace quickbook
                                             [error("Unrecognized document attribute: '%s'.")]
                 )
             >>  hard_space
-            >>  actions.values.list(ph::var(local.attribute_tag))
+            >>  state.values.list(ph::var(local.attribute_tag))
                 [local.attribute_rule]
             >>  space
             >>  ']'
@@ -191,17 +191,17 @@ namespace quickbook
         // Document Attributes
 
         local.quickbook_version =
-                cl::uint_p                  [actions.values.entry(ph::arg1)]
+                cl::uint_p                  [state.values.entry(ph::arg1)]
             >>  '.' 
-            >>  uint2_t()                   [actions.values.entry(ph::arg1)]
+            >>  uint2_t()                   [state.values.entry(ph::arg1)]
             ;
 
         local.attribute_rules[doc_attributes::qbk_version] = &local.quickbook_version;
 
         local.doc_compatibility_mode =
-                cl::uint_p                  [actions.values.entry(ph::arg1)]
+                cl::uint_p                  [state.values.entry(ph::arg1)]
             >>  '.'
-            >>  uint2_t()                   [actions.values.entry(ph::arg1)]
+            >>  uint2_t()                   [state.values.entry(ph::arg1)]
             ;
 
         local.attribute_rules[doc_attributes::compatibility_mode] = &local.doc_compatibility_mode;
@@ -211,7 +211,7 @@ namespace quickbook
                    cl::str_p("c++")
                 |  "python"
                 |  "teletype"
-                )                           [cl::assign_a(actions.source_mode)]
+                )                           [cl::assign_a(state.source_mode)]
                                             [ph::var(local.source_mode_unset) = false]
             ;
 
@@ -238,12 +238,12 @@ namespace quickbook
 
         local.doc_copyright =
             *(  +(  local.doc_copyright_year
-                                            [actions.values.entry(ph::arg1, doc_info_tags::copyright_year)]
+                                            [state.values.entry(ph::arg1, doc_info_tags::copyright_year)]
                 >>  space
                 >>  !(  '-'
                     >>  space
                     >>  local.doc_copyright_year
-                                            [actions.values.entry(ph::arg1, doc_info_tags::copyright_year_end)]
+                                            [state.values.entry(ph::arg1, doc_info_tags::copyright_year_end)]
                     >>  space
                     )
                 >>  !cl::ch_p(',')
@@ -282,7 +282,7 @@ namespace quickbook
         local.attribute_rules[doc_info_attributes::authors] = &local.doc_authors;
 
         local.doc_biblioid =
-                (+cl::alnum_p)              [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::biblioid_class)]
+                (+cl::alnum_p)              [state.values.entry(ph::arg1, ph::arg2, doc_info_tags::biblioid_class)]
             >>  hard_space
             >>  to_value(doc_info_tags::biblioid_value)
                 [+(~cl::eps_p(']') >> local.char_)]

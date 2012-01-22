@@ -59,7 +59,7 @@ namespace quickbook
 
     struct quickbook_grammar::impl
     {
-        quickbook::actions& actions;
+        quickbook::state& state;
         cleanup cleanup_;
 
         // Main Grammar
@@ -92,7 +92,7 @@ namespace quickbook
         // Doc Info
         cl::rule<scanner> doc_info_details;
         
-        impl(quickbook::actions&);
+        impl(quickbook::state&);
 
     private:
 

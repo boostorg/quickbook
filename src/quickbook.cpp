@@ -9,7 +9,7 @@
 =============================================================================*/
 #include "grammar.hpp"
 #include "quickbook.hpp"
-#include "actions_class.hpp"
+#include "state.hpp"
 #include "actions.hpp"
 #include "post_process.hpp"
 #include "utils.hpp"
@@ -53,7 +53,7 @@ namespace quickbook
     std::vector<std::string> preset_defines;
     fs::path image_location;
 
-    static void set_macros(actions& actor)
+    static void set_macros(quickbook::state& state)
     {
         for(std::vector<std::string>::const_iterator
                 it = preset_defines.begin(),
@@ -64,7 +64,7 @@ namespace quickbook
             parse_iterator last(it->end());
 
             cl::parse_info<parse_iterator> info =
-                cl::parse(first, last, actor.grammar().command_line_macro);
+                cl::parse(first, last, state.grammar().command_line_macro);
 
             if (!info.full) {
                 detail::outerr()
@@ -72,7 +72,7 @@ namespace quickbook
                     << detail::utf8(*it)
                     << "'"
                     << std::endl;
-                ++actor.error_count;
+                ++state.error_count;
             }
         }
     }
@@ -82,29 +82,29 @@ namespace quickbook
     //  Parse a file
     //
     ///////////////////////////////////////////////////////////////////////////
-    void parse_file(actions& actor, value include_doc_id, bool nested_file)
+    void parse_file(quickbook::state& state, value include_doc_id, bool nested_file)
     {
-        parse_iterator first(actor.current_file->source.begin());
-        parse_iterator last(actor.current_file->source.end());
+        parse_iterator first(state.current_file->source.begin());
+        parse_iterator last(state.current_file->source.end());
 
-        cl::parse_info<parse_iterator> info = cl::parse(first, last, actor.grammar().doc_info);
+        cl::parse_info<parse_iterator> info = cl::parse(first, last, state.grammar().doc_info);
         assert(info.hit);
 
-        if (!actor.error_count)
+        if (!state.error_count)
         {
             parse_iterator pos = info.stop;
-            std::string doc_type = pre(actor, pos, include_doc_id, nested_file);
+            std::string doc_type = pre(state, pos, include_doc_id, nested_file);
 
-            info = cl::parse(info.hit ? info.stop : first, last, actor.grammar().block);
+            info = cl::parse(info.hit ? info.stop : first, last, state.grammar().block);
 
-            post(actor, doc_type);
+            post(state, doc_type);
 
             if (!info.full)
             {
-                file_position const& pos = actor.current_file->position_of(info.stop.base());
-                detail::outerr(actor.current_file->path, pos.line)
+                file_position const& pos = state.current_file->position_of(info.stop.base());
+                detail::outerr(state.current_file->path, pos.line)
                     << "Syntax Error near column " << pos.column << ".\n";
-                ++actor.error_count;
+                ++state.error_count;
             }
         }
     }
@@ -124,21 +124,21 @@ namespace quickbook
         int result = 0;
 
         try {
-            actions actor(filein_, xinclude_base_, buffer, ids);
-            set_macros(actor);
+            quickbook::state state(filein_, xinclude_base_, buffer, ids);
+            set_macros(state);
 
-            if (actor.error_count == 0) {
-                actor.current_file = load(filein_); // Throws load_error
+            if (state.error_count == 0) {
+                state.current_file = load(filein_); // Throws load_error
 
-                parse_file(actor);
+                parse_file(state);
 
-                if(actor.error_count) {
+                if(state.error_count) {
                     detail::outerr()
-                        << "Error count: " << actor.error_count << ".\n";
+                        << "Error count: " << state.error_count << ".\n";
                 }
             }
 
-            result = actor.error_count ? 1 : 0;
+            result = state.error_count ? 1 : 0;
         }
         catch (load_error& e) {
             detail::outerr(filein_) << detail::utf8(e.what()) << std::endl;

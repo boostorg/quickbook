@@ -16,7 +16,7 @@
 
 namespace quickbook
 {
-    struct actions;
+    struct state;
     struct quickbook_grammar;
     struct collector;
     struct id_manager;

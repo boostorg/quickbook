@@ -9,7 +9,7 @@
 =============================================================================*/
 
 #include "utils.hpp"
-#include "actions_class.hpp"
+#include "state.hpp"
 #include "actions.hpp"
 #include "grammar_impl.hpp"
 #include "block_tags.hpp"
@@ -45,15 +45,15 @@ namespace quickbook
             new block_element_grammar_local);
 
         // Actions
-        error_action error(actions);
-        element_id_warning_action element_id_warning(actions);
-        raw_char_action raw_char(actions.phrase);
-        scoped_parser<to_value_scoped_action> to_value(actions);
+        error_action error(state);
+        element_id_warning_action element_id_warning(state);
+        raw_char_action raw_char(state.phrase);
+        scoped_parser<to_value_scoped_action> to_value(state);
 
         local.element_id =
             !(  ':'
             >>  (   !(qbk_since(105u) >> space)
-                >>  (+(cl::alnum_p | '_'))      [actions.values.entry(ph::arg1, ph::arg2, general_tags::element_id)]
+                >>  (+(cl::alnum_p | '_'))      [state.values.entry(ph::arg1, ph::arg2, general_tags::element_id)]
                 |   cl::eps_p                   [element_id_warning]
                 )
             )
@@ -132,7 +132,7 @@ namespace quickbook
 
         local.def_macro =
                space
-            >> macro_identifier                 [actions.values.entry(ph::arg1, ph::arg2)]
+            >> macro_identifier                 [state.values.entry(ph::arg1, ph::arg2)]
             >> blank
             >> local.inner_phrase
             ;
@@ -151,20 +151,20 @@ namespace quickbook
 
         local.template_ =
                space
-            >> local.template_id                [actions.values.entry(ph::arg1, ph::arg2)]
-            >> actions.values.list()[
+            >> local.template_id                [state.values.entry(ph::arg1, ph::arg2)]
+            >> state.values.list()[
             !(
                 space >> '['
                 >> *(
                         space
-                    >>  local.template_id       [actions.values.entry(ph::arg1, ph::arg2)]
+                    >>  local.template_id       [state.values.entry(ph::arg1, ph::arg2)]
                     )
                 >> space >> ']'
             )
             ]
             >>  (   cl::eps_p(*cl::blank_p >> cl::eol_p)
-                >>  local.template_body         [actions.values.entry(ph::arg1, ph::arg2, template_tags::block)]
-                |   local.template_body         [actions.values.entry(ph::arg1, ph::arg2, template_tags::phrase)]
+                >>  local.template_body         [state.values.entry(ph::arg1, ph::arg2, template_tags::block)]
+                |   local.template_body         [state.values.entry(ph::arg1, ph::arg2, template_tags::phrase)]
                 )
             ;
 
@@ -187,7 +187,7 @@ namespace quickbook
         local.varlistentry =
             space
             >>  cl::ch_p('[')
-            >>  actions.values.list()
+            >>  state.values.list()
             [
                 (
                     local.varlistterm
@@ -231,7 +231,7 @@ namespace quickbook
             >>
             (
                 (
-                    actions.values.list(table_tags::row)
+                    state.values.list(table_tags::row)
                     [   *local.cell
                     ]
                     >>  cl::ch_p(']')
@@ -243,7 +243,7 @@ namespace quickbook
 
         local.table_title =
                 qbk_before(106)
-            >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
+            >>  (*(cl::anychar_p - eol))        [state.values.entry(ph::arg1, ph::arg2, table_tags::title)]
             >>  (+eol)
             |   qbk_since(106)
             >>  to_value(table_tags::title)
@@ -292,7 +292,7 @@ namespace quickbook
            !(
                 ':'
                 >> (*((cl::alnum_p | '_') - cl::space_p))
-                                                [actions.values.entry(ph::arg1, ph::arg2, general_tags::include_id)]
+                                                [state.values.entry(ph::arg1, ph::arg2, general_tags::include_id)]
                 >> space
             )
             >> local.include_filename
@@ -300,7 +300,7 @@ namespace quickbook
 
         local.include_filename =
                 qbk_before(106u)
-            >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
+            >>  (*(cl::anychar_p - phrase_end)) [state.values.entry(ph::arg1, ph::arg2)]
             |   qbk_since(106u)
             >>  to_value()
                 [   *(  raw_escape

@@ -14,7 +14,7 @@
 #include <boost/spirit/include/classic_loops.hpp>
 #include "grammar.hpp"
 #include "grammar_impl.hpp" // Just for context stuff. Should move?
-#include "actions_class.hpp"
+#include "state.hpp"
 #include "actions.hpp"
 #include "utils.hpp"
 #include "files.hpp"
@@ -23,10 +23,6 @@
 namespace quickbook
 {    
     namespace cl = boost::spirit::classic;
-
-    // quickbook::actions is used in a few places here, as 'escape_actions'.
-    // It's named differently to distinguish it from the syntax highlighting
-    // actions, declared below.
 
     template <typename T, typename Value>
     struct member_action_value
@@ -92,19 +88,18 @@ namespace quickbook
     struct syntax_highlight_actions
     {
         quickbook::collector out;
-        quickbook::actions& escape_actions;
+        quickbook::state& state;
         do_macro_action do_macro_impl;
 
         // State
         bool support_callouts;
         string_ref marked_text;
 
-        syntax_highlight_actions(quickbook::actions& escape_actions,
-                bool is_block) :
-            out(), escape_actions(escape_actions),
-            do_macro_impl(out, escape_actions),
+        syntax_highlight_actions(quickbook::state& state, bool is_block) :
+            out(), state(state),
+            do_macro_impl(out, state),
             support_callouts(is_block && (qbk_version_n >= 107u ||
-                escape_actions.current_file->is_code_snippets)),
+                state.current_file->is_code_snippets)),
             marked_text()
         {}
 
@@ -149,9 +144,9 @@ namespace quickbook
     void syntax_highlight_actions::unexpected_char(parse_iterator first,
             parse_iterator last)
     {
-        file_position const pos = escape_actions.current_file->position_of(first.base());
+        file_position const pos = state.current_file->position_of(first.base());
 
-        detail::outwarn(escape_actions.current_file->path, pos.line)
+        detail::outwarn(state.current_file->path, pos.line)
             << "in column:" << pos.column
             << ", unexpected character: " << detail::utf8(first, last)
             << "\n";
@@ -173,14 +168,14 @@ namespace quickbook
     void syntax_highlight_actions::pre_escape_back(parse_iterator,
             parse_iterator)
     {
-        escape_actions.phrase.push(); // save the stream
+        state.phrase.push(); // save the stream
     }
 
     void syntax_highlight_actions::post_escape_back(parse_iterator,
             parse_iterator)
     {
-        out << escape_actions.phrase.str();
-        escape_actions.phrase.pop(); // restore the stream
+        out << state.phrase.str();
+        state.phrase.pop(); // restore the stream
     }
 
     void syntax_highlight_actions::do_macro(std::string const& v)
@@ -196,7 +191,7 @@ namespace quickbook
 
     void syntax_highlight_actions::callout(parse_iterator, parse_iterator)
     {
-        out << escape_actions.add_callout(qbk_value(escape_actions.current_file,
+        out << state.add_callout(qbk_value(state.current_file,
             marked_text.begin(), marked_text.end()));
         marked_text.clear();
     }
@@ -258,7 +253,7 @@ namespace quickbook
         struct definition
         {
             definition(cpp_highlight const& self)
-                : g(self.actions.escape_actions.grammar())
+                : g(self.actions.state.grammar())
             {
                 member_action1<syntax_highlight_actions, char const*>
                     span(self.actions, &syntax_highlight_actions::span),
@@ -273,7 +268,7 @@ namespace quickbook
                     callout(self.actions, &syntax_highlight_actions::callout);
                 member_action_value<syntax_highlight_actions, std::string const&>
                     do_macro(self.actions, &syntax_highlight_actions::do_macro);
-                error_action error(self.actions.escape_actions);
+                error_action error(self.actions.state);
 
                 program
                     =
@@ -298,9 +293,9 @@ namespace quickbook
 
                 macro =
                     // must not be followed by alpha or underscore
-                    cl::eps_p(self.actions.escape_actions.macro
+                    cl::eps_p(self.actions.state.macro
                         >> (cl::eps_p - (cl::alpha_p | '_')))
-                    >> self.actions.escape_actions.macro
+                    >> self.actions.state.macro
                                                         [do_macro]
                     ;
 
@@ -419,7 +414,7 @@ namespace quickbook
         struct definition
         {
             definition(python_highlight const& self)
-                : g(self.actions.escape_actions.grammar())
+                : g(self.actions.state.grammar())
             {
                 member_action1<syntax_highlight_actions, char const*>
                     span(self.actions, &syntax_highlight_actions::span),
@@ -434,7 +429,7 @@ namespace quickbook
                     callout(self.actions, &syntax_highlight_actions::callout);
                 member_action_value<syntax_highlight_actions, std::string const&>
                     do_macro(self.actions, &syntax_highlight_actions::do_macro);
-                error_action error(self.actions.escape_actions);
+                error_action error(self.actions.state);
 
                 program
                     =
@@ -453,9 +448,9 @@ namespace quickbook
 
                 macro = 
                     // must not be followed by alpha or underscore
-                    cl::eps_p(self.actions.escape_actions.macro
+                    cl::eps_p(self.actions.state.macro
                         >> (cl::eps_p - (cl::alpha_p | '_')))
-                    >> self.actions.escape_actions.macro
+                    >> self.actions.state.macro
                                                         [do_macro]
                     ;
 
@@ -555,7 +550,7 @@ namespace quickbook
         struct definition
         {
             definition(teletype_highlight const& self)
-                : g(self.actions.escape_actions.grammar())
+                : g(self.actions.state.grammar())
             {
                 member_action<syntax_highlight_actions>
                     plain_char(self.actions, &syntax_highlight_actions::plain_char),
@@ -563,7 +558,7 @@ namespace quickbook
                     post_escape_back(self.actions, &syntax_highlight_actions::post_escape_back);
                 member_action_value<syntax_highlight_actions, std::string const&>
                     do_macro(self.actions, &syntax_highlight_actions::do_macro);
-                error_action error(self.actions.escape_actions);
+                error_action error(self.actions.state);
 
                 program
                     =
@@ -575,9 +570,9 @@ namespace quickbook
 
                 macro =
                     // must not be followed by alpha or underscore
-                    cl::eps_p(self.actions.escape_actions.macro
+                    cl::eps_p(self.actions.state.macro
                         >> (cl::eps_p - (cl::alpha_p | '_')))
-                    >> self.actions.escape_actions.macro
+                    >> self.actions.state.macro
                                                         [do_macro]
                     ;
 
@@ -615,11 +610,11 @@ namespace quickbook
     std::string syntax_highlight(
         parse_iterator first,
         parse_iterator last,
-        actions& escape_actions,
+        quickbook::state& state,
         std::string const& source_mode,
         bool is_block)
     {
-        syntax_highlight_actions syn_actions(escape_actions, is_block);
+        syntax_highlight_actions syn_actions(state, is_block);
 
         // print the code with syntax coloring
         if (source_mode == "c++")

@@ -9,7 +9,7 @@
 =============================================================================*/
 
 #include "grammar_impl.hpp"
-#include "actions_class.hpp"
+#include "state.hpp"
 #include "actions.hpp"
 #include "utils.hpp"
 #include "phrase_tags.hpp"
@@ -37,10 +37,10 @@ namespace quickbook
         phrase_element_grammar_local& local = cleanup_.add(
             new phrase_element_grammar_local);
 
-        error_action error(actions);
-        raw_char_action raw_char(actions.phrase);
-        scoped_parser<cond_phrase_push> scoped_cond_phrase(actions);
-        scoped_parser<to_value_scoped_action> to_value(actions);
+        error_action error(state);
+        raw_char_action raw_char(state.phrase);
+        scoped_parser<cond_phrase_push> scoped_cond_phrase(state);
+        scoped_parser<to_value_scoped_action> to_value(state);
 
         elements.add
             ("?", element_info(element_info::phrase, &local.cond_phrase))
@@ -48,7 +48,7 @@ namespace quickbook
 
         local.cond_phrase =
                 blank
-            >>  macro_identifier                [actions.values.entry(ph::arg1, ph::arg2)]
+            >>  macro_identifier                [state.values.entry(ph::arg1, ph::arg2)]
             >>  scoped_cond_phrase() [extended_phrase]
             ;
 
@@ -65,7 +65,7 @@ namespace quickbook
                 >>  (+(
                         *cl::space_p
                     >>  +(cl::anychar_p - (cl::space_p | phrase_end | '['))
-                    ))                  [actions.values.entry(ph::arg1, ph::arg2)]
+                    ))                  [state.values.entry(ph::arg1, ph::arg2)]
                 |   qbk_since(106u)
                 >>  to_value()
                     [   +(  raw_escape
@@ -77,14 +77,14 @@ namespace quickbook
                     ]
                 )
             >>  hard_space
-            >>  *actions.values.list()
+            >>  *state.values.list()
                 [   '['
                 >>  (*(cl::alnum_p | '_')) 
-                                        [actions.values.entry(ph::arg1, ph::arg2)]
+                                        [state.values.entry(ph::arg1, ph::arg2)]
                 >>  space
                 >>  (   qbk_before(106u)
                     >>  (*(cl::anychar_p - (phrase_end | '[')))
-                                        [actions.values.entry(ph::arg1, ph::arg2)]
+                                        [state.values.entry(ph::arg1, ph::arg2)]
                     |   qbk_since(106u)
                     >>  to_value()
                         [   *(  raw_escape
@@ -99,7 +99,7 @@ namespace quickbook
             >>  cl::eps_p(']')
             |   qbk_before(105u)
             >>  blank
-            >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
+            >>  (*(cl::anychar_p - phrase_end)) [state.values.entry(ph::arg1, ph::arg2)]
             >>  cl::eps_p(']')
             ;
             
@@ -120,7 +120,7 @@ namespace quickbook
                 space
             >>  (   qbk_before(106u)
                 >>  (*(cl::anychar_p - (']' | space)))
-                                                [actions.values.entry(ph::arg1, ph::arg2)]
+                                                [state.values.entry(ph::arg1, ph::arg2)]
                 |   qbk_since(106u)
                 >>  to_value()
                     [   *(  raw_escape
@@ -143,7 +143,7 @@ namespace quickbook
         local.anchor =
                 blank
             >>  (   qbk_before(106u)
-                >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
+                >>  (*(cl::anychar_p - phrase_end)) [state.values.entry(ph::arg1, ph::arg2)]
                 |   qbk_since(106u)
                 >>  to_value()
                     [   *(  raw_escape
@@ -172,7 +172,7 @@ namespace quickbook
             (   cl::str_p("c++")
             |   "python"
             |   "teletype"
-            )                                       [actions.values.entry(ph::arg1, ph::arg2)];
+            )                                       [state.values.entry(ph::arg1, ph::arg2)];
 
         elements.add
             ("c++", element_info(element_info::phrase, &local.empty, source_mode_tags::cpp))
@@ -186,7 +186,7 @@ namespace quickbook
 
         local.role
             =   space
-            >>  (+(cl::alnum_p | '_'))              [actions.values.entry(ph::arg1, ph::arg2)]
+            >>  (+(cl::alnum_p | '_'))              [state.values.entry(ph::arg1, ph::arg2)]
             >>  hard_space
             >>  local.inner_phrase
             ;
