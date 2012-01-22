@@ -70,6 +70,7 @@ namespace quickbook
 
         cl::rule<scanner>
                         doc_info_block, doc_attribute, doc_info_attribute,
+                        doc_info_escaped_attributes,
                         doc_title, doc_simple, doc_phrase, doc_fallback,
                         doc_authors, doc_author,
                         doc_copyright, doc_copyright_holder,
@@ -146,9 +147,12 @@ namespace quickbook
             >>  !(qbk_since(106u) >> cl::eps_p(ph::var(local.source_mode_unset))
                                             [cl::assign_a(state.source_mode, "c++")]
                 )
-            >>  (*(  local.doc_info_attribute
-                >>  space
-                ))                          [state.values.sort()]
+            >>  (   *(  (  local.doc_info_attribute
+                        |  local.doc_info_escaped_attributes
+                        )
+                        >>  space
+                    )
+                )                           [state.values.sort()]
             >>  (   ']'
                 >>  (+eol | cl::end_p)
                 |   cl::eps_p               [error]
@@ -187,6 +191,14 @@ namespace quickbook
         local.doc_fallback = to_value() [
             *(~cl::eps_p(']') >> local.char_)
         ];
+
+        local.doc_info_escaped_attributes =
+                ("'''" >> !eol)
+            >>  (*(cl::anychar_p - "'''"))      [state.values.entry(ph::arg1, ph::arg2, doc_info_tags::escaped_attribute)]
+            >>  (   cl::str_p("'''")
+                |   cl::eps_p                   [error("Unclosed boostbook escape.")]
+                )
+                ;
 
         // Document Attributes
 

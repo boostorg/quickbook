@@ -341,4 +341,28 @@ after the code block.
 
 [endsect]
 
+[section:escaped_docinfo_attributes Escaped docbook in docinfo blocks]
+
+Quickbook docinfo attributes will probably never be as rich as docbook
+attributes so to allow more flexible markup, not supported by quickbook
+escaped docbook can be included in the docinfo block:
+
+```
+[article Some article
+[quickbook 1.7]
+'''<author>
+    <firstname>John</firstname>
+    <surname>Doe</surname>
+    <email>john.doe@example.com</email>
+</author>'''
+]
+```
+
+The escaped docbook is always placed at the end of the docinfo block,
+so it shouldn't be assumed that it will interleave the markup. A mixture
+of quickbook and docbook attributes for the same information will not work
+well.
+
+[endsect] [/escaped_docinfo_attributes]
+
 [endsect] [/ Quickbok 1.7]

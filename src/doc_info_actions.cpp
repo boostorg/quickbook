@@ -76,7 +76,7 @@ namespace quickbook
     }
 
     // Any number of attributes, so stuff them into a vector.
-    std::vector<value> consume_multiple_lists(value_consumer& c, value::tag_type tag)
+    std::vector<value> consume_multiple_values(value_consumer& c, value::tag_type tag)
     {
         std::vector<value> values;
         
@@ -166,21 +166,23 @@ namespace quickbook
 
         std::vector<std::string> duplicates;
 
+        std::vector<value> escaped_attributes = consume_multiple_values(values, doc_info_tags::escaped_attribute);
+
         value qbk_version = consume_list(values, doc_attributes::qbk_version, &duplicates);
         value compatibility_mode = consume_list(values, doc_attributes::compatibility_mode, &duplicates);
-        consume_multiple_lists(values, doc_attributes::source_mode);
+        consume_multiple_values(values, doc_attributes::source_mode);
 
         value id = consume_value_in_list(values, doc_info_attributes::id, &duplicates);
         value dirname = consume_value_in_list(values, doc_info_attributes::dirname, &duplicates);
         value last_revision = consume_value_in_list(values, doc_info_attributes::last_revision, &duplicates);
         value purpose = consume_value_in_list(values, doc_info_attributes::purpose, &duplicates);
-        std::vector<value> categories = consume_multiple_lists(values, doc_info_attributes::category);
+        std::vector<value> categories = consume_multiple_values(values, doc_info_attributes::category);
         value lang = consume_value_in_list(values, doc_info_attributes::lang, &duplicates);
         value version = consume_value_in_list(values, doc_info_attributes::version, &duplicates);
-        std::vector<value> authors = consume_multiple_lists(values, doc_info_attributes::authors);
-        std::vector<value> copyrights = consume_multiple_lists(values, doc_info_attributes::copyright);
+        std::vector<value> authors = consume_multiple_values(values, doc_info_attributes::authors);
+        std::vector<value> copyrights = consume_multiple_values(values, doc_info_attributes::copyright);
         value license = consume_value_in_list(values, doc_info_attributes::license, &duplicates);
-        std::vector<value> biblioids = consume_multiple_lists(values, doc_info_attributes::biblioid);
+        std::vector<value> biblioids = consume_multiple_values(values, doc_info_attributes::biblioid);
         value xmlbase = consume_value_in_list(values, doc_info_attributes::xmlbase, &duplicates);
 
         values.finish();
@@ -502,6 +504,14 @@ namespace quickbook
                 << "\n"
                 ;
             biblioid.finish();
+        }
+
+        BOOST_FOREACH(value escaped, escaped_attributes)
+        {
+            tmp << "<!--quickbook-escape-prefix-->"
+                << escaped.get_quickbook()
+                << "<!--quickbook-escape-postfix-->"
+                ;
         }
 
         if(doc_type != "library") {
