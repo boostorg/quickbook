@@ -121,7 +121,7 @@ namespace quickbook
             >>  (   qbk_ver(0, 106u)
                 >>  (*(cl::anychar_p - (']' | space)))
                                                 [state.values.entry(ph::arg1, ph::arg2)]
-                |   qbk_ver(106u)
+                |   qbk_ver(106u, 107u)
                 >>  to_value()
                     [   *(  raw_escape
                         |   (cl::anychar_p - (cl::ch_p('[') | ']' | space))
@@ -131,6 +131,8 @@ namespace quickbook
                     >>  !(  ~cl::eps_p(comment)
                         >>  cl::eps_p('[')      [error("Open bracket in link value.")]
                         )
+                |   qbk_ver(107u)
+                >>  to_value() [attribute_value_1_7]
                 )
             >>  hard_space
             >>  local.inner_phrase

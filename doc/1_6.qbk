@@ -365,4 +365,19 @@ well.
 
 [endsect] [/escaped_docinfo_attributes]
 
+[section:templates_in_link_values Templates in link values]
+
+There's very premilinary support for calling templates in link values. A lot
+more work needs to be done, including:
+
+* Considering other places where templates could be called (e.g. images are
+  quite tricky, as templates could get confused with attributes, should
+  templates be callable from something like an element's id?).
+* Trimming spaces from the body of the template (which can cause surprising
+  results).
+* Checking that the contents of the template are appropriate for the context.
+  Possibly even using a different grammar.
+
+[endsect] [/templates_in_link_values]
+
 [endsect] [/ Quickbok 1.7]

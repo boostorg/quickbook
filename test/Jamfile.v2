@@ -67,6 +67,7 @@ test-suite quickbook.test :
     [ quickbook-error-test include_win_path-1_6-fail ]
     [ quickbook-test link-1_1 ]
     [ quickbook-test link-1_6 ]
+    [ quickbook-test link-1_7 ]
     [ quickbook-test list_test-1_5 ]
     [ quickbook-test list_test-1_6 ]
     [ quickbook-test macro-1_5 ]
