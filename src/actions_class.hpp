@@ -11,10 +11,11 @@
 #define BOOST_SPIRIT_ACTIONS_CLASS_HPP
 
 #include <boost/scoped_ptr.hpp>
-#include "actions.hpp"
 #include "parsers.hpp"
 #include "values_parse.hpp"
 #include "collector.hpp"
+#include "template_stack.hpp"
+#include "symbols.hpp"
 
 namespace quickbook
 {
@@ -83,6 +84,10 @@ namespace quickbook
         std::string add_callout(value);
         std::string end_callouts();
     };
+
+    extern unsigned qbk_version_n; // qbk_major_version * 100 + qbk_minor_version
+    extern char const* quickbook_get_date;
+    extern char const* quickbook_get_time;
 }
 
 #endif // BOOST_SPIRIT_ACTIONS_CLASS_HPP

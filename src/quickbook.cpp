@@ -10,6 +10,7 @@
 #include "grammar.hpp"
 #include "quickbook.hpp"
 #include "actions_class.hpp"
+#include "actions.hpp"
 #include "post_process.hpp"
 #include "utils.hpp"
 #include "files.hpp"

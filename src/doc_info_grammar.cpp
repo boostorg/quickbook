@@ -20,6 +20,7 @@
 #include <boost/spirit/include/phoenix1_operators.hpp>
 #include "grammar_impl.hpp"
 #include "actions_class.hpp"
+#include "actions.hpp"
 #include "doc_info_tags.hpp"
 #include "phrase_tags.hpp"
 

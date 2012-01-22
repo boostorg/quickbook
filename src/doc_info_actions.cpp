@@ -18,6 +18,7 @@
 #include "files.hpp"
 #include "input_path.hpp"
 #include "actions_class.hpp"
+#include "actions.hpp"
 #include "doc_info_tags.hpp"
 #include "id_manager.hpp"
 

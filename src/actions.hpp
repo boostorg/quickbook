@@ -13,35 +13,26 @@
 #include <string>
 #include <vector>
 #include "fwd.hpp"
-#include "template_stack.hpp"
 #include "utils.hpp"
 #include "values.hpp"
 #include "scoped.hpp"
-#include "symbols.hpp"
 #include <boost/spirit/include/classic_parser.hpp>
 
 namespace quickbook
 {
     namespace cl = boost::spirit::classic;
 
-    extern unsigned qbk_version_n; // qbk_major_version * 100 + qbk_minor_version
-
     struct quickbook_range : cl::parser<quickbook_range> {
         quickbook_range(unsigned min_, unsigned max_)
             : min_(min_), max_(max_) {}
+
+        bool in_range() const;
         
         template <typename ScannerT>
         typename cl::parser_result<quickbook_range, ScannerT>::type
         parse(ScannerT const& scan) const
         {
-            if (qbk_version_n >= min_ && qbk_version_n < max_)
-            {
-                return scan.empty_match();
-            }
-            else
-            {
-                return scan.no_match();
-            }
+            return in_range() ? scan.empty_match() : scan.no_match();
         }
 
         unsigned min_, max_;
@@ -186,9 +177,6 @@ namespace quickbook
         bool saved_conditional;
         std::vector<std::string> anchors;
     };
-
-    extern char const* quickbook_get_date;
-    extern char const* quickbook_get_time;
 
     struct do_macro_action
     {

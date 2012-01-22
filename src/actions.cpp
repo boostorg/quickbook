@@ -37,11 +37,6 @@
 
 namespace quickbook
 {
-    char const* quickbook_get_date = "__quickbook_get_date__";
-    char const* quickbook_get_time = "__quickbook_get_time__";
-
-    unsigned qbk_version_n = 0; // qbk_major_version * 100 + qbk_minor_version
-
     namespace {
         void write_anchors(quickbook::actions& actions, collector& tgt)
         {
@@ -77,6 +72,10 @@ namespace quickbook
             actions.anchors.push_back(placeholder);
             return placeholder;
         }
+    }
+
+    bool quickbook_range::in_range() const {
+        return qbk_version_n >= min_ && qbk_version_n < max_;
     }
 
     void explicit_list_action(quickbook::actions&, value);

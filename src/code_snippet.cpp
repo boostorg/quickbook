@@ -16,6 +16,7 @@
 #include "block_tags.hpp"
 #include "template_stack.hpp"
 #include "actions.hpp"
+#include "actions_class.hpp"
 #include "values.hpp"
 #include "files.hpp"
 #include "input_path.hpp"

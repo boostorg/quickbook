@@ -20,6 +20,11 @@
 
 namespace quickbook
 {
+    char const* quickbook_get_date = "__quickbook_get_date__";
+    char const* quickbook_get_time = "__quickbook_get_time__";
+
+    unsigned qbk_version_n = 0; // qbk_major_version * 100 + qbk_minor_version
+
     actions::actions(fs::path const& filein_, fs::path const& xinclude_base_,
             string_stream& out_, id_manager& ids)
         : grammar_()

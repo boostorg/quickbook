@@ -10,6 +10,7 @@
 
 #include "grammar_impl.hpp"
 #include "actions_class.hpp"
+#include "actions.hpp"
 #include "utils.hpp"
 #include "phrase_tags.hpp"
 #include <boost/spirit/include/classic_core.hpp>

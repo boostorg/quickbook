@@ -15,6 +15,8 @@
 #include "grammar.hpp"
 #include "grammar_impl.hpp" // Just for context stuff. Should move?
 #include "actions_class.hpp"
+#include "actions.hpp"
+#include "utils.hpp"
 #include "files.hpp"
 #include "input_path.hpp"
 

@@ -10,6 +10,7 @@
 
 #include "grammar_impl.hpp"
 #include "actions_class.hpp"
+#include "actions.hpp"
 #include "utils.hpp"
 #include "template_tags.hpp"
 #include "block_tags.hpp"
