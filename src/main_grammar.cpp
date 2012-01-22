@@ -107,7 +107,7 @@ namespace quickbook
                         info_.type != element_info::maybe_block)
                     l.actions_.paragraph();
 
-                l.actions_.values.builder.reset();
+                assert(l.actions_.values.builder.empty());
 
                 if (!l.actions_.source_mode_next.empty() &&
                     info_.type != element_info::maybe_block)
