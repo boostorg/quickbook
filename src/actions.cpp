@@ -711,7 +711,8 @@ namespace quickbook
             write_anchors(actions, actions.phrase);
         }
         else {
-            actions.paragraph();
+            paragraph_action para(actions);
+            para();
             write_anchors(actions, actions.out);
         }
 
@@ -1228,7 +1229,8 @@ namespace quickbook
         {
             if (is_block)
             {
-                actions.paragraph();
+                paragraph_action para(actions);
+                para();
                 actions.out << symbol->content.get_encoded();
             }
             else
@@ -1313,10 +1315,11 @@ namespace quickbook
         }
 
         if(is_block || !block.empty()) {
-            actions.paragraph(); // For paragraphs before the template call.
+            paragraph_action para(actions);
+            para(); // For paragraphs before the template call.
             actions.out << block;
             actions.phrase << phrase;
-            actions.paragraph();
+            para();
         }
         else {
             actions.phrase << phrase;
@@ -2150,7 +2153,8 @@ namespace quickbook
 
         if (!actions.out.str().empty())
         {
-            actions.paragraph();
+            paragraph_action para(actions);
+            para(); // For paragraphs before the template call.
             write_anchors(actions, actions.out);
             actions.out.swap(value);
         }

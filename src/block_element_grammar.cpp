@@ -43,11 +43,17 @@ namespace quickbook
         block_element_grammar_local& local = cleanup_.add(
             new block_element_grammar_local);
 
+        // Actions
+        error_action error(actions);
+        element_id_warning_action element_id_warning(actions);
+        raw_char_action raw_char(actions.phrase);
+        scoped_parser<to_value_scoped_action> to_value(actions);
+
         local.element_id =
             !(  ':'
             >>  (   !(qbk_since(105u) >> space)
                 >>  (+(cl::alnum_p | '_'))      [actions.values.entry(ph::arg1, ph::arg2, general_tags::element_id)]
-                |   cl::eps_p                   [actions.element_id_warning]
+                |   cl::eps_p                   [element_id_warning]
                 )
             )
             ;
@@ -113,7 +119,7 @@ namespace quickbook
                 ( qbk_before(106) >> space
                 | qbk_since(106) >> blank >> !eol
                 )
-            >>  actions.to_value()
+            >>  to_value()
                 [
                     inside_preformatted
                 ]
@@ -185,12 +191,12 @@ namespace quickbook
                 (
                     local.varlistterm
                     >>  (   +local.cell
-                        |   cl::eps_p           [actions.error]
+                        |   cl::eps_p           [error]
                         )
                     >>  cl::ch_p(']')
                     >>  space
                 )
-                | cl::eps_p                     [actions.error]
+                | cl::eps_p                     [error]
             ]
             ;
 
@@ -200,7 +206,7 @@ namespace quickbook
             >>  local.inner_phrase
             >>  (   cl::ch_p(']')
                 >>  space
-                |   cl::eps_p                   [actions.error]
+                |   cl::eps_p                   [error]
                 )
             ;
 
@@ -230,7 +236,7 @@ namespace quickbook
                     >>  cl::ch_p(']')
                     >>  space
                 )
-                | cl::eps_p                     [actions.error]
+                | cl::eps_p                     [error]
             )
             ;
 
@@ -239,7 +245,7 @@ namespace quickbook
             >>  (*(cl::anychar_p - eol))        [actions.values.entry(ph::arg1, ph::arg2, table_tags::title)]
             >>  (+eol)
             |   qbk_since(106)
-            >>  actions.to_value(table_tags::title)
+            >>  to_value(table_tags::title)
                 [
                     table_title_phrase
                 ]
@@ -259,7 +265,7 @@ namespace quickbook
             >>  (   local.inner_block
                 >>  cl::ch_p(']')
                 >>  space
-                |   cl::eps_p                   [actions.error]
+                |   cl::eps_p                   [error]
                 )
             ;
 
@@ -295,23 +301,23 @@ namespace quickbook
                 qbk_before(106u)
             >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
             |   qbk_since(106u)
-            >>  actions.to_value()
+            >>  to_value()
                 [   *(  raw_escape
                     |   (cl::anychar_p - phrase_end)
-                                                [actions.raw_char]
+                                                [raw_char]
                     )
                 ]
             ;
 
         local.inner_block =
-            actions.to_value()
+            to_value()
             [
                 inside_paragraph
             ]
             ;
 
         local.inner_phrase =
-            actions.to_value()
+            to_value()
             [
                 paragraph_phrase
             ]

@@ -113,6 +113,11 @@ namespace quickbook
         BOOST_FOREACH(value::tag_type t, doc_info_attributes::tags()) {
             local.doc_info_attributes.add(doc_info_attributes::name(t), t);
         }
+
+        // Actions
+        error_action error(actions);
+        plain_char_action plain_char(actions.phrase, actions);
+        scoped_parser<to_value_scoped_action> to_value(actions);
         
         doc_info_details =
                 space                       [ph::var(local.source_mode_unset) = true]
@@ -128,7 +133,7 @@ namespace quickbook
             >>  (local.doc_types >> cl::eps_p)
                                             [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::type)]
             >>  hard_space
-            >>  actions.to_value(doc_info_tags::title)
+            >>  to_value(doc_info_tags::title)
                 [  *(   ~cl::eps_p(blank >> (cl::ch_p('[') | ']' | cl::eol_p))
                     >>  local.char_
                     )
@@ -145,7 +150,7 @@ namespace quickbook
                 ))                          [actions.values.sort()]
             >>  (   ']'
                 >>  (+eol | cl::end_p)
-                |   cl::eps_p               [actions.error]
+                |   cl::eps_p               [error]
                 )
             ;
 
@@ -169,7 +174,7 @@ namespace quickbook
                                             [local.assign_attribute]
                 |   (+(cl::alnum_p | '_' | '-'))
                                             [local.fallback_attribute]
-                                            [actions.error("Unrecognized document attribute: '%s'.")]
+                                            [error("Unrecognized document attribute: '%s'.")]
                 )
             >>  hard_space
             >>  actions.values.list(ph::var(local.attribute_tag))
@@ -178,7 +183,7 @@ namespace quickbook
             >>  ']'
             ;
 
-        local.doc_fallback = actions.to_value() [
+        local.doc_fallback = to_value() [
             *(~cl::eps_p(']') >> local.char_)
         ];
 
@@ -213,7 +218,7 @@ namespace quickbook
 
         // Document Info Attributes
 
-        local.doc_simple = actions.to_value() [*(~cl::eps_p(']') >> local.char_)];
+        local.doc_simple = to_value() [*(~cl::eps_p(']') >> local.char_)];
         local.attribute_rules[doc_info_attributes::version] = &local.doc_simple;
         local.attribute_rules[doc_info_attributes::id] = &local.doc_simple;
         local.attribute_rules[doc_info_attributes::dirname] = &local.doc_simple;
@@ -243,7 +248,7 @@ namespace quickbook
                 >>  !cl::ch_p(',')
                 >>  space
                 )
-            >>  actions.to_value(doc_info_tags::copyright_name) [ local.doc_copyright_holder ]
+            >>  to_value(doc_info_tags::copyright_name) [ local.doc_copyright_holder ]
             >>  !cl::ch_p(',')
             >>  space
             )
@@ -251,17 +256,17 @@ namespace quickbook
 
         local.attribute_rules[doc_info_attributes::copyright] = &local.doc_copyright;
 
-        local.doc_phrase = actions.to_value() [ nested_phrase ];
+        local.doc_phrase = to_value() [ nested_phrase ];
         local.attribute_rules[doc_info_attributes::purpose] = &local.doc_phrase;
         local.attribute_rules[doc_info_attributes::license] = &local.doc_phrase;
 
         local.doc_author =
                 '['
             >>   space
-            >>  actions.to_value(doc_info_tags::author_surname)
+            >>  to_value(doc_info_tags::author_surname)
                 [*(~cl::eps_p(',') >> local.char_)]
             >>  ',' >> space
-            >>  actions.to_value(doc_info_tags::author_first)
+            >>  to_value(doc_info_tags::author_first)
                 [*(~cl::eps_p(']') >> local.char_)]
             >>  ']'
             ;
@@ -278,12 +283,12 @@ namespace quickbook
         local.doc_biblioid =
                 (+cl::alnum_p)              [actions.values.entry(ph::arg1, ph::arg2, doc_info_tags::biblioid_class)]
             >>  hard_space
-            >>  actions.to_value(doc_info_tags::biblioid_value)
+            >>  to_value(doc_info_tags::biblioid_value)
                 [+(~cl::eps_p(']') >> local.char_)]
             ;
 
         local.attribute_rules[doc_info_attributes::biblioid] = &local.doc_biblioid;
 
-        local.char_ = escape | cl::anychar_p[actions.plain_char];
+        local.char_ = escape | cl::anychar_p[plain_char];
     }
 }

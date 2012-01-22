@@ -271,6 +271,7 @@ namespace quickbook
                     callout(self.actions, &syntax_highlight_actions::callout);
                 member_action_value<syntax_highlight_actions, std::string const&>
                     do_macro(self.actions, &syntax_highlight_actions::do_macro);
+                error_action error(self.actions.escape_actions);
 
                 program
                     =
@@ -314,7 +315,7 @@ namespace quickbook
                         )
                         |
                         (
-                            cl::eps_p                   [self.actions.escape_actions.error]
+                            cl::eps_p                   [error]
                             >> *cl::anychar_p
                         )
                     )                                   [post_escape_back]
@@ -431,6 +432,7 @@ namespace quickbook
                     callout(self.actions, &syntax_highlight_actions::callout);
                 member_action_value<syntax_highlight_actions, std::string const&>
                     do_macro(self.actions, &syntax_highlight_actions::do_macro);
+                error_action error(self.actions.escape_actions);
 
                 program
                     =
@@ -468,7 +470,7 @@ namespace quickbook
                         )
                         |
                         (
-                            cl::eps_p                   [self.actions.escape_actions.error]
+                            cl::eps_p                   [error]
                             >> *cl::anychar_p
                         )
                     )                                   [post_escape_back]
@@ -559,6 +561,7 @@ namespace quickbook
                     post_escape_back(self.actions, &syntax_highlight_actions::post_escape_back);
                 member_action_value<syntax_highlight_actions, std::string const&>
                     do_macro(self.actions, &syntax_highlight_actions::do_macro);
+                error_action error(self.actions.escape_actions);
 
                 program
                     =
@@ -589,7 +592,7 @@ namespace quickbook
                         )
                         |
                         (
-                            cl::eps_p                   [self.actions.escape_actions.error]
+                            cl::eps_p                   [error]
                             >> *cl::anychar_p
                         )
                     )                                   [post_escape_back]

@@ -48,25 +48,6 @@ namespace quickbook
         , out(out_)
         , phrase()
         , values(&current_file)
-
-        , to_value(*this)
-        , scoped_cond_phrase(*this)
-
-        , element(*this)
-        , error(*this)
-        , paragraph(*this)
-        , list_item(*this)
-        , phrase_end(*this)
-        , raw_char(phrase)
-        , plain_char(phrase, *this)
-        , escape_unicode(phrase, *this)
-
-        , simple_markup(phrase, *this)
-
-        , break_(phrase, *this)
-        , do_macro(phrase, *this)
-
-        , element_id_warning(*this)
     {
         // add the predefined macros
         macro.add

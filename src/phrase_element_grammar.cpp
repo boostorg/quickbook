@@ -36,6 +36,11 @@ namespace quickbook
         phrase_element_grammar_local& local = cleanup_.add(
             new phrase_element_grammar_local);
 
+        error_action error(actions);
+        raw_char_action raw_char(actions.phrase);
+        scoped_parser<cond_phrase_push> scoped_cond_phrase(actions);
+        scoped_parser<to_value_scoped_action> to_value(actions);
+
         elements.add
             ("?", element_info(element_info::phrase, &local.cond_phrase))
             ;
@@ -43,8 +48,7 @@ namespace quickbook
         local.cond_phrase =
                 blank
             >>  macro_identifier                [actions.values.entry(ph::arg1, ph::arg2)]
-            >>  actions.scoped_cond_phrase()
-                [extended_phrase]
+            >>  scoped_cond_phrase() [extended_phrase]
             ;
 
         elements.add
@@ -62,12 +66,12 @@ namespace quickbook
                     >>  +(cl::anychar_p - (cl::space_p | phrase_end | '['))
                     ))                  [actions.values.entry(ph::arg1, ph::arg2)]
                 |   qbk_since(106u)
-                >>  actions.to_value()
+                >>  to_value()
                     [   +(  raw_escape
                         |   (+cl::space_p >> ~cl::eps_p(phrase_end | '['))
-                                        [actions.raw_char]
+                                        [raw_char]
                         |   (cl::anychar_p - (cl::space_p | phrase_end | '['))
-                                        [actions.raw_char]
+                                        [raw_char]
                         )
                     ]
                 )
@@ -81,10 +85,10 @@ namespace quickbook
                     >>  (*(cl::anychar_p - (phrase_end | '[')))
                                         [actions.values.entry(ph::arg1, ph::arg2)]
                     |   qbk_since(106u)
-                    >>  actions.to_value()
+                    >>  to_value()
                         [   *(  raw_escape
                             |   (cl::anychar_p - (phrase_end | '['))
-                                                        [actions.raw_char]
+                                                        [raw_char]
                             )
                         ]
                     )
@@ -117,14 +121,14 @@ namespace quickbook
                 >>  (*(cl::anychar_p - (']' | space)))
                                                 [actions.values.entry(ph::arg1, ph::arg2)]
                 |   qbk_since(106u)
-                >>  actions.to_value()
+                >>  to_value()
                     [   *(  raw_escape
                         |   (cl::anychar_p - (cl::ch_p('[') | ']' | space))
-                                                [actions.raw_char]
+                                                [raw_char]
                         )
                     ]
                     >>  !(  ~cl::eps_p(comment)
-                        >>  cl::eps_p('[')      [actions.error("Open bracket in link value.")]
+                        >>  cl::eps_p('[')      [error("Open bracket in link value.")]
                         )
                 )
             >>  hard_space
@@ -140,10 +144,10 @@ namespace quickbook
             >>  (   qbk_before(106u)
                 >>  (*(cl::anychar_p - phrase_end)) [actions.values.entry(ph::arg1, ph::arg2)]
                 |   qbk_since(106u)
-                >>  actions.to_value()
+                >>  to_value()
                     [   *(  raw_escape
                         |   (cl::anychar_p - phrase_end)
-                                                    [actions.raw_char]
+                                                    [raw_char]
                         )
                     ]
                 )
@@ -190,7 +194,7 @@ namespace quickbook
 
         local.inner_phrase =
                 blank
-            >>  actions.to_value() [ paragraph_phrase ]
+            >>  to_value() [ paragraph_phrase ]
             ;
     }
 }

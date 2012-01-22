@@ -82,28 +82,6 @@ namespace quickbook
         void start_callouts();
         std::string add_callout(value);
         std::string end_callouts();
-
-        scoped_parser<to_value_scoped_action>
-                                to_value;
-        scoped_parser<cond_phrase_push>
-                                scoped_cond_phrase;
-
-        element_action          element;
-        error_action            error;
-
-        paragraph_action        paragraph;
-        list_item_action        list_item;
-        phrase_end_action       phrase_end;
-        raw_char_action         raw_char;
-        plain_char_action       plain_char;
-        escape_unicode_action   escape_unicode;
-
-        simple_phrase_action    simple_markup;
-
-        break_action            break_;
-        do_macro_action         do_macro;
-
-        element_id_warning_action element_id_warning;
     };
 }
 
