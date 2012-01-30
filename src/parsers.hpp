@@ -265,9 +265,9 @@ namespace quickbook {
     //
     ///////////////////////////////////////////////////////////////////////////
 
-    struct utf8_char_parser : public cl::parser<utf8_char_parser>
+    struct u8_codepoint_parser : public cl::parser<u8_codepoint_parser>
     {
-        typedef utf8_char_parser self_t;
+        typedef u8_codepoint_parser self_t;
 
         template <typename Scanner>
         struct result
@@ -294,7 +294,7 @@ namespace quickbook {
         }
     };
   
-    utf8_char_parser const utf8_char_p = utf8_char_parser();
+    u8_codepoint_parser const u8_codepoint_p = u8_codepoint_parser();
 }
 
 #endif // BOOST_QUICKBOOK_SCOPED_BLOCK_HPP
