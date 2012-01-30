@@ -192,7 +192,7 @@ namespace quickbook
             detail::outwarn(state.current_file->path)
                 << (duplicates.size() > 1 ?
                     "Duplicate attributes" : "Duplicate attribute")
-                << ":" << detail::utf8(boost::algorithm::join(duplicates, ", "))
+                << ":" << boost::algorithm::join(duplicates, ", ")
                 << "\n"
                 ;
         }
@@ -268,7 +268,7 @@ namespace quickbook
             {
                 detail::outerr(xmlbase.get_file(), xmlbase.get_position())
                     << "xmlbase \""
-                    << detail::utf8(xmlbase.get_quickbook())
+                    << xmlbase.get_quickbook()
                     << "\" isn't a directory."
                     << std::endl;
 
@@ -301,8 +301,8 @@ namespace quickbook
                 detail::outwarn(state.current_file->path)
                     << (invalid_attributes.size() > 1 ?
                         "Invalid attributes" : "Invalid attribute")
-                    << " for '" << detail::utf8(doc_type) << " document info': "
-                    << detail::utf8(boost::algorithm::join(invalid_attributes, ", "))
+                    << " for '" << doc_type << " document info': "
+                    << boost::algorithm::join(invalid_attributes, ", ")
                     << "\n"
                     ;
             }

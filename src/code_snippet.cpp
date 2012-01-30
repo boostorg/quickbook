@@ -484,7 +484,7 @@ namespace quickbook
             if (qbk_version_n >= 106u) {
                 detail::outerr(source_file->path)
                     << "Unclosed snippet '"
-                    << detail::utf8(snippet_stack->id)
+                    << snippet_stack->id
                     << "'"
                     << std::endl;
                 ++error_count;
@@ -492,7 +492,7 @@ namespace quickbook
             else {
                 detail::outwarn(source_file->path)
                     << "Unclosed snippet '"
-                    << detail::utf8(snippet_stack->id)
+                    << snippet_stack->id
                     << "'"
                     << std::endl;
             }

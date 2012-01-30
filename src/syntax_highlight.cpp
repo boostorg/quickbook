@@ -148,7 +148,7 @@ namespace quickbook
 
         detail::outwarn(state.current_file->path, pos.line)
             << "in column:" << pos.column
-            << ", unexpected character: " << detail::utf8(first, last)
+            << ", unexpected character: " << std::string(first.base(), last.base())
             << "\n";
 
         // print out an unexpected character

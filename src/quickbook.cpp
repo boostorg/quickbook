@@ -69,7 +69,7 @@ namespace quickbook
             if (!info.full) {
                 detail::outerr()
                     << "Error parsing command line definition: '"
-                    << detail::utf8(*it)
+                    << *it
                     << "'"
                     << std::endl;
                 ++state.error_count;
@@ -141,7 +141,7 @@ namespace quickbook
             result = state.error_count ? 1 : 0;
         }
         catch (load_error& e) {
-            detail::outerr(filein_) << detail::utf8(e.what()) << std::endl;
+            detail::outerr(filein_) << e.what() << std::endl;
             result = 1;
         }
 
@@ -307,8 +307,7 @@ main(int argc, char* argv[])
             std::ostringstream description_text;
             description_text << desc;
 
-            quickbook::detail::out()
-                << quickbook::detail::utf8(description_text.str()) << "\n";
+            quickbook::detail::out() << description_text.str() << "\n";
 
             return 0;
         }
@@ -321,7 +320,7 @@ main(int argc, char* argv[])
             quickbook::detail::out()
                 << QUICKBOOK_VERSION
                 << " (Boost "
-                << quickbook::detail::utf8(boost_version)
+                << boost_version
                 << ")"
                 << std::endl;
             return 0;
@@ -434,7 +433,7 @@ main(int argc, char* argv[])
             }
 
             quickbook::detail::out() << "Generating Output File: "
-                << quickbook::detail::path_to_stream(fileout)
+                << fileout
                 << std::endl;
 
             if (!error_count)
@@ -456,14 +455,14 @@ main(int argc, char* argv[])
             description_text << desc;
         
             quickbook::detail::outerr() << "No filename given\n\n"
-                << quickbook::detail::utf8(description_text.str()) << std::endl;
+                << description_text.str() << std::endl;
             return 1;
         }        
     }
 
     catch(std::exception& e)
     {
-        quickbook::detail::outerr() << quickbook::detail::utf8(e.what()) << "\n";
+        quickbook::detail::outerr() << e.what() << "\n";
         return 1;
     }
 

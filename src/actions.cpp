@@ -231,7 +231,7 @@ namespace quickbook
             boost::lexical_cast<std::string>(pos.column));
 
         detail::outerr(state.current_file->path, pos.line)
-            << detail::utf8(formatted_message) << std::endl;
+            << formatted_message << std::endl;
         ++state.error_count;
     }
 
@@ -596,7 +596,7 @@ namespace quickbook
                     detail::outerr(callout_body.get_file(), callout_body.get_position())
                         << "Expanding callout." << std::endl
                         << "------------------begin------------------" << std::endl
-                        << detail::utf8(callout_body.get_quickbook())
+                        << callout_body.get_quickbook()
                         << std::endl
                         << "------------------end--------------------" << std::endl
                         ;
@@ -839,7 +839,7 @@ namespace quickbook
             {
                 detail::outwarn(name.get_file(), name.get_position())
                     << "Duplicate image attribute: "
-                    << detail::utf8(name.get_quickbook())
+                    << name.get_quickbook()
                     << std::endl;
             }
         }
@@ -864,7 +864,7 @@ namespace quickbook
                 detail::outerr(attributes["fileref"].get_file(), attributes["fileref"].get_position()) :
                 detail::outwarn(attributes["fileref"].get_file(), attributes["fileref"].get_position()))
                 << "Image path isn't portable: '"
-                << detail::utf8(fileref)
+                << fileref
                 << "'"
                 << std::endl;
             if (qbk_version_n >= 106u) ++state.error_count;
@@ -1044,7 +1044,7 @@ namespace quickbook
                 &state.templates.top_scope())))
         {
             detail::outwarn(body.get_file(), body.get_position())
-                << "Template Redefinition: " << detail::utf8(identifier) << std::endl;
+                << "Template Redefinition: " << identifier << std::endl;
             ++state.error_count;
         }
     }
@@ -1289,10 +1289,10 @@ namespace quickbook
                 detail::outerr(state.current_file, first)
                     << "Expanding "
                     << (is_block ? "block" : "phrase")
-                    << " template: " << detail::utf8(symbol->identifier) << std::endl
+                    << " template: " << symbol->identifier << std::endl
                     << std::endl
                     << "------------------begin------------------" << std::endl
-                    << detail::utf8(symbol->content.get_quickbook())
+                    << symbol->content.get_quickbook()
                     << "------------------end--------------------" << std::endl
                     << std::endl;
                 ++state.error_count;
@@ -1303,7 +1303,7 @@ namespace quickbook
             {
                 detail::outerr(state.current_file, first)
                     << "Mismatched sections in template "
-                    << detail::utf8(symbol->identifier)
+                    << symbol->identifier
                     << std::endl;
                 ++state.error_count;
                 return;
@@ -1793,7 +1793,7 @@ namespace quickbook
             }
 
             *err << "Path isn't portable: '"
-                << detail::utf8(path_text)
+                << path_text
                 << "'"
                 << std::endl;
 
@@ -2056,7 +2056,7 @@ namespace quickbook
                 if (!state.templates.add(ts))
                 {
                     detail::outerr(ts.content.get_file(), ts.content.get_position())
-                        << "Template Redefinition: " << detail::utf8(tname) << std::endl;
+                        << "Template Redefinition: " << tname << std::endl;
                     ++state.error_count;
                 }
             }
@@ -2130,7 +2130,7 @@ namespace quickbook
                     << "Loading file "
                     << paths.filename
                     << ": "
-                    << detail::utf8(e.what())
+                    << e.what()
                     << std::endl;
             }
         }
