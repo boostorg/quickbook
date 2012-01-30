@@ -253,6 +253,48 @@ namespace quickbook {
     };
     
     lookback_gen const lookback = lookback_gen();
+ 
+    ///////////////////////////////////////////////////////////////////////////
+    //
+    // UTF-8 code point
+    //
+    // Very crude, it doesn't check that the code point is in any way valid.
+    // Just looks for the beginning of the next character. This is just for
+    // implementing some crude fixes, rather than full unicode support. I'm
+    // sure experts would be appalled.
+    //
+    ///////////////////////////////////////////////////////////////////////////
+
+    struct utf8_char_parser : public cl::parser<utf8_char_parser>
+    {
+        typedef utf8_char_parser self_t;
+
+        template <typename Scanner>
+        struct result
+        {
+            typedef cl::match<> type;
+        };
+
+        template <typename Scanner>
+        typename result<Scanner>::type parse(Scanner const& scan) const
+        {
+            typedef typename Scanner::iterator_t iterator_t;
+
+            if (scan.at_end()) return scan.no_match();
+
+            iterator_t save(scan.first);
+
+            do {
+                ++scan.first;
+            } while (!scan.at_end() &&
+                    ((unsigned char) *scan.first & 0xc0) == 0x80);
+
+            return scan.create_match(scan.first.base() - save.base(),
+                    cl::nil_t(), save, scan.first);
+        }
+    };
+  
+    utf8_char_parser const utf8_char_p = utf8_char_parser();
 }
 
 #endif // BOOST_QUICKBOOK_SCOPED_BLOCK_HPP

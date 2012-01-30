@@ -287,7 +287,7 @@ namespace quickbook
                     |   string_                         [span("string")]
                     |   char_                           [span("char")]
                     |   number                          [span("number")]
-                    |   cl::repeat_p(1)[cl::anychar_p]  [unexpected_char]
+                    |   utf8_char_p                     [unexpected_char]
                     )
                     ;
 
@@ -362,7 +362,7 @@ namespace quickbook
                     =   +cl::chset_p("~!%^&*()+={[}]:;,<.>?/|\\-")
                     ;
 
-                string_char = ('\\' >> cl::anychar_p) | (cl::anychar_p - '\\');
+                string_char = ('\\' >> utf8_char_p) | (cl::anychar_p - '\\');
 
                 string_
                     =   !cl::as_lower_d['l'] >> cl::confix_p('"', *string_char, '"')
@@ -442,7 +442,7 @@ namespace quickbook
                     |   special                         [span("special")]
                     |   string_                         [span("string")]
                     |   number                          [span("number")]
-                    |   cl::repeat_p(1)[cl::anychar_p]  [unexpected_char]
+                    |   utf8_char_p                     [unexpected_char]
                     )
                     ;
 
@@ -498,7 +498,7 @@ namespace quickbook
                     =   ! string_prefix >> (long_string | short_string)
                     ;
 
-                string_char = ('\\' >> cl::anychar_p) | (cl::anychar_p - '\\');
+                string_char = ('\\' >> utf8_char_p) | (cl::anychar_p - '\\');
             
                 short_string
                     =   cl::confix_p('\'', * string_char, '\'') |
@@ -564,7 +564,7 @@ namespace quickbook
                     =
                     *(  macro
                     |   escape          
-                    |   cl::repeat_p(1)[cl::anychar_p]  [plain_char]
+                    |   utf8_char_p                     [plain_char]
                     )
                     ;
 
