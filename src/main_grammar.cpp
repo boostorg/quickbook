@@ -28,8 +28,6 @@
 #include <boost/range/algorithm/find_first_of.hpp>
 #include <boost/range/as_literal.hpp>
 
-#include <iostream>
-
 namespace quickbook
 {
     namespace cl = boost::spirit::classic;
@@ -205,7 +203,15 @@ namespace quickbook
 
             info_ = l.info;
 
-            if (info_.type != element_info::phrase &&
+            if (!l.list_stack.empty() && !l.list_stack.top().root &&
+                    info_.type == element_info::block)
+            {
+                // If in a list and the element is a block, end the list.
+                list_item_action list_item(l.state_);
+                list_item();
+                l.clear_stack();
+            }
+            else if (info_.type != element_info::phrase &&
                     info_.type != element_info::maybe_block)
             {
                 paragraph_action para(l.state_);
@@ -315,7 +321,7 @@ namespace quickbook
         member_action<main_grammar_local> check_indentation(local,
             &main_grammar_local::check_indentation_impl);
         member_action<main_grammar_local> check_code_block(local,
-            &main_grammar_local::check_indentation_impl);
+            &main_grammar_local::check_code_block_impl);
         member_action<main_grammar_local> start_blocks(local,
             &main_grammar_local::start_blocks_impl);
         member_action<main_grammar_local> end_blocks(local,
@@ -430,8 +436,12 @@ namespace quickbook
             >>  (cl::ch_p('*') | '#')
             >>  (*cl::blank_p)                  [local.list.still_in_block = true]
             >>  *(  cl::eps_p(local.list.still_in_block)
-                >>  local.list_item(element_info::only_block)
+                >>  (   qbk_ver(106u) >> local.list_item(element_info::only_block)
+                    |   qbk_ver(0, 106u) >> local.list_item(element_info::only_list_block)
+                    )
                 )
+                // TODO: This is sometimes called in the wrong place. Currently
+                // harmless.
             >>  cl::eps_p                       [list_item]
             ;
 

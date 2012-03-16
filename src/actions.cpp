@@ -332,6 +332,14 @@ namespace quickbook
 
     void list_item_action::operator()() const
     {
+        // Be careful as this is sometimes called in the wrong place
+        // for markup such as:
+        //
+        // * A
+        // [endsect]
+        //
+        // This action is called before [endsect] (to end the list item)
+        // and then also after it due to the way the parser works.
         std::string str;
         state.phrase.swap(str);
         state.out << str;
