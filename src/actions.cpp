@@ -13,8 +13,8 @@
 #include <vector>
 #include <map>
 #include <set>
-#include <boost/filesystem/v3/convenience.hpp>
-#include <boost/filesystem/v3/fstream.hpp>
+#include <boost/filesystem/convenience.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/range/distance.hpp>
 #include <boost/range/algorithm/replace.hpp>
 #include <boost/lexical_cast.hpp>
