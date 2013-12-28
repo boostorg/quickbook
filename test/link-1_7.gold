@@ -21,9 +21,6 @@
     <para>
       <link linkend="link">description</link>
     </para>
-    <para>
-      <link linkend="link[Hello]">description</link>
-    </para>
   </section>
   <section id="link_tests.side_by_side_links">
     <title><link linkend="link_tests.side_by_side_links">Side-by-side links</link></title>
@@ -39,6 +36,10 @@
     <title><link linkend="link_tests.templates_is_links">Templates is links....</link></title>
     <para>
       <link linkend="blah.x2">Templated link?</link>
+    </para>
+    <para>
+      <link linkend="something-one-two">something-one-two</link> <link linkend="something-one-two">something-one-two</link>
+      <link linkend="something-one-two">something-one-two</link>
     </para>
   </section>
 </article>

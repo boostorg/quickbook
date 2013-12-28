@@ -6,8 +6,10 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#if !defined(BOOST_QUICKBOOK_DETAIL_INPUT_PATH_HPP)
-#define BOOST_QUICKBOOK_DETAIL_INPUT_PATH_HPP
+// For handling native strings and streams.
+
+#if !defined(BOOST_QUICKBOOK_DETAIL_NATIVE_TEXT_HPP)
+#define BOOST_QUICKBOOK_DETAIL_NATIVE_TEXT_HPP
 
 #include <boost/config.hpp>
 #include <boost/filesystem/path.hpp>
@@ -51,22 +53,22 @@ namespace quickbook
 
         // 'generic':   Paths in quickbook source and the generated boostbook.
         //              Always UTF-8.
-        // 'input':     Paths (or other parameters) from the command line and
+        // 'command_line':
+        //              Paths (or other parameters) from the command line and
         //              possibly other sources in the future. Wide strings on
         //              normal windows, UTF-8 for cygwin and other platforms
         //              (hopefully).
-        // 'stream':    Strings to be written to a stream.
         // 'path':      Stored as a boost::filesystem::path. Since
         //              Boost.Filesystem doesn't support cygwin, this
         //              is always wide on windows. UTF-8 on other
         //              platforms (again, hopefully).
     
 #if QUICKBOOK_WIDE_PATHS
-        typedef std::wstring input_string;
-        typedef boost::wstring_ref input_string_ref;
+        typedef std::wstring command_line_string;
+        typedef boost::wstring_ref command_line_string_ref;
 #else
-        typedef std::string input_string;
-        typedef boost::string_ref input_string_ref;
+        typedef std::string command_line_string;
+        typedef boost::string_ref command_line_string_ref;
 #endif
 
         // A light wrapper around C++'s streams that gets things right
@@ -111,8 +113,8 @@ namespace quickbook
         };
 
 
-        std::string input_to_utf8(input_string const&);
-        fs::path input_to_path(input_string const&);
+        std::string command_line_to_utf8(command_line_string const&);
+        fs::path command_line_to_path(command_line_string const&);
     
         std::string path_to_generic(fs::path const&);
         fs::path generic_to_path(boost::string_ref);

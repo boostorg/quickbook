@@ -30,9 +30,11 @@ exe quickbook
     dependency_tracker.cpp
     utils.cpp
     files.cpp
-    input_path.cpp
+    native_text.cpp
+    glob.cpp
+    include_paths.cpp
     values.cpp
-    id_manager.cpp
+    document_state.cpp
     id_generation.cpp
     id_xml.cpp
     post_process.cpp

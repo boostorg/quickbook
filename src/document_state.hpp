@@ -1,18 +1,19 @@
 /*=============================================================================
-    Copyright (c) 2011 Daniel James
+    Copyright (c) 2011,2013 Daniel James
 
     Use, modification and distribution is subject to the Boost Software
     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#if !defined(BOOST_QUICKBOOK_ID_MANAGER_HPP)
-#define BOOST_QUICKBOOK_ID_MANAGER_HPP
+#if !defined(BOOST_QUICKBOOK_DOCUMENT_STATE_HPP)
+#define BOOST_QUICKBOOK_DOCUMENT_STATE_HPP
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/utility/string_ref.hpp>
 #include <string>
 #include "values.hpp"
+#include "syntax_highlight.hpp"
 
 namespace quickbook
 {
@@ -44,12 +45,12 @@ namespace quickbook
         categories c;
     };
 
-    struct id_state;
+    struct document_state_impl;
 
-    struct id_manager
+    struct document_state
     {
-        id_manager();
-        ~id_manager();
+        document_state();
+        ~document_state();
 
         std::string start_file_with_docinfo(
                 unsigned compatibility_version,
@@ -65,9 +66,11 @@ namespace quickbook
 
         void end_file();
 
-        std::string begin_section(boost::string_ref, id_category);
+        std::string begin_section(boost::string_ref, id_category,
+            source_mode_info const&);
         void end_section();
         int section_level() const;
+        source_mode_info section_source_mode() const;
 
         std::string old_style_id(boost::string_ref, id_category);
         std::string add_id(boost::string_ref, id_category);
@@ -76,10 +79,10 @@ namespace quickbook
         std::string replace_placeholders_with_unresolved_ids(
                 boost::string_ref) const;
         std::string replace_placeholders(boost::string_ref) const;
-        
+
         unsigned compatibility_version() const;
     private:
-        boost::scoped_ptr<id_state> state;
+        boost::scoped_ptr<document_state_impl> state;
     };
 }
 
