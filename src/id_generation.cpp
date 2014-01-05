@@ -212,7 +212,7 @@ namespace quickbook {
         //
         // Note: can't just use the placeholder's parent, as the
         // placeholder id might contain dots.
-        unsigned child_start = resolved_id.rfind('.');
+        std::size_t child_start = resolved_id.rfind('.');
         std::string parent_id, base_id;
 
         if (child_start == std::string::npos) {
