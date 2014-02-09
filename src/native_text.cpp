@@ -307,6 +307,18 @@ namespace detail {
         return *this;
     }
 
+#if !defined(BOOST_NO_LONG_LONG)
+    ostream& ostream::operator<<(long long x) {
+        base << x;
+        return *this;
+    }
+
+    ostream& ostream::operator<<(unsigned long long x) {
+        base << x;
+        return *this;
+    }
+#endif
+
     ostream& ostream::operator<<(fs::path const& x) {
         base << path_to_stream(x);
         return *this;

@@ -105,6 +105,12 @@ namespace quickbook
             ostream& operator<<(unsigned int x);
             ostream& operator<<(long x);
             ostream& operator<<(unsigned long x);
+
+#if !defined(BOOST_NO_LONG_LONG)
+            ostream& operator<<(long long x);
+            ostream& operator<<(unsigned long long x);
+#endif
+
             ostream& operator<<(fs::path const&);
 
             // Modifiers
