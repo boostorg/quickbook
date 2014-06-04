@@ -44,8 +44,8 @@ boostbook fully-standalone
         <dependency>images
         <xsl:param>boost.root=http://www.boost.org
         <xsl:param>html.stylesheet=boostbook.css
-        <xsl:param>img.src.path=./
-        #<xsl:param>callout.graphics.path=../../images/callouts//
+        <xsl:param>img.src.path=images/
+        <xsl:param>boost.graphics.root=images/
     ;
 explicit fully-standalone ;
 
