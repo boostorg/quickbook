@@ -35,3 +35,24 @@ boostbook standalone
         <format>pdf:<xsl:param>img.src.path=$(images)/
         <format>pdf:<xsl:param>boost.url.prefix=http://www.boost.org/doc/libs/release/doc/html
     ;
+
+boostbook fully-standalone
+    :
+        doc-guide
+    :
+        <dependency>css
+        <dependency>images
+        <xsl:param>boost.root=http://www.boost.org
+        <xsl:param>html.stylesheet=boostbook.css
+        <xsl:param>img.src.path=./
+        #<xsl:param>callout.graphics.path=../../images/callouts//
+    ;
+explicit fully-standalone ;
+
+install css : [ glob $(BOOST_ROOT)/doc/src/*.css ]
+    : <location>html ;
+install images : [ glob $(BOOST_ROOT)/doc/src/images/*.png ]
+    : <location>html/images ;
+explicit css ;
+explicit images ;
+
