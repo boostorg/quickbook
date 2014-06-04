@@ -1,0 +1,293 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Tables</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../../../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../block.html" title="Chapter&#160;11.&#160;Block Level Elements">
+<link rel="prev" href="blurbs.html" title="Blurbs">
+<link rel="next" href="variable_lists.html" title="Variable Lists">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="blurbs.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="variable_lists.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="quickbook.syntax.block.tables"></a><a name="quickbook.ref.tables"></a><a class="link" href="tables.html" title="Tables">Tables</a>
+</h2></div></div></div>
+<pre class="programlisting">[table:id A Simple Table
+    [[Heading 1] [Heading 2] [Heading 3]]
+    [[R0-C0]     [R0-C1]     [R0-C2]]
+    [[R1-C0]     [R1-C1]     [R1-C2]]
+    [[R2-C0]     [R2-C1]     [R2-C2]]
+]
+</pre>
+<p>
+          will generate:
+        </p>
+<div class="table">
+<a name="quickbook.syntax.block.tables.id"></a><p class="title"><b>Table&#160;11.2.&#160;A Simple Table</b></p>
+<div class="table-contents"><table class="table" summary="A Simple Table">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                  <p>
+                    Heading 1
+                  </p>
+                </th>
+<th>
+                  <p>
+                    Heading 2
+                  </p>
+                </th>
+<th>
+                  <p>
+                    Heading 3
+                  </p>
+                </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                  <p>
+                    R0-C0
+                  </p>
+                </td>
+<td>
+                  <p>
+                    R0-C1
+                  </p>
+                </td>
+<td>
+                  <p>
+                    R0-C2
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    R1-C0
+                  </p>
+                </td>
+<td>
+                  <p>
+                    R1-C1
+                  </p>
+                </td>
+<td>
+                  <p>
+                    R1-C2
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    R2-C0
+                  </p>
+                </td>
+<td>
+                  <p>
+                    R2-C1
+                  </p>
+                </td>
+<td>
+                  <p>
+                    R2-C2
+                  </p>
+                </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>
+          The table title is optional. The first row of the table is automatically
+          treated as the table header; that is, it is wrapped in <code class="literal">&lt;thead&gt;...&lt;/thead&gt;</code>
+          XML tags. Note that unlike the original QuickDoc, the columns are nested
+          in [cells... ].
+        </p>
+<p>
+          Giving tables an id is a new feature for quickbook 1.5 onwards. As with
+          sections, the id is optional. If the table has a title but no id, an id
+          will be generated from the title. The table above can be linked to using:
+        </p>
+<pre class="programlisting">[link quickbook.syntax.block.tables.id link to table]
+</pre>
+<p>
+          which will generate:
+        </p>
+<p>
+          <a class="link" href="tables.html#quickbook.syntax.block.tables.id" title="Table&#160;11.2.&#160;A Simple Table">link to table</a>
+        </p>
+<p>
+          The syntax is free-format and allows big cells to be formatted nicely.
+          Example:
+        </p>
+<pre class="programlisting">[table Table with fat cells
+    [[Heading 1] [Heading 2]]
+    [
+        [Row 0, Col 0: a small cell]
+        [
+            Row 0, Col 1: a big fat cell with paragraphs
+
+            Boost provides free peer-reviewed portable C++ source libraries.
+
+            We emphasize libraries that work well with the C++ Standard Library.
+            Boost libraries are intended to be widely useful, and usable across
+            a broad spectrum of applications. The Boost license encourages both
+            commercial and non-commercial use.
+        ]
+    ]
+    [
+        [Row 1, Col 0: a small cell]
+        [Row 1, Col 1: a small cell]
+    ]
+]
+</pre>
+<p>
+          and thus:
+        </p>
+<div class="table">
+<a name="quickbook.syntax.block.tables.table_with_fat_cells"></a><p class="title"><b>Table&#160;11.3.&#160;Table with fat cells</b></p>
+<div class="table-contents"><table class="table" summary="Table with fat cells">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                  <p>
+                    Heading 1
+                  </p>
+                </th>
+<th>
+                  <p>
+                    Heading 2
+                  </p>
+                </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                  <p>
+                    Row 0, Col 0: a small cell
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Row 0, Col 1: a big fat cell with paragraphs
+                  </p>
+                  <p>
+                    Boost provides free peer-reviewed portable C++ source libraries.
+                    We emphasize libraries that work well with the C++ Standard Library.
+                    Boost libraries are intended to be widely useful, and usable
+                    across a broad spectrum of applications. The Boost license encourages
+                    both commercial and non-commercial use.
+                  </p>
+                </td>
+</tr>
+<tr>
+<td>
+                  <p>
+                    Row 1, Col 0: a small cell
+                  </p>
+                </td>
+<td>
+                  <p>
+                    Row 1, Col 1: a small cell
+                  </p>
+                </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>
+          Here's how to have preformatted blocks of code in a table cell:
+        </p>
+<pre class="programlisting">[table Table with code
+    [[Comment] [Code]]
+    [
+        [My first program]
+        [``
+            #include &lt;iostream&gt;
+
+            int main()
+            {
+                std::cout &lt;&lt; "Hello, World!" &lt;&lt; std::endl;
+                return 0;
+            }
+        ``]
+    ]
+]
+</pre>
+<div class="table">
+<a name="quickbook.syntax.block.tables.table_with_code"></a><p class="title"><b>Table&#160;11.4.&#160;Table with code</b></p>
+<div class="table-contents"><table class="table" summary="Table with code">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                  <p>
+                    Comment
+                  </p>
+                </th>
+<th>
+                  <p>
+                    Code
+                  </p>
+                </th>
+</tr></thead>
+<tbody><tr>
+<td>
+                  <p>
+                    My first program
+                  </p>
+                </td>
+<td>
+<pre class="programlisting">#include &lt;iostream&gt;
+
+int main()
+{
+    std::cout &lt;&lt; "Hello, World!" &lt;&lt; std::endl;
+    return 0;
+}
+</pre>
+                </td>
+</tr></tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
+        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+          Distributed under the Boost Software License, Version 1.0. (See accompanying
+          file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+        </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="blurbs.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="variable_lists.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

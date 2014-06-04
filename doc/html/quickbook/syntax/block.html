@@ -1,0 +1,138 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Chapter&#160;11.&#160;Block Level Elements</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../../quickbook.html" title="Part&#160;II.&#160;Quickbook 1.6">
+<link rel="prev" href="phrase/cond.html" title="Conditional Generation">
+<link rel="next" href="block/paragraphs.html" title="Paragraphs">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="phrase/cond.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../../quickbook.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="block/paragraphs.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="chapter">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="quickbook.syntax.block"></a>Chapter&#160;11.&#160;Block Level Elements</h2></div></div></div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl class="toc">
+<dt><span class="section"><a href="block.html#quickbook.syntax.block.xinclude">xinclude</a></span></dt>
+<dt><span class="section"><a href="block/paragraphs.html">Paragraphs</a></span></dt>
+<dt><span class="section"><a href="block/lists.html">Lists</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="block/lists.html#quickbook.syntax.block.lists.ordered_lists">Ordered
+          lists</a></span></dt>
+<dt><span class="section"><a href="block/lists.html#quickbook.syntax.block.lists.list_hierarchies">List
+          Hierarchies</a></span></dt>
+<dt><span class="section"><a href="block/lists.html#quickbook.syntax.block.lists.long_list_lines">Long
+          List Lines</a></span></dt>
+<dt><span class="section"><a href="block/lists.html#quickbook.syntax.block.lists.unordered_lists">Unordered
+          lists</a></span></dt>
+<dt><span class="section"><a href="block/lists.html#quickbook.syntax.block.lists.mixed_lists">Mixed
+          lists</a></span></dt>
+<dt><span class="section"><a href="block/lists.html#quickbook.syntax.block.lists.list_tags">Explicit
+          list tags</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="block/code.html">Code</a></span></dt>
+<dt><span class="section"><a href="block/escape_back.html">Escaping
+        Back To QuickBook</a></span></dt>
+<dt><span class="section"><a href="block/preformatted.html">Preformatted</a></span></dt>
+<dt><span class="section"><a href="block/blockquote.html">Blockquote</a></span></dt>
+<dt><span class="section"><a href="block/admonitions.html">Admonitions</a></span></dt>
+<dt><span class="section"><a href="block/headings.html">Headings</a></span></dt>
+<dt><span class="section"><a href="block/generic_heading.html">Generic
+        Heading</a></span></dt>
+<dt><span class="section"><a href="block/macros.html">Macros</a></span></dt>
+<dt><span class="section"><a href="block/predefined_macros.html">Predefined
+        Macros</a></span></dt>
+<dt><span class="section"><a href="block/templates.html">Templates</a></span></dt>
+<dt><span class="section"><a href="block/blurbs.html">Blurbs</a></span></dt>
+<dt><span class="section"><a href="block/tables.html">Tables</a></span></dt>
+<dt><span class="section"><a href="block/variable_lists.html">Variable
+        Lists</a></span></dt>
+<dt><span class="section"><a href="block/include.html">Include</a></span></dt>
+<dt><span class="section"><a href="block/import.html">Import</a></span></dt>
+<dt><span class="section"><a href="block/block.html">Plain
+        blocks</a></span></dt>
+</dl>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="quickbook.syntax.block.xinclude"></a><a name="quickbook.ref.xinclude"></a><a class="link" href="block.html#quickbook.syntax.block.xinclude" title="xinclude">xinclude</a>
+</h2></div></div></div>
+<p>
+          You can include another XML file with:
+        </p>
+<pre class="programlisting">[xinclude file.xml]
+</pre>
+<p>
+          This is useful when file.xml has been generated by Doxygen and contains
+          your reference section.
+        </p>
+<p>
+          <code class="literal">xinclude</code> paths are normally used unchanged in the generated
+          documentation, which will not work if you wish them to be relative to the
+          current quickbook file. Quickbook can add a <code class="literal">xml:base</code>
+          attribute to the boostbook documentation to specify where <code class="literal">xinclude</code>
+          files should be found. For example, if you wish them to be relative to
+          the current quickbook file:
+        </p>
+<pre class="programlisting">[article Article with xincludes
+[quickbook 1.6]
+[xmlbase .]
+]
+
+[xinclude file.xml]
+</pre>
+<p>
+          Now the xinclude should work if <code class="literal">file.xml</code> is in the same
+          directory as the quickbook file. Although it might not work if you distribute
+          the generated files (as their relative directories can change).
+        </p>
+<p>
+          Say the article is generated in a sub-directory, by running something like:
+        </p>
+<pre class="programlisting">quickbook article.qbk --output-file=output/article.xml
+</pre>
+<p>
+          This will generate a boostbook root tag:
+        </p>
+<pre class="programlisting">&lt;article id="article_with_xincludes"
+    last-revision="$Date: 2013/08/20 08:26:48 $"
+    xml:base=".."
+    xmlns:xi="http://www.w3.org/2001/XInclude"&gt;
+</pre>
+<p>
+          Because <code class="literal">xml:base</code> is set to <code class="literal">..</code>, the
+          xml processor will know to look in the parent directory to find <code class="literal">file.xml</code>,
+          which it comes across the <code class="literal">xi:include</code> tag.
+        </p>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
+        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+          Distributed under the Boost Software License, Version 1.0. (See accompanying
+          file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+        </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="phrase/cond.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../../quickbook.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="block/paragraphs.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

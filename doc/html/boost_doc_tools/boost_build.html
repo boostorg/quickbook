@@ -1,0 +1,145 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Chapter&#160;3.&#160;Building documentation using Boost Build</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../boost_doc_tools.html" title="Part&#160;I.&#160;Using the Boost documentation tools">
+<link rel="prev" href="install/quickbook.html" title="Pre-build quickbook">
+<link rel="next" href="boost_build/standalone.html" title="Building documentation outside of the Boost tree">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="install/quickbook.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../boost_doc_tools.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="boost_build/standalone.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="chapter">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="boost_doc_tools.boost_build"></a>Chapter&#160;3.&#160;Building documentation using Boost Build</h2></div></div></div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl class="toc">
+<dt><span class="section"><a href="boost_build.html#boost_doc_tools.boost_build.simple">Simple examples</a></span></dt>
+<dt><span class="section"><a href="boost_build/standalone.html">Building documentation
+        outside of the Boost tree</a></span></dt>
+</dl>
+</div>
+<p>
+        This chapter is an introduction to building boostbook and quickbook documentation
+        using Boost.Build. It assumes you're already a little familiar with using
+        it.
+      </p>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="boost_doc_tools.boost_build.simple"></a><a class="link" href="boost_build.html#boost_doc_tools.boost_build.simple" title="Simple examples">Simple examples</a>
+</h2></div></div></div>
+<p>
+          Starting with the simplest of examples, in <a href="http://www.boost.org//tools/quickbook/examples/simple-boostbook/" target="_top"><code class="computeroutput">tools/quickbook/examples/simple-boostbook/</code></a>
+          you'll find the first example. This consists of a small boostbook file
+          (<a href="http://www.boost.org//tools/quickbook/examples/simple-boostbook/simple.xml" target="_top"><code class="computeroutput">tools/quickbook/examples/simple-boostbook/simple.xml</code></a>
+          and a Jamfile to build it, which looks like this:
+        </p>
+<pre class="programlisting">using boostbook ;
+
+boostbook simple : simple.xml :
+    &lt;xsl:param&gt;boost.root=../../../../..
+    ;
+</pre>
+<p>
+          The first line just tells Boost.Build that we'll be using the boostbook
+          toolset:
+        </p>
+<pre class="programlisting">using boostbook ;
+</pre>
+<p>
+          This isn't needed if you already have a <code class="computeroutput">using boostbook</code> line
+          in your <code class="computeroutput">user-config.jam</code> file, but it's useful for other people
+          who don't.
+        </p>
+<p>
+          Next we specify the build target:
+        </p>
+<pre class="programlisting">boostbook simple : simple.xml :
+</pre>
+<p>
+          This says that we are creating a document called <code class="computeroutput">simple</code> from
+          the source file <code class="computeroutput">simple.xml</code>. <code class="computeroutput">simple</code> is just an
+          identifier for Boost.Build, html documentation is built in a sub-directory
+          called <code class="computeroutput">html</code>.
+        </p>
+<p>
+          After that we write the build parameters:
+        </p>
+<pre class="programlisting">&lt;xsl:param&gt;boost.root=../../../../..
+</pre>
+<p>
+          This is the bare minimum, it just tells boost build where the root of the
+          boost tree is, so that it can link to things like css and image files which
+          the documentation uses. Getting the value right is a bit tricky - it's
+          relative to the build target, which is the <code class="computeroutput">html</code> subdirectory.
+          The full path from root will be: <code class="computeroutput">tools/quickbook/examples/simple-boostbook/html</code>,
+          which has five parts, so the root is five directories up.
+        </p>
+<p>
+          And finally there's a <code class="computeroutput">;</code> to end the build target.
+        </p>
+<p>
+          To build this example, go to the directory in the command line, and run
+          <code class="computeroutput">b2</code>:
+        </p>
+<pre class="programlisting">cd $BOOST_ROOT
+cd tools/quickbook/examples/simple-boostbook
+b2
+</pre>
+<p>
+          You do have to be in the correct directory, as Boost.Build always builds
+          the documentation in a subdirectory of the current directory. Having done
+          this the documentation should be at <code class="computeroutput">tools/quickbook/examples/simple-boostbook/html/index.html</code>.
+        </p>
+<p>
+          Building quickbook is very similar, there's a corresponding example at
+          <a href="http://www.boost.org//tools/quickbook/examples/simple-boostbook/" target="_top"><code class="computeroutput">tools/quickbook/examples/simple-boostbook/</code></a>.
+          For that case, the Jamfile is:
+        </p>
+<pre class="programlisting">using boostbook ;
+using quickbook ;
+
+xml simple-boostbook : simple.qbk ;
+
+boostbook simple : simple-boostbook :
+    &lt;xsl:param&gt;boost.root=../../../../..
+    ;
+</pre>
+<p>
+          This time it specifies that it's using both <code class="computeroutput">boostbook</code> and
+          <code class="computeroutput">quickbook</code>. Then there's a target to build the boostbook representation
+          from quickbook:
+        </p>
+<pre class="programlisting">xml simple-boostbook : simple.qbk ;
+</pre>
+<p>
+          And finally, the target to build the documentation is almost exactly the
+          same, but instead of having a source file, the source is the boostbook
+          xml generated from the quickbook file.
+        </p>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer"></div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="install/quickbook.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../boost_doc_tools.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="boost_build/standalone.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

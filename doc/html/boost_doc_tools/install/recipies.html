@@ -1,0 +1,276 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Installation Recipies</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../install.html" title="Chapter&#160;2.&#160;Installing Boostbook and Quickbook">
+<link rel="prev" href="../install.html" title="Chapter&#160;2.&#160;Installing Boostbook and Quickbook">
+<link rel="next" href="quickbook.html" title="Pre-build quickbook">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../install.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../install.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="quickbook.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="boost_doc_tools.install.recipies"></a><a class="link" href="recipies.html" title="Installation Recipies">Installation Recipies</a>
+</h2></div></div></div>
+<div class="toc"><dl class="toc">
+<dt><span class="section"><a href="recipies.html#boost_doc_tools.install.recipies.windows">Windows</a></span></dt>
+<dt><span class="section"><a href="recipies.html#boost_doc_tools.install.recipies.mac">OS X</a></span></dt>
+<dt><span class="section"><a href="recipies.html#boost_doc_tools.install.recipies.debian">Debian and
+          Ubuntu</a></span></dt>
+</dl></div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="boost_doc_tools.install.recipies.windows"></a><a class="link" href="recipies.html#boost_doc_tools.install.recipies.windows" title="Windows">Windows</a>
+</h3></div></div></div>
+<div class="toc"><dl class="toc">
+<dt><span class="section"><a href="recipies.html#boost_doc_tools.install.recipies.windows.cygwin">Cygwin
+            Install</a></span></dt>
+<dt><span class="section"><a href="recipies.html#boost_doc_tools.install.recipies.windows.manual">Manually
+            installing windows native tools</a></span></dt>
+</dl></div>
+<p>
+            Since most of these command line tools were developed for Unix, and Unix
+            style, platforms they are an awkward fit for windows and recipies requires
+            more effort. This leads to two possible techniques, firstly install with
+            cygwin which handles much of the complexity for you, but requires that
+            you always use it from within Cygwin. The other is to manually install
+            the toolchain for use from the windows command prompt. This gives a more
+            integrated user experience but is quite fiddly to get right.
+          </p>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="boost_doc_tools.install.recipies.windows.cygwin"></a><a class="link" href="recipies.html#boost_doc_tools.install.recipies.windows.cygwin" title="Cygwin Install">Cygwin
+            Install</a>
+</h4></div></div></div>
+<p>
+              These instruction assume that cygwin has been installed to <code class="literal">c:\cygwin</code>.
+            </p>
+<p>
+              Install these packages:
+            </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                  <code class="literal">Libs/libxml2</code>
+                </li>
+<li class="listitem">
+                  <code class="literal">Libs/libxslt</code>
+                </li>
+<li class="listitem">
+                  <code class="literal">Text/docbook-xml42</code>
+                </li>
+<li class="listitem">
+                  <code class="literal">Text/docbook-xsl</code>
+                </li>
+<li class="listitem">
+                  <code class="literal">Devel/gcc4-g++</code> (optional, if you don't have
+                  a compiler).
+                </li>
+<li class="listitem">
+                  <code class="literal">Devel/doxygen</code> (optional, for generating reference
+                  documentation from C++ source files).
+                </li>
+</ul></div>
+<p>
+              Now we need to configure Boost.Build to use these tools. This step
+              is different depending on whether you're using Boost.Build built with
+              cygwin, or for native windows. For cygwin you need to add to your
+              <code class="computeroutput">user-config.jam</code> file:
+            </p>
+<pre class="programlisting">using xsltproc ;
+
+using boostbook
+    : /usr/share/docbook-xsl
+    : /usr/share/xml/docbook/4.2
+    ;
+
+using quickbook ;
+
+# If you installed doxygen:
+using doxygen ;
+</pre>
+<p>
+              When using a native (non-Cygwin) Boost.Build, you'll need to specify
+              the windows paths to the various tools:
+            </p>
+<pre class="programlisting"># Adjust this path to the location of your cygwin install.
+CYGWIN_DIR = c:/cygwin ;
+
+using xsltproc
+    : $(CYGWIN_DIR)/bin/xsltproc.exe ;
+
+using boostbook
+    : $(CYGWIN_DIR)/usr/share/docbook-xsl
+    : $(CYGWIN_DIR)/usr/share/xml/docbook/4.2
+    ;
+
+using quickbook ;
+
+# If you installed doxygen:
+using doxygen
+    : $(CYGWIN_DIR)/bin/doxygen.exe
+    ;
+</pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="boost_doc_tools.install.recipies.windows.manual"></a><a class="link" href="recipies.html#boost_doc_tools.install.recipies.windows.manual" title="Manually installing windows native tools">Manually
+            installing windows native tools</a>
+</h4></div></div></div>
+<p>
+              In order to install the tools under windows, we need to create a directory
+              structure somewhat similar to the unix filesystem. We're going to place
+              this in <code class="literal">c:\boost-tools</code>, if you want to put it elsewhere,
+              just follow the instructions, adjusting the paths accordingly. This
+              is also a good location to use as the prefix when installing Boost.Build.
+            </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                  Create directory for boost tools, say <code class="literal">c:\boost-tools</code>.
+                </li>
+<li class="listitem">
+                  Create directory for binaries, <code class="literal">c:\boost-tools\bin</code>.
+                </li>
+<li class="listitem">
+                  Add the <code class="literal">bin</code> directory to the path (e.g. in Xp,
+                  right click on 'My Computer', click on 'Properties', then the 'Advanced'
+                  tab and click on 'Environment variables' to open a dialog where
+                  you can edit the PATH variable).
+                </li>
+</ul></div>
+<p>
+              Next you need to download several xml tools from <a href="http://www.zlatkovic.com/pub/libxml/" target="_top">Igor
+              Zlatkovic</a>. You require: <code class="literal">iconv</code>, <code class="literal">libxml2</code>
+              and <code class="literal">libxslt</code>, <code class="literal">zlib</code>. Then unzip
+              these into the <code class="literal">c:\boost-tools</code> directory. This should
+              place the <code class="computeroutput">xsltproc</code> exectuable in <code class="literal">c:\boost-tools\bin</code>.
+            </p>
+<p>
+              Next make a directory for xml processing files at <code class="literal">c:\boost-tools\xml</code>.
+            </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                  <a href="http://docbook.sourceforge.net/" target="_top">Norman Walsh's DocBook
+                  XSL stylesheets</a> from their <a href="http://sourceforge.net/project/showfiles.php?group_id=21935&amp;" target="_top">package_id=16608
+                  Sourceforge download page</a> to <code class="literal">c:\boost-tools\xml\docbook-xsl</code>.
+                </li>
+<li class="listitem">
+                  <a href="http://www.oasis-open.org/docbook/xml/4.2/" target="_top">The DocBook
+                  DTD</a> to <code class="literal">c:\boost-tools\xml\docbook-xml</code>.
+                </li>
+</ul></div>
+<p>
+              <code class="literal">user-config.jam</code> in the boost build search path,
+              for most people this will be <code class="literal">C:\Documents and Settings\<span class="emphasis"><em>username</em></span></code>.
+            </p>
+<pre class="programlisting">BOOST_TOOLS_DIR = c:/boost-tools ;
+using xsltproc
+    : $(BOOST_TOOLS_DIR)/bin/xsltproc.exe"
+    ;
+
+using boostbook
+    : $(BOOST_TOOLS_DIR)/xml/docbook-xsl
+    : $(BOOST_TOOLS_DIR)/xml/docbook-xml
+    ;
+
+using quickbook ;
+</pre>
+<p>
+              Also, if you wish to use doxygen to generate reference documentation
+              from C++ source headers, you'll need to install it. You can download
+              it from <a href="http://www.stack.nl/~dimitri/doxygen/download.html#latestsrc" target="_top">the
+              doxygen website</a>. The installer should add the executable to
+              your path, so you just need to add to your <code class="literal">user-config.jam</code>:
+            </p>
+<pre class="programlisting">using doxygen ;
+</pre>
+</div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="boost_doc_tools.install.recipies.mac"></a><a class="link" href="recipies.html#boost_doc_tools.install.recipies.mac" title="OS X">OS X</a>
+</h3></div></div></div>
+<p>
+            If you're using Snow Leopard (OS X 10.6) or later, then you should already
+            have the xml tools installed, so you just need to install the docbook
+            xml and xslt files. The easiest way to do that is probably to use macports,
+            install them with:
+          </p>
+<pre class="programlisting">sudo port install docbook-xml-4.2 docbook-xsl
+</pre>
+<p>
+            For earlier versions of OS X, you'll also need to install <code class="computeroutput">libxslt</code>
+            to get an up to date version of <code class="computeroutput">xsltproc</code>:
+          </p>
+<pre class="programlisting">sudo port install libxslt docbook-xml-4.2 docbook-xsl
+</pre>
+<p>
+            You can also install <code class="computeroutput">doxygen</code>, for generating reference documentation
+            from C++ source files:
+          </p>
+<pre class="programlisting">sudo port install doxygen
+</pre>
+<p>
+            Boost.Build knows the default install location for macports, so all you
+            need to add to your <code class="computeroutput">user-config.jam</code> is an instruction to
+            use them:
+          </p>
+<pre class="programlisting">using boostbook ;
+using quickbook ;
+
+# If you've installed doxygen:
+using doxygen ;
+</pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="boost_doc_tools.install.recipies.debian"></a><a class="link" href="recipies.html#boost_doc_tools.install.recipies.debian" title="Debian and Ubuntu">Debian and
+          Ubuntu</a>
+</h3></div></div></div>
+<p>
+            Installing on Debian and Ubuntu is pretty easy, just install the packages
+            using <code class="computeroutput">apt-get</code> (or an alternative, such as <code class="computeroutput">aptitude</code>):
+          </p>
+<pre class="programlisting">sudo apt-get install xsltproc docbook-xsl docbook-xml
+</pre>
+<p>
+            You can also install <code class="computeroutput">doxygen</code>, for generating reference documentation
+            from C++ source files:
+          </p>
+<pre class="programlisting">sudo apt-get install doxygen
+</pre>
+<p>
+            Boost.Build should be to find these packages without an explicit path,
+            so just add to your <code class="computeroutput">user-config.jam</code>:
+          </p>
+<pre class="programlisting">using boostbook ;
+using quickbook ;
+
+# If you've installed doxygen:
+using doxygen ;
+</pre>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer"></div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../install.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../install.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="quickbook.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

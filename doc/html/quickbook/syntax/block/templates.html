@@ -1,0 +1,371 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Templates</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../../../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../block.html" title="Chapter&#160;11.&#160;Block Level Elements">
+<link rel="prev" href="predefined_macros.html" title="Predefined Macros">
+<link rel="next" href="blurbs.html" title="Blurbs">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="predefined_macros.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="blurbs.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="quickbook.syntax.block.templates"></a><a name="quickbook.ref.templates"></a><a class="link" href="templates.html" title="Templates">Templates</a>
+</h2></div></div></div>
+<p>
+          Templates provide a more versatile text substitution mechanism. Templates
+          come in handy when you need to create parameterizable, multi-line, boilerplate
+          text that you specify once and expand many times. Templates accept one
+          or more arguments. These arguments act like place-holders for text replacement.
+          Unlike simple macros, which are limited to phrase level markup, templates
+          can contain block level markup (e.g. paragraphs, code blocks and tables).
+        </p>
+<p>
+          Example template:
+        </p>
+<pre class="programlisting">[template person[name age what]
+
+Hi, my name is [name]. I am [age] years old. I am a [what].
+
+]
+</pre>
+<a name="quickbook.ref.template_identifier"></a><h4>
+<a name="quickbook.syntax.block.templates.h0"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.templates.template_identifier"></a></span><a class="link" href="templates.html#quickbook.syntax.block.templates.template_identifier">Template
+          Identifier</a>
+        </h4>
+<p>
+          Template identifiers can either consist of:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+              An initial alphabetic character or the underscore, followed by zero
+              or more alphanumeric characters or the underscore. This is similar
+              to your typical C/C++ identifier.
+            </li>
+<li class="listitem">
+              A single character punctuation (a non-alphanumeric printable character)
+            </li>
+</ul></div>
+<h4>
+<a name="quickbook.syntax.block.templates.h1"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.templates.formal_template_arguments"></a></span><a class="link" href="templates.html#quickbook.syntax.block.templates.formal_template_arguments">Formal
+          Template Arguments</a>
+        </h4>
+<p>
+          Template formal arguments are identifiers consisting of an initial alphabetic
+          character or the underscore, followed by zero or more alphanumeric characters
+          or the underscore. This is similar to your typical C/C++ identifier.
+        </p>
+<p>
+          A template formal argument temporarily hides a template of the same name
+          at the point where the <a class="link" href="../phrase/template_expansion.html#quickbook.ref.template_expansion">template
+          is expanded</a>. Note that the body of the <code class="literal">person</code>
+          template above refers to <code class="literal">name</code> <code class="literal">age</code>
+          and <code class="literal">what</code> as <code class="literal">[name]</code> <code class="literal">[age]</code>
+          and <code class="literal">[what]</code>. <code class="literal">name</code> <code class="literal">age</code>
+          and <code class="literal">what</code> are actually templates that exist in the duration
+          of the template call.
+        </p>
+<h4>
+<a name="quickbook.syntax.block.templates.h2"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.templates.template_body"></a></span><a class="link" href="templates.html#quickbook.syntax.block.templates.template_body">Template
+          Body</a>
+        </h4>
+<p>
+          The template body can be just about any QuickBook block or phrase. There
+          are actually two forms. Templates may be phrase or block level. Phrase
+          templates are of the form:
+        </p>
+<pre class="programlisting">[template sample[arg1 arg2...argN] replacement text... ]
+</pre>
+<p>
+          Block templates are of the form:
+        </p>
+<pre class="programlisting">[template sample[arg1 arg2...argN]
+replacement text...
+]
+</pre>
+<p>
+          The basic rule is as follows: if a newline immediately follows the argument
+          list, then it is a block template, otherwise, it is a phrase template.
+          Phrase templates are typically expanded as part of phrases. Like macros,
+          block level elements are not allowed in phrase templates.
+        </p>
+<h4>
+<a name="quickbook.syntax.block.templates.h3"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.templates.template_expansion"></a></span><a class="link" href="templates.html#quickbook.syntax.block.templates.template_expansion">Template
+          Expansion</a>
+        </h4>
+<p>
+          You expand a template this way:
+        </p>
+<pre class="programlisting">[template_identifier arg1..arg2..arg3]
+</pre>
+<p>
+          At template expansion, you supply the actual arguments. The template will
+          be expanded with your supplied arguments. Example:
+        </p>
+<pre class="programlisting">[person James Bond..39..Spy]
+[person Santa Clause..87..Big Red Fatso]
+</pre>
+<p>
+          Which will expand to:
+        </p>
+<p>
+          Hi, my name is James Bond. I am 39 years old. I am a Spy.
+        </p>
+<p>
+          Hi, my name is Santa Clause. I am 87 years old. I am a Big Red Fatso.
+        </p>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="http://www.boost.org/doc/src/images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            A word of caution: Templates are recursive. A template can call another
+            template or even itself, directly or indirectly. There are no control
+            structures in QuickBook (yet) so this will always mean infinite recursion.
+            QuickBook can detect this situation and report an error if recursion
+            exceeds a certain limit.
+          </p></td></tr>
+</table></div>
+<p>
+          Each actual argument can be a word, a text fragment or just about any
+          <a class="link" href="../phrase.html" title="Chapter&#160;10.&#160;Phrase Level Elements">QuickBook phrase</a>. Arguments
+          are separated by the double dot <code class="literal">".."</code> and terminated
+          by the close parenthesis.
+        </p>
+<p>
+          Note that templates and template parameters can't be expanded everywhere,
+          only where text is interpreted as a phrase. So they can't be expanded in
+          places such as table titles and link's urls. If you want to use a template
+          to generate a link based of the template parameter, you can't use a normal
+          link and will need to use escaped docbook instead. Example:
+        </p>
+<pre class="programlisting">[template boost_ticket[key] '''&lt;ulink url="https://svn.boost.org/trac/boost/ticket/'''[key]'''"&gt;#'''[key]'''&lt;/ulink&gt;''']
+
+[boost_ticket 2035]
+</pre>
+<p>
+          will expand to:
+        </p>
+<p>
+          <a href="https://svn.boost.org/trac/boost/ticket/2035" target="_top">#2035</a>
+        </p>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="http://www.boost.org/doc/src/images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            Since quickbook doesn't understand the context where the parameter is
+            being used, it will interpret it as quickbook markup, so when writing
+            a template like this, you'll need to escape any meaningful punctuation.
+          </p></td></tr>
+</table></div>
+<h4>
+<a name="quickbook.syntax.block.templates.h4"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.templates.nullary_templates"></a></span><a class="link" href="templates.html#quickbook.syntax.block.templates.nullary_templates">Nullary Templates</a>
+        </h4>
+<p>
+          Nullary templates look and act like simple macros. Example:
+        </p>
+<pre class="programlisting">[template alpha[]&amp;apos;&amp;apos;&amp;apos;&amp;amp;#945;&amp;apos;&amp;apos;&amp;apos;]
+[template beta[]&amp;apos;&amp;apos;&amp;apos;&amp;amp;#946;&amp;apos;&amp;apos;&amp;apos;]
+</pre>
+<p>
+          Expanding:
+        </p>
+<pre class="programlisting">Some squigles...[*[alpha][beta]]</pre>
+<p>
+          We have:
+        </p>
+<p>
+          Some squiggles...<span class="bold"><strong>&#945;&#946;</strong></span>
+        </p>
+<p>
+          The difference with macros are
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+              The explicit <a class="link" href="../phrase/template_expansion.html#quickbook.ref.template_expansion">template
+              expansion syntax</a>. This is an advantage because, now, we don't
+              have to use obscure naming conventions like double underscores (e.g.
+              __alpha__) to avoid unwanted macro replacement.
+            </li>
+<li class="listitem">
+              The template is expanded at the point where it is invoked. A macro
+              is expanded immediately at its point of declaration. This is subtle
+              and can cause a slight difference in behavior especially if you refer
+              to other macros and templates in the body.
+            </li>
+</ul></div>
+<p>
+          The empty brackets after the template identifier (<code class="literal">alpha[]</code>)
+          indicates no arguments. If the template body does not look like a template
+          argument list, we can elide the empty brackets. Example:
+        </p>
+<pre class="programlisting">[template aristotle_quote Aristotle: [*['Education is the best provision
+for the journey to old age.]]]
+</pre>
+<p>
+          Expanding:
+        </p>
+<pre class="programlisting">Here's a quote from [aristotle_quote].
+</pre>
+<p>
+          We have:
+        </p>
+<p>
+          Here's a quote from Aristotle: <span class="bold"><strong><span class="emphasis"><em>Education
+          is the best provision for the journey to old age.</em></span></strong></span>.
+        </p>
+<p>
+          The disadvantage is that you can't avoid the space between the template
+          identifier, <code class="computeroutput">aristotle_quote</code>, and the template body "Aristotle...".
+          This space will be part of the template body. If that space is unwanted,
+          use empty brackets or use the space escape: "<code class="computeroutput">\ </code>".
+          Example:
+        </p>
+<pre class="programlisting">[template tag\ _tag]
+</pre>
+<p>
+          Then expanding:
+        </p>
+<pre class="programlisting">`struct` x[tag];
+</pre>
+<p>
+          We have:
+        </p>
+<p>
+          <code class="computeroutput">struct</code> x_tag;
+        </p>
+<p>
+          You have a couple of ways to do it. I personally prefer the explicit empty
+          brackets, though.
+        </p>
+<h4>
+<a name="quickbook.syntax.block.templates.h5"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.templates.simple_arguments"></a></span><a class="link" href="templates.html#quickbook.syntax.block.templates.simple_arguments">Simple
+          Arguments</a>
+        </h4>
+<p>
+          As mentioned, arguments are separated by the double dot <code class="literal">".."</code>.
+          Alternatively, if the double dot isn't used and more than one argument
+          is expected, QuickBook uses whitespace to separate the arguments, following
+          this logic:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+              Break the last argument into two, at the first space found (<code class="literal">'',
+              '\n', \t' or '\r'</code>).
+            </li>
+<li class="listitem">
+              Repeat until there are enough arguments or if there are no more spaces
+              found (in which case, an error is reported).
+            </li>
+</ul></div>
+<p>
+          For example:
+        </p>
+<pre class="programlisting">[template simple[a b c d] [a][b][c][d]]
+[simple w x y z]
+</pre>
+<p>
+          will produce:
+        </p>
+<p>
+          wxyz
+        </p>
+<p>
+          "w x y z" is initially treated as a single argument because we
+          didn't supply any <code class="literal">".."</code> separators. However,
+          since <code class="literal">simple</code> expects 4 arguments, "w x y z"
+          is broken down iteratively (applying the logic above) until we have "w",
+          "x", "y" and "z".
+        </p>
+<p>
+          QuickBook only tries to get the arguments it needs. For example:
+        </p>
+<pre class="programlisting">[simple w x y z trail]
+</pre>
+<p>
+          will produce:
+        </p>
+<p>
+          wxyz trail
+        </p>
+<p>
+          The arguments being: "w", "x", "y" and "z
+          trail".
+        </p>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="http://www.boost.org/doc/src/images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            The behavior described here is for QuickBook 1.5. In older versions you
+            could use both the double dot and whitespace as separators in the same
+            template call. If your document is marked up as an older version, it
+            will use the old behavior, which is described in the <a href="http://www.boost.org/doc/libs/1_40_0/doc/html/quickbook/syntax.html#quickbook.syntax.block.templates.simple_arguments" target="_top">QuickBook
+            1.4 documentation</a>.
+          </p></td></tr>
+</table></div>
+<h4>
+<a name="quickbook.syntax.block.templates.h6"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.templates.punctuation_templates"></a></span><a class="link" href="templates.html#quickbook.syntax.block.templates.punctuation_templates">Punctuation
+          Templates</a>
+        </h4>
+<p>
+          With templates, one of our objectives is to allow us to rewrite QuickBook
+          in QuickBook (as a qbk library). For that to happen, we need to accommodate
+          single character punctuation templates which are fairly common in QuickBook.
+          You might have noticed that single character punctuations are allowed as
+          <a class="link" href="templates.html#quickbook.ref.template_identifier">template identifiers</a>.
+          Example:
+        </p>
+<pre class="programlisting">[template ![bar] &lt;hey&gt;[bar]&lt;/hey&gt;]
+</pre>
+<p>
+          Now, expanding this:
+        </p>
+<pre class="programlisting">[!baz]
+</pre>
+<p>
+          We will have:
+        </p>
+<pre class="programlisting">&lt;hey&gt;baz&lt;/hey&gt;
+</pre>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
+        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+          Distributed under the Boost Software License, Version 1.0. (See accompanying
+          file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+        </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="predefined_macros.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="blurbs.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

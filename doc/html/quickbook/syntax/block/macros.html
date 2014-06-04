@@ -1,0 +1,101 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Macros</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../../../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../block.html" title="Chapter&#160;11.&#160;Block Level Elements">
+<link rel="prev" href="generic_heading.html" title="Generic Heading">
+<link rel="next" href="predefined_macros.html" title="Predefined Macros">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="generic_heading.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="predefined_macros.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="quickbook.syntax.block.macros"></a><a name="quickbook.ref.macros"></a><a class="link" href="macros.html" title="Macros">Macros</a>
+</h2></div></div></div>
+<pre class="programlisting">[def macro_identifier some text]
+</pre>
+<p>
+          When a macro is defined, the identifier replaces the text anywhere in the
+          file, in paragraphs, in markups, etc. macro_identifier is a string of non-
+          white space characters except ']'. A macro may not follow an alphabetic
+          character or the underscore. The replacement text can be any phrase (even
+          marked up). Example:
+        </p>
+<pre class="programlisting">[def sf_logo [$http://sourceforge.net/sflogo.php?group_id=28447&amp;amp;type=1]]
+sf_logo
+</pre>
+<p>
+          Now everywhere the sf_logo is placed, the picture will be inlined.
+        </p>
+<p>
+          <span class="inlinemediaobject"><img src="http://sourceforge.net/sflogo.php?group_id=28447&amp;type=1"></span>
+        </p>
+<div class="tip"><table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="http://www.boost.org/doc/src/images/tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            It's a good idea to use macro identifiers that are distinguishable. For
+            instance, in this document, macro identifiers have two leading and trailing
+            underscores (e.g. <code class="literal">__spirit__</code>). The reason is to avoid
+            unwanted macro replacement.
+          </p></td></tr>
+</table></div>
+<p>
+          Links (URLS) and images are good candidates for macros. <span class="bold"><strong>1</strong></span>)
+          They tend to change a lot. It is a good idea to place all links and images
+          in one place near the top to make it easy to make changes. <span class="bold"><strong>2</strong></span>)
+          The syntax is not pretty. It's easier to read and write, e.g. <code class="literal">__spirit__</code>
+          than <code class="computeroutput">[@http://spirit.sourceforge.net Spirit]</code>.
+        </p>
+<p>
+          Some more examples:
+        </p>
+<pre class="programlisting">[def :-)            [$theme/smiley.png]]
+[def __spirit__     [@http://spirit.sourceforge.net Spirit]]
+</pre>
+<p>
+          (See <a class="link" href="../phrase/images.html#quickbook.ref.images">Images</a> and <a class="link" href="../phrase/links.html#quickbook.ref.links">Links</a>)
+        </p>
+<p>
+          Invoking these macros:
+        </p>
+<pre class="programlisting">Hi __spirit__  :-)
+</pre>
+<p>
+          will generate this:
+        </p>
+<p>
+          Hi <a href="http://spirit.sourceforge.net" target="_top">Spirit</a> <span class="inlinemediaobject"><img src="./../../../../src/images/smiley.png"></span>
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
+        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+          Distributed under the Boost Software License, Version 1.0. (See accompanying
+          file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+        </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="generic_heading.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="predefined_macros.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Windows 2000, XP, 2003, Vista, 7</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../install.html" title="Chapter&#160;13.&#160;Installation and configuration">
+<link rel="prev" href="../install.html" title="Chapter&#160;13.&#160;Installation and configuration">
+<link rel="next" href="linux.html" title="Debian, Ubuntu">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../install.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../install.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="linux.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="quickbook.install.windows"></a><a class="link" href="windows.html" title="Windows 2000, XP, 2003, Vista, 7">Windows 2000, XP, 2003,
+        Vista, 7</a>
+</h2></div></div></div>
+<div class="blockquote"><blockquote class="blockquote"><p>
+            <span class="emphasis"><em>Section contributed by Julio M. Merino Vidal</em></span>
+          </p></blockquote></div>
+<p>
+          The following instructions apply to any Windows system based on Windows
+          2000, including Windows XP, Windows 2003 Server, Windows Vista, and Windows
+          7. The paths shown below are taken from a Windows Vista machine; you will
+          need to adjust them to match your system in case you are running an older
+          version.
+        </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+              First of all you need to have a copy of <code class="computeroutput">xsltproc</code> for Windows.
+              There are many ways to get this tool, but to keep things simple, use
+              the <a href="http://www.zlatkovic.com/pub/libxml/" target="_top">binary packages</a>
+              made by Igor Zlatkovic. At the very least, you need to download the
+              following packages: <code class="computeroutput">iconv</code>, <code class="computeroutput">zlib</code>, <code class="computeroutput">libxml2</code>
+              and <code class="computeroutput">libxslt</code>.
+            </li>
+<li class="listitem">
+              Unpack all these packages in the same directory so that you get unique
+              <code class="computeroutput">bin</code>, <code class="computeroutput">include</code> and <code class="computeroutput">lib</code> directories
+              within the hierarchy. These instructions use <code class="computeroutput">C:\Users\example\Documents\boost\xml</code>
+              as the root for all files.
+            </li>
+<li class="listitem">
+              From the command line, go to the <code class="computeroutput">bin</code> directory and launch
+              <code class="computeroutput">xsltproc.exe</code> to ensure it works. You should get usage
+              information on screen.
+            </li>
+<li class="listitem">
+              Download <a href="http://www.docbook.org/xml/4.2/docbook-xml-4.2.zip" target="_top">Docbook
+              XML 4.2</a> and unpack it in the same directory used above. That
+              is: <code class="computeroutput">C:\Users\example\Documents\boost\xml\docbook-xml</code>.
+            </li>
+<li class="listitem">
+              Download the latest <a href="http://sourceforge.net/project/showfiles.php?group_id=21935&amp;package_id=16608" target="_top">Docbook
+              XSL</a> version and unpack it, again in the same directory used
+              before. Be careful that you download the correct file, sometimes the
+              'looking for the latest version' link often links to another file.
+              The name should be of the form <code class="computeroutput">docbook-xsl-1.<span class="emphasis"><em>nn</em></span>.<span class="emphasis"><em>n</em></span>.tar.bz2</code>, with no suffix such as <code class="computeroutput">-ns.tar.bz2</code>
+              or <code class="computeroutput">-doc.tar.bz2</code>. To make things easier, rename the directory
+              created during the extraction to <code class="computeroutput">docbook-xsl</code> (bypassing
+              the version name): <code class="computeroutput">C:\Users\example\Documents\boost\xml\docbook-xsl</code>.
+            </li>
+<li class="listitem">
+<p class="simpara">
+              Add the following to your <code class="computeroutput">user-config.jam</code> file, which
+              should live in your home directory (<code class="computeroutput">%HOMEDRIVE%%HOMEPATH%</code>).
+              You must already have it somewhere or otherwise you could not be building
+              Boost (i.e. missing tools configuration).
+            </p>
+<pre class="programlisting">using xsltproc
+    : "C:/Users/example/Documents/boost/xml/bin/xsltproc.exe"
+    ;
+
+using boostbook
+    : "C:/Users/example/Documents/boost/xml/docbook-xsl"
+    : "C:/Users/example/Documents/boost/xml/docbook-xml"
+    ;
+</pre>
+</li>
+</ol></div>
+<p>
+          The above steps are enough to get a functional BoostBook setup. Quickbook
+          will be automatically built when needed. If you want to avoid these rebuilds:
+        </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+              Go to Quickbook's source directory (<code class="computeroutput">BOOST_ROOT\tools\quickbook</code>).
+            </li>
+<li class="listitem">
+              Build the utility by issuing <code class="computeroutput">bjam</code>.
+            </li>
+<li class="listitem">
+              Copy the resulting <code class="computeroutput">quickbook.exe</code> binary (located at <code class="computeroutput">BOOST_ROOT\dist\bin</code>)
+              to a safe place. Following our previous example, you can install it
+              into: <code class="computeroutput">C:\Users\example\Documents\boost\xml\bin</code>.
+            </li>
+<li class="listitem">
+<p class="simpara">
+              Add the following to your <code class="computeroutput">user-config.jam</code> file:
+            </p>
+<pre class="programlisting">using quickbook
+    : "C:/Users/example/Documents/boost/xml/bin/quickbook.exe"
+    ;
+</pre>
+</li>
+</ol></div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
+        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+          Distributed under the Boost Software License, Version 1.0. (See accompanying
+          file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+        </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../install.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../install.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="linux.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

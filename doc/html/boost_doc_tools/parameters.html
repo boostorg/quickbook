@@ -1,0 +1,273 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Chapter&#160;5.&#160;Boostbook and Docbook build parameters</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../boost_doc_tools.html" title="Part&#160;I.&#160;Using the Boost documentation tools">
+<link rel="prev" href="pdfs.html" title="Chapter&#160;4.&#160;Building PDFs">
+<link rel="next" href="../quickbook.html" title="Part&#160;II.&#160;Quickbook 1.6">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="pdfs.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../boost_doc_tools.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../quickbook.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="chapter">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="boost_doc_tools.parameters"></a>Chapter&#160;5.&#160;Boostbook and Docbook build parameters</h2></div></div></div>
+<p>
+        Back in the simple examples, you might remember how <code class="computeroutput">boost.root</code>
+        was passed to the Boost.Build script:
+      </p>
+<pre class="programlisting">boostbook simple : simple.xml :
+    &lt;xsl:param&gt;boost.root=../../../../..
+    ;
+</pre>
+<p>
+        There are many such XSL parameters that can be used, for example to split
+        the documentation into a file for each section:
+      </p>
+<pre class="programlisting">boostbook simple : simple.xml :
+    &lt;xsl:param&gt;boost.root=../../../../..
+    &lt;xsl:param&gt;chunk.section.depth=99
+    ;
+</pre>
+<p>
+        In this case, <code class="computeroutput">boost.root</code> is a parameter for the BoostBook XSL
+        stylesheets, while <code class="computeroutput">chunk.section.depth</code> is a parameter for the
+        DocBook XSL stylesheets. There are far more DocBook XSL parameters than can
+        be listed here, see the <a href="http://docbook.sourceforge.net/release/xsl/1.77.1/doc/param.html" target="_top">DocBook
+        documentation</a> for a full list. This also isn't a complete list of
+        BoostBook XSL parameters, if you wish to look into them in more detail, the
+        best source of information is the XSL source code at <a href="http://www.boost.org/tools/boostbook/xsl/" target="_top"><code class="computeroutput">tools/boostbook/xsl/</code></a>.
+      </p>
+<h3>
+<a name="boost_doc_tools.parameters.h0"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.toc"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.toc">Table
+        of Contents settings</a>
+      </h3>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl class="variablelist">
+<dt><span class="term">chunk.section.depth</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">chunk.first.sections</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">toc.section.depth</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">toc.max.dpeth</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">generate.section.toc.level</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">index.on.type</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+</dl>
+</div>
+<p>
+        BoostBook adds an extra parameter, <code class="computeroutput">boost.noexpand.chapter.toc</code>,
+        to the DocBook parameters for generating the table of contents for a book.
+        This adjusts a book's table of contents so they don't show the contents of
+        chapters, regardless of the <code class="computeroutput">toc.max.depth</code> parameter.
+      </p>
+<p>
+        This is mainly used in the Boost.Math documentation but could be useful in
+        large books so that the top level table of contents aren't overwhelmed by
+        the individual chapeter contents.
+      </p>
+<h3>
+<a name="boost_doc_tools.parameters.h1"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.link_locations"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.link_locations">Link
+        Locations</a>
+      </h3>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl class="variablelist">
+<dt><span class="term">boost.root</span></dt>
+<dd><p>
+              Path to root of boost (or module) from destination directory
+            </p></dd>
+<dt><span class="term">boost.url.prefix</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.header.root</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+</dl>
+</div>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl class="variablelist">
+<dt><span class="term">img.src.path</span></dt>
+<dd><p>
+              (Docbook parameter) Path that image links are relative to, from the
+              destination directory
+            </p></dd>
+<dt><span class="term">boost.graphics.root</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+</dl>
+</div>
+<h3>
+<a name="boost_doc_tools.parameters.h2"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.style"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.style">Style
+        Parameters</a>
+      </h3>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl class="variablelist">
+<dt><span class="term">boost.defaults</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">html.stylesheet</span></dt>
+<dd><p>
+              ??? (should it be under directory locations?)
+            </p></dd>
+<dt><span class="term">admon.style</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">admon.graphics</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">navig.graphics</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">navig.graphics.extension</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+</dl>
+</div>
+<h3>
+<a name="boost_doc_tools.parameters.h3"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.reference"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.reference">Reference
+        Documentation Parameters</a>
+      </h3>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl class="variablelist">
+<dt><span class="term">boostbook.verbose</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.compact.function</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.short.result.type</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.compact.enum</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.compact.typedef</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">max-columns</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">tempalte.param.brief</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+</dl>
+</div>
+<h3>
+<a name="boost_doc_tools.parameters.h4"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.mathjax"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.mathjax">MathJax
+        parameters</a>
+      </h3>
+<p>
+        BoostBook has experimental support for MathJax, an open source JavaScript
+        script that is used to display mathematics in the browser. This is activated
+        by setting the <code class="computeroutput">boost.mathjax</code> parameter to 1, and the location
+        can be set using <code class="computeroutput">boost.mathjax.script</code>.
+      </p>
+<h3>
+<a name="boost_doc_tools.parameters.h5"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.navbar"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.navbar">Navbar</a>
+      </h3>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl class="variablelist">
+<dt><span class="term">nav.layout</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">nav.border</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">nav.flow</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.website</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.image.src</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.image.alt</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.image.w</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.image.h</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.libraries</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+</dl>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer"></div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="pdfs.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../boost_doc_tools.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../quickbook.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

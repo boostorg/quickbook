@@ -1,0 +1,310 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Import</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../../../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../block.html" title="Chapter&#160;11.&#160;Block Level Elements">
+<link rel="prev" href="include.html" title="Include">
+<link rel="next" href="block.html" title="Plain blocks">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="include.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="block.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="quickbook.syntax.block.import"></a><a name="quickbook.ref.import"></a><a class="link" href="import.html" title="Import">Import</a>
+</h2></div></div></div>
+<p>
+          In quickbook 1.6 and later if you wish to use a template, macro or code
+          snippet from a file, you need to import it. This will not include any of
+          the content from that file, but will pull templates, macros and code snippets
+          into the current file's scope.
+        </p>
+<p>
+          With quickbook files, this allows you to create template and macro libraries.
+          For python (indicated by the <code class="computeroutput">.py</code> extension), C or C++ files
+          this allows you to include code snippets from source files, so that your
+          code examples can be kept up to date and fully tested.
+        </p>
+<h4>
+<a name="quickbook.syntax.block.import.h0"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.import.example"></a></span><a class="link" href="import.html#quickbook.syntax.block.import.example">Example</a>
+        </h4>
+<p>
+          You can effortlessly import code snippets from source code into your QuickBook.
+          The following illustrates how this is done:
+        </p>
+<pre class="programlisting">[import ../test/stub.cpp]
+[foo]
+[bar]
+</pre>
+<p>
+          The first line:
+        </p>
+<pre class="programlisting">[import ../test/stub.cpp]
+</pre>
+<p>
+          collects specially marked-up code snippets from <a href="http://www.boost.org/tools/quickbook/test/stub.cpp" target="_top">stub.cpp</a>
+          and places them in your QuickBook file as virtual templates. Each of the
+          specially marked-up code snippets has a name (e.g. <code class="computeroutput">foo</code> and
+          <code class="computeroutput">bar</code> in the example above). This shall be the template identifier
+          for that particular code snippet. The second and third line above does
+          the actual template expansion:
+        </p>
+<pre class="programlisting">[foo]
+[bar]
+</pre>
+<p>
+          And the result is:
+        </p>
+<p>
+          This is the <span class="bold"><strong><span class="emphasis"><em>foo</em></span></strong></span> function.
+        </p>
+<p>
+          This description can have paragraphs...
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+              lists
+            </li>
+<li class="listitem">
+              etc.
+            </li>
+</ul></div>
+<p>
+          And any quickbook block markup.
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">foo</span><span class="special">()</span>
+<span class="special">{</span>
+    <span class="comment">// return 'em, foo man!</span>
+    <span class="keyword">return</span> <span class="string">"foo"</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+          This is the <span class="bold"><strong><span class="emphasis"><em>bar</em></span></strong></span> function
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">bar</span><span class="special">()</span>
+<span class="special">{</span>
+    <span class="comment">// return 'em, bar man!</span>
+    <span class="keyword">return</span> <span class="string">"bar"</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+          Some trailing text here
+        </p>
+<h4>
+<a name="quickbook.syntax.block.import.h1"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.import.code_snippet_markup"></a></span><a class="link" href="import.html#quickbook.syntax.block.import.code_snippet_markup">Code
+          Snippet Markup</a>
+        </h4>
+<p>
+          Note how the code snippets in <a href="http://www.boost.org/tools/quickbook/test/stub.cpp" target="_top">stub.cpp</a>
+          get marked up. We use distinguishable comments following the form:
+        </p>
+<pre class="programlisting">//[id
+some code here
+//]
+</pre>
+<p>
+          The first comment line above initiates a named code-snippet. This prefix
+          will not be visible in quickbook. The entire code-snippet in between <code class="computeroutput">//[id</code>
+          and <code class="computeroutput">//]</code> will be inserted as a template in quickbook with name
+          <span class="emphasis"><em><span class="emphasis"><em>id</em></span></em></span>. The comment <code class="computeroutput">//]</code>
+          ends a code-snippet This too will not be visible in quickbook.
+        </p>
+<h4>
+<a name="quickbook.syntax.block.import.h2"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.import.special_comments"></a></span><a class="link" href="import.html#quickbook.syntax.block.import.special_comments">Special
+          Comments</a>
+        </h4>
+<p>
+          Special comments of the form:
+        </p>
+<pre class="programlisting">//` some [*quickbook] markup here
+</pre>
+<p>
+          and:
+        </p>
+<pre class="programlisting">/*` some [*quickbook] markup here */
+</pre>
+<p>
+          will be parsed by QuickBook. This can contain quickbook <span class="emphasis"><em>blocks</em></span>
+          (e.g. sections, paragraphs, tables, etc). In the first case, the initial
+          slash-slash, tick and white-space shall be ignored. In the second, the
+          initial slash-star-tick and the final star-slash shall be ignored.
+        </p>
+<p>
+          Special comments of the form:
+        </p>
+<pre class="programlisting">/*&lt;- this C++ comment will be ignored -&gt;*/
+</pre>
+<p>
+          or
+        </p>
+<pre class="programlisting">/*&lt;-*/ "this c++ code  will be ignored" /*-&gt;*/
+</pre>
+<p>
+          or
+        </p>
+<pre class="programlisting">//&lt;-
+private:
+    int some_member;
+//-&gt;
+</pre>
+<p>
+          can be used to inhibit code from passing through to quickbook. All text
+          between the delimeters will simply be ignored.
+        </p>
+<p>
+          Comments of this form:
+        </p>
+<pre class="programlisting">//=int main() {}
+</pre>
+<p>
+          or
+        </p>
+<pre class="programlisting">/*=foo()*/
+</pre>
+<p>
+          will be displayed as code that isn't in comments. This allows you to include
+          some code in the snippet but not actually use it when compiling your example.
+        </p>
+<h4>
+<a name="quickbook.syntax.block.import.h3"></a>
+          <span class="phrase"><a name="quickbook.syntax.block.import.callouts"></a></span><a class="link" href="import.html#quickbook.syntax.block.import.callouts">Callouts</a>
+        </h4>
+<p>
+          Special comments of the form:
+        </p>
+<pre class="programlisting">/*&lt; some [*quickbook] markup here &gt;*/
+</pre>
+<p>
+          will be regarded as callouts. These will be collected, numbered and rendered
+          as a "callout bug" (a small icon with a number). After the whole
+          snippet is parsed, the callout list is generated. See <a href="http://www.docbook.org/tdg/en/html/callout.html" target="_top">Callouts</a>
+          for details. Example:
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">foo_bar</span><span class="special">()</span> <a class="co" name="quickbook.syntax.block.import.c0" href="import.html#quickbook.syntax.block.import.c1"><img src="http://www.boost.org/doc/src/images/callouts/1.png" alt="1" border="0"></a>
+<span class="special">{</span>
+    <span class="keyword">return</span> <span class="string">"foo-bar"</span><span class="special">;</span> <a class="co" name="quickbook.syntax.block.import.c2" href="import.html#quickbook.syntax.block.import.c3"><img src="http://www.boost.org/doc/src/images/callouts/2.png" alt="2" border="0"></a>
+<span class="special">}</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="quickbook.syntax.block.import.c1"></a><a href="#quickbook.syntax.block.import.c0"><img src="http://www.boost.org/doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              The <span class="emphasis"><em>Mythical</em></span> FooBar. See <a href="http://en.wikipedia.org/wiki/Foobar" target="_top">Foobar
+              for details</a>
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="quickbook.syntax.block.import.c3"></a><a href="#quickbook.syntax.block.import.c2"><img src="http://www.boost.org/doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              return 'em, foo-bar man!
+            </p></td>
+</tr>
+</table></div>
+<p>
+          This is the actual code:
+        </p>
+<pre class="programlisting">//[ foo_bar
+std::string foo_bar() /*&lt; The /Mythical/ FooBar.
+                      See [@http://en.wikipedia.org/wiki/Foobar Foobar for details] &gt;*/
+{
+    return "foo-bar"; /*&lt; return 'em, foo-bar man! &gt;*/
+}
+//]
+</pre>
+<p>
+          The callouts bugs are placed exactly where the special callout comment
+          is situated. It can be anywhere in the code. The bugs can be rather obtrusive,
+          however. They get in the way of the clarity of the code. Another special
+          callout comment style is available:
+        </p>
+<pre class="programlisting">/*&lt;&lt; some [*quickbook] markup here &gt;&gt;*/
+</pre>
+<p>
+          This is the line-oriented version of the callout. With this, the "bug"
+          is placed at the very left of the code block, away from the actual code.
+          By placing it at the far left, the code is rendered un-obscured. Example:
+        </p>
+<pre class="programlisting"><span class="keyword">class</span> <span class="identifier">x</span>
+<span class="special">{</span>
+<span class="keyword">public</span><span class="special">:</span>
+
+    <a class="co" name="quickbook.syntax.block.import.c4" href="import.html#quickbook.syntax.block.import.c5"><img src="http://www.boost.org/doc/src/images/callouts/1.png" alt="1" border="0"></a><span class="identifier">x</span><span class="special">()</span> <span class="special">:</span> <span class="identifier">n</span><span class="special">(</span><span class="number">0</span><span class="special">)</span>
+    <span class="special">{</span>
+    <span class="special">}</span>
+
+    <a class="co" name="quickbook.syntax.block.import.c6" href="import.html#quickbook.syntax.block.import.c7"><img src="http://www.boost.org/doc/src/images/callouts/2.png" alt="2" border="0"></a><span class="special">~</span><span class="identifier">x</span><span class="special">()</span>
+    <span class="special">{</span>
+    <span class="special">}</span>
+
+    <a class="co" name="quickbook.syntax.block.import.c8" href="import.html#quickbook.syntax.block.import.c9"><img src="http://www.boost.org/doc/src/images/callouts/3.png" alt="3" border="0"></a><span class="keyword">int</span> <span class="identifier">get</span><span class="special">()</span> <span class="keyword">const</span>
+    <span class="special">{</span>
+        <span class="keyword">return</span> <span class="identifier">n</span><span class="special">;</span>
+    <span class="special">}</span>
+
+    <a class="co" name="quickbook.syntax.block.import.c10" href="import.html#quickbook.syntax.block.import.c11"><img src="http://www.boost.org/doc/src/images/callouts/4.png" alt="4" border="0"></a><span class="keyword">void</span> <span class="identifier">set</span><span class="special">(</span><span class="keyword">int</span> <span class="identifier">n_</span><span class="special">)</span>
+    <span class="special">{</span>
+        <span class="identifier">n</span> <span class="special">=</span> <span class="identifier">n_</span><span class="special">;</span>
+    <span class="special">}</span>
+<span class="special">};</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="quickbook.syntax.block.import.c5"></a><a href="#quickbook.syntax.block.import.c4"><img src="http://www.boost.org/doc/src/images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Constructor
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="quickbook.syntax.block.import.c7"></a><a href="#quickbook.syntax.block.import.c6"><img src="http://www.boost.org/doc/src/images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Destructor
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="quickbook.syntax.block.import.c9"></a><a href="#quickbook.syntax.block.import.c8"><img src="http://www.boost.org/doc/src/images/callouts/3.png" alt="3" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Get the <code class="computeroutput">n</code> member variable
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="quickbook.syntax.block.import.c11"></a><a href="#quickbook.syntax.block.import.c10"><img src="http://www.boost.org/doc/src/images/callouts/4.png" alt="4" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              Set the <code class="computeroutput">n</code> member variable
+            </p></td>
+</tr>
+</table></div>
+<p>
+          See the actual code here: <a href="http://www.boost.org/tools/quickbook/test/stub.cpp" target="_top">tools/quickbook/test/stub.cpp</a>
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
+        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+          Distributed under the Boost Software License, Version 1.0. (See accompanying
+          file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+        </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="include.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="block.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

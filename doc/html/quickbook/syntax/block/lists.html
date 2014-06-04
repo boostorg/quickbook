@@ -1,0 +1,343 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Lists</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../../../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../block.html" title="Chapter&#160;11.&#160;Block Level Elements">
+<link rel="prev" href="paragraphs.html" title="Paragraphs">
+<link rel="next" href="code.html" title="Code">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="paragraphs.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="code.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="quickbook.syntax.block.lists"></a><a name="quickbook.ref.lists"></a><a class="link" href="lists.html" title="Lists">Lists</a>
+</h2></div></div></div>
+<div class="toc"><dl class="toc">
+<dt><span class="section"><a href="lists.html#quickbook.syntax.block.lists.ordered_lists">Ordered
+          lists</a></span></dt>
+<dt><span class="section"><a href="lists.html#quickbook.syntax.block.lists.list_hierarchies">List
+          Hierarchies</a></span></dt>
+<dt><span class="section"><a href="lists.html#quickbook.syntax.block.lists.long_list_lines">Long
+          List Lines</a></span></dt>
+<dt><span class="section"><a href="lists.html#quickbook.syntax.block.lists.unordered_lists">Unordered
+          lists</a></span></dt>
+<dt><span class="section"><a href="lists.html#quickbook.syntax.block.lists.mixed_lists">Mixed
+          lists</a></span></dt>
+<dt><span class="section"><a href="lists.html#quickbook.syntax.block.lists.list_tags">Explicit
+          list tags</a></span></dt>
+</dl></div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="quickbook.syntax.block.lists.ordered_lists"></a><a name="quickbook.ref.ordered_lists"></a><a class="link" href="lists.html#quickbook.syntax.block.lists.ordered_lists" title="Ordered lists">Ordered
+          lists</a>
+</h3></div></div></div>
+<pre class="programlisting"># One
+# Two
+# Three
+</pre>
+<p>
+            will generate:
+          </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+                One
+              </li>
+<li class="listitem">
+                Two
+              </li>
+<li class="listitem">
+                Three
+              </li>
+</ol></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="quickbook.syntax.block.lists.list_hierarchies"></a><a name="quickbook.ref.list_hierarchies"></a><a class="link" href="lists.html#quickbook.syntax.block.lists.list_hierarchies" title="List Hierarchies">List
+          Hierarchies</a>
+</h3></div></div></div>
+<p>
+            List hierarchies are supported. Example:
+          </p>
+<pre class="programlisting"># One
+# Two
+# Three
+    # Three.a
+    # Three.b
+    # Three.c
+# Four
+    # Four.a
+        # Four.a.i
+        # Four.a.ii
+# Five
+</pre>
+<p>
+            will generate:
+          </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+                One
+              </li>
+<li class="listitem">
+                Two
+              </li>
+<li class="listitem">
+                Three
+                <div class="orderedlist"><ol class="orderedlist" type="a">
+<li class="listitem">
+                      Three.a
+                    </li>
+<li class="listitem">
+                      Three.b
+                    </li>
+<li class="listitem">
+                      Three.c
+                    </li>
+</ol></div>
+              </li>
+<li class="listitem">
+                Fourth
+                <div class="orderedlist"><ol class="orderedlist" type="a"><li class="listitem">
+                      Four.a
+                      <div class="orderedlist"><ol class="orderedlist" type="i">
+<li class="listitem">
+                            Four.a.i
+                          </li>
+<li class="listitem">
+                            Four.a.ii
+                          </li>
+</ol></div>
+                    </li></ol></div>
+              </li>
+<li class="listitem">
+                Five
+              </li>
+</ol></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="quickbook.syntax.block.lists.long_list_lines"></a><a name="quickbook.ref.long_list_lines"></a><a class="link" href="lists.html#quickbook.syntax.block.lists.long_list_lines" title="Long List Lines">Long
+          List Lines</a>
+</h3></div></div></div>
+<p>
+            Long lines will be wrapped appropriately. Example:
+          </p>
+<pre class="programlisting"># A short item.
+# A very long item. A very long item. A very long item.
+  A very long item. A very long item. A very long item.
+  A very long item. A very long item. A very long item.
+  A very long item. A very long item. A very long item.
+  A very long item. A very long item. A very long item.
+# A short item.
+</pre>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+                A short item.
+              </li>
+<li class="listitem">
+                A very long item. A very long item. A very long item. A very long
+                item. A very long item. A very long item. A very long item. A very
+                long item. A very long item. A very long item. A very long item.
+                A very long item. A very long item. A very long item. A very long
+                item.
+              </li>
+<li class="listitem">
+                A short item.
+              </li>
+</ol></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="quickbook.syntax.block.lists.unordered_lists"></a><a name="quickbook.ref.unordered_lists"></a><a class="link" href="lists.html#quickbook.syntax.block.lists.unordered_lists" title="Unordered lists">Unordered
+          lists</a>
+</h3></div></div></div>
+<pre class="programlisting">* First
+* Second
+* Third
+</pre>
+<p>
+            will generate:
+          </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                First
+              </li>
+<li class="listitem">
+                Second
+              </li>
+<li class="listitem">
+                Third
+              </li>
+</ul></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="quickbook.syntax.block.lists.mixed_lists"></a><a name="quickbook.ref.mixed_lists"></a><a class="link" href="lists.html#quickbook.syntax.block.lists.mixed_lists" title="Mixed lists">Mixed
+          lists</a>
+</h3></div></div></div>
+<p>
+            Mixed lists (ordered and unordered) are supported. Example:
+          </p>
+<pre class="programlisting"># One
+# Two
+# Three
+    * Three.a
+    * Three.b
+    * Three.c
+# Four
+</pre>
+<p>
+            will generate:
+          </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+                One
+              </li>
+<li class="listitem">
+                Two
+              </li>
+<li class="listitem">
+                Three
+                <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                      Three.a
+                    </li>
+<li class="listitem">
+                      Three.b
+                    </li>
+<li class="listitem">
+                      Three.c
+                    </li>
+</ul></div>
+              </li>
+<li class="listitem">
+                Four
+              </li>
+</ol></div>
+<p>
+            And...
+          </p>
+<pre class="programlisting"># 1
+    * 1.a
+        # 1.a.1
+        # 1.a.2
+    * 1.b
+# 2
+    * 2.a
+    * 2.b
+        # 2.b.1
+        # 2.b.2
+            * 2.b.2.a
+            * 2.b.2.b
+</pre>
+<p>
+            will generate:
+          </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+                1
+                <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                      1.a
+                      <div class="orderedlist"><ol class="orderedlist" type="a">
+<li class="listitem">
+                            1.a.1
+                          </li>
+<li class="listitem">
+                            1.a.2
+                          </li>
+</ol></div>
+                    </li>
+<li class="listitem">
+                      1.b
+                    </li>
+</ul></div>
+              </li>
+<li class="listitem">
+                2
+                <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                      2.a
+                    </li>
+<li class="listitem">
+                      2.b
+                      <div class="orderedlist"><ol class="orderedlist" type="a">
+<li class="listitem">
+                            2.b.1
+                          </li>
+<li class="listitem">
+                            2.b.2
+                            <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem">
+                                  2.b.2.a
+                                </li>
+<li class="listitem">
+                                  2.b.2.b
+                                </li>
+</ul></div>
+                          </li>
+</ol></div>
+                    </li>
+</ul></div>
+              </li>
+</ol></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="quickbook.syntax.block.lists.list_tags"></a><a name="quickbook.ref.list_tags"></a><a class="link" href="lists.html#quickbook.syntax.block.lists.list_tags" title="Explicit list tags">Explicit
+          list tags</a>
+</h3></div></div></div>
+<p>
+            Sometimes the wiki-style list markup can be tricky to use, especially
+            if you wish to include more complicated markup with the list. So in quickbook
+            1.6, an alternative way to mark up lists introduced:
+          </p>
+<pre class="programlisting">[ordered_list [item1][item2]]
+</pre>
+<p>
+            is equivalent to:
+          </p>
+<pre class="programlisting"># item1
+# item2
+</pre>
+<p>
+            And:
+          </p>
+<pre class="programlisting">[itemized_list [item1][item2]]
+</pre>
+<p>
+            is equivalent to:
+          </p>
+<pre class="programlisting">* item1
+* item2
+</pre>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
+        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+          Distributed under the Boost Software License, Version 1.0. (See accompanying
+          file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+        </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="paragraphs.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../block.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="code.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

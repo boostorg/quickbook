@@ -1,0 +1,104 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Debian, Ubuntu</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../install.html" title="Chapter&#160;13.&#160;Installation and configuration">
+<link rel="prev" href="windows.html" title="Windows 2000, XP, 2003, Vista, 7">
+<link rel="next" href="../editors.html" title="Chapter&#160;14.&#160;Editor Support">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="windows.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../install.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../editors.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="quickbook.install.linux"></a><a class="link" href="linux.html" title="Debian, Ubuntu">Debian, Ubuntu</a>
+</h2></div></div></div>
+<p>
+          The following instructions apply to Debian and its derivatives. They are
+          based on a Ubuntu Edgy install but should work on other Debian based systems.
+          They assume you've already installed an appropriate version of <code class="computeroutput">bjam</code>
+          for your copy of boost.
+        </p>
+<p>
+          First install the <code class="computeroutput">xsltproc</code>, <code class="computeroutput">docbook-xsl</code> and
+          <code class="computeroutput">docbook-xml</code> packages. For example, using <code class="computeroutput">apt-get</code>:
+        </p>
+<pre class="programlisting">sudo apt-get install xsltproc docbook-xsl docbook-xml
+</pre>
+<p>
+          If you're planning on building boost's documentation, you'll also need
+          to install the <code class="computeroutput">doxygen</code> package as well.
+        </p>
+<p>
+          Next, we need to configure Boost Build to compile BoostBook files. Add
+          the following to your <code class="computeroutput">user-config.jam</code> file, which should be
+          in your home directory. If you don't have one, create a file containing
+          this text. For more information on setting up <code class="computeroutput">user-config.jam</code>,
+          see the <a href="http://boost.org/boost-build2/doc/html/bbv2/advanced/configuration.html" target="_top">Boost
+          Build documentation</a>.
+        </p>
+<pre class="programlisting">using xsltproc ;
+
+using boostbook
+    : /usr/share/xml/docbook/stylesheet/nwalsh
+    : /usr/share/xml/docbook/schema/dtd/4.2
+    ;
+
+# Remove this line if you're not using doxygen
+using doxygen ;
+</pre>
+<p>
+          The above steps are enough to get a functional BoostBook setup. Quickbook
+          will be automatically built when needed. If you want to avoid these rebuilds:
+        </p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem">
+              Go to Quickbook's source directory (<code class="computeroutput">BOOST_ROOT/tools/quickbook</code>).
+            </li>
+<li class="listitem">
+              Build the utility by issuing <code class="computeroutput">bjam</code>.
+            </li>
+<li class="listitem">
+              Copy the resulting <code class="computeroutput">quickbook</code> binary (located at <code class="computeroutput">BOOST_ROOT/dist/bin</code>)
+              to a safe place. The traditional location is <code class="computeroutput">/usr/local/bin</code>.
+            </li>
+<li class="listitem">
+<p class="simpara">
+              Add the following to your <code class="computeroutput">user-config.jam</code> file, using
+              the full path of the quickbook executable:
+            </p>
+<pre class="programlisting">using quickbook
+    : /usr/local/bin/quickbook
+    ;
+</pre>
+</li>
+</ol></div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
+        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+          Distributed under the Boost Software License, Version 1.0. (See accompanying
+          file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+        </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="windows.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../install.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../editors.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

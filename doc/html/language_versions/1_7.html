@@ -1,0 +1,295 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Quickbook 1.7</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="../index.html" title="Boost Documentation Tools">
+<link rel="up" href="../quickbook/versions.html" title="Chapter&#160;12.&#160;Language Versions">
+<link rel="prev" href="1_6.html" title="Quickbook 1.6">
+<link rel="next" href="../quickbook/install.html" title="Chapter&#160;13.&#160;Installation and configuration">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="http://www.boost.org/boost.png"></td>
+<td align="center"><a href="http://www.boost.org/index.html">Home</a></td>
+<td align="center"><a href="http://www.boost.org/libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="http://www.boost.org/more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="1_6.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickbook/versions.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../quickbook/install.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="language_versions.1_7"></a><a class="link" href="1_7.html" title="Quickbook 1.7">Quickbook 1.7</a>
+</h2></div></div></div>
+<div class="toc"><dl class="toc">
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.context_error">Error for elements
+          used in incorrect context</a></span></dt>
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.phrase_parse_error">Error for
+          invalid phrase elements</a></span></dt>
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.source_mode">Source mode for
+          single entities</a></span></dt>
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.callouts">Callouts in code
+          blocks</a></span></dt>
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.escaped_docinfo_attributes">Escaped
+          docbook in docinfo blocks</a></span></dt>
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.listparagraphs">Pargraphs in
+          lists</a></span></dt>
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.templates_in_attributes">Templates
+          in some attributes</a></span></dt>
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.list_markup_in_tables">List
+          Markup in Nested Blocks</a></span></dt>
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.phrase_block_templates">Allow
+          block elements in phrase templates</a></span></dt>
+<dt><span class="section"><a href="1_7.html#language_versions.1_7.glob">Including multiple files
+          with Globs</a></span></dt>
+</dl></div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.context_error"></a><a class="link" href="1_7.html#language_versions.1_7.context_error" title="Error for elements used in incorrect context">Error for elements
+          used in incorrect context</a>
+</h3></div></div></div>
+<p>
+            Previously if you used an element in the wrong context it would just
+            be unprocessed, which was surprising. People often didn't realise that
+            their element hadn't been processed. So now it's an error.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.phrase_parse_error"></a><a class="link" href="1_7.html#language_versions.1_7.phrase_parse_error" title="Error for invalid phrase elements">Error for
+          invalid phrase elements</a>
+</h3></div></div></div>
+<p>
+            If the body of a phrase element didn't parse, it would be just used unprocessed.
+            Now change it to be a hard error.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.source_mode"></a><a class="link" href="1_7.html#language_versions.1_7.source_mode" title="Source mode for single entities">Source mode for
+          single entities</a>
+</h3></div></div></div>
+<p>
+            1.7 introduces a new <code class="computeroutput">!</code> element type for setting the source
+            mode of a single entity without changing the source mode otherwise. This
+            can be used for code blocks and other elements. For example:
+          </p>
+<pre class="programlisting">[!c++]
+    void foo() {};
+
+[!python]```def foo():```
+</pre>
+<p>
+            It can also be used to set the source mode for elements:
+          </p>
+<pre class="programlisting">[!teletype][table
+    [[code][meaning]]
+    [[`+`][addition]]
+]
+</pre>
+<p>
+            When used before a section, it sets the source mode for the whole section.
+          </p>
+<p>
+            If it appears at the beginning of a paragraph, it will be used for the
+            whole paragraph only if there's a newline, eg.
+          </p>
+<pre class="programlisting">[!c++]
+A declaration `void foo();` and a definition `void foo() {}`.
+</pre>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.callouts"></a><a class="link" href="1_7.html#language_versions.1_7.callouts" title="Callouts in code blocks">Callouts in code
+          blocks</a>
+</h3></div></div></div>
+<p>
+            Currently callouts can only be used in code snippets. 1.7 adds support
+            in normal code blocks. The same syntax is used as in code snippets, the
+            callout descriptions appear immediately after the code block.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.escaped_docinfo_attributes"></a><a class="link" href="1_7.html#language_versions.1_7.escaped_docinfo_attributes" title="Escaped docbook in docinfo blocks">Escaped
+          docbook in docinfo blocks</a>
+</h3></div></div></div>
+<p>
+            Quickbook docinfo attributes will probably never be as rich as docbook
+            attributes. To allow more flexible markup that is not supported by quickbook,
+            escaped docbook can be included in the docinfo block:
+          </p>
+<pre class="programlisting">[article Some article
+[quickbook 1.7]
+'''&lt;author&gt;
+    &lt;firstname&gt;John&lt;/firstname&gt;
+    &lt;surname&gt;Doe&lt;/surname&gt;
+    &lt;email&gt;john.doe@example.com&lt;/email&gt;
+&lt;/author&gt;'''
+]
+</pre>
+<p>
+            The escaped docbook is always placed at the end of the docinfo block,
+            so it shouldn't be assumed that it will interleave with markup generated
+            from quickbook. A mixture of quickbook and docbook attributes for the
+            same information will not work well.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.listparagraphs"></a><a class="link" href="1_7.html#language_versions.1_7.listparagraphs" title="Pargraphs in lists">Pargraphs in
+          lists</a>
+</h3></div></div></div>
+<p>
+            Paragraphs and block elements can now be used in lists:
+          </p>
+<pre class="programlisting">* Para 1
+
+  Para 2
+  * Nested Para 1
+
+    Nested Para 2
+
+        Code block
+  Para 3
+</pre>
+<p>
+            generates:
+          </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+<p class="simpara">
+                Para 1
+              </p>
+<p class="simpara">
+                Para 2
+              </p>
+<p class="simpara">
+                <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; "><li class="listitem">
+<p class="simpara">
+                      Nested Para 1
+                    </p>
+<p class="simpara">
+                      Nested Para 2
+                    </p>
+<pre class="programlisting">Code block
+</pre>
+</li></ul></div>
+              </p>
+<p class="simpara">
+                Para 3
+              </p>
+</li></ul></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.templates_in_attributes"></a><a class="link" href="1_7.html#language_versions.1_7.templates_in_attributes" title="Templates in some attributes">Templates
+          in some attributes</a>
+</h3></div></div></div>
+<p>
+            There's support for calling templates in link values, anchors, roles
+            and includes. This is sometimes a bit of a change, especially in places
+            where spaces are currently allowed, so I might try using a slightly different
+            grammar where required. I think I also need to add some validation, since
+            the parser can allow more symbols than some of the old ones.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.list_markup_in_tables"></a><a class="link" href="1_7.html#language_versions.1_7.list_markup_in_tables" title="List Markup in Nested Blocks">List
+          Markup in Nested Blocks</a>
+</h3></div></div></div>
+<p>
+            Can now place list markup in nested blocks, e.g in tables, variables
+            lists etc. Unfortunately indented code blocks are more tricky, because
+            the contents of these blocks are often indented already. It seemed easier
+            to just not support indented code blocks in this context than to try
+            to work out sensible actions for the edges cases. If you want to use
+            code blocks in this context, you should still be able to use explicit
+            markup.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.phrase_block_templates"></a><a class="link" href="1_7.html#language_versions.1_7.phrase_block_templates" title="Allow block elements in phrase templates">Allow
+          block elements in phrase templates</a>
+</h3></div></div></div>
+<p>
+            Block elements can now be used in phrase templates, but paragraphs breaks
+            aren't allowed, so this is an error:
+          </p>
+<pre class="programlisting">[template paras[] Something or other.
+
+Second paragraph.]
+</pre>
+<p>
+            If a phrase template only contains block elements, then it's practically
+            indistinguishable from a block template. So you'll get the same output
+            from:
+          </p>
+<pre class="programlisting">[template foo[] [blurb Blah, blah, blah]]
+</pre>
+<p>
+            as:
+          </p>
+<pre class="programlisting">[template foo[]
+[blurb Blah, blah, blah]
+]
+</pre>
+<p>
+            If a phrase template has phrase content mixed with block elements, it'll
+            generate output as if it was expanded inline.
+          </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="language_versions.1_7.glob"></a><a class="link" href="1_7.html#language_versions.1_7.glob" title="Including multiple files with Globs">Including multiple files
+          with Globs</a>
+</h3></div></div></div>
+<p>
+            One can now include multiple files at once using a glob pattern for the
+            file reference:
+          </p>
+<pre class="programlisting">[include sub/*/*.qbk]
+[include include/*.h]
+</pre>
+<p>
+            All the matching files, and intermediate irectories, will match and be
+            included. The glob pattern can be "*" for matching zero or
+            more characters, "?" for matching a single character, "[&lt;c&gt;-&lt;c&gt;]"
+            to match a character class, "[^&lt;char&gt;-&lt;char&gt;]"
+            to exclusive match a character class, "\\" to escape a glob
+            special character which is then matched, and anything else is matched
+            to the character.
+          </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="http://www.boost.org/doc/src/images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+              Because of the escaping in file references the "\\" glob
+              escape is a double "\"; i.e. and escaped back-slash.
+            </p></td></tr>
+</table></div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
+        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+          Distributed under the Boost Software License, Version 1.0. (See accompanying
+          file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+        </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="1_6.html"><img src="http://www.boost.org/doc/src/images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickbook/versions.html"><img src="http://www.boost.org/doc/src/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="http://www.boost.org/doc/src/images/home.png" alt="Home"></a><a accesskey="n" href="../quickbook/install.html"><img src="http://www.boost.org/doc/src/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
