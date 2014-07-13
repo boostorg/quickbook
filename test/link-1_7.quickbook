@@ -52,3 +52,10 @@ as well.
 [link_in_template one .. two ]
 
 [endsect]
+
+[section Escaping links]
+
+* [@http://svn.boost.org/trac/boost/query?status=closed&milestone=Boost+1.34.1
+  Boost Trac]
+
+[endsect]
