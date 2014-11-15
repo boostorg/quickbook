@@ -8,7 +8,7 @@
 ]
 
 [chapter Block Level Elements
-    [quickbook 1.6]
+    [quickbook 1.7]
     [compatibility-mode 1.5]
     [id quickbook.syntax.block]
     [source-mode teletype]
