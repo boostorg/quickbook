@@ -104,6 +104,49 @@ namespace detail {
 
 #endif
 
+    // Convert a Boost.Filesystem path to a URL.
+    //
+    // I'm really not sure about this, as the meaning of root_name and
+    // root_directory are only clear for windows.
+    //
+    // Some info on file URLs at:
+    // https://en.wikipedia.org/wiki/File_URI_scheme
+    std::string path_to_url(fs::path const& x)
+    {
+        // TODO: Maybe should throw an exception if this doesn't understand the path.
+        // TODO: Might need a special cygwin implementation.
+        // TODO: What if x.has_root_name() && !x.has_root_directory()?
+        // TODO: What does Boost.Filesystem do for '//localhost/c:/path'?
+        //       Is that event allowed by windows?
+
+        if (x.has_root_name()) {
+            std::string root_name = path_to_generic(x.root_name());
+
+            if (root_name.size() > 2 && root_name[0] == '/' && root_name[1] == '/') {
+                // root_name is a network location.
+                return "file:" + escape_uri(path_to_generic(x));
+            }
+            else if (root_name.size() >= 2 && root_name[root_name.size() - 1] == ':') {
+                // root_name is a drive.
+                return "file:///"
+                    + escape_uri(root_name.substr(0, root_name.size() - 1))
+                    + ":/" // TODO: Or maybe "|/".
+                    + escape_uri(path_to_generic(x.relative_path()));
+            }
+            else {
+                // Not sure what root_name is.
+                return escape_uri(path_to_generic(x));
+            }
+        }
+        else if (x.has_root_directory()) {
+            return "file://" + escape_uri(path_to_generic(x));
+        }
+        else {
+            return escape_uri(path_to_generic(x));
+        }
+    }
+
+
 #if QUICKBOOK_CYGWIN_PATHS
     fs::path command_line_to_path(command_line_string const& path)
     {
