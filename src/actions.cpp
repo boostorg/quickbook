@@ -1892,7 +1892,7 @@ namespace quickbook
                     path = path_difference(state.xinclude_base, full_path);
                 }
 
-                return xinclude_path(full_path, detail::path_to_url(path));
+                return xinclude_path(full_path, detail::file_path_to_url(path));
             }
 
             default:

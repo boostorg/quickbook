@@ -111,7 +111,7 @@ namespace detail {
     //
     // Some info on file URLs at:
     // https://en.wikipedia.org/wiki/File_URI_scheme
-    std::string path_to_url(fs::path const& x)
+    std::string file_path_to_url(fs::path const& x)
     {
         // TODO: Maybe should throw an exception if this doesn't understand the path.
         // TODO: Might need a special cygwin implementation.
