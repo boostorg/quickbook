@@ -26,11 +26,14 @@
 #endif
 
 namespace quickbook {
-    extern bool ms_errors;
-}
-
-namespace quickbook {
 namespace detail {
+    namespace {
+        bool ms_errors = false;
+    }
+
+    void set_ms_errors(bool x) {
+        ms_errors = x;
+    }
 
 // This is used for converting paths to UTF-8 on cygin.
 // Might be better not to use a windows 
@@ -111,9 +114,9 @@ namespace detail {
     //
     // Some info on file URLs at:
     // https://en.wikipedia.org/wiki/File_URI_scheme
-    std::string path_to_url(fs::path const& x)
+    std::string file_path_to_url(fs::path const& x)
     {
-        // TODO: Maybe should throw an exception if this doesn't understand the path.
+        // TODO: Maybe some kind of error if this doesn't understand the path.
         // TODO: Might need a special cygwin implementation.
         // TODO: What if x.has_root_name() && !x.has_root_directory()?
         // TODO: What does Boost.Filesystem do for '//localhost/c:/path'?
