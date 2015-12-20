@@ -6,12 +6,12 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "native_text.hpp"
 #include <boost/detail/lightweight_test.hpp>
+#include "include_paths.hpp"
 
 int main() {
     using boost::filesystem::path;
-    using quickbook::detail::file_path_to_url;
+    using quickbook::file_path_to_url;
 
     BOOST_TEST_EQ("a/b", file_path_to_url(path("a/b")));
     BOOST_TEST_EQ("../a/b", file_path_to_url(path("../a/b")));
