@@ -279,6 +279,10 @@ namespace quickbook
             }
             else
             {
+                // Quick hack to fix calculate_xinclude_path handling
+                // directories incorrectly.
+                // TODO: Fix properly.
+                x.uri += "/";
                 xmlbase_value = x.uri;
                 state.xinclude_base = x.path;
             }
