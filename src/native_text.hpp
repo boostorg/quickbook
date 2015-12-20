@@ -125,8 +125,6 @@ namespace quickbook
         std::string path_to_generic(fs::path const&);
         fs::path generic_to_path(boost::string_ref);
 
-        std::string file_path_to_url(fs::path const&);
-
         void initialise_output();
         
         ostream& out();

@@ -73,7 +73,6 @@ namespace quickbook
     };
 
     xinclude_path calculate_xinclude_path(value const&, quickbook::state&);
-
 }
 
 #endif
