@@ -35,6 +35,7 @@ namespace quickbook
     };
 
     path_parameter check_path(value const& path, quickbook::state& state);
+    path_parameter check_xinclude_path(value const&, quickbook::state&);
 
     struct quickbook_path
     {
@@ -64,15 +65,9 @@ namespace quickbook
     std::set<quickbook_path> include_search(path_parameter const&,
             quickbook::state& state, string_iterator pos);
 
-    struct xinclude_path {
-        xinclude_path(fs::path const& path, std::string const& uri) :
-            path(path), uri(uri) {}
-
-        fs::path path;
-        std::string uri;
-    };
-
-    xinclude_path calculate_xinclude_path(value const&, quickbook::state&);
+    quickbook_path resolve_xinclude_path(std::string const&, quickbook::state&);
+    std::string file_path_to_url(fs::path const&);
+    std::string dir_path_to_url(fs::path const&);
 }
 
 #endif

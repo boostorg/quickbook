@@ -82,6 +82,21 @@ namespace quickbook
         }
     }
 
+    path_parameter check_xinclude_path(value const& p, quickbook::state& state)
+    {
+        path_parameter parameter = check_path(p, state);
+
+        if (parameter.type == path_parameter::glob) {
+            detail::outerr(p.get_file(), p.get_position())
+                << "Glob used for xml path."
+                << std::endl;
+            ++state.error_count;
+            parameter.type = path_parameter::invalid;
+        }
+
+        return parameter;
+    }
+
     //
     // Search include path
     //
@@ -406,47 +421,25 @@ namespace quickbook
         }
     }
 
-    xinclude_path calculate_xinclude_path(value const& p, quickbook::state& state)
+    std::string dir_path_to_url(fs::path const& x)
     {
-        path_parameter parameter = check_path(p, state);
+        return file_path_to_url(x) + "/";
+    }
 
-        switch (parameter.type) {
-            case path_parameter::glob:
-                // TODO: Should know if this is an xinclude or an xmlbase.
-                // Would also help with implementation of 'check_path'.
-                detail::outerr(p.get_file(), p.get_position())
-                    << "Glob used in xinclude/xmlbase."
-                    << std::endl;
-                ++state.error_count;
-                break;
+    quickbook_path resolve_xinclude_path(std::string const& x, quickbook::state& state) {
+        fs::path path = detail::generic_to_path(x);
+        fs::path full_path = path;
 
-            case path_parameter::invalid:
-                // There should have already been an error message in this case.
-                break;
+        // If the path is relative
+        if (!path.has_root_directory())
+        {
+            // Resolve the path from the current file
+            full_path = state.current_file->path.parent_path() / path;
 
-            case path_parameter::path:
-            {
-                fs::path path = detail::generic_to_path(parameter.value);
-                fs::path full_path = path;
-
-                // If the path is relative
-                if (!path.has_root_directory())
-                {
-                    // Resolve the path from the current file
-                    full_path = state.current_file->path.parent_path() / path;
-
-                    // Then calculate relative to the current xinclude_base.
-                    path = path_difference(state.xinclude_base, full_path);
-                }
-
-                return xinclude_path(full_path, file_path_to_url(path));
-            }
-
-            default:
-                assert(false);
+            // Then calculate relative to the current xinclude_base.
+            path = path_difference(state.xinclude_base, full_path);
         }
 
-        // If we didn't find a path, just use this:
-        return xinclude_path(state.current_file->path.parent_path(), "");
+        return quickbook_path(full_path, 0, path);
     }
 }

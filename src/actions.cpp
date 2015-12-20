@@ -1789,12 +1789,17 @@ namespace quickbook
         write_anchors(state, state.out);
 
         value_consumer values = xinclude;
-        xinclude_path x = calculate_xinclude_path(values.consume(), state);
+        path_parameter x = check_xinclude_path(values.consume(), state);
         values.finish();
 
-        state.out << "\n<xi:include href=\"";
-        detail::print_string(x.uri, state.out.get());
-        state.out << "\" />\n";
+        if (x.type == path_parameter::path)
+        {
+            quickbook_path path = resolve_xinclude_path(x.value, state);
+
+            state.out << "\n<xi:include href=\"";
+            detail::print_string(file_path_to_url(path.abstract_file_path), state.out.get());
+            state.out << "\" />\n";
+        }
     }
 
     void load_quickbook(quickbook::state& state,

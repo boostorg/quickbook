@@ -265,26 +265,27 @@ namespace quickbook
 
         if (!xmlbase.empty())
         {
-            xinclude_path x = calculate_xinclude_path(xmlbase, state);
+            path_parameter x = check_xinclude_path(xmlbase, state);
 
-            if (!fs::is_directory(x.path))
+            if (x.type == path_parameter::path)
             {
-                detail::outerr(xmlbase.get_file(), xmlbase.get_position())
-                    << "xmlbase \""
-                    << xmlbase.get_quickbook()
-                    << "\" isn't a directory."
-                    << std::endl;
+                quickbook_path path = resolve_xinclude_path(x.value, state);
 
-                ++state.error_count;
-            }
-            else
-            {
-                // Quick hack to fix calculate_xinclude_path handling
-                // directories incorrectly.
-                // TODO: Fix properly.
-                x.uri += "/";
-                xmlbase_value = x.uri;
-                state.xinclude_base = x.path;
+                if (!fs::is_directory(path.file_path))
+                {
+                    detail::outerr(xmlbase.get_file(), xmlbase.get_position())
+                        << "xmlbase \""
+                        << xmlbase.get_quickbook()
+                        << "\" isn't a directory."
+                        << std::endl;
+
+                    ++state.error_count;
+                }
+                else
+                {
+                    xmlbase_value = dir_path_to_url(path.abstract_file_path);
+                    state.xinclude_base = path.file_path;
+                }
             }
         }
 
