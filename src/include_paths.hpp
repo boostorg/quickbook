@@ -63,6 +63,17 @@ namespace quickbook
 
     std::set<quickbook_path> include_search(path_parameter const&,
             quickbook::state& state, string_iterator pos);
+
+    struct xinclude_path {
+        xinclude_path(fs::path const& path, std::string const& uri) :
+            path(path), uri(uri) {}
+
+        fs::path path;
+        std::string uri;
+    };
+
+    xinclude_path calculate_xinclude_path(value const&, quickbook::state&);
+
 }
 
 #endif

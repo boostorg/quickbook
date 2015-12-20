@@ -18,9 +18,9 @@
 #include "files.hpp"
 #include "native_text.hpp"
 #include "state.hpp"
-#include "actions.hpp"
 #include "doc_info_tags.hpp"
 #include "document_state.hpp"
+#include "include_paths.hpp"
 
 namespace quickbook
 {
