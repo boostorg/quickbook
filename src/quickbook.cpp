@@ -285,7 +285,6 @@ main(int argc, char* argv[])
             ("input-file", PO_VALUE<command_line_string>(), "input file")
             ("output-file", PO_VALUE<command_line_string>(), "output file")
             ("output-deps", PO_VALUE<command_line_string>(), "output dependency file")
-            ("debug", "debug mode (for developers)")
             ("ms-errors", "use Microsoft Visual Studio style error & warn message format")
             ("include-path,I", PO_VALUE< std::vector<command_line_string> >(), "include path")
             ("define,D", PO_VALUE< std::vector<command_line_string> >(), "define macro")
@@ -293,6 +292,7 @@ main(int argc, char* argv[])
         ;
 
         hidden.add_options()
+            ("debug", "debug mode")
             ("expect-errors",
                 "Succeed if the input file contains a correctly handled "
                 "error, fail otherwise.")

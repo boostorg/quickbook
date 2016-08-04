@@ -65,10 +65,6 @@ Which, if successful, will print out something like:
     This is useful for build tools so that they can tell when to rebuild the
     documentation.
     ]]
-    [[--debug] [
-    Runs quickbook in a debug mode for developers. This does unspecified things
-    that might change in the future.
-    ]]
     [[--ms-errors] [
     Use Microsoft Visual Studio style error and warn message format, so that
     Visual Studio IDE will understand them.
