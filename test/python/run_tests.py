@@ -13,6 +13,9 @@ def main(args, directory):
     quickbook_command = args[0]
 
     failures = 0
+
+    # Dependency tests
+
     failures += run_quickbook(quickbook_command, 'svg_missing.qbk',
             deps_gold = 'svg_missing_deps.txt')
     failures += run_quickbook(quickbook_command, 'svg_missing.qbk',
@@ -29,6 +32,14 @@ def main(args, directory):
             locations_gold = 'include_glob_locs.txt',
             input_path = ['sub1', 'sub2'])
 
+    # Headers tests
+
+    failures += run_quickbook(quickbook_command, 'headers.qbk',
+        output_gold = 'headers.xml')
+    failures += run_quickbook(quickbook_command, 'headers.qbk',
+        extra_flags = ['--no-self-linked-headers'],
+        output_gold = 'headers_no_self_linked.xml')
+
     if failures == 0:
         print "Success"
     else:
@@ -36,7 +47,8 @@ def main(args, directory):
         exit(failures)
 
 def run_quickbook(quickbook_command, filename, output_gold = None,
-        deps_gold = None, locations_gold = None, input_path = []):
+        deps_gold = None, locations_gold = None, input_path = [],
+        extra_flags = None):
     failures = 0
 
     command = [quickbook_command, '--debug', filename]
@@ -56,9 +68,13 @@ def run_quickbook(quickbook_command, filename, output_gold = None,
         locations_filename = temp_filename('.txt')
         command.extend(['--output-checked-locations', locations_filename])
 
+    for path in input_path:
+        command.extend(['-I', path])
+
+    if extra_flags:
+        command.extend(extra_flags)
+
     try:
-        for path in input_path:
-            command.extend(['-I', path])
         print 'Running: ' + ' '.join(command)
         print
         exit_code = subprocess.call(command)
