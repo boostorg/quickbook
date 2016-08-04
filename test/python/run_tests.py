@@ -32,13 +32,19 @@ def main(args, directory):
             locations_gold = 'include_glob_locs.txt',
             input_path = ['sub1', 'sub2'])
 
-    # Headers tests
+    # Try building a simple document with various flags.
 
-    failures += run_quickbook(quickbook_command, 'headers.qbk',
-        output_gold = 'headers.xml')
-    failures += run_quickbook(quickbook_command, 'headers.qbk',
+    failures += run_quickbook(quickbook_command, 'simple.qbk',
+        output_gold = 'simple.xml')
+    failures += run_quickbook(quickbook_command, 'simple.qbk',
         extra_flags = ['--no-self-linked-headers'],
-        output_gold = 'headers_no_self_linked.xml')
+        output_gold = 'simple_no_self_linked.xml')
+    failures += run_quickbook(quickbook_command, 'simple.qbk',
+        extra_flags = ['--no-pretty-print'],
+        output_gold = 'simple_no_pretty_print.xml')
+    failures += run_quickbook(quickbook_command, 'simple.qbk',
+        extra_flags = ['--indent','4','--linewidth','60'],
+        output_gold = 'simple_custom_pretty_print.xml')
 
     if failures == 0:
         print "Success"
