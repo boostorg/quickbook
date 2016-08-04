@@ -11,6 +11,7 @@ boost_doc_tools/parameters.html
 quickbook.html
 quickbook/intro.html
 quickbook/change_log.html
+quickbook/command_line.html
 quickbook/syntax.html
 quickbook/syntax/structure.html
 quickbook/syntax/structure/section.html
