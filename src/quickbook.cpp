@@ -382,7 +382,7 @@ main(int argc, char* argv[])
         if (vm.count("no-pretty-print"))
             parse_document_options.pretty_print = false;
 
-        quickbook::self_linked_headers = !vm.count("no-self-link-headers");
+        quickbook::self_linked_headers = !vm.count("no-self-linked-headers");
 
         if (vm.count("indent"))
             parse_document_options.indent = vm["indent"].as<int>();
