@@ -26,11 +26,14 @@
 #endif
 
 namespace quickbook {
-    extern bool ms_errors;
-}
-
-namespace quickbook {
 namespace detail {
+    namespace {
+        bool ms_errors = false;
+    }
+
+    void set_ms_errors(bool x) {
+        ms_errors = x;
+    }
 
 // This is used for converting paths to UTF-8 on cygin.
 // Might be better not to use a windows 
@@ -103,6 +106,7 @@ namespace detail {
     }
 
 #endif
+
 
 #if QUICKBOOK_CYGWIN_PATHS
     fs::path command_line_to_path(command_line_string const& path)
@@ -306,6 +310,18 @@ namespace detail {
         base << x;
         return *this;
     }
+
+#if !defined(BOOST_NO_LONG_LONG)
+    ostream& ostream::operator<<(long long x) {
+        base << x;
+        return *this;
+    }
+
+    ostream& ostream::operator<<(unsigned long long x) {
+        base << x;
+        return *this;
+    }
+#endif
 
     ostream& ostream::operator<<(fs::path const& x) {
         base << path_to_stream(x);

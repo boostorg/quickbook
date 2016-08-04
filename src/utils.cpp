@@ -105,6 +105,6 @@ namespace quickbook { namespace detail
 
     std::string partially_escape_uri(std::string uri_param)
     {
-        return escape_uri_impl(uri_param, "-_.!~*'()?\\/:&=#%");
+        return escape_uri_impl(uri_param, "-_.!~*'()?\\/:&=#%+");
     }
 }}

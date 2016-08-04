@@ -1207,8 +1207,7 @@ namespace quickbook
             if (qbk_version_n == 106u &&
                     list_stack.top().type == list_stack_item::syntactic_list) {
                 detail::outerr(state_.current_file, first)
-                    << "Nested blocks in lists won't be supported in "
-                    << "quickbook 1.6"
+                    << "Paragraphs in lists aren't supported in quickbook 1.6."
                     << std::endl;
                 ++state_.error_count;
             }

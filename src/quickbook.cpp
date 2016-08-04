@@ -40,7 +40,7 @@
 #pragma warning(disable:4355)
 #endif
 
-#define QUICKBOOK_VERSION "Quickbook Version 1.6.1 dev"
+#define QUICKBOOK_VERSION "Quickbook Version 1.6.2"
 
 namespace quickbook
 {
@@ -51,7 +51,6 @@ namespace quickbook
     tm* current_gm_time; // the current UTC time
     bool debug_mode; // for quickbook developers only
     bool self_linked_headers;
-    bool ms_errors = false; // output errors/warnings as if for VS
     std::vector<fs::path> include_path;
     std::vector<std::string> preset_defines;
     fs::path image_location;
@@ -286,7 +285,6 @@ main(int argc, char* argv[])
             ("input-file", PO_VALUE<command_line_string>(), "input file")
             ("output-file", PO_VALUE<command_line_string>(), "output file")
             ("output-deps", PO_VALUE<command_line_string>(), "output dependency file")
-            ("debug", "debug mode (for developers)")
             ("ms-errors", "use Microsoft Visual Studio style error & warn message format")
             ("include-path,I", PO_VALUE< std::vector<command_line_string> >(), "include path")
             ("define,D", PO_VALUE< std::vector<command_line_string> >(), "define macro")
@@ -294,6 +292,7 @@ main(int argc, char* argv[])
         ;
 
         hidden.add_options()
+            ("debug", "debug mode")
             ("expect-errors",
                 "Succeed if the input file contains a correctly handled "
                 "error, fail otherwise.")
@@ -378,13 +377,12 @@ main(int argc, char* argv[])
             return 0;
         }
 
-        if (vm.count("ms-errors"))
-            quickbook::ms_errors = true;
+        quickbook::detail::set_ms_errors(vm.count("ms-errors"));
 
         if (vm.count("no-pretty-print"))
             parse_document_options.pretty_print = false;
 
-        quickbook::self_linked_headers = !vm.count("no-self-link-headers");
+        quickbook::self_linked_headers = !vm.count("no-self-linked-headers");
 
         if (vm.count("indent"))
             parse_document_options.indent = vm["indent"].as<int>();
