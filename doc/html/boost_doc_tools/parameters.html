@@ -3,7 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 <title>Chapter&#160;5.&#160;Boostbook and Docbook build parameters</title>
 <link rel="stylesheet" href="../boostbook.css" type="text/css">
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
 <link rel="home" href="../index.html" title="Boost Documentation Tools">
 <link rel="up" href="../boost_doc_tools.html" title="Part&#160;I.&#160;Using the Boost documentation tools">
 <link rel="prev" href="pdfs.html" title="Chapter&#160;4.&#160;Building PDFs">
@@ -45,46 +45,98 @@
 <p>
         In this case, <code class="computeroutput">boost.root</code> is a parameter for the BoostBook XSL
         stylesheets, while <code class="computeroutput">chunk.section.depth</code> is a parameter for the
-        DocBook XSL stylesheets. There are far more DocBook XSL parameters than can
-        be listed here, see the <a href="http://docbook.sourceforge.net/release/xsl/1.77.1/doc/param.html" target="_top">DocBook
-        documentation</a> for a full list. This also isn't a complete list of
-        BoostBook XSL parameters, if you wish to look into them in more detail, the
-        best source of information is the XSL source code at <a href="http://www.boost.org/tools/boostbook/xsl/" target="_top"><code class="computeroutput">tools/boostbook/xsl/</code></a>.
+        DocBook XSL stylesheets. In this page are some of the parameters we've found
+        useful for generating documentation, but there are far more than can be listed
+        here. For DocBook XSL parameters, see the There are far more DocBook XSL
+        parameters than can be listed here, see the <a href="http://docbook.sourceforge.net/release/xsl/1.79.1/doc/param.html" target="_top">DocBook
+        XSL documentation</a> for a full list. This also isn't a complete list
+        of BoostBook XSL parameters, if you wish to look into them in more detail,
+        the best source of information is the XSL source code at <a href="http://www.boost.org/tools/boostbook/xsl/" target="_top"><code class="computeroutput">tools/boostbook/xsl/</code></a>.
+      </p>
+<p>
+        For a complete description of publishing using the DocBook XSL stylesheets,
+        see Bob Stayton's <a href="http://www.sagehill.net/book-description.html" target="_top">DocBook
+        XSL: The Complete Guide</a>, while the BoostBook XSL stylesheets do customise
+        the documentation build in several places, it should all be relevant.
       </p>
 <h3>
 <a name="boost_doc_tools.parameters.h0"></a>
-        <span class="phrase"><a name="boost_doc_tools.parameters.toc"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.toc">Table
-        of Contents settings</a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.chunk"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.chunk">Chunking
+        settings</a>
       </h3>
+<p>
+        Chunking is process by which docbook splits a document in pages (or chunks).
+        These are the paramters we've found useful:
+      </p>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl class="variablelist">
 <dt><span class="term">chunk.section.depth</span></dt>
 <dd><p>
-              ???
+              Control the depth of nested sections that get included in a page. Default
+              value is <code class="computeroutput">1</code>
             </p></dd>
 <dt><span class="term">chunk.first.sections</span></dt>
 <dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">toc.section.depth</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">toc.max.dpeth</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">generate.section.toc.level</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">index.on.type</span></dt>
-<dd><p>
-              ???
+              By default the first chunk is included with it's parent, i.e. under
+              the table of contents. Set to <code class="computeroutput">1</code> to create a page for the
+              chunk.
             </p></dd>
 </dl>
 </div>
+<p>
+        For more info, and many more paramters:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            <a href="http://www.sagehill.net/docbookxsl/Chunking.html" target="_top">Chunking
+            into multiple files - DocBook XSL: The Complete Guide</a>
+          </li>
+<li class="listitem">
+            <a href="http://docbook.sourceforge.net/release/xsl/1.79.1/doc/html/chunking.html" target="_top">DocBook
+            Reference documentation</a>
+          </li>
+</ul></div>
+<h3>
+<a name="boost_doc_tools.parameters.h1"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.toc"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.toc">Table
+        of Contents settings</a>
+      </h3>
+<p>
+        DocBook table of contents generation is highly customisable, these are the
+        parameters we've found useful:
+      </p>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl class="variablelist">
+<dt><span class="term">toc.section.depth</span></dt>
+<dd><p>
+              The depth of recursive sections that are included in the table of contents
+            </p></dd>
+<dt><span class="term">toc.max.dpeth</span></dt>
+<dd><p>
+              The maximum depth that should be included in the table of contents.
+              This includes all structural elements, such as parts, chapters etc.
+            </p></dd>
+<dt><span class="term">generate.section.toc.level</span></dt>
+<dd><p>
+              The depth of sections that will have table of contents generated.
+            </p></dd>
+</dl>
+</div>
+<p>
+        For more info:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            <a href="http://www.sagehill.net/docbookxsl/SectionNumbering.html" target="_top">Chapter
+            and section numbering - DocBook XSL: The Complete Guide</a>
+          </li>
+<li class="listitem">
+            <a href="http://docbook.sourceforge.net/release/xsl/1.79.1/doc/html/toc_index.html" target="_top">DocBook
+            Reference Documentation</a>
+          </li>
+</ul></div>
 <p>
         BoostBook adds an extra parameter, <code class="computeroutput">boost.noexpand.chapter.toc</code>,
         to the DocBook parameters for generating the table of contents for a book.
@@ -97,27 +149,41 @@
         the individual chapeter contents.
       </p>
 <h3>
-<a name="boost_doc_tools.parameters.h1"></a>
+<a name="boost_doc_tools.parameters.h2"></a>
         <span class="phrase"><a name="boost_doc_tools.parameters.link_locations"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.link_locations">Link
         Locations</a>
       </h3>
+<p>
+        When linking to other documentation Boost, differnet links need to be generated
+        for different documentation styles. HTML documentation needs to use relative
+        links, to that they'll work when the HTML is viewed offline. PDFs need to
+        use absolute links to the website, so that they will work wherever the documentation
+        is viewed.
+      </p>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl class="variablelist">
 <dt><span class="term">boost.root</span></dt>
 <dd><p>
-              Path to root of boost (or module) from destination directory
+              Path to root of boost (or module) from the destination directory
             </p></dd>
 <dt><span class="term">boost.url.prefix</span></dt>
 <dd><p>
-              ???
+              Set this to URL of the Boost website, so that absolute links to the
+              website will be used.
             </p></dd>
 <dt><span class="term">boost.header.root</span></dt>
 <dd><p>
-              ???
+              Set this to use a different root for links to headers. Can be used
+              if the header files are not available in their normal location.
             </p></dd>
 </dl>
 </div>
+<h3>
+<a name="boost_doc_tools.parameters.h3"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.image_link_locations"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.image_link_locations">Image
+        Link Locations</a>
+      </h3>
 <div class="variablelist">
 <p class="title"><b></b></p>
 <dl class="variablelist">
@@ -128,12 +194,13 @@
             </p></dd>
 <dt><span class="term">boost.graphics.root</span></dt>
 <dd><p>
-              ???
+              Path that contains the BoostBook graphic files, realitve to the destination
+              directory.
             </p></dd>
 </dl>
 </div>
 <h3>
-<a name="boost_doc_tools.parameters.h2"></a>
+<a name="boost_doc_tools.parameters.h4"></a>
         <span class="phrase"><a name="boost_doc_tools.parameters.style"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.style">Style
         Parameters</a>
       </h3>
@@ -142,79 +209,22 @@
 <dl class="variablelist">
 <dt><span class="term">boost.defaults</span></dt>
 <dd><p>
-              ???
+              This is used by the build system to tell BoostBook to use the standard
+              paths in the Boost source tree, and the standard boost documentation
+              heading when building documentation. You should never need to use it
+              manually, as it doesn't make much sense outside of the Boost source
+              tree. You can override the default parameters it sets if you don't
+              like them.
             </p></dd>
 <dt><span class="term">html.stylesheet</span></dt>
 <dd><p>
-              ??? (should it be under directory locations?)
-            </p></dd>
-<dt><span class="term">admon.style</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">admon.graphics</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">navig.graphics</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">navig.graphics.extension</span></dt>
-<dd><p>
-              ???
+              Path from the generated documentation to the stylesheets. This defaults
+              to <code class="computeroutput">boostbook.css</code>, or to a directory under <code class="computeroutput">boost.root</code>
+              if <code class="computeroutput">boost.defaults</code> is set to <code class="computeroutput">Boost</code>. Override
+              this if you want to use your own stylesheet.
             </p></dd>
 </dl>
 </div>
-<h3>
-<a name="boost_doc_tools.parameters.h3"></a>
-        <span class="phrase"><a name="boost_doc_tools.parameters.reference"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.reference">Reference
-        Documentation Parameters</a>
-      </h3>
-<div class="variablelist">
-<p class="title"><b></b></p>
-<dl class="variablelist">
-<dt><span class="term">boostbook.verbose</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">boost.compact.function</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">boost.short.result.type</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">boost.compact.enum</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">boost.compact.typedef</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">max-columns</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-<dt><span class="term">tempalte.param.brief</span></dt>
-<dd><p>
-              ???
-            </p></dd>
-</dl>
-</div>
-<h3>
-<a name="boost_doc_tools.parameters.h4"></a>
-        <span class="phrase"><a name="boost_doc_tools.parameters.mathjax"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.mathjax">MathJax
-        parameters</a>
-      </h3>
-<p>
-        BoostBook has experimental support for MathJax, an open source JavaScript
-        script that is used to display mathematics in the browser. This is activated
-        by setting the <code class="computeroutput">boost.mathjax</code> parameter to 1, and the location
-        can be set using <code class="computeroutput">boost.mathjax.script</code>.
-      </p>
 <h3>
 <a name="boost_doc_tools.parameters.h5"></a>
         <span class="phrase"><a name="boost_doc_tools.parameters.navbar"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.navbar">Navbar</a>
@@ -260,6 +270,55 @@
             </p></dd>
 </dl>
 </div>
+<h3>
+<a name="boost_doc_tools.parameters.h6"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.reference"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.reference">Reference
+        Documentation Parameters</a>
+      </h3>
+<div class="variablelist">
+<p class="title"><b></b></p>
+<dl class="variablelist">
+<dt><span class="term">boostbook.verbose</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.compact.function</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.short.result.type</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.compact.enum</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">boost.compact.typedef</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">max-columns</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+<dt><span class="term">tempalte.param.brief</span></dt>
+<dd><p>
+              ???
+            </p></dd>
+</dl>
+</div>
+<h3>
+<a name="boost_doc_tools.parameters.h7"></a>
+        <span class="phrase"><a name="boost_doc_tools.parameters.mathjax"></a></span><a class="link" href="parameters.html#boost_doc_tools.parameters.mathjax">MathJax
+        parameters</a>
+      </h3>
+<p>
+        BoostBook has experimental support for MathJax, an open source JavaScript
+        script that is used to display mathematics in the browser. This is activated
+        by setting the <code class="computeroutput">boost.mathjax</code> parameter to 1, and the location
+        can be set using <code class="computeroutput">boost.mathjax.script</code>.
+      </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
