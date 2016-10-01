@@ -4,7 +4,7 @@
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Simple Test Article</title>
   <section id="simple_test_article.one">
-    <title><link linkend="simple_test_article.one">One</link></title>
+    <title>One</title>
     <bridgehead renderas="sect1" id="simple_test_article.one.a">
       A
     </bridgehead>
