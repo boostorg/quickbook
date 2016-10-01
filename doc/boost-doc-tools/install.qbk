@@ -21,7 +21,7 @@ The basic requirements are:
 * [@http://www.oasis-open.org/docbook/xml/4.2/ The DocBook DTD]
 
 Installing all of these parts can be quite tricky, so the next section
-contains recipies to set them up for [link install_windows Windows],
+contains recipes to set them up for [link install_windows Windows],
 [link install_mac OS X], [link install_debian Debian and Ubuntu].
 Other configurations are of course possible, but we've found these ones
 effective.
@@ -33,13 +33,13 @@ install Boost.Build from source, the prebuilt packages are often out of date.
 
 [endsect]
 
-[section:recipies Installation Recipies]
+[section:recipes Installation Recipes]
 
 [#install_windows]
 [section:windows Windows]
 
 Since most of these command line tools were developed for Unix, and Unix style,
-platforms they are an awkward fit for windows and recipies requires more effort.
+platforms they are an awkward fit for windows and recipes requires more effort.
 This leads to two possible techniques, firstly install with cygwin which
 handles much of the complexity for you, but requires that you always use it
 from within Cygwin. The other is to manually install the toolchain for use from
