@@ -21,8 +21,8 @@ The basic requirements are:
 * [@http://www.oasis-open.org/docbook/xml/4.2/ The DocBook DTD]
 
 Installing all of these parts can be quite tricky, so the next section
-contains recipies to set them up for [link install.recipies.windows Windows],
-[link install.recipies.mac OS X], [link install.recipies.debian Debian and Ubuntu].
+contains recipies to set them up for [link install_windows Windows],
+[link install_mac OS X], [link install_debian Debian and Ubuntu].
 Other configurations are of course possible, but we've found these ones
 effective.
 
@@ -35,6 +35,7 @@ install Boost.Build from source, the prebuilt packages are often out of date.
 
 [section:recipies Installation Recipies]
 
+[#install_windows]
 [section:windows Windows]
 
 Since most of these command line tools were developed for Unix, and Unix style,
@@ -156,6 +157,7 @@ need to add to your [^ user-config.jam]:
 
 [endsect] [/ windows ]
 
+[#install_mac]
 [section:mac OS X]
 
 If you're using Snow Leopard (OS X 10.6) or later, then you should already have
@@ -186,6 +188,7 @@ to add to your `user-config.jam` is an instruction to use them:
 
 [endsect] [/ mac]
 
+[#install_debian]
 [section:debian Debian and Ubuntu]
 
 Installing on Debian and Ubuntu is pretty easy, just install the packages using
