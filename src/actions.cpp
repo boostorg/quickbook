@@ -1201,7 +1201,7 @@ namespace quickbook
             //                 then use whitespace to separate them
             //                 (2 = template name + argument).
 
-            if (qbk_version_n < 105 || args.size() == 1)
+            if (qbk_version_n < 105 ? args.size() : args.size() == 1)
             {
            
                 while (args.size() < params.size())
