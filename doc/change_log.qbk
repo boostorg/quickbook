@@ -335,3 +335,12 @@ Boost 1.46.1:
 [heading Version 1.6.2 - Boost 1.61]
 
 * Better file URL generation for `xinclude`.
+
+[heading Version 1.6.3 - Boost 1.64]
+
+* Improved some error messages.
+* Fix `--no-self-linked-headers` options.
+* Hide 'debug' command line option in help text.
+* Changes to test and build setup to support continuous integration.
+* Fix a crash when templates are called with no arguments.
+  Only affected files with quickbook version less than 1.5.
