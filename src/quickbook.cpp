@@ -62,7 +62,7 @@ namespace quickbook
                 end = preset_defines.end();
                 it != end; ++it)
         {
-            boost::string_ref val(*it);
+            quickbook::string_view val(*it);
             parse_iterator first(val.begin());
             parse_iterator last(val.end());
 

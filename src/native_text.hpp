@@ -13,7 +13,7 @@
 
 #include <boost/config.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/utility/string_ref.hpp>
+#include "string_view.hpp"
 #include <string>
 #include <stdexcept>
 #include <iostream>
@@ -71,7 +71,7 @@ namespace quickbook
         typedef boost::wstring_ref command_line_string_ref;
 #else
         typedef std::string command_line_string;
-        typedef boost::string_ref command_line_string_ref;
+        typedef quickbook::string_view command_line_string_ref;
 #endif
 
         // A light wrapper around C++'s streams that gets things right
@@ -89,7 +89,7 @@ namespace quickbook
             typedef std::ostream base_ostream;
             typedef std::ios base_ios;
             typedef std::string string;
-            typedef boost::string_ref string_ref;
+            typedef quickbook::string_view string_ref;
 #endif
             base_ostream& base;
 
@@ -101,7 +101,7 @@ namespace quickbook
 
             // std::string should be UTF-8 (what a mess!)
             ostream& operator<<(std::string const&);
-            ostream& operator<<(boost::string_ref);
+            ostream& operator<<(quickbook::string_view);
 
             // Other value types.
             ostream& operator<<(int x);
@@ -126,7 +126,7 @@ namespace quickbook
         fs::path command_line_to_path(command_line_string const&);
     
         std::string path_to_generic(fs::path const&);
-        fs::path generic_to_path(boost::string_ref);
+        fs::path generic_to_path(quickbook::string_view);
 
         void initialise_output();
         

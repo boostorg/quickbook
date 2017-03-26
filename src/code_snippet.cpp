@@ -87,8 +87,8 @@ namespace quickbook
         }
 
         mapped_file_builder content;
-        boost::string_ref::const_iterator mark_begin, mark_end;
-        boost::string_ref::const_iterator last_code_pos;
+        quickbook::string_view::const_iterator mark_begin, mark_end;
+        quickbook::string_view::const_iterator last_code_pos;
         bool in_code;
         boost::shared_ptr<snippet_data> snippet_stack;
         std::vector<template_symbol>& storage;
@@ -382,7 +382,7 @@ namespace quickbook
                     in_code = true;
                 }
 
-                content.add(boost::string_ref(last_code_pos, first - last_code_pos));
+                content.add(quickbook::string_view(last_code_pos, first - last_code_pos));
             }
         }
         
@@ -419,7 +419,7 @@ namespace quickbook
             in_code = true;
         }
 
-        content.add(boost::string_ref(mark_begin, mark_end - mark_begin));
+        content.add(quickbook::string_view(mark_begin, mark_end - mark_begin));
     }
 
     void code_snippet_actions::escaped_comment(string_iterator first, string_iterator last)
@@ -437,7 +437,7 @@ namespace quickbook
             snippet_data& snippet = *snippet_stack;
 
             content.add_at_pos("\n", mark_begin);
-            content.unindent_and_add(boost::string_ref(mark_begin, mark_end - mark_begin));
+            content.unindent_and_add(quickbook::string_view(mark_begin, mark_end - mark_begin));
 
             if (snippet.id == "!")
             {

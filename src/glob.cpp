@@ -11,7 +11,7 @@
 
 namespace quickbook
 {
-    typedef boost::string_ref::const_iterator glob_iterator;
+    typedef quickbook::string_view::const_iterator glob_iterator;
 
     void check_glob_range(glob_iterator&, glob_iterator);
     void check_glob_escape(glob_iterator&, glob_iterator);
@@ -21,7 +21,7 @@ namespace quickbook
     bool match_range(glob_iterator& pattern_begin, glob_iterator pattern_end,
             unsigned char x);
 
-    bool check_glob(boost::string_ref pattern)
+    bool check_glob(quickbook::string_view pattern)
     {
         bool is_glob = false;
         bool is_ascii = true;
@@ -125,8 +125,8 @@ namespace quickbook
         ++begin;
     }
 
-    bool glob(boost::string_ref const& pattern,
-            boost::string_ref const& filename)
+    bool glob(quickbook::string_view const& pattern,
+            quickbook::string_view const& filename)
     {
         // If there wasn't this special case then '*' would match an
         // empty string.
@@ -260,29 +260,29 @@ namespace quickbook
         return invert_match != matched;
     }
 
-    std::size_t find_glob_char(boost::string_ref pattern,
+    std::size_t find_glob_char(quickbook::string_view pattern,
             std::size_t pos)
     {
-        // Weird style is because boost::string_ref's find_first_of
+        // Weird style is because quickbook::string_view's find_first_of
         // doesn't take a position argument.
         std::size_t removed = 0;
 
         while (true) {
             pos = pattern.find_first_of("[]?*\\");
-            if (pos == boost::string_ref::npos) return pos;
+            if (pos == quickbook::string_view::npos) return pos;
             if (pattern[pos] != '\\') return pos + removed;
             pattern.remove_prefix(pos + 2);
             removed += pos + 2;
         }
     }
 
-    std::string glob_unescape(boost::string_ref pattern)
+    std::string glob_unescape(quickbook::string_view pattern)
     {
         std::string result;
 
         while (true) {
             std::size_t pos = pattern.find("\\");
-            if (pos == boost::string_ref::npos) {
+            if (pos == quickbook::string_view::npos) {
                 result.append(pattern.data(), pattern.size());
                 break;
             }
