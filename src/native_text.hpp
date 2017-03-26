@@ -23,7 +23,10 @@
 #   define QUICKBOOK_CYGWIN_PATHS 1
 #elif defined(_WIN32)
 #   define QUICKBOOK_WIDE_PATHS 1
-#   if defined(BOOST_MSVC) && BOOST_MSVC >= 1400
+    // Wide streams work okay for me with older versions of Visual C++,
+	// but I've had reports of problems. My guess is that it's an
+	// incompatibility with later versions of windows.
+#   if defined(BOOST_MSVC) && BOOST_MSVC >= 1700
 #       define QUICKBOOK_WIDE_STREAMS 1
 #   endif
 #endif
