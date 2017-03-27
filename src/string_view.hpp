@@ -23,7 +23,7 @@ namespace quickbook {
         string_view(string_view const& x) : base(x) {}
         string_view(std::string const& x) : base(x) {}
         string_view(const char* x) : base(x) {}
-        string_view(const char* x, typename base::size_type len) : base(x, len) {}
+        string_view(const char* x, base::size_type len) : base(x, len) {}
     };
 }
 
