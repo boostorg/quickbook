@@ -153,7 +153,7 @@ namespace quickbook
 
         if (next != std::string::npos) ++next;
 
-        boost::string_ref glob(
+        quickbook::string_view glob(
                 path.data() + glob_begin,
                 glob_end - glob_begin);
 
@@ -305,12 +305,12 @@ namespace quickbook
                 file_path < other.file_path;
     }
 
-    quickbook_path quickbook_path::operator/(boost::string_ref x) const
+    quickbook_path quickbook_path::operator/(quickbook::string_view x) const
     {
         return quickbook_path(*this) /= x;
     }
 
-    quickbook_path& quickbook_path::operator/=(boost::string_ref x)
+    quickbook_path& quickbook_path::operator/=(quickbook::string_view x)
     {
         fs::path x2 = detail::generic_to_path(x);
         file_path /= x2;

@@ -8,13 +8,13 @@
 
 #include "fwd.hpp"
 #include "files.hpp"
-#include <boost/utility/string_ref.hpp>
+#include "string_view.hpp"
 #include <boost/detail/lightweight_test.hpp>
 #include <boost/range/algorithm/find.hpp>
 
 void simple_map_tests()
 {
-    boost::string_ref source("First Line\nSecond Line");
+    quickbook::string_view source("First Line\nSecond Line");
     quickbook::file_ptr fake_file = new quickbook::file(
         "(fake file)", source, 105u);
 
@@ -34,7 +34,7 @@ void simple_map_tests()
     
     { // Add full text
         builder.start(fake_file);
-        builder.add(boost::string_ref(line1, line2_end - line1));
+        builder.add(quickbook::string_view(line1, line2_end - line1));
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(), source);
         BOOST_TEST_EQ(f1->position_of(f1->source().begin()),
@@ -51,10 +51,10 @@ void simple_map_tests()
 
     { // Add first line
         builder.start(fake_file);
-        builder.add(boost::string_ref(line1, line1_end - line1));
+        builder.add(quickbook::string_view(line1, line1_end - line1));
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref(source.begin(), line1_end - line1));
+            quickbook::string_view(source.begin(), line1_end - line1));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin()),
             quickbook::file_position(1,1));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin() + 2),
@@ -65,9 +65,9 @@ void simple_map_tests()
 
     { // Add second line
         builder.start(fake_file);
-        builder.add(boost::string_ref(line2, line2_end - line2));
+        builder.add(quickbook::string_view(line2, line2_end - line2));
         quickbook::file_ptr f1 = builder.release();
-        BOOST_TEST_EQ(f1->source(), boost::string_ref("Second Line"));
+        BOOST_TEST_EQ(f1->source(), quickbook::string_view("Second Line"));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin()),
             quickbook::file_position(2,1));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin() + 2),
@@ -78,12 +78,12 @@ void simple_map_tests()
 
     { // Out of order
         builder.start(fake_file);
-        builder.add(boost::string_ref(line2, line2_end - line2));
-        builder.add(boost::string_ref(line1_end, 1));
-        builder.add(boost::string_ref(line1, line1_end - line1));
+        builder.add(quickbook::string_view(line2, line2_end - line2));
+        builder.add(quickbook::string_view(line1_end, 1));
+        builder.add(quickbook::string_view(line1, line1_end - line1));
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Second Line\nFirst Line"));
+            quickbook::string_view("Second Line\nFirst Line"));
 
         BOOST_TEST_EQ(f1->position_of(f1->source().begin()),
             quickbook::file_position(2,1));
@@ -101,12 +101,12 @@ void simple_map_tests()
 
     { // Repeated text
         builder.start(fake_file);
-        builder.add(boost::string_ref(line2, line2_end - line2));
-        builder.add(boost::string_ref(line1_end, 1));
-        builder.add(boost::string_ref(line2, line2_end - line2));
+        builder.add(quickbook::string_view(line2, line2_end - line2));
+        builder.add(quickbook::string_view(line1_end, 1));
+        builder.add(quickbook::string_view(line2, line2_end - line2));
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Second Line\nSecond Line"));
+            quickbook::string_view("Second Line\nSecond Line"));
 
         BOOST_TEST_EQ(f1->position_of(f1->source().begin()),
             quickbook::file_position(2,1));
@@ -126,11 +126,11 @@ void simple_map_tests()
     { // Generated text
         builder.start(fake_file);
         builder.add_at_pos("------\n", line1);
-        builder.add(boost::string_ref(line1, line1_end - line1));
+        builder.add(quickbook::string_view(line1, line1_end - line1));
         builder.add_at_pos("\n------\n", line1_end);
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("------\nFirst Line\n------\n"));
+            quickbook::string_view("------\nFirst Line\n------\n"));
         
         quickbook::string_iterator newline = boost::find(f1->source(), '\n');
 
@@ -157,7 +157,7 @@ void simple_map_tests()
 
 void indented_map_tests()
 {
-    boost::string_ref source(
+    quickbook::string_view source(
         "   Code line1\n"
         "   Code line2\n");
     quickbook::file_ptr fake_file = new quickbook::file(
@@ -170,7 +170,7 @@ void indented_map_tests()
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\nCode line2\n"));
+            quickbook::string_view("Code line1\nCode line2\n"));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin()),
             quickbook::file_position(1,4));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin() + 1),
@@ -197,7 +197,7 @@ void indented_map_tests()
         quickbook::file_ptr f1 = builder.release();
 
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\nCode line2\n"));
+            quickbook::string_view("Code line1\nCode line2\n"));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin()),
             quickbook::file_position(1,4));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin() + 1),
@@ -214,12 +214,12 @@ void indented_map_tests()
 
     {
         builder.start(fake_file);
-        builder.unindent_and_add(boost::string_ref(
+        builder.unindent_and_add(quickbook::string_view(
             fake_file->source().begin() + 3,
             fake_file->source().end() - (fake_file->source().begin() + 3)));
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\n   Code line2\n"));
+            quickbook::string_view("Code line1\n   Code line2\n"));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin()),
             quickbook::file_position(1,4));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin() + 1),
@@ -237,7 +237,7 @@ void indented_map_tests()
 
 void indented_map_tests2()
 {
-    boost::string_ref source(
+    quickbook::string_view source(
         "   Code line1\n"
         "\n"
         "   Code line2\n");
@@ -251,7 +251,7 @@ void indented_map_tests2()
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\n\nCode line2\n"));
+            quickbook::string_view("Code line1\n\nCode line2\n"));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin()),
             quickbook::file_position(1,4));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin() + 1),
@@ -272,36 +272,36 @@ void indented_map_leading_blanks_test()
     quickbook::mapped_file_builder builder;
 
     {
-        boost::string_ref source("\n\n   Code line1\n");
+        quickbook::string_view source("\n\n   Code line1\n");
         quickbook::file_ptr fake_file = new quickbook::file(
             "(fake file)", source, 105u);
         builder.start(fake_file);
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\n"));
+            quickbook::string_view("Code line1\n"));
     }
 
     {
-        boost::string_ref source("    \n  \n   Code line1\n");
+        quickbook::string_view source("    \n  \n   Code line1\n");
         quickbook::file_ptr fake_file = new quickbook::file(
             "(fake file)", source, 105u);
         builder.start(fake_file);
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\n"));
+            quickbook::string_view("Code line1\n"));
     }
 
     {
-        boost::string_ref source("   Code line1\n \n   Code line2");
+        quickbook::string_view source("   Code line1\n \n   Code line2");
         quickbook::file_ptr fake_file = new quickbook::file(
             "(fake file)", source, 105u);
         builder.start(fake_file);
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\n\nCode line2"));
+            quickbook::string_view("Code line1\n\nCode line2"));
     }
 }
 
@@ -310,36 +310,36 @@ void indented_map_trailing_blanks_test()
     quickbook::mapped_file_builder builder;
 
     {
-        boost::string_ref source("\n\n   Code line1\n  ");
+        quickbook::string_view source("\n\n   Code line1\n  ");
         quickbook::file_ptr fake_file = new quickbook::file(
             "(fake file)", source, 105u);
         builder.start(fake_file);
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\n"));
+            quickbook::string_view("Code line1\n"));
     }
 
     {
-        boost::string_ref source("    \n  \n   Code line1\n    ");
+        quickbook::string_view source("    \n  \n   Code line1\n    ");
         quickbook::file_ptr fake_file = new quickbook::file(
             "(fake file)", source, 105u);
         builder.start(fake_file);
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\n "));
+            quickbook::string_view("Code line1\n "));
     }
 
     {
-        boost::string_ref source("   Code line1\n \n   Code line2\n  ");
+        quickbook::string_view source("   Code line1\n \n   Code line2\n  ");
         quickbook::file_ptr fake_file = new quickbook::file(
             "(fake file)", source, 105u);
         builder.start(fake_file);
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line1\n\nCode line2\n"));
+            quickbook::string_view("Code line1\n\nCode line2\n"));
     }
 
 }
@@ -349,36 +349,36 @@ void indented_map_mixed_test()
     quickbook::mapped_file_builder builder;
 
     {
-        boost::string_ref source("\tCode line 1\n    Code line 2\n\t    Code line 3\n    \tCode line 4");
+        quickbook::string_view source("\tCode line 1\n    Code line 2\n\t    Code line 3\n    \tCode line 4");
         quickbook::file_ptr fake_file = new quickbook::file(
             "(fake file)", source, 105u);
         builder.start(fake_file);
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line 1\nCode line 2\n    Code line 3\n    Code line 4"));
+            quickbook::string_view("Code line 1\nCode line 2\n    Code line 3\n    Code line 4"));
     }
 
     {
-        boost::string_ref source("  Code line 1\n\tCode line 2");
+        quickbook::string_view source("  Code line 1\n\tCode line 2");
         quickbook::file_ptr fake_file = new quickbook::file(
             "(fake file)", source, 105u);
         builder.start(fake_file);
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line 1\n  Code line 2"));
+            quickbook::string_view("Code line 1\n  Code line 2"));
     }
 
     {
-        boost::string_ref source("  Code line 1\n  \tCode line 2");
+        quickbook::string_view source("  Code line 1\n  \tCode line 2");
         quickbook::file_ptr fake_file = new quickbook::file(
             "(fake file)", source, 105u);
         builder.start(fake_file);
         builder.unindent_and_add(fake_file->source());
         quickbook::file_ptr f1 = builder.release();
         BOOST_TEST_EQ(f1->source(),
-            boost::string_ref("Code line 1\n\tCode line 2"));
+            quickbook::string_view("Code line 1\n\tCode line 2"));
     }
 }
 

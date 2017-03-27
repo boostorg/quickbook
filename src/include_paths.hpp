@@ -47,8 +47,8 @@ namespace quickbook
         quickbook_path parent_path() const;
 
         bool operator<(quickbook_path const& other) const;
-        quickbook_path operator/(boost::string_ref) const;
-        quickbook_path& operator/=(boost::string_ref);
+        quickbook_path operator/(quickbook::string_view) const;
+        quickbook_path& operator/=(quickbook::string_view);
 
         // The actual location of the file.
         fs::path file_path;
