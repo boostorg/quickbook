@@ -54,7 +54,7 @@ namespace detail {
             return std::string(buffer.get());
         }
 
-        std::wstring from_utf8(boost::string_ref text)
+        std::wstring from_utf8(quickbook::string_view text)
         {
             std::string x(text.begin(), text.end());
             int buffer_count = MultiByteToWideChar(CP_UTF8, 0, x.c_str(), -1, 0, 0); 
@@ -85,7 +85,7 @@ namespace detail {
 #endif
 
 #if QUICKBOOK_WIDE_PATHS
-    fs::path generic_to_path(boost::string_ref x)
+    fs::path generic_to_path(quickbook::string_view x)
     {
         return fs::path(from_utf8(x));
     }
@@ -95,7 +95,7 @@ namespace detail {
         return to_utf8(x.generic_wstring());
     }
 #else
-    fs::path generic_to_path(boost::string_ref x)
+    fs::path generic_to_path(quickbook::string_view x)
     {
         return fs::path(x.begin(), x.end());
     }
@@ -171,7 +171,7 @@ namespace detail {
         if (_isatty(_fileno(stderr))) _setmode(_fileno(stderr), _O_U16TEXT);
     }
 
-    void write_utf8(ostream::base_ostream& out, boost::string_ref x)
+    void write_utf8(ostream::base_ostream& out, quickbook::string_view x)
     {
         out << from_utf8(x);
     }
@@ -197,7 +197,7 @@ namespace detail {
     {
     }
 
-    void write_utf8(ostream::base_ostream& out, boost::string_ref x)
+    void write_utf8(ostream::base_ostream& out, quickbook::string_view x)
     {
         out << x;
     }
@@ -286,7 +286,7 @@ namespace detail {
         return *this;
     }
 
-    ostream& ostream::operator<<(boost::string_ref x) {
+    ostream& ostream::operator<<(quickbook::string_view x) {
         write_utf8(base, x);
         return *this;
     }

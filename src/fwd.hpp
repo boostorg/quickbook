@@ -13,7 +13,7 @@
 
 #include "iterator.hpp"
 #include <boost/intrusive_ptr.hpp>
-#include <boost/utility/string_ref.hpp>
+#include "string_view.hpp"
 
 namespace quickbook
 {
@@ -27,7 +27,7 @@ namespace quickbook
     typedef boost::intrusive_ptr<file> file_ptr;
     typedef unsigned source_mode_type;
 
-    typedef boost::string_ref::const_iterator string_iterator;
+    typedef quickbook::string_view::const_iterator string_iterator;
     typedef lookback_iterator<string_iterator> parse_iterator;
 
     inline void ignore_variable(void const*) {} 

@@ -34,7 +34,7 @@ namespace quickbook
 
         // State
         bool support_callouts;
-        boost::string_ref marked_text;
+        quickbook::string_view marked_text;
 
         syntax_highlight_actions(quickbook::state& state, bool is_block) :
             state(state),
@@ -129,7 +129,7 @@ namespace quickbook
     void syntax_highlight_actions::mark_text(parse_iterator first,
             parse_iterator last)
     {
-        marked_text = boost::string_ref(first.base(), last.base() - first.base());
+        marked_text = quickbook::string_view(first.base(), last.base() - first.base());
     }
 
     void syntax_highlight_actions::callout(parse_iterator, parse_iterator)

@@ -40,7 +40,7 @@
 #pragma warning(disable:4355)
 #endif
 
-#define QUICKBOOK_VERSION "Quickbook Version 1.6.2"
+#define QUICKBOOK_VERSION "Quickbook Version 1.6.3"
 
 namespace quickbook
 {
@@ -62,7 +62,7 @@ namespace quickbook
                 end = preset_defines.end();
                 it != end; ++it)
         {
-            boost::string_ref val(*it);
+            quickbook::string_view val(*it);
             parse_iterator first(val.begin());
             parse_iterator last(val.end());
 

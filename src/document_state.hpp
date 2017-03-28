@@ -10,7 +10,7 @@
 #define BOOST_QUICKBOOK_DOCUMENT_STATE_HPP
 
 #include <boost/scoped_ptr.hpp>
-#include <boost/utility/string_ref.hpp>
+#include "string_view.hpp"
 #include <string>
 #include "values.hpp"
 #include "syntax_highlight.hpp"
@@ -54,31 +54,31 @@ namespace quickbook
 
         std::string start_file_with_docinfo(
                 unsigned compatibility_version,
-                boost::string_ref include_doc_id,
-                boost::string_ref id,
+                quickbook::string_view include_doc_id,
+                quickbook::string_view id,
                 value const& title);
 
         void start_file(
                 unsigned compatibility_version,
-                boost::string_ref include_doc_id,
-                boost::string_ref id,
+                quickbook::string_view include_doc_id,
+                quickbook::string_view id,
                 value const& title);
 
         void end_file();
 
-        std::string begin_section(boost::string_ref, id_category,
+        std::string begin_section(quickbook::string_view, id_category,
             source_mode_info const&);
         void end_section();
         int section_level() const;
         source_mode_info section_source_mode() const;
 
-        std::string old_style_id(boost::string_ref, id_category);
-        std::string add_id(boost::string_ref, id_category);
-        std::string add_anchor(boost::string_ref, id_category);
+        std::string old_style_id(quickbook::string_view, id_category);
+        std::string add_id(quickbook::string_view, id_category);
+        std::string add_anchor(quickbook::string_view, id_category);
 
         std::string replace_placeholders_with_unresolved_ids(
-                boost::string_ref) const;
-        std::string replace_placeholders(boost::string_ref) const;
+                quickbook::string_view) const;
+        std::string replace_placeholders(quickbook::string_view) const;
 
         unsigned compatibility_version() const;
     private:

@@ -65,7 +65,7 @@ namespace quickbook
         }
         
         std::string add_anchor(quickbook::state& state,
-                boost::string_ref id,
+                quickbook::string_view id,
                 id_category::categories category =
                     id_category::explicit_anchor_id)
         {
@@ -536,7 +536,7 @@ namespace quickbook
 
         if (saved_conditional)
         {
-            boost::string_ref macro1 = values.consume().get_quickbook();
+            quickbook::string_view macro1 = values.consume().get_quickbook();
             std::string macro(macro1.begin(), macro1.end());
 
             state.conditional = find(state.macro, macro.c_str());
@@ -760,7 +760,7 @@ namespace quickbook
         int code_tag = code_block.get_tag();
 
         value_consumer values = code_block;
-        boost::string_ref code_value = values.consume().get_quickbook();
+        quickbook::string_view code_value = values.consume().get_quickbook();
         values.finish();
 
         bool inline_code = code_tag == code_tags::inline_code ||
@@ -870,8 +870,8 @@ namespace quickbook
             detail::print_string(v.get_encoded(), out);
         }
         else {
-            boost::string_ref value = v.get_quickbook();
-            for(boost::string_ref::const_iterator
+            quickbook::string_view value = v.get_quickbook();
+            for(quickbook::string_view::const_iterator
                 first = value.begin(), last  = value.end();
                 first != last; ++first)
             {
@@ -1201,7 +1201,7 @@ namespace quickbook
             //                 then use whitespace to separate them
             //                 (2 = template name + argument).
 
-            if (qbk_version_n < 105 || args.size() == 1)
+            if (qbk_version_n < 105 ? args.size() : args.size() == 1)
             {
            
                 while (args.size() < params.size())
@@ -1267,7 +1267,7 @@ namespace quickbook
             file_ptr saved_current_file = state.current_file;
 
             state.current_file = content.get_file();
-            boost::string_ref source = content.get_quickbook();
+            quickbook::string_view source = content.get_quickbook();
 
             parse_iterator first(source.begin());
             parse_iterator last(source.end());

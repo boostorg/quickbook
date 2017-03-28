@@ -13,7 +13,7 @@
 
 #include <boost/config.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/utility/string_ref.hpp>
+#include "string_view.hpp"
 #include <string>
 #include <stdexcept>
 #include <iostream>
@@ -23,7 +23,10 @@
 #   define QUICKBOOK_CYGWIN_PATHS 1
 #elif defined(_WIN32)
 #   define QUICKBOOK_WIDE_PATHS 1
-#   if defined(BOOST_MSVC) && BOOST_MSVC >= 1400
+    // Wide streams work okay for me with older versions of Visual C++,
+	// but I've had reports of problems. My guess is that it's an
+	// incompatibility with later versions of windows.
+#   if defined(BOOST_MSVC) && BOOST_MSVC >= 1700
 #       define QUICKBOOK_WIDE_STREAMS 1
 #   endif
 #endif
@@ -68,7 +71,7 @@ namespace quickbook
         typedef boost::wstring_ref command_line_string_ref;
 #else
         typedef std::string command_line_string;
-        typedef boost::string_ref command_line_string_ref;
+        typedef quickbook::string_view command_line_string_ref;
 #endif
 
         // A light wrapper around C++'s streams that gets things right
@@ -86,7 +89,7 @@ namespace quickbook
             typedef std::ostream base_ostream;
             typedef std::ios base_ios;
             typedef std::string string;
-            typedef boost::string_ref string_ref;
+            typedef quickbook::string_view string_ref;
 #endif
             base_ostream& base;
 
@@ -98,7 +101,7 @@ namespace quickbook
 
             // std::string should be UTF-8 (what a mess!)
             ostream& operator<<(std::string const&);
-            ostream& operator<<(boost::string_ref);
+            ostream& operator<<(quickbook::string_view);
 
             // Other value types.
             ostream& operator<<(int x);
@@ -123,7 +126,7 @@ namespace quickbook
         fs::path command_line_to_path(command_line_string const&);
     
         std::string path_to_generic(fs::path const&);
-        fs::path generic_to_path(boost::string_ref);
+        fs::path generic_to_path(quickbook::string_view);
 
         void initialise_output();
         
