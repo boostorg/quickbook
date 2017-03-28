@@ -68,10 +68,8 @@ namespace quickbook
     
 #if QUICKBOOK_WIDE_PATHS
         typedef std::wstring command_line_string;
-        typedef boost::wstring_ref command_line_string_ref;
 #else
         typedef std::string command_line_string;
-        typedef quickbook::string_view command_line_string_ref;
 #endif
 
         // A light wrapper around C++'s streams that gets things right
