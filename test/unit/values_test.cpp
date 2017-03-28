@@ -35,7 +35,7 @@ void qbk_tests()
             fake_file->source().begin(),
             fake_file->source().end());
     }
-    BOOST_TEST_EQ(q.get_quickbook(), boost::string_ref(source));
+    BOOST_TEST_EQ(q.get_quickbook(), quickbook::string_view(source));
 }
 
 void sort_test()

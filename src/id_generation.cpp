@@ -27,13 +27,13 @@ namespace quickbook {
     static const std::size_t max_size = 32;
 
     typedef std::vector<id_placeholder const*> placeholder_index;
-    placeholder_index index_placeholders(document_state_impl const&, boost::string_ref);
+    placeholder_index index_placeholders(document_state_impl const&, quickbook::string_view);
 
     void generate_id_block(
             placeholder_index::iterator, placeholder_index::iterator,
             std::vector<std::string>& generated_ids);
 
-    std::vector<std::string> generate_ids(document_state_impl const& state, boost::string_ref xml)
+    std::vector<std::string> generate_ids(document_state_impl const& state, quickbook::string_view xml)
     {
         std::vector<std::string> generated_ids(state.placeholders.size());
 
@@ -102,7 +102,7 @@ namespace quickbook {
             count(0)
         {}
 
-        void id_value(boost::string_ref value)
+        void id_value(quickbook::string_view value)
         {
             set_placeholder_order(state.get_placeholder(value));
         }
@@ -118,7 +118,7 @@ namespace quickbook {
 
     placeholder_index index_placeholders(
             document_state_impl const& state,
-            boost::string_ref xml)
+            quickbook::string_view xml)
     {
         // The order that the placeholder appear in the xml source.
         std::vector<unsigned> order(state.placeholders.size());
@@ -287,7 +287,7 @@ namespace quickbook {
     {
         document_state_impl const& state;
         std::vector<std::string> const* ids;
-        boost::string_ref::const_iterator source_pos;
+        quickbook::string_view::const_iterator source_pos;
         std::string result;
 
         replace_ids_callback(document_state_impl const& state,
@@ -298,16 +298,16 @@ namespace quickbook {
             result()
         {}
 
-        void start(boost::string_ref xml)
+        void start(quickbook::string_view xml)
         {
             source_pos = xml.begin();
         }
 
-        void id_value(boost::string_ref value)
+        void id_value(quickbook::string_view value)
         {
             if (id_placeholder const* p = state.get_placeholder(value))
             {
-                boost::string_ref id = ids ?
+                quickbook::string_view id = ids ?
                     (*ids)[p->index] : p->unresolved_id;
 
                 result.append(source_pos, value.begin());
@@ -316,14 +316,14 @@ namespace quickbook {
             }
         }
 
-        void finish(boost::string_ref xml)
+        void finish(quickbook::string_view xml)
         {
             result.append(source_pos, xml.end());
             source_pos = xml.end();
         }
     };
 
-    std::string replace_ids(document_state_impl const& state, boost::string_ref xml,
+    std::string replace_ids(document_state_impl const& state, quickbook::string_view xml,
             std::vector<std::string> const* ids)
     {
         xml_processor processor;
@@ -338,12 +338,12 @@ namespace quickbook {
     // Normalizes generated ids.
     //
 
-    std::string normalize_id(boost::string_ref src_id)
+    std::string normalize_id(quickbook::string_view src_id)
     {
         return normalize_id(src_id, max_size);
     }
 
-    std::string normalize_id(boost::string_ref src_id, std::size_t size)
+    std::string normalize_id(quickbook::string_view src_id, std::size_t size)
     {
         std::string id(src_id.begin(), src_id.end());
 

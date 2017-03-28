@@ -30,6 +30,14 @@ namespace quickbook
     {
         if (qbk_version_n >= 107u) {
             std::string path_text = path.get_encoded();
+            if (path_text.empty())
+            {
+                detail::outerr(path.get_file(), path.get_position())
+                    << "Empty path argument"
+                    << "std::endl";
+                ++state.error_count;
+                return path_parameter(path_text, path_parameter::invalid);
+            }
 
             try {
                 if (check_glob(path_text)) {
@@ -58,6 +66,18 @@ namespace quickbook
             std::string path_text = qbk_version_n >= 106u || path.is_encoded() ?
                     path.get_encoded() : detail::to_s(path.get_quickbook());
 
+            if (path_text.empty())
+            {
+                detail::outerr(path.get_file(), path.get_position())
+                    << "Empty path argument"
+                    << std::endl;
+                ++state.error_count;
+                return path_parameter(path_text, path_parameter::invalid);
+            }
+
+            // Check for windows paths, an error in quickbook 1.6
+            // In quickbook 1.7 backslash is used as an escape character
+            // for glob characters.
             if (path_text.find('\\') != std::string::npos)
             {
                 quickbook::detail::ostream* err;
@@ -133,7 +153,7 @@ namespace quickbook
 
         if (next != std::string::npos) ++next;
 
-        boost::string_ref glob(
+        quickbook::string_view glob(
                 path.data() + glob_begin,
                 glob_end - glob_begin);
 
@@ -285,12 +305,12 @@ namespace quickbook
                 file_path < other.file_path;
     }
 
-    quickbook_path quickbook_path::operator/(boost::string_ref x) const
+    quickbook_path quickbook_path::operator/(quickbook::string_view x) const
     {
         return quickbook_path(*this) /= x;
     }
 
-    quickbook_path& quickbook_path::operator/=(boost::string_ref x)
+    quickbook_path& quickbook_path::operator/=(quickbook::string_view x)
     {
         fs::path x2 = detail::generic_to_path(x);
         file_path /= x2;

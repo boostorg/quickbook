@@ -15,12 +15,12 @@
 
 namespace quickbook { namespace detail
 {
-    std::string encode_string(boost::string_ref str)
+    std::string encode_string(quickbook::string_view str)
     {
         std::string result;
         result.reserve(str.size());
 
-        for (boost::string_ref::const_iterator it = str.begin();
+        for (quickbook::string_view::const_iterator it = str.begin();
             it != str.end(); ++it)
         {
             switch (*it)
@@ -50,9 +50,9 @@ namespace quickbook { namespace detail
         }
     }
 
-    void print_string(boost::string_ref str, std::ostream& out)
+    void print_string(quickbook::string_view str, std::ostream& out)
     {
-        for (boost::string_ref::const_iterator cur = str.begin();
+        for (quickbook::string_view::const_iterator cur = str.begin();
             cur != str.end(); ++cur)
         {
             print_char(*cur, out);

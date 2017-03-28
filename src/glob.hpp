@@ -6,7 +6,7 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include <boost/utility/string_ref.hpp>
+#include "string_view.hpp"
 #include <stdexcept>
 
 namespace quickbook
@@ -18,13 +18,13 @@ namespace quickbook
     };
 
     // Is this path a glob? Throws glob_error if glob is invalid.
-    bool check_glob(boost::string_ref);
+    bool check_glob(quickbook::string_view);
 
     // pre: glob is valid (call check_glob first on user data).
-    bool glob(boost::string_ref const& pattern,
-            boost::string_ref const& filename);
+    bool glob(quickbook::string_view const& pattern,
+            quickbook::string_view const& filename);
 
-    std::size_t find_glob_char(boost::string_ref,
+    std::size_t find_glob_char(quickbook::string_view,
             std::size_t start = 0);
-    std::string glob_unescape(boost::string_ref);
+    std::string glob_unescape(quickbook::string_view);
 }

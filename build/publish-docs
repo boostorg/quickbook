@@ -1,0 +1,46 @@
+#!/bin/bash -e
+
+cd $(dirname $0)
+cd ..
+
+write_fast_import() {
+    commit_message="Rebuild documentation"
+    branch=$1
+
+    # Start commit
+    echo "commit refs/heads/${branch}"
+    echo "committer Daniel James <daniel@calamity.org.uk> now"
+    echo "data ${#commit_message}"
+    echo $commit_message
+    echo "from ${branch}"
+    echo "merge HEAD"
+
+    # Delete everything and rebuild tree from scratch.
+    echo "deleteall"
+
+    # Copy all files from HEAD
+    git ls-tree -r HEAD |
+    while read mode type hash path ; do
+        echo "M $mode $hash $path"
+    done
+
+    # Keep index.html from branch
+    git ls-tree $branch -- index.html |
+    while read mode type hash path ; do
+        echo "M $mode $hash $path"
+    done
+
+    # Check in documentation
+    find doc/html -type f | while read path; do
+        size=$(wc -c "$path")
+        echo "M 100644 inline $path"
+        echo "data $size"
+        cat "$path"
+        echo
+    done
+}
+
+b2 -q doc//fully-standalone
+branch=gh-pages
+write_fast_import gh-pages | git fast-import --date-format=now --quiet
+git push origin gh-pages

@@ -142,11 +142,11 @@ namespace quickbook
     }
 
     file_position relative_position(
-        boost::string_ref::const_iterator begin,
-        boost::string_ref::const_iterator iterator)
+        quickbook::string_view::const_iterator begin,
+        quickbook::string_view::const_iterator iterator)
     {
         file_position pos;
-        boost::string_ref::const_iterator line_begin = begin;
+        quickbook::string_view::const_iterator line_begin = begin;
 
         while (begin != iterator)
         {
@@ -178,7 +178,7 @@ namespace quickbook
         return pos;
     }
 
-    file_position file::position_of(boost::string_ref::const_iterator iterator) const
+    file_position file::position_of(quickbook::string_view::const_iterator iterator) const
     {
         return relative_position(source().begin(), iterator);
     }
@@ -257,7 +257,7 @@ namespace quickbook
         file_ptr original;
         std::vector<mapped_file_section> mapped_sections;
         
-        void add_empty_mapped_file_section(boost::string_ref::const_iterator pos) {
+        void add_empty_mapped_file_section(quickbook::string_view::const_iterator pos) {
             std::string::size_type original_pos =
                 pos - original->source().begin();
         
@@ -272,12 +272,12 @@ namespace quickbook
             }
         }
 
-        void add_mapped_file_section(boost::string_ref::const_iterator pos) {
+        void add_mapped_file_section(quickbook::string_view::const_iterator pos) {
             mapped_sections.push_back(mapped_file_section(
                 pos - original->source().begin(), source().size()));
         }
 
-        void add_indented_mapped_file_section(boost::string_ref::const_iterator pos)
+        void add_indented_mapped_file_section(quickbook::string_view::const_iterator pos)
         {
             mapped_sections.push_back(mapped_file_section(
                 pos - original->source().begin(), source().size(),
@@ -297,13 +297,13 @@ namespace quickbook
 
                 case mapped_file_section::indented: {
                     // Will contain the start of the current line.
-                    boost::string_ref::size_type our_line = section->our_pos;
+                    quickbook::string_view::size_type our_line = section->our_pos;
 
                     // Will contain the number of lines in the block before
                     // the current line.
                     unsigned newline_count = 0;
 
-                    for(boost::string_ref::size_type i = section->our_pos;
+                    for(quickbook::string_view::size_type i = section->our_pos;
                         i != pos; ++i)
                     {
                         if (source()[i] == '\n') {
@@ -313,7 +313,7 @@ namespace quickbook
                     }
 
                     // The start of the line in the original source.
-                    boost::string_ref::size_type original_line =
+                    quickbook::string_view::size_type original_line =
                         section->original_pos;
                     
                     while(newline_count > 0) {
@@ -347,7 +347,7 @@ namespace quickbook
         }
         
         std::vector<mapped_file_section>::const_iterator find_section(
-            boost::string_ref::const_iterator pos) const
+            quickbook::string_view::const_iterator pos) const
         {
             std::vector<mapped_file_section>::const_iterator section =
                 boost::upper_bound(mapped_sections,
@@ -359,12 +359,12 @@ namespace quickbook
             return section;
         }
 
-        virtual file_position position_of(boost::string_ref::const_iterator) const;
+        virtual file_position position_of(quickbook::string_view::const_iterator) const;
 
     private:
 
         static std::string::size_type skip_indentation(
-                boost::string_ref src, std::string::size_type i)
+                quickbook::string_view src, std::string::size_type i)
         {
             while (i != src.size() && (src[i] == ' ' || src[i] == '\t')) ++i;
             return i;
@@ -419,13 +419,13 @@ namespace quickbook
         return data->new_file->source().size();
     }
     
-    void mapped_file_builder::add_at_pos(boost::string_ref x, iterator pos)
+    void mapped_file_builder::add_at_pos(quickbook::string_view x, iterator pos)
     {
         data->new_file->add_empty_mapped_file_section(pos);
         data->new_file->source_.append(x.begin(), x.end());
     }
 
-    void mapped_file_builder::add(boost::string_ref x)
+    void mapped_file_builder::add(quickbook::string_view x)
     {
         data->new_file->add_mapped_file_section(x.begin());
         data->new_file->source_.append(x.begin(), x.end());
@@ -469,11 +469,11 @@ namespace quickbook
         }
     }
 
-    boost::string_ref::size_type indentation_count(boost::string_ref x)
+    quickbook::string_view::size_type indentation_count(quickbook::string_view x)
     {
         unsigned count = 0;
 
-        for(boost::string_ref::const_iterator begin = x.begin(), end = x.end();
+        for(quickbook::string_view::const_iterator begin = x.begin(), end = x.end();
             begin != end; ++begin)
         {
             switch(*begin)
@@ -493,7 +493,7 @@ namespace quickbook
         return count;
     }
 
-    void mapped_file_builder::unindent_and_add(boost::string_ref x)
+    void mapped_file_builder::unindent_and_add(quickbook::string_view x)
     {
         // I wanted to do everything using a string_ref, but unfortunately
         // they don't have all the overloads used in here. So...
@@ -510,8 +510,8 @@ namespace quickbook
 
         // Get the first line indentation
         std::string::size_type indent = program.find_first_not_of(" \t", start) - start;
-        boost::string_ref::size_type full_indent = indentation_count(
-            boost::string_ref(&program[start], indent));
+        quickbook::string_view::size_type full_indent = indentation_count(
+            quickbook::string_view(&program[start], indent));
 
         std::string::size_type pos = start;
 
@@ -530,12 +530,12 @@ namespace quickbook
 
             indent = (std::min)(indent, n-pos);
             full_indent = (std::min)(full_indent, indentation_count(
-                boost::string_ref(&program[pos], n-pos)));
+                quickbook::string_view(&program[pos], n-pos)));
         }
 
         // Detect if indentation is mixed.
         bool mixed_indentation = false;
-        boost::string_ref first_indent(&program[start], indent);
+        quickbook::string_view first_indent(&program[start], indent);
         pos = start;
 
         while (std::string::npos != (pos = program.find_first_of("\r\n", pos)))
@@ -546,7 +546,7 @@ namespace quickbook
             std::string::size_type n = program.find_first_not_of(" \t", pos);
             if (n == std::string::npos || n-pos < indent) continue;
 
-            if (boost::string_ref(&program[pos], indent) != first_indent) {
+            if (quickbook::string_view(&program[pos], indent) != first_indent) {
                 mixed_indentation = true;
                 break;
             }
@@ -570,7 +570,7 @@ namespace quickbook
 
             if (mixed_indentation)
             {
-                unsigned length = indentation_count(boost::string_ref(
+                unsigned length = indentation_count(quickbook::string_view(
                     &program[pos], next - pos));
 
                 if (length > full_indent) {
@@ -595,7 +595,7 @@ namespace quickbook
         data->new_file->source_.append(unindented_program);
     }
 
-    file_position mapped_file::position_of(boost::string_ref::const_iterator pos) const
+    file_position mapped_file::position_of(quickbook::string_view::const_iterator pos) const
     {
         return original->position_of(original->source().begin() +
             to_original_pos(find_section(pos), pos - source().begin()));

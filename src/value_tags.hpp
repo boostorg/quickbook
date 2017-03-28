@@ -36,6 +36,9 @@
         \
         typedef boost::integer_range<int> range_type; \
         static range_type tags() { return boost::irange(start_index, (int) end_index); } \
+        static bool is_tag(int value) { \
+            return value >= start_index && value < (int) end_index; \
+        } \
     };
 
 #define QUICKBOOK_VALUE_CASE(r, _, value) \
@@ -61,6 +64,9 @@
         \
         typedef boost::integer_range<int> range_type; \
         static range_type tags() { return boost::irange(start_index, (int) end_index); } \
+        static bool is_tag(int value) { \
+            return value >= start_index && value < (int) end_index; \
+        } \
     };
 
 #define QUICKBOOK_VALUE_NAMED_ENUM(r, _, value) \

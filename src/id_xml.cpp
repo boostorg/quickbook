@@ -73,9 +73,9 @@ namespace quickbook
         while(it != end && !find_char(text, *it)) ++it;
     }
 
-    void xml_processor::parse(boost::string_ref source, callback& c)
+    void xml_processor::parse(quickbook::string_view source, callback& c)
     {
-        typedef boost::string_ref::const_iterator iterator;
+        typedef quickbook::string_view::const_iterator iterator;
 
         c.start(source);
 
@@ -118,7 +118,7 @@ namespace quickbook
                         iterator name_start = it;
                         read_to_one_of(it, end, "= \t\n\r>");
                         if (it == end || *it == '>') break;
-                        boost::string_ref name(name_start, it - name_start);
+                        quickbook::string_view name(name_start, it - name_start);
                         ++it;
 
                         read_some_of(it, end, "= \t\n\r");
@@ -131,7 +131,7 @@ namespace quickbook
 
                         it = std::find(it, end, delim);
                         if (it == end) break;
-                        boost::string_ref value(value_start, it - value_start);
+                        quickbook::string_view value(value_start, it - value_start);
                         ++it;
 
                         if (boost::find(id_attributes, detail::to_s(name))

@@ -33,7 +33,7 @@ namespace quickbook
         // Constructor for files that aren't the root of a document.
         file_info(boost::shared_ptr<file_info> const& parent,
                 unsigned compatibility_version,
-                boost::string_ref doc_id_1_1,
+                quickbook::string_view doc_id_1_1,
                 id_placeholder const* override_id) :
             parent(parent), document(parent->document),
             compatibility_version(compatibility_version),
@@ -47,7 +47,7 @@ namespace quickbook
         file_info(boost::shared_ptr<file_info> const& parent,
                 boost::shared_ptr<doc_info> const& document,
                 unsigned compatibility_version,
-                boost::string_ref doc_id_1_1) :
+                quickbook::string_view doc_id_1_1) :
             parent(parent), document(document),
             compatibility_version(compatibility_version),
             depth(0), override_depth(0), override_id(0),
@@ -77,8 +77,8 @@ namespace quickbook
         source_mode_info const source_mode;
 
         section_info(boost::shared_ptr<section_info> const& parent,
-                file_info const* current_file, boost::string_ref id,
-                boost::string_ref id_1_1, id_placeholder const* placeholder_1_6,
+                file_info const* current_file, quickbook::string_view id,
+                quickbook::string_view id_1_1, id_placeholder const* placeholder_1_6,
                 source_mode_info const& source_mode) :
             parent(parent),
             compatibility_version(current_file->compatibility_version),
@@ -102,8 +102,8 @@ namespace quickbook
 
     void document_state::start_file(
             unsigned compatibility_version,
-            boost::string_ref include_doc_id,
-            boost::string_ref id,
+            quickbook::string_view include_doc_id,
+            quickbook::string_view id,
             value const& title)
     {
         state->start_file(compatibility_version, false, include_doc_id, id, title);
@@ -111,8 +111,8 @@ namespace quickbook
 
     std::string document_state::start_file_with_docinfo(
             unsigned compatibility_version,
-            boost::string_ref include_doc_id,
-            boost::string_ref id,
+            quickbook::string_view include_doc_id,
+            quickbook::string_view id,
             value const& title)
     {
         return state->start_file(compatibility_version, true, include_doc_id,
@@ -124,7 +124,7 @@ namespace quickbook
         state->end_file();
     }
 
-    std::string document_state::begin_section(boost::string_ref id,
+    std::string document_state::begin_section(quickbook::string_view id,
             id_category category, source_mode_info const& source_mode)
     {
         return state->begin_section(id, category, source_mode)->to_string();
@@ -147,28 +147,28 @@ namespace quickbook
             source_mode_info();
     }
 
-    std::string document_state::old_style_id(boost::string_ref id, id_category category)
+    std::string document_state::old_style_id(quickbook::string_view id, id_category category)
     {
         return state->old_style_id(id, category)->to_string();
     }
 
-    std::string document_state::add_id(boost::string_ref id, id_category category)
+    std::string document_state::add_id(quickbook::string_view id, id_category category)
     {
         return state->add_id(id, category)->to_string();
     }
 
-    std::string document_state::add_anchor(boost::string_ref id, id_category category)
+    std::string document_state::add_anchor(quickbook::string_view id, id_category category)
     {
         return state->add_placeholder(id, category)->to_string();
     }
 
     std::string document_state::replace_placeholders_with_unresolved_ids(
-            boost::string_ref xml) const
+            quickbook::string_view xml) const
     {
         return replace_ids(*state, xml);
     }
 
-    std::string document_state::replace_placeholders(boost::string_ref xml) const
+    std::string document_state::replace_placeholders(quickbook::string_view xml) const
     {
         assert(!state->current_file);
         std::vector<std::string> ids = generate_ids(*state, xml);
@@ -186,7 +186,7 @@ namespace quickbook
 
     id_placeholder::id_placeholder(
             unsigned index,
-            boost::string_ref id,
+            quickbook::string_view id,
             id_category category,
             id_placeholder const* parent_)
       : index(index),
@@ -211,7 +211,7 @@ namespace quickbook
     //
 
     id_placeholder const* document_state_impl::add_placeholder(
-            boost::string_ref id, id_category category,
+            quickbook::string_view id, id_category category,
             id_placeholder const* parent)
     {
         placeholders.push_back(id_placeholder(
@@ -219,7 +219,7 @@ namespace quickbook
         return &placeholders.back();
     }
 
-    id_placeholder const* document_state_impl::get_placeholder(boost::string_ref value) const
+    id_placeholder const* document_state_impl::get_placeholder(quickbook::string_view value) const
     {
         // If this isn't a placeholder id.
         if (value.size() <= 1 || *value.begin() != '$')
@@ -242,8 +242,8 @@ namespace quickbook
     id_placeholder const* document_state_impl::start_file(
             unsigned compatibility_version,
             bool document_root,
-            boost::string_ref include_doc_id,
-            boost::string_ref id,
+            quickbook::string_view include_doc_id,
+            quickbook::string_view id,
             value const& title)
     {
         boost::shared_ptr<file_info> parent = current_file;
@@ -256,7 +256,7 @@ namespace quickbook
         // specified in an 'include' element) unless backwards compatibility
         // is required.
 
-        boost::string_ref initial_doc_id;
+        quickbook::string_view initial_doc_id;
 
         if (document_root ||
             compatibility_version >= 106u ||
@@ -348,7 +348,7 @@ namespace quickbook
     }
 
     id_placeholder const* document_state_impl::add_id(
-            boost::string_ref id,
+            quickbook::string_view id,
             id_category category)
     {
         return add_id_to_section(id, category,
@@ -356,7 +356,7 @@ namespace quickbook
     }
 
     id_placeholder const* document_state_impl::add_id_to_section(
-            boost::string_ref id,
+            quickbook::string_view id,
             id_category category,
             boost::shared_ptr<section_info> const& section)
     {
@@ -391,7 +391,7 @@ namespace quickbook
     }
 
     id_placeholder const* document_state_impl::old_style_id(
-        boost::string_ref id,
+        quickbook::string_view id,
         id_category category)
     {
         return current_file->compatibility_version < 103u ?
@@ -401,7 +401,7 @@ namespace quickbook
     }
 
     id_placeholder const* document_state_impl::begin_section(
-            boost::string_ref id,
+            quickbook::string_view id,
             id_category category,
             source_mode_info const& source_mode)
     {
@@ -410,7 +410,7 @@ namespace quickbook
     }
 
     id_placeholder const* document_state_impl::create_new_section(
-            boost::string_ref id,
+            quickbook::string_view id,
             id_category category,
             source_mode_info const& source_mode)
     {

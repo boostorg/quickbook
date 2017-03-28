@@ -55,4 +55,3 @@ install images : [ glob $(BOOST_ROOT)/doc/src/images/*.png ]
     : <location>html/images ;
 explicit css ;
 explicit images ;
-
