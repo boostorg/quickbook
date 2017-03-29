@@ -12,12 +12,13 @@ cd $(dirname $0)
 cd ..
 
 write_fast_import() {
+    committer="$(git config user.name) <$(git config user.email)>"
     commit_message="Rebuild documentation"
     branch=$1
 
     # Start commit
     echo "commit refs/heads/${branch}"
-    echo "committer Daniel James <daniel@calamity.org.uk> now"
+    echo "committer ${committer} now"
     echo "data ${#commit_message}"
     echo $commit_message
     echo "from ${branch}"
