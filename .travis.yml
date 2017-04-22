@@ -11,7 +11,7 @@ language: c++
 matrix:
     include:
       - compiler: gcc
-        env: BJAM_TOOLSET=gcc BOOST_ROOT=${HOME}/boost BOOST_VERSION=1.63.0 BOOST_FILENAME=boost_1_63_0
+        env: BJAM_TOOLSET=gcc BOOST_ROOT=${HOME}/boost BOOST_VERSION=1.64.0 BOOST_FILENAME=boost_1_64_0
 
 before_script:
     - cd ${HOME}
