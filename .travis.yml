@@ -11,15 +11,21 @@ language: c++
 matrix:
     include:
       - compiler: gcc
-        env: BJAM_TOOLSET=gcc BOOST_ROOT=${HOME}/boost BOOST_VERSION=1.64.0 BOOST_FILENAME=boost_1_64_0
+        env: |
+          USER_CONFIG="using gcc : : g++-4.8 --std=c++03 -fsanitize=address ;"
+          BOOST_VERSION=1.64.0
+          BOOST_FILENAME=boost_1_64_0
+          BOOST_ROOT=${HOME}/BOOST_VERSION
+      - compiler: clang
+        env: |
+          USER_CONFIG="using clang : : clang++ --std=c++11 -fsanitize=address ;"
+          BOOST_VERSION=1.64.0
+          BOOST_FILENAME=boost_1_64_0
+          BOOST_ROOT=${HOME}/BOOST_VERSION
 
 before_script:
     - cd ${HOME}
-    - |
-        echo "using gcc : : g++-4.8 --std=c++03 -fsanitize=address ;" > user-config.jam
-        echo "using gcc : std11 : g++-4.8 --std=c++11 -fsanitize=address ;" >> user-config.jam
-        echo "using clang : : clang++ --std=c++03 -fsanitize=address ;" >> user-config.jam
-        echo "using clang : std11 : clang++ --std=c++11 -fsanitize=address ;" >> user-config.jam
+    - echo $USER_CONFIG > user-config.jam
     - cat user-config.jam
     - wget -O ${BOOST_FILENAME}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_FILENAME}.tar.bz2/download
     - tar -xjf ${BOOST_FILENAME}.tar.bz2
@@ -33,8 +39,8 @@ before_script:
 
 script:
     - cd ${BOOST_ROOT}/tools/quickbook
-    - ${HOME}/opt/bin/b2 ${BJAM_TOOLSET} dist-bin
+    - ${HOME}/opt/bin/b2 dist-bin
     - cd ${BOOST_ROOT}/tools/quickbook/test
-    - ${HOME}/opt/bin/b2 ${BJAM_TOOLSET}
+    - ${HOME}/opt/bin/b2
     - cd ${BOOST_ROOT}/tools/quickbook/test/python
     - python run_tests.py ${BOOST_ROOT}/dist/bin/quickbook
