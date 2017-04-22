@@ -15,21 +15,37 @@ matrix:
           USER_CONFIG="using gcc : : g++-4.8 --std=c++03 -fsanitize=address ;"
           BOOST_VERSION=1.64.0
           BOOST_FILENAME=boost_1_64_0
-          BOOST_ROOT=${HOME}/BOOST_VERSION
       - compiler: clang
         env: |
           USER_CONFIG="using clang : : clang++ --std=c++11 -fsanitize=address ;"
           BOOST_VERSION=1.64.0
           BOOST_FILENAME=boost_1_64_0
-          BOOST_ROOT=${HOME}/BOOST_VERSION
 
 before_script:
     - cd ${HOME}
     - echo $USER_CONFIG > user-config.jam
     - cat user-config.jam
-    - wget -O ${BOOST_FILENAME}.tar.bz2 https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_FILENAME}.tar.bz2/download
-    - tar -xjf ${BOOST_FILENAME}.tar.bz2
-    - mv ${BOOST_FILENAME} ${BOOST_ROOT}
+    - export BOOST_ROOT=${HOME}/boost
+    - |
+        mkdir $HOME/download
+        mkdir $HOME/extract
+        cd $HOME/download
+        if [ "$TRAVIS_EVENT_TYPE" == cron ]
+        then
+            echo "Downloading snapshot"
+            curl https://api.bintray.com/packages/boostorg/master/snapshot/files |
+                python -c "import os.path, sys, json; x = json.load(sys.stdin); print '\n'.join(a['path'] for a in x if os.path.splitext(a['path'])[1] == '.bz2')" |
+                head -n 1 |
+                sed 's/^/wget -O boost.tar.bz2 http:\/\/dl.bintray.com\/boostorg\/master\//' |
+                bash
+        else
+            echo "Downloading ${BOOST_FILENAME}"
+            wget -O boost.tar.bz2 https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_FILENAME}.tar.bz2/download
+        fi
+        cd $HOME/extract
+        tar -xjf $HOME/download/boost.tar.bz2
+        mv * ${BOOST_ROOT}
+    - cd $HOME
     - rm -r ${BOOST_ROOT}/tools/quickbook
     - mv ${TRAVIS_BUILD_DIR} ${BOOST_ROOT}/tools/quickbook
     - cd ${BOOST_ROOT}/tools/build
