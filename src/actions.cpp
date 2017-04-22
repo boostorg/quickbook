@@ -1734,6 +1734,7 @@ namespace quickbook
         values.finish();
 
         std::string full_id = state.document.begin_section(
+            element_id,
             element_id.empty() ?
                 detail::make_identifier(content.get_quickbook()) :
                 validate_id(state, element_id),
@@ -1762,8 +1763,12 @@ namespace quickbook
         state.out << "</title>\n";
     }
 
-    void end_section_action(quickbook::state& state, value end_section, string_iterator first)
+    void end_section_action(quickbook::state& state, value end_section_list, string_iterator first)
     {
+        value_consumer values = end_section_list;
+        value element_id = values.optional_consume(general_tags::element_id);
+        values.finish();
+
         write_anchors(state, state.out);
 
         if (state.document.section_level() <= state.min_section_level)
@@ -1775,6 +1780,29 @@ namespace quickbook
             ++state.error_count;
             
             return;
+        }
+
+        if (!element_id.empty() && !(element_id == state.document.explicit_id()))
+        {
+            file_position const pos = state.current_file->position_of(first);
+            value section_element_id = state.document.explicit_id();
+
+            if (section_element_id.empty()) {
+                detail::outerr(state.current_file->path, pos.line)
+                    << "Endsect has unexpected id '"
+                    << element_id.get_quickbook()
+                    << "' in section with no explicit id, near column "
+                    << pos.column << ".\n";
+            } else {
+                detail::outerr(state.current_file->path, pos.line)
+                    << "Endsect has incorrect id '"
+                    << element_id.get_quickbook()
+                    << "', expected '"
+                    << state.document.explicit_id().get_quickbook()
+                    << "', near column "
+                    << pos.column << ".\n";
+            }
+            ++state.error_count;
         }
 
         state.out << "</section>";
