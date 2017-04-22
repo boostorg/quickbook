@@ -50,7 +50,7 @@ comment.box.end.props=]
 
 [note Thanks to Rene Rivera for the above SciTE settings.]
 
-[endsect] [/scite]
+[endsect:scite] [/scite]
 
 [/ KDE support (Kate, KWrite, Konqueror, KDevelop) ]
 [include ../extra/katepart/katepart.qbk]
