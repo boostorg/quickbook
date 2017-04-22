@@ -580,8 +580,6 @@ a macro. Example:
 [? __to_be__ To be or not to be]
 ```
 
-[? __to_be__ To be or not to be]
-
 Here, the phrase "To be or not to be" will only be generated if the
 macro symbol `__to_be__` has been previously defined. The phrase
 above will not do anything since we haven't defined `__to_be__`.
@@ -589,14 +587,21 @@ Now, let's define the symbol:
 
 ```
 [def __to_be__]
-```
-
-[def __to_be__]
-
-And try again:
 
 [? __to_be__ To be or not to be]
+```
 
-Yes!
+Which results in:
+
+```
+To be or not to be
+```
+
+In quickbook 1.7, you can generate output when a macro isn't defined:
+
+```
+[?! __to_be__ Not to be]
+```
+
 
 [endsect] [/cond]

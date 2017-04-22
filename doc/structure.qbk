@@ -251,6 +251,29 @@ Valid characters are =a-Z=, =A-Z=, =0-9= and =_=. All non-valid characters are
 converted to underscore and all upper-case are converted to lower case.
 Thus: "The Section Title" will be normalized to "the_section_title".
 
+The end of the section can also have an optional id, this is just used to
+check that it matches the opening of the section.
+
+```
+[section:matching Section with an id]
+
+[/...]
+
+[endsect:matching]
+```
+
+It won't match a generated id, only one that's explicitly specified, so
+this will be an error, even if quickbook generates the id `generated`
+for the section:
+
+```
+[section Generated]
+
+[/...]
+
+[endsect:generated]
+```
+
 Sections can nest, and that results in a hierarchy in the table of contents.
 
 [endsect] [/Section]

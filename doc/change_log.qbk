@@ -344,3 +344,12 @@ Boost 1.46.1:
 * Changes to test and build setup to support continuous integration.
 * Fix a crash when templates are called with no arguments.
   Only affected files with quickbook version less than 1.5.
+
+[heading Version 1.6.4 - Boost 1.65]
+
+* Changes to all language versions:
+  * `endsect` can now have an id, if it doesn't match the current section
+    it's an error.
+* 1.7 changes:
+  * Can now write out conditional content if a macro isn't defined,
+    using `[?!macro_name content]`.
