@@ -166,7 +166,7 @@ valid for =library= documents. If you use them for other document types,
 quickbook will warn about them, but still use them, generating invalid markup,
 that's just ignored by the style sheets.
 
-[endsect] [/attributes]
+[endsect:attributes]
 
 [section:nesting Nesting quickbook documents]
 
@@ -203,9 +203,9 @@ And `chapter.qbk`:
 
     Chapter contents....
 
-[endsect] [/nesting]
+[endsect:nesting]
 
-[endsect] [/docinfo]
+[endsect:docinfo]
 
 [#quickbook.ref.section]
 [section:section Sections]
@@ -276,4 +276,4 @@ for the section:
 
 Sections can nest, and that results in a hierarchy in the table of contents.
 
-[endsect] [/Section]
+[endsect:section]
