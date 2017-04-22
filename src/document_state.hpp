@@ -66,10 +66,11 @@ namespace quickbook
 
         void end_file();
 
-        std::string begin_section(quickbook::string_view, id_category,
-            source_mode_info const&);
+        std::string begin_section(value const&,
+            quickbook::string_view, id_category, source_mode_info const&);
         void end_section();
         int section_level() const;
+        value const& explicit_id() const;
         source_mode_info section_source_mode() const;
 
         std::string old_style_id(quickbook::string_view, id_category);

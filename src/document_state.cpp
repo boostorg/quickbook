@@ -72,18 +72,22 @@ namespace quickbook
         unsigned const compatibility_version;
         unsigned const file_depth;
         unsigned const level;
+
+        value const explicit_id;
         std::string const id_1_1;
         id_placeholder const* const placeholder_1_6;
         source_mode_info const source_mode;
 
         section_info(boost::shared_ptr<section_info> const& parent,
-                file_info const* current_file, quickbook::string_view id,
+                file_info const* current_file,
+                value const& explicit_id,
                 quickbook::string_view id_1_1, id_placeholder const* placeholder_1_6,
                 source_mode_info const& source_mode) :
             parent(parent),
             compatibility_version(current_file->compatibility_version),
             file_depth(current_file->depth),
             level(parent ? parent->level + 1 : 1),
+            explicit_id(explicit_id),
             id_1_1(detail::to_s(id_1_1)),
             placeholder_1_6(placeholder_1_6),
             source_mode(source_mode) {}
@@ -124,10 +128,12 @@ namespace quickbook
         state->end_file();
     }
 
-    std::string document_state::begin_section(quickbook::string_view id,
-            id_category category, source_mode_info const& source_mode)
+    std::string document_state::begin_section(
+        value const& explicit_id, quickbook::string_view id,
+        id_category category, source_mode_info const& source_mode)
     {
-        return state->begin_section(id, category, source_mode)->to_string();
+        return state->begin_section(explicit_id, id, category, source_mode)
+            ->to_string();
     }
 
     void document_state::end_section()
@@ -138,6 +144,11 @@ namespace quickbook
     int document_state::section_level() const
     {
         return state->current_file->document->current_section->level;
+    }
+
+    value const& document_state::explicit_id() const
+    {
+        return state->current_file->document->current_section->explicit_id;
     }
 
     source_mode_info document_state::section_source_mode() const
@@ -296,20 +307,21 @@ namespace quickbook
             source_mode_info default_source_mode;
 
             if (!initial_doc_id.empty()) {
-                return create_new_section(id, id_category::explicit_section_id,
-                    default_source_mode);
+                return create_new_section(empty_value(), id,
+                    id_category::explicit_section_id, default_source_mode);
             }
             else if (!title.empty()) {
-                return create_new_section(
+                return create_new_section(empty_value(),
                     detail::make_identifier(title.get_quickbook()),
-                    id_category::generated_doc,
-                    default_source_mode);
+                    id_category::generated_doc, default_source_mode);
             }
             else if (compatibility_version >= 106u) {
-                return create_new_section("doc", id_category::numbered, default_source_mode);
+                return create_new_section(empty_value(), "doc",
+                    id_category::numbered, default_source_mode);
             }
             else {
-                return create_new_section("", id_category::generated_doc, default_source_mode);
+                return create_new_section(empty_value(), "",
+                    id_category::generated_doc, default_source_mode);
             }
         }
         else {
@@ -401,15 +413,17 @@ namespace quickbook
     }
 
     id_placeholder const* document_state_impl::begin_section(
+            value const& explicit_id,
             quickbook::string_view id,
             id_category category,
             source_mode_info const& source_mode)
     {
         current_file->document->section_id_1_1 = detail::to_s(id);
-        return create_new_section(id, category, source_mode);
+        return create_new_section(explicit_id, id, category, source_mode);
     }
 
     id_placeholder const* document_state_impl::create_new_section(
+            value const& explicit_id,
             quickbook::string_view id,
             id_category category,
             source_mode_info const& source_mode)
@@ -458,7 +472,7 @@ namespace quickbook
 
         current_file->document->current_section =
             boost::make_shared<section_info>(parent,
-                current_file.get(), id, id_1_1, placeholder_1_6,
+                current_file.get(), explicit_id, id_1_1, placeholder_1_6,
                 source_mode);
 
         return p;

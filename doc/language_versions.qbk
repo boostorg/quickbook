@@ -40,7 +40,7 @@ the way a document is interpreted or would break existing documentation.
 * Allow spaces between the `:` character and ids in elements which can
   have ids.
 
-[endsect]
+[endsect:stable]
 
 [include 1_6.qbk]
 [include 1_7.qbk]
