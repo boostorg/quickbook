@@ -536,10 +536,12 @@ namespace quickbook
 
         if (saved_conditional)
         {
+            bool positive = values.consume().get_quickbook().empty();
             quickbook::string_view macro1 = values.consume().get_quickbook();
             std::string macro(macro1.begin(), macro1.end());
 
-            state.conditional = find(state.macro, macro.c_str());
+            state.conditional =
+                (bool)find(state.macro, macro.c_str()) == positive;
 
             if (!state.conditional) {
                 state.push_output();

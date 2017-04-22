@@ -44,6 +44,7 @@ test-suite quickbook.test :
         command_line_macro-1_1.quickbook :
         <testing.arg>-Dsomething[] ]
     [ quickbook-test cond_phrase-1_5 ]
+    [ quickbook-test cond_phrase-1_7 ]
     [ quickbook-test elements-1_5 ]
     [ quickbook-test elements-1_6 ]
     [ quickbook-test escape-1_1 ]
