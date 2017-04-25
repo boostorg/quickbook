@@ -693,8 +693,11 @@ namespace quickbook
                     >>  state.templates.scope
                             [state.values.entry(ph::arg1, ph::arg2, template_tags::escape)]
                             [state.values.entry(ph::arg1, ph::arg2, template_tags::identifier)]
-                    >>  !qbk_ver(106u)
+                    >>  !(  qbk_ver(106u)
                             [error("Templates with punctuation names can't be escaped in quickbook 1.6+")]
+                        |   strict_mode
+                            [error("Templates with punctuation names can't be escaped (strict mode)")]
+                        )
                     |   cl::str_p('`')
                     >>  state.templates.scope
                             [state.values.entry(ph::arg1, ph::arg2, template_tags::escape)]
@@ -987,7 +990,6 @@ namespace quickbook
             )
         >>  space
             ;
-
 
         attribute_value_1_7 =
             state.values.save() [
