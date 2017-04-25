@@ -101,7 +101,7 @@ namespace quickbook
                         template_args_1_6, template_arg_1_6, template_arg_1_6_content,
                         break_,
                         command_line_macro_identifier,
-                        dummy_block, line_dummy_block, square_brackets,
+                        dummy_block, line_dummy_block, square_brackets, error_brackets,
                         skip_escape
                         ;
 
@@ -325,6 +325,8 @@ namespace quickbook
 
         scoped_parser<to_value_scoped_action> to_value(state);
         scoped_parser<scoped_paragraph> scope_paragraph(state);
+
+        quickbook_strict strict_mode(state);
 
         // Local Actions
         scoped_parser<process_element_impl> process_element(local);
@@ -609,7 +611,15 @@ namespace quickbook
             |   local.simple_markup
             |   escape
             |   comment
-            |   qbk_ver(106u) >> local.square_brackets
+            |   strict_mode
+            >>  (   local.error_brackets    [error("Invalid template/tag (strict mode)")]
+                |   cl::eps_p('[')          [error("Mismatched open bracket (strict mode)")]
+                >>  cl::anychar_p
+                |   cl::eps_p(']')          [error("Mismatched close bracket (strict mode)")]
+                >>  cl::anychar_p
+                )
+            |   qbk_ver(106u)
+            >>  local.square_brackets
             |   cl::space_p                 [raw_char]
             |   cl::anychar_p               [plain_char]
             ;
@@ -636,6 +646,14 @@ namespace quickbook
             |   cl::ch_p(']')           [plain_char]
             >>  cl::eps_p               [error("Mismatched close bracket")]
             )
+            ;
+
+        local.error_brackets =
+                cl::ch_p('[')           [plain_char]
+            >>  (   local.error_brackets
+                |   (cl::anychar_p - ']')
+                )
+            >>  cl::ch_p(']')
             ;
 
         local.macro =
@@ -675,8 +693,11 @@ namespace quickbook
                     >>  state.templates.scope
                             [state.values.entry(ph::arg1, ph::arg2, template_tags::escape)]
                             [state.values.entry(ph::arg1, ph::arg2, template_tags::identifier)]
-                    >>  !qbk_ver(106u)
+                    >>  !(  qbk_ver(106u)
                             [error("Templates with punctuation names can't be escaped in quickbook 1.6+")]
+                        |   strict_mode
+                            [error("Templates with punctuation names can't be escaped (strict mode)")]
+                        )
                     |   cl::str_p('`')
                     >>  state.templates.scope
                             [state.values.entry(ph::arg1, ph::arg2, template_tags::escape)]
@@ -969,7 +990,6 @@ namespace quickbook
             )
         >>  space
             ;
-
 
         attribute_value_1_7 =
             state.values.save() [

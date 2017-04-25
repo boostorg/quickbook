@@ -9,6 +9,8 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <cstring>
+#include <vector>
 
 #include <boost/spirit/include/classic_scanner.hpp>
 #include <boost/spirit/include/classic_primitives.hpp>
@@ -20,17 +22,37 @@ typedef spirit::scanner<iterator> scanner;
 
 int main(int argc, char * argv[])
 {
-    if (argc != 3)
+    std::vector<char*> args;
+    bool usage_error = false;
+
+    for (int i = 1; i < argc; ++i) {
+        if (std::strncmp(argv[i], "--", 2) == 0) {
+            if (strcmp(argv[i], "--strict") == 0) {
+                // Ignore --strict because the build file accidentally
+                // uses it. Why yes, this is a horrible hack.
+            } else {
+                std::cerr << "ERROR: Invalid flag: " << argv[i] << std::endl;
+                usage_error = true;
+            }
+        } else {
+            args.push_back(argv[i]);
+        }
+    }
+
+    if (!usage_error && args.size() != 2)
     {
         std::cerr << "ERROR: Wrong number of arguments." << std::endl;
-        std::cout << "Usage:\n\t" << argv[0] << " file1 file2" << std::endl;
+        usage_error = true;
+    }
 
+    if (usage_error) {
+        std::cout << "Usage:\n\t" << argv[0] << " file1 file2" << std::endl;
         return 1;
     }
 
     std::ifstream
-        file1(argv[1], std::ios_base::binary | std::ios_base::in),
-        file2(argv[2], std::ios_base::binary | std::ios_base::in);
+        file1(args[0], std::ios_base::binary | std::ios_base::in),
+        file2(args[1], std::ios_base::binary | std::ios_base::in);
 
     if (!file1 || !file2)
     {

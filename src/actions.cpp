@@ -127,6 +127,10 @@ namespace quickbook
         return qbk_version_n >= lower && qbk_version_n < upper;
     }
 
+    bool quickbook_strict::is_string_checking() const {
+        return state.strict_mode;
+    }
+
     void explicit_list_action(quickbook::state&, value);
     void header_action(quickbook::state&, value);
     void begin_section_action(quickbook::state&, value);
