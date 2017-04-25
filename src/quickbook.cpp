@@ -284,6 +284,7 @@ main(int argc, char* argv[])
             ("linewidth", PO_VALUE<int>(), "line width")
             ("input-file", PO_VALUE<command_line_string>(), "input file")
             ("output-file", PO_VALUE<command_line_string>(), "output file")
+            ("no-output", "don't write out the result (overriden by --output-file)")
             ("output-deps", PO_VALUE<command_line_string>(), "output dependency file")
             ("ms-errors", "use Microsoft Visual Studio style error & warn message format")
             ("include-path,I", PO_VALUE< std::vector<command_line_string> >(), "include path")
@@ -440,6 +441,11 @@ main(int argc, char* argv[])
             fs::path fileout;
 
             bool default_output = true;
+
+            if (vm.count("no-output"))
+            {
+                default_output = false;
+            }
 
             if (vm.count("output-deps"))
             {
