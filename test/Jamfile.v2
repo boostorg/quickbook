@@ -103,6 +103,10 @@ test-suite quickbook.test :
     [ quickbook-test section-1_4 ]
     [ quickbook-test section-1_5-unclosed ]
     [ quickbook-test section-1_5 ]
+    [ quickbook-error-test section-1_5-unclosed-strict-fail :
+        section-1_5-unclosed : <testing.arg>--strict ]
+    [ quickbook-test section-1_5-strict :
+        section-1_5.quickbook : : <testing.arg>--strict ]
     [ quickbook-test section-1_7 ]
     [ quickbook-test simple_markup-1_5 ]
     [ quickbook-test source_mode-1_7 ]
