@@ -118,12 +118,14 @@ namespace quickbook
             indent(-1),
             linewidth(-1),
             pretty_print(true),
+            strict_mode(false),
             deps_out_flags(quickbook::dependency_tracker::default_)
         {}
 
         int indent;
         int linewidth;
         bool pretty_print;
+        bool strict_mode;
         fs::path deps_out;
         quickbook::dependency_tracker::flags deps_out_flags;
         fs::path locations_out;
@@ -143,6 +145,7 @@ namespace quickbook
 
         try {
             quickbook::state state(filein_, options_.xinclude_base, buffer, output);
+            state.strict_mode = options_.strict_mode;
             set_macros(state);
 
             if (state.error_count == 0) {
@@ -279,6 +282,7 @@ main(int argc, char* argv[])
             ("help", "produce help message")
             ("version", "print version string")
             ("no-pretty-print", "disable XML pretty printing")
+            ("strict", "strict mode")
             ("no-self-linked-headers", "stop headers linking to themselves")
             ("indent", PO_VALUE<int>(), "indent spaces")
             ("linewidth", PO_VALUE<int>(), "line width")
@@ -382,6 +386,8 @@ main(int argc, char* argv[])
 
         if (vm.count("no-pretty-print"))
             parse_document_options.pretty_print = false;
+
+        parse_document_options.strict_mode = !!vm.count("strict");
 
         quickbook::self_linked_headers = !vm.count("no-self-linked-headers");
 

@@ -56,6 +56,7 @@ namespace quickbook
         int                     callout_depth;      // they don't nest.
         dependency_tracker      dependencies;
         bool                    explicit_list;      // set when using a list
+        bool                    strict_mode;
 
     // state saved for files and templates.
         bool                    imported;
