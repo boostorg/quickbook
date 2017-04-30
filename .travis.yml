@@ -32,16 +32,16 @@ before_script:
         cd $HOME/download
         if [ "$TRAVIS_EVENT_TYPE" == cron ]
         then
-            echo "Downloading snapshot"
-            curl https://api.bintray.com/packages/boostorg/master/snapshot/files |
-                python -c "import os.path, sys, json; x = json.load(sys.stdin); print '\n'.join(a['path'] for a in x if os.path.splitext(a['path'])[1] == '.bz2')" |
-                head -n 1 |
-                sed 's/^/wget -O boost.tar.bz2 http:\/\/dl.bintray.com\/boostorg\/master\//' |
-                bash
+            download_url=$(
+                curl https://api.bintray.com/packages/boostorg/master/snapshot/files |
+                    python -c "import os.path, sys, json; x = json.load(sys.stdin); print '\n'.join(a['path'] for a in x if os.path.splitext(a['path'])[1] == '.bz2')" |
+                    head -n 1 |
+                    sed 's/^/http:\/\/dl.bintray.com\/boostorg\/master\//')
         else
-            echo "Downloading ${BOOST_FILENAME}"
-            wget -O boost.tar.bz2 https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_FILENAME}.tar.bz2/download
+            download_url=https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_FILENAME}.tar.bz2/download
         fi
+        echo "Downloading ${download_url}"
+        wget -O boost.tar.bz2 $download_url
         cd $HOME/extract
         tar -xjf $HOME/download/boost.tar.bz2
         mv * ${BOOST_ROOT}
