@@ -30,7 +30,7 @@ before_script:
         mkdir $HOME/download
         mkdir $HOME/extract
         cd $HOME/download
-        if [ "$TRAVIS_EVENT_TYPE" == "push" ]
+        if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
         then
             if [ "$TRAVIS_BRANCH" == "master" ]
             then
