@@ -35,6 +35,10 @@ Which, if successful, will print out something like:
     a post processor which generates consistent XML indentation, this flag
     disables it.
     ]]
+    [[--strict] [
+    Strict mode. Adds extra errors for possible issues, including sections that
+    weren't closed, and square brackets that don't match any tags or templates.
+    ]]
     [[--no-self-linked-headers] [
     By default quickbook generates docbook headers that link to themselves,
     so that in a web browser you can get a link to the header by right clicking
@@ -59,6 +63,12 @@ Which, if successful, will print out something like:
     [[--output-file path] [
     Explicitly specifiy the path of the file to be generated. By default, it's just the
     input file name with the extension replaced by `.xml`.
+    ]]
+    [[--no-output] [
+    Don't write out a boostbook file. This is useful for checking that a
+    document doesn't have any sytax errors, or for running with
+    `--output-deps`. If `--output-file-path` is also defined, that overwrites
+    this.
     ]]
     [[--output-deps path] [
     Writes the full path of all the files read in by quickbook to the given path.
