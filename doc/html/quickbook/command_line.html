@@ -61,6 +61,12 @@
                 a post processor which generates consistent XML indentation, this
                 flag disables it.
               </p></dd>
+<dt><span class="term">--strict</span></dt>
+<dd><p>
+                Strict mode. Adds extra errors for possible issues, including sections
+                that weren't closed, and square brackets that don't match any tags
+                or templates.
+              </p></dd>
 <dt><span class="term">--no-self-linked-headers</span></dt>
 <dd><p>
                 By default quickbook generates docbook headers that link to themselves,
@@ -101,6 +107,13 @@
 <dd><p>
                 Explicitly specifiy the path of the file to be generated. By default,
                 it's just the input file name with the extension replaced by <code class="computeroutput">.xml</code>.
+              </p></dd>
+<dt><span class="term">--no-output</span></dt>
+<dd><p>
+                Don't write out a boostbook file. This is useful for checking that
+                a document doesn't have any sytax errors, or for running with <code class="computeroutput">--output-deps</code>.
+                If <code class="computeroutput">--output-file-path</code> is also defined, that overwrites
+                this.
               </p></dd>
 <dt><span class="term">--output-deps path</span></dt>
 <dd><p>

@@ -344,3 +344,16 @@ Boost 1.46.1:
 * Changes to test and build setup to support continuous integration.
 * Fix a crash when templates are called with no arguments.
   Only affected files with quickbook version less than 1.5.
+
+[heading Version 1.6.4 - Boost 1.65]
+
+* Changes to all language versions:
+  * `endsect` can now have an id, if it doesn't match the current section
+    it's an error.
+* 1.7 changes:
+  * Can now write out conditional content if a macro isn't defined,
+    using `[?!macro_name content]`.
+* Support for strict parsing using the `--strict` paramters. This is still
+  under development so new errors could be added.
+* `--no-output` command line parameter to process the quickbook documents
+  but not actually generate any files.

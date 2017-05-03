@@ -95,6 +95,7 @@ namespace quickbook
             quickbook::string_view id,
             id_category category);
         id_placeholder const* begin_section(
+                value const& explicit_id,
                 quickbook::string_view id,
                 id_category category,
                 source_mode_info const&);
@@ -106,6 +107,7 @@ namespace quickbook
                 id_category category,
                 boost::shared_ptr<section_info> const& section);
         id_placeholder const* create_new_section(
+                value const& explicit_id,
                 quickbook::string_view id,
                 id_category category,
                 source_mode_info const&);

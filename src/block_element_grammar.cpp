@@ -76,7 +76,8 @@ namespace quickbook
             ;
 
         local.end_section =
-                cl::eps_p
+                space
+            >>  local.element_id
             ;
 
         local.heading

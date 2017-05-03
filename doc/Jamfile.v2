@@ -38,7 +38,7 @@ boostbook standalone
 
 boostbook fully-standalone
     :
-        doc-guide
+        doc-guide/<quickbook-define>__standalone__
     :
         <dependency>css
         <dependency>images

@@ -71,6 +71,27 @@
           Thus: "The Section Title" will be normalized to "the_section_title".
         </p>
 <p>
+          The end of the section can also have an optional id, this is just used
+          to check that it matches the opening of the section.
+        </p>
+<pre class="programlisting">[section:matching Section with an id]
+
+[/...]
+
+[endsect:matching]
+</pre>
+<p>
+          It won't match a generated id, only one that's explicitly specified, so
+          this will be an error, even if quickbook generates the id <code class="computeroutput">generated</code>
+          for the section:
+        </p>
+<pre class="programlisting">[section Generated]
+
+[/...]
+
+[endsect:generated]
+</pre>
+<p>
           Sections can nest, and that results in a hierarchy in the table of contents.
         </p>
 </div>

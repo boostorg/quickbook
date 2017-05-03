@@ -49,7 +49,7 @@ write_fast_import() {
     done
 }
 
-b2 -q doc//fully-standalone
+b2 -aq doc//fully-standalone
 branch=gh-pages
 write_fast_import gh-pages | git fast-import --date-format=now --quiet
-git push origin gh-pages
+git push boostorg gh-pages
