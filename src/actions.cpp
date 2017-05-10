@@ -127,7 +127,7 @@ namespace quickbook
         return qbk_version_n >= lower && qbk_version_n < upper;
     }
 
-    bool quickbook_strict::is_string_checking() const {
+    bool quickbook_strict::is_strict_checking() const {
         return state.strict_mode;
     }
 
