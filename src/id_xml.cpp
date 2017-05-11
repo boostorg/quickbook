@@ -156,33 +156,14 @@ namespace quickbook
         {
             typedef quickbook::string_view::const_iterator iterator;
 
-            std::string result;
-
             iterator it = source.begin(), end = source.end();
 
-            int link_depth = 0;
-            iterator start = it;
-            read_some_of(it, end, " \t\n\r");
-            result.append(start, it);
-            start = it;
-            // If the source is empty, we'll still create an empty link tag
-            // to avoid gratuitous changes in generated output, need to track
-            // that special case.
-            bool empty = true;
+            bool contains_link = false;
 
-            for(;;)
+            for(;!contains_link;)
             {
-                read_to_one_of(it, end, "<");
+                read_past(it, end, "<");
                 if (it == end) break;
-                iterator tag_start = it;
-                ++it;
-                if (it == end) break;
-
-                if (read(it, end, "!--quickbook-escape-prefix-->"))
-                {
-                    read_past(it, end, "<!--quickbook-escape-postfix-->");
-                    continue;
-                }
 
                 switch(*it)
                 {
@@ -199,28 +180,6 @@ namespace quickbook
                     }
                     break;
 
-                case '/':
-                    {
-                        ++it;
-                        read_some_of(it, end, " \t\n\r");
-                        if (it == end) { break; }
-                        iterator tag_name_start = it;
-                        read_to_one_of(it, end, " \t\n\r>");
-                        quickbook::string_view tag_name(tag_name_start, it - tag_name_start);
-                        read_past(it, end, ">");
-
-                        if (tag_name == "link") {
-                            if (link_depth > 0) { --link_depth; }
-                            if (link_depth == 0) {
-                                read_some_of(it, end, " \t\n\r");
-                                result.append(start, it);
-                                start = it;
-                                empty = false;
-                            }
-                        }
-                    }
-                    break;
-
                 default:
                     if ((*it >= 'a' && *it <= 'z') ||
                             (*it >= 'A' && *it <= 'Z') ||
@@ -229,19 +188,7 @@ namespace quickbook
                         iterator tag_name_start = it;
                         read_to_one_of(it, end, " \t\n\r>");
                         quickbook::string_view tag_name(tag_name_start, it - tag_name_start);
-
-                        if (tag_name == "link") {
-                            if (link_depth == 0 && start != tag_start) {
-                                result += "<link linkend=\"";
-                                result .append(linkend.begin(), linkend.end());
-                                result += "\">";
-                                result.append(start, tag_start);
-                                result += "</link>";
-                                start = tag_start;
-                                empty = false;
-                            }
-                            ++link_depth;
-                        }
+                        if (tag_name == "link") { contains_link = true; }
 
                         for (;;) {
                             read_to_one_of(it, end, "\"'\n\r>");
@@ -262,12 +209,16 @@ namespace quickbook
                 }
             }
 
-            if (start != it || empty) {
+            std::string result;
+
+            if (!contains_link) {
                 result += "<link linkend=\"";
                 result.append(linkend.begin(), linkend.end());
                 result += "\">";
-                result.append(start, it);
+                result.append(source.begin(), source.end());
                 result += "</link>";
+            } else {
+                result.append(source.begin(), source.end());
             }
 
             return result;
