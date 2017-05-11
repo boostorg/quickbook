@@ -49,6 +49,9 @@ namespace quickbook { namespace detail {
     inline std::string to_s(quickbook::string_view x) {
         return std::string(x.begin(), x.end());
     }
+
+    // Defined in id_xml.cpp. Just because.
+    std::string linkify(quickbook::string_view source, quickbook::string_view linkend);
 }}
 
 #endif // BOOST_SPIRIT_QUICKBOOK_UTILS_HPP

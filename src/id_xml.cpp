@@ -150,4 +150,127 @@ namespace quickbook
 
         c.finish(source);
     }
+
+    namespace detail {
+        std::string linkify(quickbook::string_view source, quickbook::string_view linkend)
+        {
+            typedef quickbook::string_view::const_iterator iterator;
+
+            std::string result;
+
+            iterator it = source.begin(), end = source.end();
+
+            int link_depth = 0;
+            iterator start = it;
+            read_some_of(it, end, " \t\n\r");
+            result.append(start, it);
+            start = it;
+            // If the source is empty, we'll still create an empty link tag
+            // to avoid gratuitous changes in generated output, need to track
+            // that special case.
+            bool empty = true;
+
+            for(;;)
+            {
+                read_to_one_of(it, end, "<");
+                if (it == end) break;
+                iterator tag_start = it;
+                ++it;
+                if (it == end) break;
+
+                if (read(it, end, "!--quickbook-escape-prefix-->"))
+                {
+                    read_past(it, end, "<!--quickbook-escape-postfix-->");
+                    continue;
+                }
+
+                switch(*it)
+                {
+                case '?':
+                    ++it;
+                    read_past(it, end, "?>");
+                    break;
+
+                case '!':
+                    if (read(it, end, "!--")) {
+                        read_past(it, end, "-->");
+                    } else {
+                        read_past(it, end, ">");
+                    }
+                    break;
+
+                case '/':
+                    {
+                        ++it;
+                        read_some_of(it, end, " \t\n\r");
+                        if (it == end) { break; }
+                        iterator tag_name_start = it;
+                        read_to_one_of(it, end, " \t\n\r>");
+                        quickbook::string_view tag_name(tag_name_start, it - tag_name_start);
+                        read_past(it, end, ">");
+
+                        if (tag_name == "link") {
+                            if (link_depth > 0) { --link_depth; }
+                            if (link_depth == 0) {
+                                read_some_of(it, end, " \t\n\r");
+                                result.append(start, it);
+                                start = it;
+                                empty = false;
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    if ((*it >= 'a' && *it <= 'z') ||
+                            (*it >= 'A' && *it <= 'Z') ||
+                            *it == '_' || *it == ':')
+                    {
+                        iterator tag_name_start = it;
+                        read_to_one_of(it, end, " \t\n\r>");
+                        quickbook::string_view tag_name(tag_name_start, it - tag_name_start);
+
+                        if (tag_name == "link") {
+                            if (link_depth == 0 && start != tag_start) {
+                                result += "<link linkend=\"";
+                                result .append(linkend.begin(), linkend.end());
+                                result += "\">";
+                                result.append(start, tag_start);
+                                result += "</link>";
+                                start = tag_start;
+                                empty = false;
+                            }
+                            ++link_depth;
+                        }
+
+                        for (;;) {
+                            read_to_one_of(it, end, "\"'\n\r>");
+                            if (it == end || *it == '>') break;
+                            if (*it == '"' || *it == '\'') {
+                                char delim = *it;
+                                ++it;
+                                it = std::find(it, end, delim);
+                                if (it == end) break;
+                                ++it;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        read_past(it, end, ">");
+                    }
+                }
+            }
+
+            if (start != it || empty) {
+                result += "<link linkend=\"";
+                result.append(linkend.begin(), linkend.end());
+                result += "\">";
+                result.append(start, it);
+                result += "</link>";
+            }
+
+            return result;
+        }
+    }
 }
