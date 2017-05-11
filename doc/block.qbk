@@ -896,7 +896,7 @@ will generate:
 The table title is optional. The first row of the table is automatically
 treated as the table header; that is, it is wrapped in [^<thead>...</thead>]
 XML tags. Note that unlike the original QuickDoc, the columns are nested in
-\[cells... \].
+[cells... ].
 
 Giving tables an id is a new feature for quickbook 1.5 onwards. As with
 sections, the id is optional. If the table has a title but no id, an id will
