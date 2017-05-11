@@ -19,9 +19,9 @@ void linkify_test() {
     BOOST_TEST(linkify("<link linkend=\"something\">abc</link>", "link") ==
         "<link linkend=\"something\">abc</link>");
     BOOST_TEST(linkify("abc <link linkend=\"something\">def</link>", "link") ==
-        "<link linkend=\"link\">abc </link><link linkend=\"something\">def</link>");
+        "abc <link linkend=\"something\">def</link>");
     BOOST_TEST(linkify("<link linkend=\"something\">abc</link> def", "link") ==
-        "<link linkend=\"something\">abc</link> <link linkend=\"link\">def</link>");
+        "<link linkend=\"something\">abc</link> def");
 }
 
 int main() {
