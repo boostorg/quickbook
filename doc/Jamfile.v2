@@ -13,7 +13,7 @@ project quickbook/doc ;
 using boostbook ;
 using quickbook ;
 
-xml quickbook : quickbook.qbk ;
+xml quickbook : quickbook.qbk : <quickbook-strict-mode>on ;
 
 path-constant images : ../../../doc/src ;
 

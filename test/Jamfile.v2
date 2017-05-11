@@ -92,6 +92,14 @@ test-suite quickbook.test :
     [ quickbook-test mismatched_brackets1-1_1 ]
     [ quickbook-test mismatched_brackets2-1_1 ]
     [ quickbook-test mismatched_brackets3-1_1 ]
+    [ quickbook-error-test mismatched_brackets1-1_1-strict-fail :
+        mismatched_brackets1-1_1.quickbook : <testing.arg>--strict ]
+    [ quickbook-error-test mismatched_brackets2-1_1-strict-fail :
+        mismatched_brackets2-1_1.quickbook : <testing.arg>--strict ]
+    [ quickbook-error-test mismatched_brackets3-1_1-strict-fail :
+        mismatched_brackets3-1_1.quickbook : <testing.arg>--strict ]
+    [ quickbook-error-test mismatched_brackets1-1_7-strict-fail :
+        mismatched_brackets1-1_1.quickbook : <testing.arg>--strict ]
     [ quickbook-test newline-1_1 ]
     [ quickbook-test para_test-1_5 ]
     [ quickbook-error-test post_process-fail ]
@@ -103,9 +111,18 @@ test-suite quickbook.test :
     [ quickbook-test section-1_4 ]
     [ quickbook-test section-1_5-unclosed ]
     [ quickbook-test section-1_5 ]
+    [ quickbook-error-test section-1_5-unclosed-strict-fail :
+        section-1_5-unclosed : <testing.arg>--strict ]
+    [ quickbook-test section-1_5-strict :
+        section-1_5.quickbook : : <testing.arg>--strict ]
     [ quickbook-test section-1_7 ]
     [ quickbook-test simple_markup-1_5 ]
     [ quickbook-test source_mode-1_7 ]
+    [ quickbook-test stray_close_bracket-1_1 ]
+    [ quickbook-error-test stray_close_bracket-1_1-strict-fail :
+        stray_close_bracket-1_1.quickbook :
+        <testing.arg>--strict ]
+    [ quickbook-error-test stray_close_bracket-1_7-fail ]
     [ quickbook-test svg-1_1 ]
     [ quickbook-test table-1_3 ]
     [ quickbook-test table-1_5 ]

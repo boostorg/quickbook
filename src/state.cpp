@@ -46,6 +46,7 @@ namespace quickbook
         , callout_depth(0)
         , dependencies()
         , explicit_list(false)
+        , strict_mode(false)
 
         , imported(false)
         , macro()

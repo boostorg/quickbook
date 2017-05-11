@@ -22,6 +22,7 @@ namespace quickbook
 {
     namespace cl = boost::spirit::classic;
 
+    // Match if quickbook version is within range
     struct quickbook_range : cl::parser<quickbook_range> {
         quickbook_range(unsigned lower, unsigned upper)
             : lower(lower), upper(upper) {}
@@ -40,6 +41,34 @@ namespace quickbook
     
     inline quickbook_range qbk_ver(unsigned lower, unsigned upper = 999u) {
         return quickbook_range(lower, upper);
+    }
+
+    // Match if in strict mode.
+    struct quickbook_strict : cl::parser<quickbook_strict> {
+        quickbook_strict(quickbook::state& state, bool positive = true)
+            : state(state), positive(positive) {}
+
+        bool is_strict_checking() const;
+
+        template <typename ScannerT>
+        typename cl::parser_result<quickbook_range, ScannerT>::type
+        parse(ScannerT const& scan) const
+        {
+            return is_strict_checking() == positive ?
+                scan.empty_match() : scan.no_match();
+        }
+
+        quickbook_strict operator~() const
+        {
+            return quickbook_strict(state, !positive);
+        }
+
+        quickbook::state& state;
+        bool positive;
+    };
+
+    inline quickbook_strict qbk_strict(quickbook::state& state, unsigned lower = 999u) {
+        return quickbook_strict(state, lower);
     }
 
     // Throws load_error
