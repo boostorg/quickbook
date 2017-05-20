@@ -1754,10 +1754,7 @@ namespace quickbook
 
         if (self_linked_headers && state.document.compatibility_version() >= 103)
         {
-            state.out << "<link linkend=\"" << full_id << "\">"
-                << content.get_encoded()
-                << "</link>"
-                ;
+            state.out << quickbook::detail::linkify(content.get_encoded(), full_id);
         }
         else
         {
