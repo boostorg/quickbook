@@ -1748,20 +1748,25 @@ namespace quickbook
             state.current_source_mode());
 
         state.out << "\n<section id=\"" << full_id << "\">\n";
-        state.out << "<title>";
 
-        write_anchors(state, state.out);
+        std::string title = content.get_encoded();
 
-        if (self_linked_headers && state.document.compatibility_version() >= 103)
-        {
-            state.out << quickbook::detail::linkify(content.get_encoded(), full_id);
+        if (!title.empty()) {
+            state.out << "<title>";
+
+            write_anchors(state, state.out);
+
+            if (self_linked_headers && state.document.compatibility_version() >= 103)
+            {
+                state.out << quickbook::detail::linkify(content.get_encoded(), full_id);
+            }
+            else
+            {
+                state.out << content.get_encoded();
+            }
+
+            state.out << "</title>\n";
         }
-        else
-        {
-            state.out << content.get_encoded();
-        }
-        
-        state.out << "</title>\n";
     }
 
     void end_section_action(quickbook::state& state, value end_section_list, string_iterator first)
