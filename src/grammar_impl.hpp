@@ -136,11 +136,14 @@ namespace quickbook
         cl::rule<scanner> skip_entity;
 
         // Miscellaneous stuff
-        cl::rule<scanner> hard_space;
-        cl::rule<scanner> space;
-        cl::rule<scanner> blank;
-        cl::rule<scanner> eol;
-        cl::rule<scanner> phrase_end;
+        cl::rule<scanner> hard_space; // Either non-empty space, or
+                                      // empty and not followed by
+                                      // alphanumeric/_. Use to match the
+                                      // the end of an itendifier.
+        cl::rule<scanner> space; // Space/tab/newline/comment (possibly empty)
+        cl::rule<scanner> blank; // Space/tab/comment (possibly empty)
+        cl::rule<scanner> eol; // blank >> eol
+        cl::rule<scanner> phrase_end; // End of phrase text, context sensitive
         cl::rule<scanner> comment;
         cl::rule<scanner> line_comment;
         cl::rule<scanner> macro_identifier;
