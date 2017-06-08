@@ -11,10 +11,10 @@ familiar with using it.
 [section:simple Simple examples]
 
 Starting with the simplest of examples, in
-[@boost://tools/quickbook/examples/simple-boostbook/
+[@boost:/tools/quickbook/examples/simple-boostbook/
  `tools/quickbook/examples/simple-boostbook/`]
 you'll find the first example. This consists of a small boostbook file
-([@boost://tools/quickbook/examples/simple-boostbook/simple.xml
+([@boost:/tools/quickbook/examples/simple-boostbook/simple.xml
  `tools/quickbook/examples/simple-boostbook/simple.xml`] and a Jamfile
 to build it, which looks like this:
 
@@ -65,7 +65,7 @@ Having done this the documentation should be at
 `tools/quickbook/examples/simple-boostbook/html/index.html`.
 
 Building quickbook is very similar, there's a corresponding example at
-[@boost://tools/quickbook/examples/simple-boostbook/
+[@boost:/tools/quickbook/examples/simple-boostbook/
  `tools/quickbook/examples/simple-boostbook/`].
 For that case, the Jamfile is:
 
@@ -95,7 +95,7 @@ So far, the documentation has been built inside the boost tree, so it uses
 the boost css files and images directly from their original location.
 But when building in a separate repository the css and images files need to
 be copied into place. You can see an example of this at
-[@boost://tools/quickbook/examples/standalone-quickbook/
+[@boost:/tools/quickbook/examples/standalone-quickbook/
  `tools/quickbook/examples/standalone-quickbook/`]. This is in the boost
 tree, but it has a `Jamroot.jam` file which makes Boost.Build treat it as
 its own build tree. Here the Jamfile is:

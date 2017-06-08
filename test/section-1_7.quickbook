@@ -16,3 +16,8 @@
 [template thing[] abc]
 [section:sect-[thing] Section with template in id]
 [endsect]
+
+[section [link section_id_1_7.id_test1 Link in title]]
+[endsect]
+[section [link section_id_1_7.id_test1 Link] in title]
+[endsect]

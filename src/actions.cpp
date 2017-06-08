@@ -127,7 +127,7 @@ namespace quickbook
         return qbk_version_n >= lower && qbk_version_n < upper;
     }
 
-    bool quickbook_strict::is_string_checking() const {
+    bool quickbook_strict::is_strict_checking() const {
         return state.strict_mode;
     }
 
@@ -1748,23 +1748,25 @@ namespace quickbook
             state.current_source_mode());
 
         state.out << "\n<section id=\"" << full_id << "\">\n";
-        state.out << "<title>";
 
-        write_anchors(state, state.out);
+        std::string title = content.get_encoded();
 
-        if (self_linked_headers && state.document.compatibility_version() >= 103)
-        {
-            state.out << "<link linkend=\"" << full_id << "\">"
-                << content.get_encoded()
-                << "</link>"
-                ;
+        if (!title.empty()) {
+            state.out << "<title>";
+
+            write_anchors(state, state.out);
+
+            if (self_linked_headers && state.document.compatibility_version() >= 103)
+            {
+                state.out << quickbook::detail::linkify(content.get_encoded(), full_id);
+            }
+            else
+            {
+                state.out << content.get_encoded();
+            }
+
+            state.out << "</title>\n";
         }
-        else
-        {
-            state.out << content.get_encoded();
-        }
-        
-        state.out << "</title>\n";
     }
 
     void end_section_action(quickbook::state& state, value end_section_list, string_iterator first)

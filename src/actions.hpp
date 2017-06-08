@@ -48,13 +48,13 @@ namespace quickbook
         quickbook_strict(quickbook::state& state, bool positive = true)
             : state(state), positive(positive) {}
 
-        bool is_string_checking() const;
+        bool is_strict_checking() const;
 
         template <typename ScannerT>
         typename cl::parser_result<quickbook_range, ScannerT>::type
         parse(ScannerT const& scan) const
         {
-            return is_string_checking() == positive ?
+            return is_strict_checking() == positive ?
                 scan.empty_match() : scan.no_match();
         }
 
