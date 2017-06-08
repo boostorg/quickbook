@@ -42,7 +42,7 @@ boostbook fully-standalone
     :
         <dependency>css
         <dependency>images
-        <xsl:param>boost.root=http://www.boost.org
+        <xsl:param>boost.root=http://www.boost.org/doc/libs/develop
         <xsl:param>html.stylesheet=boostbook.css
         <xsl:param>img.src.path=images/
         <xsl:param>boost.graphics.root=images/
