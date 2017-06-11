@@ -1758,11 +1758,11 @@ namespace quickbook
 
             if (self_linked_headers && state.document.compatibility_version() >= 103)
             {
-                state.out << quickbook::detail::linkify(content.get_encoded(), full_id);
+                state.out << quickbook::detail::linkify(title, full_id);
             }
             else
             {
-                state.out << content.get_encoded();
+                state.out << title;
             }
 
             state.out << "</title>\n";
