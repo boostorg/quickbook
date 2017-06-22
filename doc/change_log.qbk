@@ -8,7 +8,7 @@
 ]
 
 [chapter Change Log
-    [quickbook 1.6]
+    [quickbook 1.7]
     [compatibility-mode 1.5]
     [id quickbook.change_log]
     [source-mode teletype]
@@ -353,3 +353,7 @@ Boost 1.46.1:
 * 1.7 changes:
   * Can now write out conditional content if a macro isn't defined,
     using `[?!macro_name content]`.
+* Support for strict parsing using the `--strict` paramters. This is still
+  under development so new errors could be added.
+* `--no-output` command line parameter to process the quickbook documents
+  but not actually generate any files.

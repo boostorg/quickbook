@@ -83,6 +83,7 @@
 
 [include introduction.qbk]
 [include change_log.qbk]
+[include command_line.qbk]
 [include syntax.qbk]
 [include structure.qbk]
 [include phrase.qbk]
