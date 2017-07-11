@@ -348,7 +348,7 @@ namespace quickbook
         assert(load_type == block_tags::include ||
             load_type == block_tags::import);
 
-        bool is_python = extension == ".py";
+        bool is_python = extension == ".py" || extension == ".jam";
         code_snippet_actions a(storage, load(filename, qbk_version_n), is_python ? "[python]" : "[c++]");
 
         string_iterator first(a.source_file->source().begin());
