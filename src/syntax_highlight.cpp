@@ -390,7 +390,11 @@ namespace quickbook
                     =
                     *(  (+cl::space_p)                  [plain_char]
                     |   macro
-                    |   escape          
+                    |   escape
+                    |   cl::eps_p(ph::var(self.actions.support_callouts))
+                    >>  (   line_callout                [callout]
+                        |   inline_callout              [callout]
+                        )
                     |   comment
                     |   keyword                         [span("keyword")]
                     |   identifier                      [span("identifier")]
@@ -426,6 +430,19 @@ namespace quickbook
                             >> *cl::anychar_p
                         )
                     )                                   [post_escape_back]
+                    ;
+
+                inline_callout
+                    =   "#<" >> *cl::space_p >>
+                        (*(cl::anychar_p - cl::eol_p))  [mark_text]
+                    ;
+
+                line_callout
+                    =   cl::confix_p(
+                            "#<<" >> *cl::space_p,
+                            (*cl::anychar_p)            [mark_text],
+                            (cl::eol_p | cl::end_p)
+                        )
                     ;
 
                 comment
@@ -482,7 +499,8 @@ namespace quickbook
             }
 
             cl::rule<Scanner>
-                            program, macro, comment, special, string_, string_prefix, 
+                            program, macro, inline_callout, line_callout,
+                            comment, special, string_, string_prefix,
                             short_string, long_string, number, identifier, keyword, 
                             escape, string_char;
 
