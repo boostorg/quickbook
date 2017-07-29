@@ -93,6 +93,14 @@ namespace quickbook
         return values;
     }
 
+    enum version_state { version_unknown, version_stable, version_dev };
+    version_state classify_version(unsigned v) {
+        return v < 100u ? version_unknown :
+            v <= 106u ? version_stable :
+            v <= 107u ? version_dev :
+            version_unknown;
+    }
+
     unsigned get_version(quickbook::state& state, bool using_docinfo,
             value version)
     {
@@ -110,7 +118,7 @@ namespace quickbook
                 result = ((unsigned) major_verison * 100) +
                     (unsigned) minor_verison;
             
-                if(result < 100 || result > 107)
+                if (classify_version(result) == version_unknown)
                 {
                     detail::outerr(state.current_file->path)
                         << "Unknown version: "
@@ -216,7 +224,7 @@ namespace quickbook
 
         if (new_version != qbk_version_n)
         {
-            if (new_version >= 107u)
+            if (classify_version(new_version) == version_dev)
             {
                 detail::outwarn(state.current_file->path)
                     << "Quickbook " << (new_version / 100) << "." << (new_version % 100)
