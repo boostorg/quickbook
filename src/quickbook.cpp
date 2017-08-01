@@ -446,6 +446,11 @@ main(int argc, char* argv[])
                 vm["input-file"].as<command_line_string>());
             fs::path fileout;
 
+            if (!fs::exists(filein)) {
+                quickbook::detail::outerr() << "file not found: " << filein;
+                ++error_count;
+            }
+
             bool default_output = true;
 
             if (vm.count("no-output"))
@@ -507,6 +512,13 @@ main(int argc, char* argv[])
             {
                 fileout = quickbook::detail::command_line_to_path(
                     vm["output-file"].as<command_line_string>());
+
+                if (!fs::is_directory(fileout.parent_path()))
+                {
+                    quickbook::detail::outerr()
+                        << "parent directory not found for output file";
+                    ++error_count;
+                }
             }
             else if (default_output)
             {
@@ -519,21 +531,27 @@ main(int argc, char* argv[])
                 parse_document_options.xinclude_base =
                     quickbook::detail::command_line_to_path(
                         vm["xinclude-base"].as<command_line_string>());
+
+                // TODO: Does this even matter?
+                //       There might be valid reasons to use a path that doesn't
+                //       exist yet, or a path that just generates valid relative
+                //       paths.
+                if (!fs::is_directory(parse_document_options.xinclude_base))
+                {
+                    quickbook::detail::outerr()
+                        << "xinclude-base is not a directory";
+                    ++error_count;
+                }
             }
             else
             {
                 parse_document_options.xinclude_base = fileout.parent_path();
                 if (parse_document_options.xinclude_base.empty())
                     parse_document_options.xinclude_base = ".";
-            }
 
-            if (!fs::is_directory(parse_document_options.xinclude_base))
-            {
-                quickbook::detail::outerr()
-                    << (vm.count("xinclude-base") ?
-                        "xinclude-base is not a directory" :
-                        "parent directory not found for output file");
-                ++error_count;
+                // If fileout was implicitly created from filein, then it should be in filein's directory.
+                // If fileout was explicitly specified, then it's already been checked.
+                assert(error_count || fs::is_directory(parse_document_options.xinclude_base));
             }
 
             if (vm.count("image-location"))
@@ -546,15 +564,16 @@ main(int argc, char* argv[])
                 quickbook::image_location = filein.parent_path() / "html";
             }
 
-            if (!fileout.empty()) {
-                quickbook::detail::out() << "Generating Output File: "
-                    << fileout
-                    << std::endl;
-            }
+            if (!error_count) {
+                if (!fileout.empty()) {
+                    quickbook::detail::out() << "Generating Output File: "
+                        << fileout
+                        << std::endl;
+                }
 
-            if (!error_count)
                 error_count += quickbook::parse_document(
                         filein, fileout, parse_document_options);
+            }
 
             if (expect_errors)
             {
