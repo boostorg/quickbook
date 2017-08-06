@@ -29,7 +29,7 @@ namespace quickbook
     static std::string doc_info_output(value const& p, unsigned version)
     {
         if (qbk_version_n < version) {
-            std::string value = detail::to_s(p.get_quickbook());
+            std::string value = p.get_quickbook().to_s();
             value.erase(value.find_last_not_of(" \t") + 1);
             return value;
         }
@@ -155,7 +155,7 @@ namespace quickbook
 
         if (values.check(doc_info_tags::type))
         {
-            doc_type = detail::to_s(values.consume(doc_info_tags::type).get_quickbook());
+            doc_type = values.consume(doc_info_tags::type).get_quickbook().to_s();
             doc_title = values.consume(doc_info_tags::title);
             use_doc_info = !nested_file || qbk_version_n >= 106u;
         }
@@ -214,9 +214,9 @@ namespace quickbook
         std::string include_doc_id_, id_;
 
         if (!include_doc_id.empty())
-            include_doc_id_ = detail::to_s(include_doc_id.get_quickbook());
+            include_doc_id_ = include_doc_id.get_quickbook().to_s();
         if (!id.empty())
-            id_ = detail::to_s(id.get_quickbook());
+            id_ = id.get_quickbook().to_s();
 
         // Quickbook version
 

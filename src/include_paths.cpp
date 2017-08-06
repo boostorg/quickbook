@@ -64,7 +64,7 @@ namespace quickbook
             // Counter-intuitively: encoded == plain text here.
 
             std::string path_text = qbk_version_n >= 106u || path.is_encoded() ?
-                    path.get_encoded() : detail::to_s(path.get_quickbook());
+                    path.get_encoded() : path.get_quickbook().to_s();
 
             if (path_text.empty())
             {

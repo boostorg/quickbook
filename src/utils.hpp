@@ -46,10 +46,6 @@ namespace quickbook { namespace detail {
         return escape_uri(std::string(uri.begin(), uri.end()));
     }
 
-    inline std::string to_s(quickbook::string_view x) {
-        return std::string(x.begin(), x.end());
-    }
-
     // Defined in id_xml.cpp. Just because.
     std::string linkify(quickbook::string_view source, quickbook::string_view linkend);
 }}

@@ -134,7 +134,7 @@ namespace quickbook
                         quickbook::string_view value(value_start, it - value_start);
                         ++it;
 
-                        if (boost::find(id_attributes, detail::to_s(name))
+                        if (boost::find(id_attributes, name.to_s())
                                 != id_attributes.end())
                         {
                             c.id_value(value);

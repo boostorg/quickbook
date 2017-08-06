@@ -40,7 +40,7 @@ namespace quickbook
             depth(parent->depth + 1),
             override_depth(override_id ? depth : parent->override_depth),
             override_id(override_id ? override_id : parent->override_id),
-            doc_id_1_1(detail::to_s(doc_id_1_1))
+            doc_id_1_1(doc_id_1_1.to_s())
         {}
 
         // Constructor for files that are the root of a document.
@@ -51,7 +51,7 @@ namespace quickbook
             parent(parent), document(document),
             compatibility_version(compatibility_version),
             depth(0), override_depth(0), override_id(0),
-            doc_id_1_1(detail::to_s(doc_id_1_1))
+            doc_id_1_1(doc_id_1_1.to_s())
         {}
     };
 
@@ -88,7 +88,7 @@ namespace quickbook
             file_depth(current_file->depth),
             level(parent ? parent->level + 1 : 1),
             explicit_id(explicit_id),
-            id_1_1(detail::to_s(id_1_1)),
+            id_1_1(id_1_1.to_s()),
             placeholder_1_6(placeholder_1_6),
             source_mode(source_mode) {}
     };
@@ -202,8 +202,8 @@ namespace quickbook
             id_placeholder const* parent_)
       : index(index),
         unresolved_id(parent_ ?
-            parent_->unresolved_id + '.' + detail::to_s(id) :
-            detail::to_s(id)),
+            parent_->unresolved_id + '.' + id.to_s() :
+            id.to_s()),
         id(id.begin(), id.end()),
         parent(parent_),
         category(category),
@@ -287,9 +287,9 @@ namespace quickbook
 
         if (document_root || compatibility_version < 106u) {
             if (title.check())
-                document->last_title_1_1 = detail::to_s(title.get_quickbook());
+                document->last_title_1_1 = title.get_quickbook().to_s();
 
-            doc_id_1_1 = !initial_doc_id.empty() ? detail::to_s(initial_doc_id) :
+            doc_id_1_1 = !initial_doc_id.empty() ? initial_doc_id.to_s() :
                 detail::make_identifier(document->last_title_1_1);
         }
         else if (parent) {
@@ -408,7 +408,7 @@ namespace quickbook
     {
         return current_file->compatibility_version < 103u ?
             add_placeholder(
-                current_file->document->section_id_1_1 + "." + detail::to_s(id), category) :
+                current_file->document->section_id_1_1 + "." + id.to_s(), category) :
                 add_id(id, category);
     }
 
@@ -418,7 +418,7 @@ namespace quickbook
             id_category category,
             source_mode_info const& source_mode)
     {
-        current_file->document->section_id_1_1 = detail::to_s(id);
+        current_file->document->section_id_1_1 = id.to_s();
         return create_new_section(explicit_id, id, category, source_mode);
     }
 
@@ -465,7 +465,7 @@ namespace quickbook
             if (parent && !placeholder_1_6)
                 new_id = current_file->doc_id_1_1 + '.';
 
-            new_id += detail::to_s(id);
+            new_id += id.to_s();
 
             p = add_placeholder(new_id, category, placeholder_1_6);
         }
