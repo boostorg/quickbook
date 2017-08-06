@@ -59,11 +59,20 @@ namespace quickbook { namespace detail
         }
     }
 
-    char filter_identifier_char(char ch)
+    std::string make_identifier(std::string text)
     {
-        if (!std::isalnum(static_cast<unsigned char>(ch)))
-            ch = '_';
-        return static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+        std::string id;
+        id.swap(text);
+        for (std::string::iterator i = id.begin(); i != id.end(); ++i) {
+            if (!std::isalnum(static_cast<unsigned char>(*i))) {
+                *i = '_';
+            }
+            else {
+                *i = static_cast<char>(std::tolower(static_cast<unsigned char>(*i)));
+            }
+        }
+
+        return id;
     }
 
     static std::string escape_uri_impl(std::string& uri_param, char const* mark)
