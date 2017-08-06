@@ -87,7 +87,7 @@ namespace quickbook {
             qbk_version = v;
         }
 
-        virtual file_position position_of(quickbook::string_view::const_iterator) const;
+        virtual file_position position_of(string_iterator) const;
 
         friend void intrusive_ptr_add_ref(file* ptr) { ++ptr->ref_count; }
 
@@ -112,7 +112,7 @@ namespace quickbook {
 
     struct mapped_file_builder
     {
-        typedef quickbook::string_view::const_iterator iterator;
+        typedef string_iterator iterator;
         typedef quickbook::string_view::size_type pos;
 
         mapped_file_builder();

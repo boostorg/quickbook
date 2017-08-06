@@ -877,7 +877,7 @@ namespace quickbook
         }
         else {
             quickbook::string_view value = v.get_quickbook();
-            for(quickbook::string_view::const_iterator
+            for(string_iterator
                 first = value.begin(), last  = value.end();
                 first != last; ++first)
             {

@@ -142,11 +142,11 @@ namespace quickbook
     }
 
     file_position relative_position(
-        quickbook::string_view::const_iterator begin,
-        quickbook::string_view::const_iterator iterator)
+        string_iterator begin,
+        string_iterator iterator)
     {
         file_position pos;
-        quickbook::string_view::const_iterator line_begin = begin;
+        string_iterator line_begin = begin;
 
         while (begin != iterator)
         {
@@ -178,7 +178,7 @@ namespace quickbook
         return pos;
     }
 
-    file_position file::position_of(quickbook::string_view::const_iterator iterator) const
+    file_position file::position_of(string_iterator iterator) const
     {
         return relative_position(source().begin(), iterator);
     }
@@ -257,7 +257,7 @@ namespace quickbook
         file_ptr original;
         std::vector<mapped_file_section> mapped_sections;
         
-        void add_empty_mapped_file_section(quickbook::string_view::const_iterator pos) {
+        void add_empty_mapped_file_section(string_iterator pos) {
             std::string::size_type original_pos =
                 pos - original->source().begin();
         
@@ -272,12 +272,12 @@ namespace quickbook
             }
         }
 
-        void add_mapped_file_section(quickbook::string_view::const_iterator pos) {
+        void add_mapped_file_section(string_iterator pos) {
             mapped_sections.push_back(mapped_file_section(
                 pos - original->source().begin(), source().size()));
         }
 
-        void add_indented_mapped_file_section(quickbook::string_view::const_iterator pos)
+        void add_indented_mapped_file_section(string_iterator pos)
         {
             mapped_sections.push_back(mapped_file_section(
                 pos - original->source().begin(), source().size(),
@@ -347,7 +347,7 @@ namespace quickbook
         }
         
         std::vector<mapped_file_section>::const_iterator find_section(
-            quickbook::string_view::const_iterator pos) const
+            string_iterator pos) const
         {
             std::vector<mapped_file_section>::const_iterator section =
                 boost::upper_bound(mapped_sections,
@@ -359,7 +359,7 @@ namespace quickbook
             return section;
         }
 
-        virtual file_position position_of(quickbook::string_view::const_iterator) const;
+        virtual file_position position_of(string_iterator) const;
 
     private:
 
@@ -473,7 +473,7 @@ namespace quickbook
     {
         unsigned count = 0;
 
-        for(quickbook::string_view::const_iterator begin = x.begin(), end = x.end();
+        for(string_iterator begin = x.begin(), end = x.end();
             begin != end; ++begin)
         {
             switch(*begin)
@@ -595,7 +595,7 @@ namespace quickbook
         data->new_file->source_.append(unindented_program);
     }
 
-    file_position mapped_file::position_of(quickbook::string_view::const_iterator pos) const
+    file_position mapped_file::position_of(string_iterator pos) const
     {
         return original->position_of(original->source().begin() +
             to_original_pos(find_section(pos), pos - source().begin()));

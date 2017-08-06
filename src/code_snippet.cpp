@@ -87,8 +87,8 @@ namespace quickbook
         }
 
         mapped_file_builder content;
-        quickbook::string_view::const_iterator mark_begin, mark_end;
-        quickbook::string_view::const_iterator last_code_pos;
+        string_iterator mark_begin, mark_end;
+        string_iterator last_code_pos;
         bool in_code;
         boost::shared_ptr<snippet_data> snippet_stack;
         std::vector<template_symbol>& storage;

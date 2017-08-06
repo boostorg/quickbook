@@ -75,7 +75,7 @@ namespace quickbook
 
     void xml_processor::parse(quickbook::string_view source, callback& c)
     {
-        typedef quickbook::string_view::const_iterator iterator;
+        typedef string_iterator iterator;
 
         c.start(source);
 
@@ -154,7 +154,7 @@ namespace quickbook
     namespace detail {
         std::string linkify(quickbook::string_view source, quickbook::string_view linkend)
         {
-            typedef quickbook::string_view::const_iterator iterator;
+            typedef string_iterator iterator;
 
             iterator it = source.begin(), end = source.end();
 
