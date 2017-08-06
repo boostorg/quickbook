@@ -25,6 +25,8 @@ namespace quickbook {
         string_view(const char* x) : base(x) {}
         string_view(const char* x, base::size_type len) : base(x, len) {}
     };
+
+    typedef quickbook::string_view::const_iterator string_iterator;
 }
 
 #endif

@@ -13,6 +13,7 @@
 #include <boost/iterator/iterator_traits.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <iterator>
+#include "string_view.hpp"
 
 namespace quickbook
 {
@@ -64,6 +65,8 @@ namespace quickbook
         Iterator original_;
         Iterator base_;
     };
+
+    typedef lookback_iterator<string_iterator> parse_iterator;
 }
 
 #endif

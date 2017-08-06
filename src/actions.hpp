@@ -16,6 +16,7 @@
 #include "utils.hpp"
 #include "values.hpp"
 #include "scoped.hpp"
+#include "iterator.hpp"
 #include <boost/spirit/include/classic_parser.hpp>
 
 namespace quickbook

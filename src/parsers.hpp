@@ -18,6 +18,7 @@
 #include <boost/spirit/include/phoenix1_tuples.hpp>
 #include <boost/spirit/include/phoenix1_binders.hpp>
 #include "fwd.hpp"
+#include "iterator.hpp"
 
 namespace quickbook {
     namespace cl = boost::spirit::classic;

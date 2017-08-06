@@ -12,6 +12,7 @@
 
 #include <boost/spirit/include/classic_core.hpp>
 #include "fwd.hpp"
+#include "iterator.hpp"
 
 namespace quickbook
 {

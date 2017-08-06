@@ -11,6 +11,7 @@
 
 #include "fwd.hpp"
 #include "phrase_tags.hpp"
+#include "iterator.hpp"
 #include <boost/swap.hpp>
 
 namespace quickbook

@@ -11,9 +11,7 @@
 #if !defined(BOOST_SPIRIT_FWD_HPP)
 #define BOOST_SPIRIT_FWD_HPP
 
-#include "iterator.hpp"
 #include <boost/intrusive_ptr.hpp>
-#include "string_view.hpp"
 
 namespace quickbook
 {
@@ -26,9 +24,6 @@ namespace quickbook
     struct template_symbol;
     typedef boost::intrusive_ptr<file> file_ptr;
     typedef unsigned source_mode_type;
-
-    typedef quickbook::string_view::const_iterator string_iterator;
-    typedef lookback_iterator<string_iterator> parse_iterator;
 
     inline void ignore_variable(void const*) {} 
 }
