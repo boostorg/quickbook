@@ -14,7 +14,8 @@
 #include "post_process.hpp"
 #include "utils.hpp"
 #include "files.hpp"
-#include "native_text.hpp"
+#include "stream.hpp"
+#include "path.hpp"
 #include "document_state.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>

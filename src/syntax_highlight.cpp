@@ -18,7 +18,7 @@
 #include "syntax_highlight.hpp"
 #include "utils.hpp"
 #include "files.hpp"
-#include "native_text.hpp"
+#include "stream.hpp"
 #include "phrase_tags.hpp"
 
 namespace quickbook

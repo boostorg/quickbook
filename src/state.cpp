@@ -13,7 +13,7 @@
 #include "document_state.hpp"
 #include "quickbook.hpp"
 #include "grammar.hpp"
-#include "native_text.hpp"
+#include "path.hpp"
 #include "utils.hpp"
 #include "phrase_tags.hpp"
 #include <boost/foreach.hpp>
