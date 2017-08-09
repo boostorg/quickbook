@@ -27,16 +27,13 @@ namespace quickbook
         // This is far from perfect but it fixes some issues.
         struct ostream
         {
+            typedef stream_string string;
 #if QUICKBOOK_WIDE_STREAMS
             typedef std::wostream base_ostream;
             typedef std::wios base_ios;
-            typedef std::wstring string;
-            typedef boost::wstring_view string_ref;
 #else
             typedef std::ostream base_ostream;
             typedef std::ios base_ios;
-            typedef std::string string;
-            typedef quickbook::string_view string_ref;
 #endif
             base_ostream& base;
 
