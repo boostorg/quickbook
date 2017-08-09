@@ -67,7 +67,7 @@ namespace quickbook
     // Not a general purpose normalization function, just
     // from paths from the root directory. It strips the excess
     // ".." parts from a path like: "x/../../y", leaving "y".
-    std::vector<fs::path> normalize_path_from_root(fs::path const& path)
+    std::vector<fs::path> remove_dots_from_path(fs::path const& path)
     {
         assert(!path.has_root_directory() && !path.has_root_name());
 
@@ -97,8 +97,8 @@ namespace quickbook
 
         // Remove '.', '..' and empty parts from the remaining path
         std::vector<fs::path>
-            base_parts = normalize_path_from_root(absolute_base.relative_path()),
-            path_parts = normalize_path_from_root(absolute_path.relative_path());
+            base_parts = remove_dots_from_path(absolute_base.relative_path()),
+            path_parts = remove_dots_from_path(absolute_path.relative_path());
 
         std::vector<fs::path>::iterator
             base_it = base_parts.begin(),
