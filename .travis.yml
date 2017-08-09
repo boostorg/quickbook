@@ -60,7 +60,7 @@ before_script:
 
 script:
     - cd ${BOOST_ROOT}/tools/quickbook
-    - ${HOME}/opt/bin/b2 dist-bin
+    - ${HOME}/opt/bin/b2 dist-bin debug
     - cd ${BOOST_ROOT}/tools/quickbook/test
     - ${HOME}/opt/bin/b2
     - cd ${BOOST_ROOT}/tools/quickbook/test/python
