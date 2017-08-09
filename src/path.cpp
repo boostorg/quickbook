@@ -125,8 +125,14 @@ namespace quickbook
             // Find the point at which the paths differ
             for(; base_it != base_end && path_it != path_end; ++base_it, ++path_it)
             {
-                if(!fs::equivalent(base_tmp /= *base_it, path_tmp /= *path_it))
-                    break;
+                base_tmp /= *base_it;
+                path_tmp /= *path_it;
+                if (*base_it != *path_it) {
+                    if (!fs::exists(base_tmp) || !fs::exists(path_tmp) ||
+                        !fs::equivalent(base_tmp, path_tmp)) {
+                        break;
+                    }
+                }
             }
 
             // Build a relative path to that point

@@ -29,7 +29,6 @@ void file_path_to_url_tests() {
 
 void normalize_path_tests() {
     using boost::filesystem::current_path;
-    using boost::filesystem::canonical;
     using boost::filesystem::path;
     using quickbook::normalize_path;
 
@@ -46,8 +45,30 @@ void normalize_path_tests() {
     BOOST_TEST(current_path().parent_path()/"c" == normalize_path(path("a//b/../..//..//c")));
 }
 
+void path_difference_tests() {
+    using boost::filesystem::current_path;
+    using boost::filesystem::path;
+    using quickbook::path_difference;
+
+    // TODO: Should this be '.'?
+    std::cout << path_difference(path("a"), path("")) << std::endl;
+    BOOST_TEST(path("") == path_difference(path("a"), path("a")));
+    BOOST_TEST(path("") == path_difference(current_path(), current_path()));
+    BOOST_TEST(path("..") == path_difference(path("a"), path("")));
+    BOOST_TEST(path("..") == path_difference(current_path()/"a", current_path()));
+    BOOST_TEST(path("a") == path_difference(path(""), path("a")));
+    BOOST_TEST(path("a") == path_difference(current_path(), current_path()/"a"));
+    BOOST_TEST(path("b") == path_difference(path("a"), path("a/b")));
+    BOOST_TEST(path("b") == path_difference(current_path()/"a", current_path()/"a"/"b"));
+    BOOST_TEST(path("../a/b") == path_difference(path("c"), path("a/b")));
+    BOOST_TEST(path("../a/b") == path_difference(current_path()/"c", current_path()/"a"/"b"));
+    BOOST_TEST(path("..") == path_difference(path(""), path("..")));
+    BOOST_TEST(path("..") == path_difference(current_path(), current_path().parent_path()));
+}
+
 int main() {
     file_path_to_url_tests();
     normalize_path_tests();
+    path_difference_tests();
     return boost::report_errors();
 }
