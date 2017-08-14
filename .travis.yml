@@ -12,7 +12,7 @@ matrix:
     include:
       - compiler: gcc
         env: |
-          USER_CONFIG="using gcc : : g++-4.8 --std=c++03 -fsanitize=address ;"
+          USER_CONFIG="using gcc : : g++-4.8 --std=c++11 -fsanitize=address ;"
       - compiler: clang
         env: |
           USER_CONFIG="using clang : : clang++ --std=c++11 -fsanitize=address ;"
