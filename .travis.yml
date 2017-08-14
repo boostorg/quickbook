@@ -13,15 +13,13 @@ matrix:
       - compiler: gcc
         env: |
           USER_CONFIG="using gcc : : g++-4.8 --std=c++03 -fsanitize=address ;"
-          BOOST_VERSION=1.64.0
-          BOOST_FILENAME=boost_1_64_0
       - compiler: clang
         env: |
           USER_CONFIG="using clang : : clang++ --std=c++11 -fsanitize=address ;"
-          BOOST_VERSION=1.64.0
-          BOOST_FILENAME=boost_1_64_0
 
 before_script:
+    - export BOOST_VERSION=1.64.0
+    - export BOOST_FILENAME=boost_1_64_0
     - cd ${HOME}
     - echo $USER_CONFIG > user-config.jam
     - cat user-config.jam
