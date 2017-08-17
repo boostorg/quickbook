@@ -501,8 +501,8 @@ namespace quickbook
                 ;
         }
 
-        BOOST_FOREACH(value_consumer values, categories) {
-            value category = values.optional_consume();
+        BOOST_FOREACH(value_consumer category_values, categories) {
+            value category = category_values.optional_consume();
             if(!category.empty()) {
                 tmp << "    <" << doc_type << "category name=\"category:"
                     << doc_info_output(category, 106)
@@ -510,7 +510,7 @@ namespace quickbook
                     << "\n"
                 ;
             }
-            values.finish();
+            category_values.finish();
         }
 
         BOOST_FOREACH(value_consumer biblioid, biblioids)

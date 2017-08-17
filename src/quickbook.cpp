@@ -96,8 +96,7 @@ namespace quickbook
 
         if (!state.error_count)
         {
-            parse_iterator pos = info.stop;
-            std::string doc_type = pre(state, pos, include_doc_id, nested_file);
+            std::string doc_type = pre(state, info.stop, include_doc_id, nested_file);
 
             info = cl::parse(info.hit ? info.stop : first, last, state.grammar().block_start);
 

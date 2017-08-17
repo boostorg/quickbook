@@ -355,7 +355,7 @@ namespace quickbook
             (l.*mf)(v);
         }
 
-        void operator()(parse_iterator first, parse_iterator last) const {
+        void operator()(parse_iterator, parse_iterator) const {
             (l.*mf)(v);
         }
     };

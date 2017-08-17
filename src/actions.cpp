@@ -1197,7 +1197,7 @@ namespace quickbook
         void break_arguments(
             std::vector<value>& args
           , std::vector<std::string> const& params
-          , fs::path const& filename
+          , fs::path const& /* filename */
         )
         {
             // Quickbook 1.4-: If there aren't enough parameters seperated by
@@ -1884,7 +1884,7 @@ namespace quickbook
             quickbook_path const& path,
             value::tag_type load_type,
             string_iterator first,
-            value const& include_doc_id = value())
+            value const& /* include_doc_id */ = value())
     {
         assert(load_type == block_tags::include ||
             load_type == block_tags::import);
