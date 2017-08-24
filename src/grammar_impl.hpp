@@ -94,7 +94,7 @@ namespace quickbook
                 conditional_or_block | section_block,
 
             // These are all block elements in all other contexts.
-            is_block = nested_block | conditional_or_block | section_block,
+            is_block = nested_block | conditional_or_block | section_block
         };
 
         element_info()
