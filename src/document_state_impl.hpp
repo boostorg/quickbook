@@ -30,7 +30,7 @@ namespace quickbook
 
     struct id_placeholder
     {
-        unsigned index;         // The index in document_state_impl::placeholders.
+        std::size_t index;      // The index in document_state_impl::placeholders.
                                 // Use for the dollar identifiers in
                                 // intermediate xml.
         std::string id;         // The node id.
@@ -41,12 +41,12 @@ namespace quickbook
         id_placeholder const* parent;
                                 // Placeholder of the parent id.
         id_category category;
-        unsigned num_dots;      // Number of dots in the id.
+        std::ptrdiff_t num_dots; // Number of dots in the id.
                                 // Normally equal to the section level
                                 // but not when an explicit id contains
                                 // dots.
 
-        id_placeholder(unsigned index, quickbook::string_view id,
+        id_placeholder(std::size_t index, quickbook::string_view id,
                 id_category category, id_placeholder const* parent_);
 
         std::string to_string() const;

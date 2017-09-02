@@ -28,8 +28,8 @@ namespace quickbook
         >
     {
         lookback_iterator() {}
-        explicit lookback_iterator(Iterator base)
-            : original_(base), base_(base) {}
+        explicit lookback_iterator(Iterator i)
+            : original_(i), base_(i) {}
     
         friend bool operator==(
             lookback_iterator const& x,

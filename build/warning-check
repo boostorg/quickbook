@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e
 
 cd $(dirname $0)/../src
 
@@ -8,17 +7,23 @@ tmpfile=$(tempfile)
 CXX=${CXX:-g++}
 BOOST_ROOT=${BOOST_ROOT:-../../..}
 
-ls *.cpp | while read filename
+failure=0
+
+for filename in *.cpp
 do
     set -x
-    $CXX -c -O0 -isystem $BOOST_ROOT $filename -o $tmpfile \
-        -Werror -Wall -Wextra
+    if ! $CXX -c -O0 -isystem $BOOST_ROOT $filename -o $tmpfile \
+        -pedantic -Wstrict-aliasing -fstrict-aliasing \
+        -Werror -Wall -Wextra \
+        -Wunused-parameter -Wshadow \
+        -Wfloat-equal \
+        -Wsign-promo -Wconversion -Wno-sign-conversion
+    then
+        failure=1
+    fi
 
-        #-pedantic -Wstrict-aliasing -fstrict-aliasing \
-        #-Wall -Wextra -Wunused-parameter -Wshadow \
-        #-Wsign-promo -Wsign-conversion -Wconversion \
-        #-Wfloat-equal
     set +x
 done
 
 rm $tmpfile
+exit $failure

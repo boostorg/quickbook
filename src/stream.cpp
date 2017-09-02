@@ -86,7 +86,7 @@ namespace detail {
         return error_stream() << "Error: ";
     }
 
-    ostream& outerr(fs::path const& file, int line)
+    ostream& outerr(fs::path const& file, std::ptrdiff_t line)
     {
         if (line >= 0)
         {
@@ -106,7 +106,7 @@ namespace detail {
         return outerr(f->path, f->position_of(pos).line);
     }
 
-    ostream& outwarn(fs::path const& file, int line)
+    ostream& outwarn(fs::path const& file, std::ptrdiff_t line)
     {
         if (line >= 0)
         {

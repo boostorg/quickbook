@@ -18,14 +18,14 @@
 namespace quickbook
 {
     template_symbol::template_symbol(
-            std::string const& identifier,
-            std::vector<std::string> const& params,
-            value const& content,
-            template_scope const* lexical_parent)
-       : identifier(identifier)
-       , params(params)
-       , content(content)
-       , lexical_parent(lexical_parent)
+            std::string const& identifier_,
+            std::vector<std::string> const& params_,
+            value const& content_,
+            template_scope const* lexical_parent_)
+       : identifier(identifier_)
+       , params(params_)
+       , content(content_)
+       , lexical_parent(lexical_parent_)
     {
         assert(content.get_tag() == template_tags::block ||
             content.get_tag() == template_tags::phrase ||

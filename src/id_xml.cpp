@@ -25,7 +25,7 @@ namespace quickbook
 
     xml_processor::xml_processor()
     {
-        static int const n_id_attributes = sizeof(id_attributes_)/sizeof(char const*);
+        static std::size_t const n_id_attributes = sizeof(id_attributes_)/sizeof(char const*);
         for (int i = 0; i != n_id_attributes; ++i)
         {
             id_attributes.push_back(id_attributes_[i]);

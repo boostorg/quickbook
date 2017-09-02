@@ -861,7 +861,8 @@ namespace quickbook
         
         if(hex_digits.size() == 2 && *first > '0' && *first <= '7') {
             using namespace std;
-            detail::print_char(strtol(hex_digits.c_str(), 0, 16),
+            detail::print_char(
+                    (char) strtol(hex_digits.c_str(), 0, 16),
                     state.phrase.get());
         }
         else {
@@ -1028,7 +1029,8 @@ namespace quickbook
            {
               attributes.insert(std::make_pair(
                 "contentwidth", encoded_value(std::string(
-                    svg_text.begin() + a + 1, svg_text.begin() + b))
+                    boost::next(svg_text.begin(), a + 1),
+                    boost::next(svg_text.begin(), b)))
                 ));
            }
            a = svg_text.find("height");
@@ -1039,7 +1041,8 @@ namespace quickbook
            {
               attributes.insert(std::make_pair(
                 "contentdepth", encoded_value(std::string(
-                    svg_text.begin() + a + 1, svg_text.begin() + b))
+                    boost::next(svg_text.begin(), a + 1),
+                    boost::next(svg_text.begin(), b)))
                 ));
            }
         }

@@ -414,7 +414,7 @@ namespace quickbook
         return data->new_file->source().empty();
     }
 
-    mapped_file_builder::pos mapped_file_builder::get_pos() const
+    mapped_file_builder::pos_type mapped_file_builder::get_pos() const
     {
         return data->new_file->source().size();
     }
@@ -437,7 +437,7 @@ namespace quickbook
     }
 
     void mapped_file_builder::add(mapped_file_builder const& x,
-            pos begin, pos end)
+            pos_type begin, pos_type end)
     {
         assert(data->new_file->original == x.data->new_file->original);
         assert(begin <= x.data->new_file->source_.size());
@@ -445,22 +445,22 @@ namespace quickbook
 
         if (begin != end)
         {
-            std::vector<mapped_file_section>::const_iterator start =
+            std::vector<mapped_file_section>::const_iterator i =
                 x.data->new_file->find_section(
                     x.data->new_file->source().begin() + begin);
     
             std::string::size_type size = data->new_file->source_.size();
     
             data->new_file->mapped_sections.push_back(mapped_file_section(
-                    x.data->new_file->to_original_pos(start, begin),
-                    size, start->section_type));
+                    x.data->new_file->to_original_pos(i, begin),
+                    size, i->section_type));
     
-            for (++start; start != x.data->new_file->mapped_sections.end() &&
-                    start->our_pos < end; ++start)
+            for (++i; i != x.data->new_file->mapped_sections.end() &&
+                    i->our_pos < end; ++i)
             {
                 data->new_file->mapped_sections.push_back(mapped_file_section(
-                    start->original_pos, start->our_pos - begin + size,
-                    start->section_type));
+                    i->original_pos, i->our_pos - begin + size,
+                    i->section_type));
             }
     
             data->new_file->source_.append(
@@ -500,20 +500,20 @@ namespace quickbook
         std::string const program(x.begin(), x.end());
 
         // Erase leading blank lines and newlines:
-        std::string::size_type start = program.find_first_not_of(" \t\r\n");
-        if (start == std::string::npos) return;
+        std::string::size_type text_start = program.find_first_not_of(" \t\r\n");
+        if (text_start == std::string::npos) return;
 
-        start = program.find_last_of("\r\n", start);
-        start = start == std::string::npos ? 0 : start + 1;
+        text_start = program.find_last_of("\r\n", text_start);
+        text_start = text_start == std::string::npos ? 0 : text_start + 1;
 
-        assert(start < program.size());
+        assert(text_start < program.size());
 
         // Get the first line indentation
-        std::string::size_type indent = program.find_first_not_of(" \t", start) - start;
+        std::string::size_type indent = program.find_first_not_of(" \t", text_start) - text_start;
         quickbook::string_view::size_type full_indent = indentation_count(
-            quickbook::string_view(&program[start], indent));
+            quickbook::string_view(&program[text_start], indent));
 
-        std::string::size_type pos = start;
+        std::string::size_type pos = text_start;
 
         // Calculate the minimum indent from the rest of the lines
         // Detecting a mix of spaces and tabs.
@@ -535,8 +535,8 @@ namespace quickbook
 
         // Detect if indentation is mixed.
         bool mixed_indentation = false;
-        quickbook::string_view first_indent(&program[start], indent);
-        pos = start;
+        quickbook::string_view first_indent(&program[text_start], indent);
+        pos = text_start;
 
         while (std::string::npos != (pos = program.find_first_of("\r\n", pos)))
         {
@@ -554,8 +554,8 @@ namespace quickbook
 
         // Trim white spaces from column 0..indent
         std::string unindented_program;
-        std::string::size_type copy_start = start;
-        pos = start;
+        std::string::size_type copy_start = text_start;
+        pos = text_start;
 
         do {
             if (std::string::npos == (pos = program.find_first_not_of("\r\n", pos)))
@@ -570,7 +570,7 @@ namespace quickbook
 
             if (mixed_indentation)
             {
-                unsigned length = indentation_count(quickbook::string_view(
+                string_view::size_type length = indentation_count(quickbook::string_view(
                     &program[pos], next - pos));
 
                 if (length > full_indent) {
