@@ -54,8 +54,8 @@ namespace quickbook
             ostream& operator<<(unsigned long x);
 
 #if !defined(BOOST_NO_LONG_LONG)
-            ostream& operator<<(long long x);
-            ostream& operator<<(unsigned long long x);
+            ostream& operator<<(boost::long_long_type x);
+            ostream& operator<<(boost::ulong_long_type x);
 #endif
 
             ostream& operator<<(fs::path const&);

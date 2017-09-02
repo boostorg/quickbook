@@ -174,12 +174,12 @@ namespace detail {
     }
 
 #if !defined(BOOST_NO_LONG_LONG)
-    ostream& ostream::operator<<(long long x) {
+    ostream& ostream::operator<<(boost::long_long_type x) {
         base << x;
         return *this;
     }
 
-    ostream& ostream::operator<<(unsigned long long x) {
+    ostream& ostream::operator<<(boost::ulong_long_type x) {
         base << x;
         return *this;
     }
