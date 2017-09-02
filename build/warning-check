@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -e
+
+cd $(dirname $0)/../src
+
+tmpfile=$(tempfile)
+
+CXX=${CXX:-g++}
+BOOST_ROOT=${BOOST_ROOT:-../../..}
+
+ls *.cpp | while read filename
+do
+    set -x
+    $CXX -c -O0 -isystem $BOOST_ROOT $filename -o $tmpfile \
+        -Werror -Wall -Wextra
+
+        #-pedantic -Wstrict-aliasing -fstrict-aliasing \
+        #-Wall -Wextra -Wunused-parameter -Wshadow \
+        #-Wsign-promo -Wsign-conversion -Wconversion \
+        #-Wfloat-equal
+    set +x
+done
+
+rm $tmpfile

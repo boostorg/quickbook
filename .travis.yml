@@ -79,3 +79,4 @@ script:
     - ${HOME}/opt/bin/b2
     - cd ${BOOST_ROOT}/tools/quickbook/test/python
     - python run_tests.py ${BOOST_ROOT}/dist/bin/quickbook
+    - ${BOOST_ROOT}/tools/quickbook/build/warning-check

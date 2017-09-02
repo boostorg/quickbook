@@ -127,13 +127,13 @@ namespace detail {
     }
 
     ostream& ostream::operator<<(char c) {
-        assert(c > 0 && c <= 127);
+        assert(c && !(c & 0x80));
         base << c;
         return *this;
     }
 
     inline bool check_ascii(char const* x) {
-        for(;*x;++x) if(*x <= 0 || *x > 127) return false;
+        for(;*x;++x) if(*x & 0x80) return false;
         return true;
     }
 

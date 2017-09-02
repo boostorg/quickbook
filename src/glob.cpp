@@ -30,7 +30,7 @@ namespace quickbook
         glob_iterator end = pattern.end();
 
         while (begin != end) {
-            if (*begin < 32 || *begin > 127)
+            if (*begin < 32 || (*begin & 0x80))
                 is_ascii = false;
 
             switch(*begin) {
