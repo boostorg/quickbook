@@ -197,12 +197,12 @@ namespace quickbook
         std::string::size_type our_pos;
         section_types section_type;
 
-        mapped_file_section(
-                std::string::size_type original_pos,
-                std::string::size_type our_pos,
-                section_types section_type = normal) :
-            original_pos(original_pos), our_pos(our_pos),
-            section_type(section_type) {}
+        explicit mapped_file_section(
+                std::string::size_type original_pos_,
+                std::string::size_type our_pos_,
+                section_types section_type_ = normal) :
+            original_pos(original_pos_), our_pos(our_pos_),
+            section_type(section_type_) {}
     };
 
     struct mapped_section_original_cmp
@@ -249,9 +249,9 @@ namespace quickbook
     
     struct mapped_file : file
     {
-        mapped_file(file_ptr original) :
-            file(*original, std::string()),
-            original(original), mapped_sections()
+        explicit mapped_file(file_ptr original_) :
+            file(*original_, std::string()),
+            original(original_), mapped_sections()
         {}
 
         file_ptr original;

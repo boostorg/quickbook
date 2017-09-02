@@ -53,11 +53,11 @@ namespace quickbook
         //   * List item
         //     |indent2 
 
-        list_stack_item(list_item_type r) :
+        explicit list_stack_item(list_item_type r) :
             type(r), indent(0), indent2(0), mark('\0') {}
 
-        list_stack_item(char mark, unsigned int indent, unsigned int indent2) :
-            type(syntactic_list), indent(indent), indent2(indent2), mark(mark)
+        explicit list_stack_item(char mark_, unsigned int indent_, unsigned int indent2_) :
+            type(syntactic_list), indent(indent_), indent2(indent2_), mark(mark_)
         {}
 
     };
@@ -151,8 +151,8 @@ namespace quickbook
     };
 
     struct process_element_impl : scoped_action_base {
-        process_element_impl(main_grammar_local& l) :
-            l(l), pushed_source_mode_(false), element_context_error_(false) {}
+        process_element_impl(main_grammar_local& l_) :
+            l(l_), pushed_source_mode_(false), element_context_error_(false) {}
 
         bool start()
         {
@@ -194,7 +194,7 @@ namespace quickbook
         }
 
         template <typename ResultT, typename ScannerT>
-        bool result(ResultT result, ScannerT const& scan)
+        bool result(ResultT r, ScannerT const& scan)
         {
             if (element_context_error_) {
                 error_message_action error(l.state_,
@@ -202,7 +202,7 @@ namespace quickbook
                 error(scan.first, scan.first);
                 return true;
             }
-            else if (result) {
+            else if (r) {
                 return true;
             }
             else if (qbk_version_n < 107u &&
@@ -235,8 +235,8 @@ namespace quickbook
 
     struct scoped_paragraph : scoped_action_base
     {
-        scoped_paragraph(quickbook::state& state) :
-            state(state), pushed(false) {}
+        scoped_paragraph(quickbook::state& state_) :
+            state(state_), pushed(false) {}
 
         bool start() {
             state.push_tagged_source_mode(state.source_mode_next);
@@ -256,8 +256,8 @@ namespace quickbook
     struct in_list_impl {
         main_grammar_local& l;
 
-        in_list_impl(main_grammar_local& l) :
-            l(l) {}
+        explicit in_list_impl(main_grammar_local& l_) :
+            l(l_) {}
 
         bool operator()() const {
             return !l.list_stack.empty() &&
@@ -270,8 +270,8 @@ namespace quickbook
     {
         typedef M T::*member_ptr;
 
-        set_scoped_value_impl(T& l, member_ptr ptr)
-            : l(l), ptr(ptr), saved_value() {}
+        explicit set_scoped_value_impl(T& l_, member_ptr ptr_)
+            : l(l_), ptr(ptr_), saved_value() {}
 
         bool start(M const& value) {
             saved_value = l.*ptr;
@@ -1248,7 +1248,7 @@ namespace quickbook
     {
         unsigned int new_indent = indent_length(first, mark_pos);
         unsigned int new_indent2 = indent_length(first, last);
-        char mark = *mark_pos;
+        char list_mark = *mark_pos;
 
         if (list_stack.top().type == list_stack_item::top_level &&
                 new_indent > 0) {
@@ -1258,8 +1258,8 @@ namespace quickbook
 
         if (list_stack.top().type != list_stack_item::syntactic_list ||
                 new_indent > list_indent) {
-            list_stack.push(list_stack_item(mark, new_indent, new_indent2));
-            state_.start_list(mark);
+            list_stack.push(list_stack_item(list_mark, new_indent, new_indent2));
+            state_.start_list(list_mark);
         }
         else if (new_indent == list_indent) {
             state_.end_list_item();
@@ -1280,7 +1280,7 @@ namespace quickbook
 
         list_indent = new_indent;
 
-        if (mark != list_stack.top().mark)
+        if (list_mark != list_stack.top().mark)
         {
             detail::outerr(state_.current_file, first)
                 << "Illegal change of list style.\n";

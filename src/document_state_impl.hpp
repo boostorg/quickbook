@@ -33,11 +33,11 @@ namespace quickbook
         unsigned index;         // The index in document_state_impl::placeholders.
                                 // Use for the dollar identifiers in
                                 // intermediate xml.
+        std::string id;         // The node id.
         std::string unresolved_id;
                                 // The id that would be generated
                                 // without any duplicate handling.
                                 // Used for generating old style header anchors.
-        std::string id;         // The node id.
         id_placeholder const* parent;
                                 // Placeholder of the parent id.
         id_category category;

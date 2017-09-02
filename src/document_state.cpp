@@ -31,27 +31,27 @@ namespace quickbook
         std::string const doc_id_1_1;
 
         // Constructor for files that aren't the root of a document.
-        file_info(boost::shared_ptr<file_info> const& parent,
-                unsigned compatibility_version,
-                quickbook::string_view doc_id_1_1,
-                id_placeholder const* override_id) :
-            parent(parent), document(parent->document),
-            compatibility_version(compatibility_version),
+        explicit file_info(boost::shared_ptr<file_info> const& parent_,
+                unsigned compatibility_version_,
+                quickbook::string_view doc_id_1_1_,
+                id_placeholder const* override_id_) :
+            parent(parent_), document(parent->document),
+            compatibility_version(compatibility_version_),
             depth(parent->depth + 1),
-            override_depth(override_id ? depth : parent->override_depth),
-            override_id(override_id ? override_id : parent->override_id),
-            doc_id_1_1(doc_id_1_1.to_s())
+            override_depth(override_id_ ? depth : parent->override_depth),
+            override_id(override_id_ ? override_id_ : parent->override_id),
+            doc_id_1_1(doc_id_1_1_.to_s())
         {}
 
         // Constructor for files that are the root of a document.
-        file_info(boost::shared_ptr<file_info> const& parent,
-                boost::shared_ptr<doc_info> const& document,
-                unsigned compatibility_version,
-                quickbook::string_view doc_id_1_1) :
-            parent(parent), document(document),
-            compatibility_version(compatibility_version),
+        explicit file_info(boost::shared_ptr<file_info> const& parent_,
+                boost::shared_ptr<doc_info> const& document_,
+                unsigned compatibility_version_,
+                quickbook::string_view doc_id_1_1_) :
+            parent(parent_), document(document_),
+            compatibility_version(compatibility_version_),
             depth(0), override_depth(0), override_id(0),
-            doc_id_1_1(doc_id_1_1.to_s())
+            doc_id_1_1(doc_id_1_1_.to_s())
         {}
     };
 
@@ -78,19 +78,20 @@ namespace quickbook
         id_placeholder const* const placeholder_1_6;
         source_mode_info const source_mode;
 
-        section_info(boost::shared_ptr<section_info> const& parent,
-                file_info const* current_file,
-                value const& explicit_id,
-                quickbook::string_view id_1_1, id_placeholder const* placeholder_1_6,
-                source_mode_info const& source_mode) :
-            parent(parent),
-            compatibility_version(current_file->compatibility_version),
-            file_depth(current_file->depth),
+        explicit section_info(boost::shared_ptr<section_info> const& parent_,
+                file_info const* current_file_,
+                value const& explicit_id_,
+                quickbook::string_view id_1_1_,
+                id_placeholder const* placeholder_1_6_,
+                source_mode_info const& source_mode_) :
+            parent(parent_),
+            compatibility_version(current_file_->compatibility_version),
+            file_depth(current_file_->depth),
             level(parent ? parent->level + 1 : 1),
-            explicit_id(explicit_id),
-            id_1_1(id_1_1.to_s()),
-            placeholder_1_6(placeholder_1_6),
-            source_mode(source_mode) {}
+            explicit_id(explicit_id_),
+            id_1_1(id_1_1_.to_s()),
+            placeholder_1_6(placeholder_1_6_),
+            source_mode(source_mode_) {}
     };
 
     //
@@ -196,17 +197,15 @@ namespace quickbook
     //
 
     id_placeholder::id_placeholder(
-            unsigned index,
-            quickbook::string_view id,
-            id_category category,
+            unsigned index_,
+            quickbook::string_view id_,
+            id_category category_,
             id_placeholder const* parent_)
-      : index(index),
-        unresolved_id(parent_ ?
-            parent_->unresolved_id + '.' + id.to_s() :
-            id.to_s()),
-        id(id.begin(), id.end()),
+      : index(index_),
+        id(id_.begin(), id_.end()),
+        unresolved_id(parent_ ? parent_->unresolved_id + '.' + id : id),
         parent(parent_),
-        category(category),
+        category(category_),
         num_dots(boost::range::count(id, '.') +
             (parent_ ? parent_->num_dots + 1 : 0))
     {

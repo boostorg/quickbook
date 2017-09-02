@@ -103,9 +103,9 @@ namespace quickbook
         element_info(
                 type_enum t,
                 cl::rule<scanner>* r,
-                value::tag_type tag = value::default_tag,
+                value::tag_type tag_ = value::default_tag,
                 unsigned int v = 0)
-            : type(t), rule(r), tag(tag), qbk_version(v) {}
+            : type(t), rule(r), tag(tag_), qbk_version(v) {}
 
         type_enum type;
         cl::rule<scanner>* rule;

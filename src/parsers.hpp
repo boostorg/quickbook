@@ -117,16 +117,16 @@ namespace quickbook {
             if (!scope.start(arguments_))
                 return scan.no_match();
 
-            typename cl::parser_result<ParserT, ScannerT>::type result
+            typename cl::parser_result<ParserT, ScannerT>::type r
                 = this->subject().parse(scan);
 
-            bool success = scope.impl_.result(result, scan);
+            bool success = scope.impl_.result(r, scan);
 
             if (success) {
                 scope.success(save, scan.first);
 
-                if (result) {
-                    return scan.create_match(result.length(), cl::nil_t(), save, scan.first);
+                if (r) {
+                    return scan.create_match(r.length(), cl::nil_t(), save, scan.first);
                 }
                 else {
                     return scan.create_match(scan.first.base() - save.base(), cl::nil_t(), save, scan.first);
