@@ -11,7 +11,7 @@
 
 namespace quickbook
 {
-    typedef quickbook::string_view::const_iterator glob_iterator;
+    typedef string_iterator glob_iterator;
 
     void check_glob_range(glob_iterator&, glob_iterator);
     void check_glob_escape(glob_iterator&, glob_iterator);

@@ -74,8 +74,8 @@ namespace quickbook
         {
             typedef boost::spirit::classic::nil_t result_t;
 
-            parser(template_stack& ts)
-                : ts(ts) {}
+            parser(template_stack& ts_)
+                : ts(ts_) {}
 
             template <typename Scanner>
             std::ptrdiff_t

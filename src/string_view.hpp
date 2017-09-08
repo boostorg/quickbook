@@ -24,7 +24,11 @@ namespace quickbook {
         string_view(std::string const& x) : base(x) {}
         string_view(const char* x) : base(x) {}
         string_view(const char* x, base::size_type len) : base(x, len) {}
+
+        std::string to_s() const { return std::string(begin(), end()); }
     };
+
+    typedef quickbook::string_view::const_iterator string_iterator;
 }
 
 #endif

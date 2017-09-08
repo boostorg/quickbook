@@ -18,7 +18,7 @@
 #include "syntax_highlight.hpp"
 #include "utils.hpp"
 #include "files.hpp"
-#include "native_text.hpp"
+#include "stream.hpp"
 #include "phrase_tags.hpp"
 
 namespace quickbook
@@ -36,10 +36,10 @@ namespace quickbook
         bool support_callouts;
         quickbook::string_view marked_text;
 
-        syntax_highlight_actions(quickbook::state& state, bool is_block) :
-            state(state),
-            do_macro_impl(state),
-            support_callouts(is_block && (qbk_version_n >= 107u ||
+        syntax_highlight_actions(quickbook::state& state_, bool is_block_) :
+            state(state_),
+            do_macro_impl(state_),
+            support_callouts(is_block_ && (qbk_version_n >= 107u ||
                 state.current_file->is_code_snippets)),
             marked_text()
         {}
@@ -192,8 +192,8 @@ namespace quickbook
     // Grammar for C++ highlighting
     struct cpp_highlight : public cl::grammar<cpp_highlight>
     {
-        cpp_highlight(syntax_highlight_actions& actions)
-            : actions(actions) {}
+        explicit cpp_highlight(syntax_highlight_actions& actions_)
+            : actions(actions_) {}
 
         template <typename Scanner>
         struct definition
@@ -362,8 +362,8 @@ namespace quickbook
     // http://docs.python.org/ref/ref.html
     struct python_highlight : public cl::grammar<python_highlight>
     {
-        python_highlight(syntax_highlight_actions& actions)
-            : actions(actions) {}
+        explicit python_highlight(syntax_highlight_actions& actions_)
+            : actions(actions_) {}
 
         template <typename Scanner>
         struct definition
@@ -516,8 +516,8 @@ namespace quickbook
     // Grammar for plain text (no actual highlighting)
     struct teletype_highlight : public cl::grammar<teletype_highlight>
     {
-        teletype_highlight(syntax_highlight_actions& actions)
-            : actions(actions) {}
+        teletype_highlight(syntax_highlight_actions& actions_)
+            : actions(actions_) {}
 
         template <typename Scanner>
         struct definition

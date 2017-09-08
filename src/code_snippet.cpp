@@ -18,7 +18,7 @@
 #include "state.hpp"
 #include "values.hpp"
 #include "files.hpp"
-#include "native_text.hpp"
+#include "stream.hpp"
 
 namespace quickbook
 {
@@ -26,15 +26,15 @@ namespace quickbook
 
     struct code_snippet_actions
     {
-        code_snippet_actions(std::vector<template_symbol>& storage,
-                                file_ptr source_file,
-                                char const* source_type)
-            : last_code_pos(source_file->source().begin())
+        code_snippet_actions(std::vector<template_symbol>& storage_,
+                                file_ptr source_file_,
+                                char const* source_type_)
+            : last_code_pos(source_file_->source().begin())
             , in_code(false)
             , snippet_stack()
-            , storage(storage)
-            , source_file(source_file)
-            , source_type(source_type)
+            , storage(storage_)
+            , source_file(source_file_)
+            , source_type(source_type_)
             , error_count(0)
         {
             source_file->is_code_snippets = true;
@@ -55,8 +55,8 @@ namespace quickbook
 
         struct snippet_data
         {
-            snippet_data(std::string const& id)
-                : id(id)
+            snippet_data(std::string const& id_)
+                : id(id_)
                 , start_code(false)
             {}
             
@@ -87,8 +87,8 @@ namespace quickbook
         }
 
         mapped_file_builder content;
-        quickbook::string_view::const_iterator mark_begin, mark_end;
-        quickbook::string_view::const_iterator last_code_pos;
+        string_iterator mark_begin, mark_end;
+        string_iterator last_code_pos;
         bool in_code;
         boost::shared_ptr<snippet_data> snippet_stack;
         std::vector<template_symbol>& storage;
@@ -102,8 +102,8 @@ namespace quickbook
     {
         typedef code_snippet_actions actions_type;
   
-        python_code_snippet_grammar(actions_type & actions)
-            : actions(actions)
+        python_code_snippet_grammar(actions_type & actions_)
+            : actions(actions_)
         {}
 
         template <typename Scanner>
@@ -210,8 +210,8 @@ namespace quickbook
     {
         typedef code_snippet_actions actions_type;
   
-        cpp_code_snippet_grammar(actions_type & actions)
-            : actions(actions)
+        cpp_code_snippet_grammar(actions_type & actions_)
+            : actions(actions_)
         {}
 
         template <typename Scanner>

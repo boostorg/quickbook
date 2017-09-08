@@ -14,7 +14,8 @@
 #include "post_process.hpp"
 #include "utils.hpp"
 #include "files.hpp"
-#include "native_text.hpp"
+#include "stream.hpp"
+#include "path.hpp"
 #include "document_state.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem/path.hpp>
@@ -95,8 +96,7 @@ namespace quickbook
 
         if (!state.error_count)
         {
-            parse_iterator pos = info.stop;
-            std::string doc_type = pre(state, pos, include_doc_id, nested_file);
+            std::string doc_type = pre(state, info.stop, include_doc_id, nested_file);
 
             info = cl::parse(info.hit ? info.stop : first, last, state.grammar().block_start);
 
@@ -257,6 +257,7 @@ main(int argc, char* argv[])
         using boost::program_options::notify;
         using boost::program_options::positional_options_description;
         
+        using namespace quickbook;
         using quickbook::detail::command_line_string;
 
         // First thing, the filesystem should record the current working directory.
@@ -354,7 +355,7 @@ main(int argc, char* argv[])
 
         // Process the command line options
 
-        quickbook::parse_document_options parse_document_options;
+        parse_document_options options;
         bool expect_errors = vm.count("expect-errors");
         int error_count = 0;
 
@@ -385,17 +386,17 @@ main(int argc, char* argv[])
         quickbook::detail::set_ms_errors(vm.count("ms-errors"));
 
         if (vm.count("no-pretty-print"))
-            parse_document_options.pretty_print = false;
+            options.pretty_print = false;
 
-        parse_document_options.strict_mode = !!vm.count("strict");
+        options.strict_mode = !!vm.count("strict");
 
         quickbook::self_linked_headers = !vm.count("no-self-linked-headers");
 
         if (vm.count("indent"))
-            parse_document_options.indent = vm["indent"].as<int>();
+            options.indent = vm["indent"].as<int>();
 
         if (vm.count("linewidth"))
-            parse_document_options.linewidth = vm["linewidth"].as<int>();
+            options.linewidth = vm["linewidth"].as<int>();
 
         if (vm.count("debug"))
         {
@@ -446,6 +447,11 @@ main(int argc, char* argv[])
                 vm["input-file"].as<command_line_string>());
             fs::path fileout;
 
+            if (!fs::exists(filein)) {
+                quickbook::detail::outerr() << "file not found: " << filein;
+                ++error_count;
+            }
+
             bool default_output = true;
 
             if (vm.count("no-output"))
@@ -455,7 +461,7 @@ main(int argc, char* argv[])
 
             if (vm.count("output-deps"))
             {
-                parse_document_options.deps_out =
+                options.deps_out =
                     quickbook::detail::command_line_to_path(
                         vm["output-deps"].as<command_line_string>());
                 default_output = false;
@@ -491,13 +497,13 @@ main(int argc, char* argv[])
                     }
                 }
 
-                parse_document_options.deps_out_flags =
+                options.deps_out_flags =
                     quickbook::dependency_tracker::flags(flags);
             }
 
             if (vm.count("output-checked-locations"))
             {
-                parse_document_options.locations_out =
+                options.locations_out =
                     quickbook::detail::command_line_to_path(
                         vm["output-checked-locations"].as<command_line_string>());
                 default_output = false;
@@ -507,6 +513,13 @@ main(int argc, char* argv[])
             {
                 fileout = quickbook::detail::command_line_to_path(
                     vm["output-file"].as<command_line_string>());
+
+                if (!fs::is_directory(fileout.parent_path()))
+                {
+                    quickbook::detail::outerr()
+                        << "parent directory not found for output file";
+                    ++error_count;
+                }
             }
             else if (default_output)
             {
@@ -516,24 +529,30 @@ main(int argc, char* argv[])
 
             if (vm.count("xinclude-base"))
             {
-                parse_document_options.xinclude_base =
+                options.xinclude_base =
                     quickbook::detail::command_line_to_path(
                         vm["xinclude-base"].as<command_line_string>());
+
+                // TODO: Does this even matter?
+                //       There might be valid reasons to use a path that doesn't
+                //       exist yet, or a path that just generates valid relative
+                //       paths.
+                if (!fs::is_directory(options.xinclude_base))
+                {
+                    quickbook::detail::outerr()
+                        << "xinclude-base is not a directory";
+                    ++error_count;
+                }
             }
             else
             {
-                parse_document_options.xinclude_base = fileout.parent_path();
-                if (parse_document_options.xinclude_base.empty())
-                    parse_document_options.xinclude_base = ".";
-            }
+                options.xinclude_base = fileout.parent_path();
+                if (options.xinclude_base.empty())
+                    options.xinclude_base = ".";
 
-            if (!fs::is_directory(parse_document_options.xinclude_base))
-            {
-                quickbook::detail::outerr()
-                    << (vm.count("xinclude-base") ?
-                        "xinclude-base is not a directory" :
-                        "parent directory not found for output file");
-                ++error_count;
+                // If fileout was implicitly created from filein, then it should be in filein's directory.
+                // If fileout was explicitly specified, then it's already been checked.
+                assert(error_count || fs::is_directory(options.xinclude_base));
             }
 
             if (vm.count("image-location"))
@@ -546,15 +565,16 @@ main(int argc, char* argv[])
                 quickbook::image_location = filein.parent_path() / "html";
             }
 
-            if (!fileout.empty()) {
-                quickbook::detail::out() << "Generating Output File: "
-                    << fileout
-                    << std::endl;
-            }
+            if (!error_count) {
+                if (!fileout.empty()) {
+                    quickbook::detail::out() << "Generating Output File: "
+                        << fileout
+                        << std::endl;
+                }
 
-            if (!error_count)
                 error_count += quickbook::parse_document(
-                        filein, fileout, parse_document_options);
+                        filein, fileout, options);
+            }
 
             if (expect_errors)
             {

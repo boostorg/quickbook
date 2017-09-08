@@ -58,10 +58,13 @@ namespace quickbook {
     public:
         quickbook::string_view source() const { return source_; }
 
-        file(fs::path const& path, quickbook::string_view source,
-                unsigned qbk_version) :
-            path(path), source_(source.begin(), source.end()), is_code_snippets(false),
-            qbk_version(qbk_version), ref_count(0)
+        file(fs::path const& path_, quickbook::string_view source_view,
+                unsigned qbk_version_) :
+            path(path_),
+            source_(source_view.begin(), source_view.end()),
+            is_code_snippets(false),
+            qbk_version(qbk_version_),
+            ref_count(0)
         {}
 
         file(file const& f, quickbook::string_view source) :
@@ -87,7 +90,7 @@ namespace quickbook {
             qbk_version = v;
         }
 
-        virtual file_position position_of(quickbook::string_view::const_iterator) const;
+        virtual file_position position_of(string_iterator) const;
 
         friend void intrusive_ptr_add_ref(file* ptr) { ++ptr->ref_count; }
 
@@ -112,7 +115,7 @@ namespace quickbook {
 
     struct mapped_file_builder
     {
-        typedef quickbook::string_view::const_iterator iterator;
+        typedef string_iterator iterator;
         typedef quickbook::string_view::size_type pos;
 
         mapped_file_builder();

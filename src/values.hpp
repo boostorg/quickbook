@@ -14,10 +14,11 @@
 #include <utility>
 #include <string>
 #include <cassert>
+#include <stdexcept>
 #include <boost/scoped_ptr.hpp>
+#include <boost/operators.hpp>
 #include <boost/iterator/iterator_traits.hpp>
 #include "string_view.hpp"
-#include <stdexcept>
 #include "fwd.hpp"
 #include "files.hpp"
 

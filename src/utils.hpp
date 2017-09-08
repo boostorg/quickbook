@@ -12,26 +12,16 @@
 
 #include <string>
 #include <ostream>
-#include <boost/range/algorithm_ext/push_back.hpp>
-#include <boost/range/adaptor/transformed.hpp>
 #include "string_view.hpp"
 
 namespace quickbook { namespace detail {
     std::string encode_string(quickbook::string_view);
     void print_char(char ch, std::ostream& out);
     void print_string(quickbook::string_view str, std::ostream& out);
-    char filter_identifier_char(char ch);
 
-    template <typename Range>
-    inline std::string
-    make_identifier(Range const& range)
-    {
-        std::string out_name;
-
-        boost::push_back(out_name,
-            range | boost::adaptors::transformed(filter_identifier_char));
-
-        return out_name;
+    std::string make_identifier(std::string);
+    inline std::string make_identifier(quickbook::string_view x) {
+        return make_identifier(x.to_s());
     }
 
     // URI escape string
@@ -44,10 +34,6 @@ namespace quickbook { namespace detail {
     std::string partially_escape_uri(std::string uri);
     inline std::string partially_escape_uri(quickbook::string_view uri) {
         return escape_uri(std::string(uri.begin(), uri.end()));
-    }
-
-    inline std::string to_s(quickbook::string_view x) {
-        return std::string(x.begin(), x.end());
     }
 
     // Defined in id_xml.cpp. Just because.

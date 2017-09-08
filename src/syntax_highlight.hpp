@@ -11,6 +11,7 @@
 
 #include "fwd.hpp"
 #include "phrase_tags.hpp"
+#include "iterator.hpp"
 #include <boost/swap.hpp>
 
 namespace quickbook
@@ -27,9 +28,9 @@ namespace quickbook
 
         source_mode_info() : source_mode(source_mode_tags::cpp), order(0) {}
 
-        source_mode_info(source_mode_type source_mode, unsigned order) :
-            source_mode(source_mode),
-            order(order) {}
+        source_mode_info(source_mode_type source_mode_, unsigned order_) :
+            source_mode(source_mode_),
+            order(order_) {}
 
         void update(source_mode_info const& x) {
             if (x.order > order) {

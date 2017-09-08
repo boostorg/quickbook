@@ -287,7 +287,7 @@ namespace quickbook {
     {
         document_state_impl const& state;
         std::vector<std::string> const* ids;
-        quickbook::string_view::const_iterator source_pos;
+        string_iterator source_pos;
         std::string result;
 
         replace_ids_callback(document_state_impl const& state,
