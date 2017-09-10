@@ -19,6 +19,12 @@
 #include <boost/filesystem/operations.hpp>
 #include <cassert>
 
+#if QUICKBOOK_CYGWIN_PATHS
+#include <boost/scoped_array.hpp>
+#include <boost/program_options/errors.hpp>
+#include <sys/cygwin.h>
+#endif
+
 namespace quickbook
 {
     // Convert the path to its canonical representation if it exists.
