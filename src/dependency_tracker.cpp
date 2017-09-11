@@ -63,19 +63,19 @@ namespace quickbook
 
     bool dependency_tracker::add_dependency(fs::path const& f) {
         bool found = fs::exists(fs::status(f));
-        dependencies[normalize_path(f)] |= found;
+        dependencies[f] |= found;
         return found;
     }
 
     void dependency_tracker::add_glob(fs::path const& f) {
         std::pair<glob_list::iterator, bool> r = glob_dependencies.insert(
-                std::make_pair(normalize_path(f), glob_list::mapped_type()));
+                std::make_pair(f, glob_list::mapped_type()));
         last_glob = r.first;
     }
 
     void dependency_tracker::add_glob_match(fs::path const& f) {
         assert(last_glob != glob_dependencies.end());
-        last_glob->second.insert(normalize_path(f));
+        last_glob->second.insert(f);
     }
 
     void dependency_tracker::write_dependencies(fs::path const& file_out,

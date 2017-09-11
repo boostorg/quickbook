@@ -19,8 +19,6 @@ namespace quickbook
 {
     namespace fs = boost::filesystem;
 
-    fs::path normalize_path(fs::path const& path);
-
     // The relative path from base to path
     fs::path path_difference(fs::path const& base, fs::path const& path);
 

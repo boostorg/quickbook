@@ -27,24 +27,6 @@ void file_path_to_url_tests() {
 #endif
 }
 
-void normalize_path_tests() {
-    using boost::filesystem::current_path;
-    using boost::filesystem::path;
-    using quickbook::normalize_path;
-
-    // TODO: While these paths are equal, they don't have the same string
-    // representation on windows, because fs::canonical creates a path like
-    // c:/path\a\c instead of c:\path\a\c
-    // This is because the iterator it uses, uses 'separator' rather than
-    // 'preferred_separator'.
-    BOOST_TEST(current_path() == normalize_path(path("")));
-    BOOST_TEST(current_path() == normalize_path(path(".")));
-    BOOST_TEST(current_path().parent_path() == normalize_path(path("..")));
-    BOOST_TEST(current_path()/"a"/"c" == normalize_path(path("a///b/..///c")));
-    BOOST_TEST(current_path().parent_path()/"a"/"c" == normalize_path(path("..//a//b/..///c")));
-    BOOST_TEST(current_path().parent_path()/"c" == normalize_path(path("a//b/../..//..//c")));
-}
-
 void path_difference_tests() {
     using boost::filesystem::current_path;
     using boost::filesystem::path;
@@ -68,7 +50,6 @@ void path_difference_tests() {
 
 int main() {
     file_path_to_url_tests();
-    normalize_path_tests();
     path_difference_tests();
     return boost::report_errors();
 }
