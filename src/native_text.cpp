@@ -16,13 +16,6 @@
 #include <windows.h>
 #endif
 
-// TODO: Is this needed?
-#if QUICKBOOK_CYGWIN_PATHS
-#include <boost/scoped_array.hpp>
-#include <boost/program_options/errors.hpp>
-#include <sys/cygwin.h>
-#endif
-
 namespace quickbook {
 namespace detail {
 // This is used for converting paths to UTF-8 on cygin.
