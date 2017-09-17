@@ -18,7 +18,7 @@
 #include "state.hpp"
 #include "values.hpp"
 #include "files.hpp"
-#include "native_text.hpp"
+#include "stream.hpp"
 
 namespace quickbook
 {
@@ -26,15 +26,15 @@ namespace quickbook
 
     struct code_snippet_actions
     {
-        code_snippet_actions(std::vector<template_symbol>& storage,
-                                file_ptr source_file,
-                                char const* source_type)
-            : last_code_pos(source_file->source().begin())
+        code_snippet_actions(std::vector<template_symbol>& storage_,
+                                file_ptr source_file_,
+                                char const* source_type_)
+            : last_code_pos(source_file_->source().begin())
             , in_code(false)
             , snippet_stack()
-            , storage(storage)
-            , source_file(source_file)
-            , source_type(source_type)
+            , storage(storage_)
+            , source_file(source_file_)
+            , source_type(source_type_)
             , error_count(0)
         {
             source_file->is_code_snippets = true;
@@ -55,15 +55,15 @@ namespace quickbook
 
         struct snippet_data
         {
-            snippet_data(std::string const& id)
-                : id(id)
+            snippet_data(std::string const& id_)
+                : id(id_)
                 , start_code(false)
             {}
             
             std::string id;
             bool start_code;
             string_iterator source_pos;
-            mapped_file_builder::pos start_pos;
+            mapped_file_builder::pos_type start_pos;
             boost::shared_ptr<snippet_data> next;
         };
         
@@ -87,8 +87,8 @@ namespace quickbook
         }
 
         mapped_file_builder content;
-        quickbook::string_view::const_iterator mark_begin, mark_end;
-        quickbook::string_view::const_iterator last_code_pos;
+        string_iterator mark_begin, mark_end;
+        string_iterator last_code_pos;
         bool in_code;
         boost::shared_ptr<snippet_data> snippet_stack;
         std::vector<template_symbol>& storage;
@@ -102,8 +102,8 @@ namespace quickbook
     {
         typedef code_snippet_actions actions_type;
   
-        python_code_snippet_grammar(actions_type & actions)
-            : actions(actions)
+        python_code_snippet_grammar(actions_type & actions_)
+            : actions(actions_)
         {}
 
         template <typename Scanner>
@@ -114,9 +114,7 @@ namespace quickbook
             definition(python_code_snippet_grammar const& self)
             {
 
-                actions_type& actions = self.actions;
-            
-                start_ = (*code_elements)           [boost::bind(&actions_type::end_file, &actions, _1, _2)]
+                start_ = (*code_elements)           [boost::bind(&actions_type::end_file, &self.actions, _1, _2)]
                     ;
 
                 identifier =
@@ -124,11 +122,11 @@ namespace quickbook
                     ;
 
                 code_elements =
-                        start_snippet               [boost::bind(&actions_type::start_snippet, &actions, _1, _2)]
-                    |   end_snippet                 [boost::bind(&actions_type::end_snippet, &actions, _1, _2)]
-                    |   escaped_comment             [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
-                    |   pass_thru_comment           [boost::bind(&actions_type::pass_thru, &actions, _1, _2)]
-                    |   ignore                      [boost::bind(&actions_type::append_code, &actions, _1, _2)]
+                        start_snippet               [boost::bind(&actions_type::start_snippet, &self.actions, _1, _2)]
+                    |   end_snippet                 [boost::bind(&actions_type::end_snippet, &self.actions, _1, _2)]
+                    |   escaped_comment             [boost::bind(&actions_type::escaped_comment, &self.actions, _1, _2)]
+                    |   pass_thru_comment           [boost::bind(&actions_type::pass_thru, &self.actions, _1, _2)]
+                    |   ignore                      [boost::bind(&actions_type::append_code, &self.actions, _1, _2)]
                     |   cl::anychar_p
                     ;
 
@@ -137,7 +135,7 @@ namespace quickbook
                     >>  !(cl::eol_p >> *cl::blank_p)
                     >>  "#["
                     >>  *cl::blank_p
-                    >>  identifier                  [boost::bind(&actions_type::mark, &actions, _1, _2)]
+                    >>  identifier                  [boost::bind(&actions_type::mark, &self.actions, _1, _2)]
                     >>  *(cl::anychar_p - cl::eol_p)
                     ;
 
@@ -169,12 +167,12 @@ namespace quickbook
                 escaped_comment =
                         cl::confix_p(
                             *cl::space_p >> "#`",
-                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &actions, _1, _2)],
+                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &self.actions, _1, _2)],
                             (cl::eol_p | cl::end_p)
                         )
                     |   cl::confix_p(
                             *cl::space_p >> "\"\"\"`",
-                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &actions, _1, _2)],
+                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &self.actions, _1, _2)],
                             "\"\"\""
                         )
                     ;
@@ -185,10 +183,10 @@ namespace quickbook
                     =   "#=" >> (cl::eps_p - '=')
                     >>  (   *(cl::anychar_p - cl::eol_p)
                         >>  (cl::eol_p | cl::end_p)
-                        )                           [boost::bind(&actions_type::mark, &actions, _1, _2)]
+                        )                           [boost::bind(&actions_type::mark, &self.actions, _1, _2)]
                     |   cl::confix_p(
                             "\"\"\"=" >> (cl::eps_p - '='),
-                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &actions, _1, _2)],
+                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &self.actions, _1, _2)],
                             "\"\"\""
                         )
                     ;
@@ -210,8 +208,8 @@ namespace quickbook
     {
         typedef code_snippet_actions actions_type;
   
-        cpp_code_snippet_grammar(actions_type & actions)
-            : actions(actions)
+        cpp_code_snippet_grammar(actions_type & actions_)
+            : actions(actions_)
         {}
 
         template <typename Scanner>
@@ -219,9 +217,7 @@ namespace quickbook
         {
             definition(cpp_code_snippet_grammar const& self)
             {
-                actions_type& actions = self.actions;
-            
-                start_ = (*code_elements)           [boost::bind(&actions_type::end_file, &actions, _1, _2)]
+                start_ = (*code_elements)           [boost::bind(&actions_type::end_file, &self.actions, _1, _2)]
                     ;
 
                 identifier =
@@ -229,11 +225,11 @@ namespace quickbook
                     ;
 
                 code_elements =
-                        start_snippet               [boost::bind(&actions_type::start_snippet, &actions, _1, _2)]
-                    |   end_snippet                 [boost::bind(&actions_type::end_snippet, &actions, _1, _2)]
-                    |   escaped_comment             [boost::bind(&actions_type::escaped_comment, &actions, _1, _2)]
-                    |   ignore                      [boost::bind(&actions_type::append_code, &actions, _1, _2)]
-                    |   pass_thru_comment           [boost::bind(&actions_type::pass_thru, &actions, _1, _2)]
+                        start_snippet               [boost::bind(&actions_type::start_snippet, &self.actions, _1, _2)]
+                    |   end_snippet                 [boost::bind(&actions_type::end_snippet, &self.actions, _1, _2)]
+                    |   escaped_comment             [boost::bind(&actions_type::escaped_comment, &self.actions, _1, _2)]
+                    |   ignore                      [boost::bind(&actions_type::append_code, &self.actions, _1, _2)]
+                    |   pass_thru_comment           [boost::bind(&actions_type::pass_thru, &self.actions, _1, _2)]
                     |   cl::anychar_p
                     ;
 
@@ -242,7 +238,7 @@ namespace quickbook
                         >>  !(cl::eol_p >> *cl::blank_p)
                         >>  "//["
                         >>  *cl::blank_p
-                        >>  identifier              [boost::bind(&actions_type::mark, &actions, _1, _2)]
+                        >>  identifier              [boost::bind(&actions_type::mark, &self.actions, _1, _2)]
                         >>  *(cl::anychar_p - cl::eol_p)
                     |
                             *cl::blank_p
@@ -250,7 +246,7 @@ namespace quickbook
                         >>  *cl::blank_p
                         >>  "/*["
                         >>  *cl::space_p
-                        >>  identifier              [boost::bind(&actions_type::mark, &actions, _1, _2)]
+                        >>  identifier              [boost::bind(&actions_type::mark, &self.actions, _1, _2)]
                         >>  *cl::space_p
                         >>  "*/"
                         >>  *cl::blank_p
@@ -258,7 +254,7 @@ namespace quickbook
                     |
                             "/*["
                         >>  *cl::space_p
-                        >>  identifier              [boost::bind(&actions_type::mark, &actions, _1, _2)]
+                        >>  identifier              [boost::bind(&actions_type::mark, &self.actions, _1, _2)]
                         >>  *cl::space_p
                         >>  "*/"
                     ;
@@ -302,12 +298,12 @@ namespace quickbook
                 escaped_comment
                     =   cl::confix_p(
                             *cl::space_p >> "//`",
-                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &actions, _1, _2)],
+                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &self.actions, _1, _2)],
                             (cl::eol_p | cl::end_p)
                         )
                     |   cl::confix_p(
                             *cl::space_p >> "/*`",
-                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &actions, _1, _2)],
+                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &self.actions, _1, _2)],
                             "*/"
                         )
                     ;
@@ -318,10 +314,10 @@ namespace quickbook
                     =   "//=" >> (cl::eps_p - '=')
                     >>  (   *(cl::anychar_p - cl::eol_p)
                         >>  (cl::eol_p | cl::end_p)
-                        )                           [boost::bind(&actions_type::mark, &actions, _1, _2)]
+                        )                           [boost::bind(&actions_type::mark, &self.actions, _1, _2)]
                     |   cl::confix_p(
                             "/*=" >> (cl::eps_p - '='),
-                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &actions, _1, _2)],
+                            (*cl::anychar_p)        [boost::bind(&actions_type::mark, &self.actions, _1, _2)],
                             "*/"
                         )
                     ;
@@ -348,7 +344,7 @@ namespace quickbook
         assert(load_type == block_tags::include ||
             load_type == block_tags::import);
 
-        bool is_python = extension == ".py";
+        bool is_python = extension == ".py" || extension == ".jam";
         code_snippet_actions a(storage, load(filename, qbk_version_n), is_python ? "[python]" : "[c++]");
 
         string_iterator first(a.source_file->source().begin());

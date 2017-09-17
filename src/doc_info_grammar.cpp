@@ -41,8 +41,8 @@ namespace quickbook
     {
         struct assign_attribute_type
         {
-            assign_attribute_type(doc_info_grammar_local& l)
-                : l(l)
+            assign_attribute_type(doc_info_grammar_local& l_)
+                : l(l_)
             {}
 
             void operator()(value::tag_type& t) const {
@@ -55,8 +55,8 @@ namespace quickbook
         
         struct fallback_attribute_type
         {
-            fallback_attribute_type(doc_info_grammar_local& l)
-                : l(l)
+            fallback_attribute_type(doc_info_grammar_local& l_)
+                : l(l_)
             {}
 
             void operator()(parse_iterator, parse_iterator) const {

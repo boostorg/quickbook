@@ -37,8 +37,8 @@ namespace quickbook
         };
 
         id_category() : c(default_category) {}
-        id_category(categories c) : c(c) {}
-        explicit id_category(int c) : c(categories(c)) {}
+        id_category(categories c_) : c(c_) {}
+        explicit id_category(int c_) : c(categories(c_)) {}
 
         bool operator==(id_category rhs) const { return c == rhs.c; }
 

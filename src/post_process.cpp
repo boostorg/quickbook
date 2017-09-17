@@ -20,9 +20,9 @@ namespace quickbook
 
     struct printer
     {
-        printer(std::string& out, int& current_indent, int linewidth)
-            : prev(0), out(out), current_indent(current_indent) , column(0)
-            , in_string(false), linewidth(linewidth) {}
+        printer(std::string& out_, int& current_indent_, int linewidth_)
+            : prev(0), out(out_), current_indent(current_indent_) , column(0)
+            , in_string(false), linewidth(linewidth_) {}
 
         void indent()
         {
@@ -228,17 +228,17 @@ namespace quickbook
 
     struct tidy_compiler
     {
-        tidy_compiler(std::string& out, int linewidth)
-            : out(out), current_indent(0), printer_(out, current_indent, linewidth)
+        tidy_compiler(std::string& out_, int linewidth_)
+            : out(out_), current_indent(0), printer_(out, current_indent, linewidth_)
         {
-            static int const n_block_tags = sizeof(block_tags_)/sizeof(char const*);
-            for (int i = 0; i != n_block_tags; ++i)
+            static std::size_t const n_block_tags = sizeof(block_tags_)/sizeof(char const*);
+            for (std::size_t i = 0; i != n_block_tags; ++i)
             {
                 block_tags.insert(block_tags_[i]);
             }
 
-            static int const n_doc_types = sizeof(doc_types_)/sizeof(char const*);
-            for (int i = 0; i != n_doc_types; ++i)
+            static std::size_t const n_doc_types = sizeof(doc_types_)/sizeof(char const*);
+            for (std::size_t i = 0; i != n_doc_types; ++i)
             {
                 block_tags.insert(doc_types_[i]);
                 block_tags.insert(doc_types_[i] + std::string("info"));
@@ -261,8 +261,8 @@ namespace quickbook
 
     struct tidy_grammar : cl::grammar<tidy_grammar>
     {
-        tidy_grammar(tidy_compiler& state, int indent)
-            : state(state), indent(indent) {}
+        tidy_grammar(tidy_compiler& state_, int indent_)
+            : state(state_), indent(indent_) {}
 
         template <typename Scanner>
         struct definition

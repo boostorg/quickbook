@@ -15,6 +15,7 @@ project quickbook
         <toolset>gcc:<cflags>-g0
         <toolset>darwin:<cflags>-g0
         <toolset>msvc:<cflags>/wd4709
+        <warnings>all
     ;
 
 lib shell32 ;
@@ -29,7 +30,9 @@ exe quickbook
     utils.cpp
     files.cpp
     native_text.cpp
+    stream.cpp
     glob.cpp
+    path.cpp
     include_paths.cpp
     values.cpp
     document_state.cpp

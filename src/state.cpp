@@ -13,7 +13,7 @@
 #include "document_state.hpp"
 #include "quickbook.hpp"
 #include "grammar.hpp"
-#include "native_text.hpp"
+#include "path.hpp"
 #include "utils.hpp"
 #include "phrase_tags.hpp"
 #include <boost/foreach.hpp>
@@ -30,7 +30,7 @@ namespace quickbook
     unsigned qbk_version_n = 0; // qbk_major_version * 100 + qbk_minor_version
 
     state::state(fs::path const& filein_, fs::path const& xinclude_base_,
-            string_stream& out_, document_state& document)
+            string_stream& out_, document_state& document_)
         : grammar_()
 
         , order_pos(0)
@@ -41,7 +41,7 @@ namespace quickbook
         , anchors()
         , warned_about_breaks(false)
         , conditional(true)
-        , document(document)
+        , document(document_)
         , callouts()
         , callout_depth(0)
         , dependencies()
@@ -142,9 +142,9 @@ namespace quickbook
         tagged_source_mode_stack.pop_back();
     }
 
-    state_save::state_save(quickbook::state& state, scope_flags scope)
-        : state(state)
-        , scope(scope)
+    state_save::state_save(quickbook::state& state_, scope_flags scope_)
+        : state(state_)
+        , scope(scope_)
         , qbk_version(qbk_version_n)
         , imported(state.imported)
         , current_file(state.current_file)

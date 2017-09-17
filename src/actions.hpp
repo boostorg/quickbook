@@ -16,6 +16,7 @@
 #include "utils.hpp"
 #include "values.hpp"
 #include "scoped.hpp"
+#include "iterator.hpp"
 #include <boost/spirit/include/classic_parser.hpp>
 
 namespace quickbook
@@ -24,8 +25,8 @@ namespace quickbook
 
     // Match if quickbook version is within range
     struct quickbook_range : cl::parser<quickbook_range> {
-        quickbook_range(unsigned lower, unsigned upper)
-            : lower(lower), upper(upper) {}
+        explicit quickbook_range(unsigned lower_, unsigned upper_)
+            : lower(lower_), upper(upper_) {}
 
         bool in_range() const;
         
@@ -45,8 +46,8 @@ namespace quickbook
 
     // Match if in strict mode.
     struct quickbook_strict : cl::parser<quickbook_strict> {
-        quickbook_strict(quickbook::state& state, bool positive = true)
-            : state(state), positive(positive) {}
+        explicit quickbook_strict(quickbook::state& state_, bool positive_ = true)
+            : state(state_), positive(positive_) {}
 
         bool is_strict_checking() const;
 
@@ -79,9 +80,9 @@ namespace quickbook
     {
         // Prints an error message to std::cerr
 
-        error_message_action(quickbook::state& state, std::string const& m)
-            : state(state)
-            , message(m)
+        explicit error_message_action(quickbook::state& state_, std::string const& message_)
+            : state(state_)
+            , message(message_)
         {}
 
         void operator()(parse_iterator, parse_iterator) const;
@@ -94,8 +95,8 @@ namespace quickbook
     {
         // Prints an error message to std::cerr
 
-        error_action(quickbook::state& state)
-        : state(state) {}
+        explicit error_action(quickbook::state& state_)
+            : state(state_) {}
 
         void operator()(parse_iterator first, parse_iterator last) const;
 
@@ -109,8 +110,8 @@ namespace quickbook
 
     struct element_action
     {
-        element_action(quickbook::state& state)
-            : state(state) {}
+        explicit element_action(quickbook::state& state_)
+            : state(state_) {}
 
         void operator()(parse_iterator, parse_iterator) const;
 
@@ -122,9 +123,8 @@ namespace quickbook
         //  implicit paragraphs
         //  doesn't output the paragraph if it's only whitespace.
 
-        paragraph_action(
-            quickbook::state& state)
-        : state(state) {}
+        explicit paragraph_action(quickbook::state& state_)
+            : state(state_) {}
 
         void operator()() const;
         void operator()(parse_iterator, parse_iterator) const { (*this)(); }
@@ -137,9 +137,8 @@ namespace quickbook
         //  implicit paragraphs
         //  doesn't output the paragraph if it's only whitespace.
 
-        explicit_list_action(
-            quickbook::state& state)
-        : state(state) {}
+        explicit explicit_list_action(quickbook::state& state_)
+            : state(state_) {}
 
         void operator()() const;
         void operator()(parse_iterator, parse_iterator) const { (*this)(); }
@@ -149,8 +148,8 @@ namespace quickbook
 
     struct phrase_end_action
     {
-        phrase_end_action(quickbook::state& state) :
-            state(state) {}
+        explicit phrase_end_action(quickbook::state& state_)
+            : state(state_) {}
 
         void operator()() const;
         void operator()(parse_iterator, parse_iterator) const { (*this)(); }
@@ -162,8 +161,8 @@ namespace quickbook
     {
         //  Handles simple text formats
 
-        simple_phrase_action(quickbook::state& state)
-        : state(state) {}
+        explicit simple_phrase_action(quickbook::state& state_)
+            : state(state_) {}
 
         void operator()(char) const;
 
@@ -187,7 +186,7 @@ namespace quickbook
     {
         // Handles macro substitutions
 
-        do_macro_action(quickbook::state& state) : state(state) {}
+        explicit do_macro_action(quickbook::state& state_) : state(state_) {}
 
         void operator()(std::string const& str) const;
         quickbook::state& state;
@@ -197,7 +196,7 @@ namespace quickbook
     {
         // Prints a space
 
-        raw_char_action(quickbook::state& state) : state(state) {}
+        explicit raw_char_action(quickbook::state& state_) : state(state_) {}
 
         void operator()(char ch) const;
         void operator()(parse_iterator first, parse_iterator last) const;
@@ -210,7 +209,7 @@ namespace quickbook
         // Prints a single plain char.
         // Converts '<' to "&lt;"... etc See utils.hpp
 
-        plain_char_action(quickbook::state& state) : state(state) {}
+        explicit plain_char_action(quickbook::state& state_) : state(state_) {}
 
         void operator()(char ch) const;
         void operator()(parse_iterator first, parse_iterator last) const;
@@ -220,7 +219,7 @@ namespace quickbook
     
     struct escape_unicode_action
     {
-        escape_unicode_action(quickbook::state& state) : state(state) {}
+        explicit escape_unicode_action(quickbook::state& state_) : state(state_) {}
 
         void operator()(parse_iterator first, parse_iterator last) const;
 
@@ -229,7 +228,7 @@ namespace quickbook
 
     struct break_action
     {
-        break_action(quickbook::state& state) : state(state) {}
+        explicit break_action(quickbook::state& state_) : state(state_) {}
 
         void operator()(parse_iterator f, parse_iterator) const;
 
@@ -238,7 +237,7 @@ namespace quickbook
 
    struct element_id_warning_action
    {
-        element_id_warning_action(quickbook::state& state_)
+        explicit element_id_warning_action(quickbook::state& state_)
             : state(state_) {}
 
         void operator()(parse_iterator first, parse_iterator last) const;
@@ -252,8 +251,8 @@ namespace quickbook
 
     struct to_value_scoped_action : scoped_action_base
     {
-        to_value_scoped_action(quickbook::state& state)
-            : state(state) {}
+        to_value_scoped_action(quickbook::state& state_)
+            : state(state_) {}
 
         bool start(value::tag_type = value::default_tag);
         void success(parse_iterator, parse_iterator);
@@ -276,7 +275,7 @@ namespace quickbook
         T& l;
         member_function mf;
 
-        member_action(T& l, member_function mf) : l(l), mf(mf) {}
+        explicit member_action(T& l_, member_function mf_) : l(l_), mf(mf_) {}
 
         void operator()(parse_iterator first, parse_iterator last) const {
             (l.*mf)(first, last);
@@ -295,15 +294,15 @@ namespace quickbook
         T& l;
         member_function mf;
 
-        member_action1(T& l, member_function mf) : l(l), mf(mf) {}
+        explicit member_action1(T& l_, member_function mf_) : l(l_), mf(mf_) {}
 
         struct impl
         {
             member_action1 a;
             Arg1 value;
 
-            impl(member_action1& a, Arg1 value) :
-                a(a), value(value)
+            explicit impl(member_action1& a_, Arg1 value_) :
+                a(a_), value(value_)
             {}
 
             void operator()(parse_iterator first, parse_iterator last) const {
@@ -328,7 +327,7 @@ namespace quickbook
         T& l;
         member_function mf;
 
-        member_action_value(T& l, member_function mf) : l(l), mf(mf) {}
+        explicit member_action_value(T& l_, member_function mf_) : l(l_), mf(mf_) {}
 
         void operator()(Value v) const {
             (l.*mf)(v);
@@ -348,13 +347,13 @@ namespace quickbook
         member_function mf;
         Value v;
 
-        member_action_fixed_value(T& l, member_function mf, Value v) : l(l), mf(mf), v(v) {}
+        explicit member_action_fixed_value(T& l_, member_function mf_, Value v_) : l(l_), mf(mf_), v(v_) {}
 
         void operator()() const {
             (l.*mf)(v);
         }
 
-        void operator()(parse_iterator first, parse_iterator last) const {
+        void operator()(parse_iterator, parse_iterator) const {
             (l.*mf)(v);
         }
     };

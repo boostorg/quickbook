@@ -14,10 +14,11 @@
 #include <utility>
 #include <string>
 #include <cassert>
+#include <stdexcept>
 #include <boost/scoped_ptr.hpp>
+#include <boost/operators.hpp>
 #include <boost/iterator/iterator_traits.hpp>
 #include "string_view.hpp"
-#include <stdexcept>
 #include "fwd.hpp"
 #include "files.hpp"
 
@@ -108,7 +109,7 @@ namespace quickbook
             iterator end() const;
 
             // Item accessors
-            int get_tag() const { return value_->tag_; }
+            tag_type get_tag() const { return value_->tag_; }
             file_ptr get_file() const
             { return value_->get_file(); }
             string_iterator get_position() const

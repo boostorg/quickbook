@@ -22,9 +22,9 @@ namespace quickbook {
         void cleanup() {}
         
         template <typename ResultT, typename ScannerT>
-        bool result(ResultT result, ScannerT const&)
+        bool result(ResultT r, ScannerT const&)
         {
-            return result;
+            return r;
         }
     };
 }

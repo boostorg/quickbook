@@ -25,7 +25,7 @@ namespace quickbook
 
     xml_processor::xml_processor()
     {
-        static int const n_id_attributes = sizeof(id_attributes_)/sizeof(char const*);
+        static std::size_t const n_id_attributes = sizeof(id_attributes_)/sizeof(char const*);
         for (int i = 0; i != n_id_attributes; ++i)
         {
             id_attributes.push_back(id_attributes_[i]);
@@ -75,7 +75,7 @@ namespace quickbook
 
     void xml_processor::parse(quickbook::string_view source, callback& c)
     {
-        typedef quickbook::string_view::const_iterator iterator;
+        typedef string_iterator iterator;
 
         c.start(source);
 
@@ -134,7 +134,7 @@ namespace quickbook
                         quickbook::string_view value(value_start, it - value_start);
                         ++it;
 
-                        if (boost::find(id_attributes, detail::to_s(name))
+                        if (boost::find(id_attributes, name.to_s())
                                 != id_attributes.end())
                         {
                             c.id_value(value);
@@ -154,7 +154,7 @@ namespace quickbook
     namespace detail {
         std::string linkify(quickbook::string_view source, quickbook::string_view linkend)
         {
-            typedef quickbook::string_view::const_iterator iterator;
+            typedef string_iterator iterator;
 
             iterator it = source.begin(), end = source.end();
 

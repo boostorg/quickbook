@@ -16,11 +16,11 @@
 #include "quickbook.hpp"
 #include "utils.hpp"
 #include "files.hpp"
-#include "native_text.hpp"
+#include "stream.hpp"
 #include "state.hpp"
 #include "doc_info_tags.hpp"
 #include "document_state.hpp"
-#include "include_paths.hpp"
+#include "path.hpp"
 
 namespace quickbook
 {
@@ -29,7 +29,7 @@ namespace quickbook
     static std::string doc_info_output(value const& p, unsigned version)
     {
         if (qbk_version_n < version) {
-            std::string value = detail::to_s(p.get_quickbook());
+            std::string value = p.get_quickbook().to_s();
             value.erase(value.find_last_not_of(" \t") + 1);
             return value;
         }
@@ -93,6 +93,14 @@ namespace quickbook
         return values;
     }
 
+    enum version_state { version_unknown, version_stable, version_dev };
+    version_state classify_version(unsigned v) {
+        return v < 100u ? version_unknown :
+            v <= 106u ? version_stable :
+            v <= 107u ? version_dev :
+            version_unknown;
+    }
+
     unsigned get_version(quickbook::state& state, bool using_docinfo,
             value version)
     {
@@ -110,7 +118,7 @@ namespace quickbook
                 result = ((unsigned) major_verison * 100) +
                     (unsigned) minor_verison;
             
-                if(result < 100 || result > 107)
+                if (classify_version(result) == version_unknown)
                 {
                     detail::outerr(state.current_file->path)
                         << "Unknown version: "
@@ -147,7 +155,7 @@ namespace quickbook
 
         if (values.check(doc_info_tags::type))
         {
-            doc_type = detail::to_s(values.consume(doc_info_tags::type).get_quickbook());
+            doc_type = values.consume(doc_info_tags::type).get_quickbook().to_s();
             doc_title = values.consume(doc_info_tags::title);
             use_doc_info = !nested_file || qbk_version_n >= 106u;
         }
@@ -206,9 +214,9 @@ namespace quickbook
         std::string include_doc_id_, id_;
 
         if (!include_doc_id.empty())
-            include_doc_id_ = detail::to_s(include_doc_id.get_quickbook());
+            include_doc_id_ = include_doc_id.get_quickbook().to_s();
         if (!id.empty())
-            id_ = detail::to_s(id.get_quickbook());
+            id_ = id.get_quickbook().to_s();
 
         // Quickbook version
 
@@ -216,7 +224,7 @@ namespace quickbook
 
         if (new_version != qbk_version_n)
         {
-            if (new_version >= 107u)
+            if (classify_version(new_version) == version_dev)
             {
                 detail::outwarn(state.current_file->path)
                     << "Quickbook " << (new_version / 100) << "." << (new_version % 100)
@@ -493,8 +501,8 @@ namespace quickbook
                 ;
         }
 
-        BOOST_FOREACH(value_consumer values, categories) {
-            value category = values.optional_consume();
+        BOOST_FOREACH(value_consumer category_values, categories) {
+            value category = category_values.optional_consume();
             if(!category.empty()) {
                 tmp << "    <" << doc_type << "category name=\"category:"
                     << doc_info_output(category, 106)
@@ -502,7 +510,7 @@ namespace quickbook
                     << "\n"
                 ;
             }
-            values.finish();
+            category_values.finish();
         }
 
         BOOST_FOREACH(value_consumer biblioid, biblioids)

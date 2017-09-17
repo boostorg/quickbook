@@ -12,6 +12,7 @@
 
 #include <boost/spirit/include/classic_core.hpp>
 #include "fwd.hpp"
+#include "iterator.hpp"
 
 namespace quickbook
 {
@@ -32,8 +33,8 @@ namespace quickbook
     struct grammar
         : public cl::grammar<grammar>
     {
-        grammar(cl::rule<scanner> const& start_rule, char const* /* name */)
-            : start_rule(start_rule) {}
+        grammar(cl::rule<scanner> const& start_rule_, char const* /* name */)
+            : start_rule(start_rule_) {}
 
         template <typename Scanner>
         struct definition :

@@ -12,16 +12,30 @@ matrix:
     include:
       - compiler: gcc
         env: |
-          USER_CONFIG="using gcc : : g++-4.8 --std=c++03 -fsanitize=address ;"
-          BOOST_VERSION=1.64.0
-          BOOST_FILENAME=boost_1_64_0
+          USER_CONFIG="using gcc : : g++-4.8 --std=c++11 -fsanitize=address ;"
+      - compiler: gcc
+        env: |
+          USER_CONFIG="using gcc : : g++-4.4 --std=c++0x ;"
+        addons:
+          apt:
+            packages:
+              - g++-4.4
       - compiler: clang
         env: |
           USER_CONFIG="using clang : : clang++ --std=c++11 -fsanitize=address ;"
-          BOOST_VERSION=1.64.0
-          BOOST_FILENAME=boost_1_64_0
+      - compiler: clang
+        env: |
+          USER_CONFIG="using clang : : clang++-3.4 --std=c++11 -fsanitize=address ;"
+        addons:
+          apt:
+            sources:
+              - sourceline: 'ppa:h-rayflood/llvm'
+            packages:
+              - clang-3.4
 
 before_script:
+    - export BOOST_VERSION=1.64.0
+    - export BOOST_FILENAME=boost_1_64_0
     - cd ${HOME}
     - echo $USER_CONFIG > user-config.jam
     - cat user-config.jam
@@ -60,8 +74,9 @@ before_script:
 
 script:
     - cd ${BOOST_ROOT}/tools/quickbook
-    - ${HOME}/opt/bin/b2 dist-bin
+    - ${HOME}/opt/bin/b2 dist-bin debug
     - cd ${BOOST_ROOT}/tools/quickbook/test
     - ${HOME}/opt/bin/b2
     - cd ${BOOST_ROOT}/tools/quickbook/test/python
     - python run_tests.py ${BOOST_ROOT}/dist/bin/quickbook
+    - ${BOOST_ROOT}/tools/quickbook/build/warning-check

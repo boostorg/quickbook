@@ -30,11 +30,11 @@
 #include "state.hpp"
 #include "state_save.hpp"
 #include "grammar.hpp"
-#include "native_text.hpp"
+#include "stream.hpp"
 #include "block_tags.hpp"
 #include "phrase_tags.hpp"
 #include "document_state.hpp"
-#include "include_paths.hpp"
+#include "path.hpp"
 
 namespace quickbook
 {
@@ -78,7 +78,7 @@ namespace quickbook
                 quickbook::value const& value)
         {
             std::string x = value.is_encoded() ?
-                value.get_encoded() : detail::to_s(value.get_quickbook());
+                value.get_encoded() : value.get_quickbook().to_s();
 
             if (x.empty()) {
                 detail::outerr(value.get_file(), value.get_position())
@@ -114,7 +114,7 @@ namespace quickbook
                 detail::outerr(id_value.get_file(), id_value.get_position())
                     << "Invalid id: "
                     << (id_value.is_encoded() ? id_value.get_encoded() :
-                        detail::to_s(id_value.get_quickbook()))
+                        id_value.get_quickbook().to_s())
                     << std::endl;
                 ++state.error_count;
             }
@@ -131,7 +131,7 @@ namespace quickbook
         return state.strict_mode;
     }
 
-    void explicit_list_action(quickbook::state&, value);
+    void list_action(quickbook::state&, value);
     void header_action(quickbook::state&, value);
     void begin_section_action(quickbook::state&, value);
     void end_section_action(quickbook::state&, value, string_iterator);
@@ -166,7 +166,7 @@ namespace quickbook
         {
         case block_tags::ordered_list:
         case block_tags::itemized_list:
-            return explicit_list_action(state, v);
+            return list_action(state, v);
         case block_tags::generic_heading:
         case block_tags::heading1:
         case block_tags::heading2:
@@ -687,7 +687,7 @@ namespace quickbook
         return block;
     }
 
-    void explicit_list_action(quickbook::state& state, value list)
+    void list_action(quickbook::state& state, value list)
     {
         write_anchors(state, state.out);
 
@@ -861,7 +861,8 @@ namespace quickbook
         
         if(hex_digits.size() == 2 && *first > '0' && *first <= '7') {
             using namespace std;
-            detail::print_char(strtol(hex_digits.c_str(), 0, 16),
+            detail::print_char(
+                    (char) strtol(hex_digits.c_str(), 0, 16),
                     state.phrase.get());
         }
         else {
@@ -877,7 +878,7 @@ namespace quickbook
         }
         else {
             quickbook::string_view value = v.get_quickbook();
-            for(quickbook::string_view::const_iterator
+            for(string_iterator
                 first = value.begin(), last  = value.end();
                 first != last; ++first)
             {
@@ -925,7 +926,7 @@ namespace quickbook
         
         std::string fileref = attributes["fileref"].is_encoded() ?
             attributes["fileref"].get_encoded() :
-            detail::to_s(attributes["fileref"].get_quickbook());
+            attributes["fileref"].get_quickbook().to_s();
 
         // Check for windows paths, then convert.
         // A bit crude, but there you go.
@@ -1028,7 +1029,8 @@ namespace quickbook
            {
               attributes.insert(std::make_pair(
                 "contentwidth", encoded_value(std::string(
-                    svg_text.begin() + a + 1, svg_text.begin() + b))
+                    boost::next(svg_text.begin(), a + 1),
+                    boost::next(svg_text.begin(), b)))
                 ));
            }
            a = svg_text.find("height");
@@ -1039,7 +1041,8 @@ namespace quickbook
            {
               attributes.insert(std::make_pair(
                 "contentdepth", encoded_value(std::string(
-                    svg_text.begin() + a + 1, svg_text.begin() + b))
+                    boost::next(svg_text.begin(), a + 1),
+                    boost::next(svg_text.begin(), b)))
                 ));
            }
         }
@@ -1071,7 +1074,7 @@ namespace quickbook
     void macro_definition_action(quickbook::state& state, quickbook::value macro_definition)
     {
         value_consumer values = macro_definition;
-        std::string macro_id = detail::to_s(values.consume().get_quickbook());
+        std::string macro_id = values.consume().get_quickbook().to_s();
         value phrase_value = values.optional_consume();
         std::string phrase;
         if (phrase_value.check()) phrase = phrase_value.get_encoded();
@@ -1100,11 +1103,11 @@ namespace quickbook
     void template_body_action(quickbook::state& state, quickbook::value template_definition)
     {
         value_consumer values = template_definition;
-        std::string identifier = detail::to_s(values.consume().get_quickbook());
+        std::string identifier = values.consume().get_quickbook().to_s();
 
         std::vector<std::string> template_values;
         BOOST_FOREACH(value const& p, values.consume()) {
-            template_values.push_back(detail::to_s(p.get_quickbook()));
+            template_values.push_back(p.get_quickbook().to_s());
         }
 
         BOOST_ASSERT(values.check(template_tags::block) || values.check(template_tags::phrase));
@@ -1197,7 +1200,7 @@ namespace quickbook
         void break_arguments(
             std::vector<value>& args
           , std::vector<std::string> const& params
-          , fs::path const& filename
+          , fs::path const& /* filename */
         )
         {
             // Quickbook 1.4-: If there aren't enough parameters seperated by
@@ -1440,7 +1443,7 @@ namespace quickbook
         bool template_escape = values.check(template_tags::escape);
         if(template_escape) values.consume();
 
-        std::string identifier = detail::to_s(values.consume(template_tags::identifier).get_quickbook());
+        std::string identifier = values.consume(template_tags::identifier).get_quickbook().to_s();
 
         std::vector<value> args;
 
@@ -1599,7 +1602,7 @@ namespace quickbook
         write_anchors(state, state.out);
 
         value_consumer values = variable_list;
-        std::string title = detail::to_s(values.consume(table_tags::title).get_quickbook());
+        std::string title = values.consume(table_tags::title).get_quickbook().to_s();
 
         state.out << "<variablelist>\n";
 
@@ -1758,11 +1761,11 @@ namespace quickbook
 
             if (self_linked_headers && state.document.compatibility_version() >= 103)
             {
-                state.out << quickbook::detail::linkify(content.get_encoded(), full_id);
+                state.out << quickbook::detail::linkify(title, full_id);
             }
             else
             {
-                state.out << content.get_encoded();
+                state.out << title;
             }
 
             state.out << "</title>\n";
@@ -1884,7 +1887,7 @@ namespace quickbook
             quickbook_path const& path,
             value::tag_type load_type,
             string_iterator first,
-            value const& include_doc_id = value())
+            value const& /* include_doc_id */ = value())
     {
         assert(load_type == block_tags::include ||
             load_type == block_tags::import);
@@ -1943,11 +1946,8 @@ namespace quickbook
 
         std::set<quickbook_path> search =
             include_search(parameter, state, first);
-        std::set<quickbook_path>::iterator i = search.begin();
-        std::set<quickbook_path>::iterator e = search.end();
-        for (; i != e; ++i)
+        BOOST_FOREACH(quickbook_path const& path, search)
         {
-            quickbook_path const & path = *i;
             try {
                 if (qbk_version_n >= 106)
                 {
