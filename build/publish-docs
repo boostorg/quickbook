@@ -9,8 +9,20 @@
 #!/usr/bin/env bash
 set -e
 
+# Change to the quickbook root directory
 cd $(dirname $0)
 cd ..
+
+# Git settings
+remote=git@github.com:boostorg/quickbook.git
+branch=gh-pages
+
+main() {
+    git fetch "$remote" "$branch:$branch"
+    b2 -aq doc//fully-standalone
+    write_fast_import gh-pages | git fast-import --date-format=now --quiet
+    git push "$remote" "$branch"
+}
 
 write_fast_import() {
     committer="$(git config user.name) <$(git config user.email)>"
@@ -34,7 +46,7 @@ write_fast_import() {
         echo "M $mode $hash $path"
     done
 
-    # Keep index.html from branch
+    # Preserve index.html from the github pages branch
     git ls-tree $branch -- index.html |
     while read mode type hash path ; do
         echo "M $mode $hash $path"
@@ -50,10 +62,4 @@ write_fast_import() {
     done
 }
 
-remote=git@github.com:boostorg/quickbook.git
-branch=gh-pages
-
-git fetch "$remote" "$branch:$branch"
-b2 -aq doc//fully-standalone
-write_fast_import gh-pages | git fast-import --date-format=now --quiet
-git push "$remote" "$branch"
+main
