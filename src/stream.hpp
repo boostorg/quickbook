@@ -75,8 +75,8 @@ namespace quickbook
         // error message.
         void set_ms_errors(bool);
         ostream& outerr();
-        ostream& outerr(fs::path const& file, int line = -1);
-        ostream& outwarn(fs::path const& file, int line = -1);
+        ostream& outerr(fs::path const& file, std::ptrdiff_t line = -1);
+        ostream& outwarn(fs::path const& file, std::ptrdiff_t line = -1);
         ostream& outerr(file_ptr const&, string_iterator);
         ostream& outwarn(file_ptr const&, string_iterator);
     }

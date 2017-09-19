@@ -29,10 +29,10 @@ namespace quickbook {
     struct file_position
     {
         file_position() : line(1), column(1) {}
-        file_position(int l, int c) : line(l), column(c) {}
+        file_position(std::ptrdiff_t l, std::ptrdiff_t c) : line(l), column(c) {}
 
-        int line;
-        int column;
+        std::ptrdiff_t line;
+        std::ptrdiff_t column;
         
         bool operator==(file_position const& other) const
         {
@@ -67,8 +67,8 @@ namespace quickbook {
             ref_count(0)
         {}
 
-        file(file const& f, quickbook::string_view source) :
-            path(f.path), source_(source.begin(), source.end()),
+        explicit file(file const& f, quickbook::string_view s) :
+            path(f.path), source_(s.begin(), s.end()),
             is_code_snippets(f.is_code_snippets),
             qbk_version(f.qbk_version), ref_count(0)
         {}
@@ -116,7 +116,7 @@ namespace quickbook {
     struct mapped_file_builder
     {
         typedef string_iterator iterator;
-        typedef quickbook::string_view::size_type pos;
+        typedef quickbook::string_view::size_type pos_type;
 
         mapped_file_builder();
         ~mapped_file_builder();
@@ -126,12 +126,12 @@ namespace quickbook {
         void clear();
 
         bool empty() const;
-        pos get_pos() const;
+        pos_type get_pos() const;
 
         void add_at_pos(quickbook::string_view, iterator);
         void add(quickbook::string_view);
         void add(mapped_file_builder const&);
-        void add(mapped_file_builder const&, pos, pos);
+        void add(mapped_file_builder const&, pos_type, pos_type);
         void unindent_and_add(quickbook::string_view);
     private:
         mapped_file_builder_data* data;

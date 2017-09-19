@@ -106,22 +106,22 @@ namespace quickbook
     document_state::~document_state() {}
 
     void document_state::start_file(
-            unsigned compatibility_version,
+            unsigned compatibility_version_,
             quickbook::string_view include_doc_id,
             quickbook::string_view id,
-            value const& title)
+            value const& title_)
     {
-        state->start_file(compatibility_version, false, include_doc_id, id, title);
+        state->start_file(compatibility_version_, false, include_doc_id, id, title_);
     }
 
     std::string document_state::start_file_with_docinfo(
-            unsigned compatibility_version,
+            unsigned compatibility_version_,
             quickbook::string_view include_doc_id,
             quickbook::string_view id,
-            value const& title)
+            value const& title_)
     {
-        return state->start_file(compatibility_version, true, include_doc_id,
-            id, title)->to_string();
+        return state->start_file(compatibility_version_, true, include_doc_id,
+            id, title_)->to_string();
     }
 
     void document_state::end_file()
@@ -130,10 +130,10 @@ namespace quickbook
     }
 
     std::string document_state::begin_section(
-        value const& explicit_id, quickbook::string_view id,
+        value const& explicit_id_, quickbook::string_view id,
         id_category category, source_mode_info const& source_mode)
     {
-        return state->begin_section(explicit_id, id, category, source_mode)
+        return state->begin_section(explicit_id_, id, category, source_mode)
             ->to_string();
     }
 
@@ -197,7 +197,7 @@ namespace quickbook
     //
 
     id_placeholder::id_placeholder(
-            unsigned index_,
+            std::size_t index_,
             quickbook::string_view id_,
             id_category category_,
             id_placeholder const* parent_)
@@ -235,7 +235,7 @@ namespace quickbook
         if (value.size() <= 1 || *value.begin() != '$')
             return 0;
 
-        unsigned index = boost::lexical_cast<int>(std::string(
+        unsigned index = boost::lexical_cast<unsigned>(std::string(
                 value.begin() + 1, value.end()));
 
         return &placeholders.at(index);

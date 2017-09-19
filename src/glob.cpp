@@ -19,7 +19,7 @@ namespace quickbook
     bool match_section(glob_iterator& pattern_begin, glob_iterator pattern_end,
             glob_iterator& filename_begin, glob_iterator& filename_end);
     bool match_range(glob_iterator& pattern_begin, glob_iterator pattern_end,
-            unsigned char x);
+            char x);
 
     bool check_glob(quickbook::string_view pattern)
     {
@@ -30,7 +30,7 @@ namespace quickbook
         glob_iterator end = pattern.end();
 
         while (begin != end) {
-            if (*begin < 32 || *begin > 127)
+            if (*begin < 32 || (*begin & 0x80))
                 is_ascii = false;
 
             switch(*begin) {
@@ -203,7 +203,7 @@ namespace quickbook
     }
 
     bool match_range(glob_iterator& pattern_begin, glob_iterator pattern_end,
-            unsigned char x)
+            char x)
     {
         assert(pattern_begin != pattern_end && *pattern_begin == '[');
         ++pattern_begin;

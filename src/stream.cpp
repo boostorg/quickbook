@@ -86,7 +86,7 @@ namespace detail {
         return error_stream() << "Error: ";
     }
 
-    ostream& outerr(fs::path const& file, int line)
+    ostream& outerr(fs::path const& file, std::ptrdiff_t line)
     {
         if (line >= 0)
         {
@@ -106,7 +106,7 @@ namespace detail {
         return outerr(f->path, f->position_of(pos).line);
     }
 
-    ostream& outwarn(fs::path const& file, int line)
+    ostream& outwarn(fs::path const& file, std::ptrdiff_t line)
     {
         if (line >= 0)
         {
@@ -127,13 +127,13 @@ namespace detail {
     }
 
     ostream& ostream::operator<<(char c) {
-        assert(c > 0 && c <= 127);
+        assert(c && !(c & 0x80));
         base << c;
         return *this;
     }
 
     inline bool check_ascii(char const* x) {
-        for(;*x;++x) if(*x <= 0 || *x > 127) return false;
+        for(;*x;++x) if(*x & 0x80) return false;
         return true;
     }
 

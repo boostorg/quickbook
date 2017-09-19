@@ -109,7 +109,7 @@ namespace quickbook
             iterator end() const;
 
             // Item accessors
-            int get_tag() const { return value_->tag_; }
+            tag_type get_tag() const { return value_->tag_; }
             file_ptr get_file() const
             { return value_->get_file(); }
             string_iterator get_position() const

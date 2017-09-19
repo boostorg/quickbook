@@ -106,7 +106,7 @@ def run_quickbook(quickbook_command, filename, output_gold = None,
         if deps_filename: os.unlink(deps_filename)
 
     if deps_gold:
-        gold = load_dependencies(deps_gold, adjust_paths = True)
+        gold = load_dependencies(deps_gold)
         if deps != gold:
             failures = failures + 1
             print "Dependencies don't match:"
@@ -115,7 +115,7 @@ def run_quickbook(quickbook_command, filename, output_gold = None,
             print
 
     if locations_gold:
-        gold = load_locations(locations_gold, adjust_paths = True)
+        gold = load_locations(locations_gold)
         if locations != gold:
             failures = failures + 1
             print "Dependencies don't match:"
@@ -136,19 +136,17 @@ def run_quickbook(quickbook_command, filename, output_gold = None,
 
     return failures
 
-def load_dependencies(filename, adjust_paths = False):
+def load_dependencies(filename):
     dependencies = set()
     f = open(filename, 'r')
     for path in f:
         if path[0] == '#': continue
-        if adjust_paths:
-            path = os.path.realpath(path)
         if path in dependencies:
             raise Exception("Duplicate path (%1s) in %2s" % (path, filename))
         dependencies.add(path)
     return dependencies
 
-def load_locations(filename, adjust_paths = False):
+def load_locations(filename):
     line_matcher = re.compile("^([+-g]) (.*)$")
     dependencies = {}
     f = open(filename, 'r')
@@ -159,8 +157,6 @@ def load_locations(filename, adjust_paths = False):
         m = line_matcher.match(line)
 
         path = m.group(2)
-        if adjust_paths:
-            path = os.path.realpath(path)
 
         if not m:
             raise Exception("Invalid dependency file: %1s" % filename)
