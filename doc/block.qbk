@@ -33,7 +33,7 @@ to specify where =xinclude= files should be found. For example, if you wish
 them to be relative to the current quickbook file:
 
     [article Article with xincludes
-    [quickbook 1.6]
+    [quickbook 1.7]
     [xmlbase .]
     ]
 
