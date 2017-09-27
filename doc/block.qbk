@@ -223,6 +223,34 @@ will generate:
 
 [endsect:mixed_lists]
 
+[#quickbook.ref.list_paragraphs]
+[section:list_paragraphs Paragraphs in lists]
+
+In quickbook 1.7 onwards, you can nest paragraphs in lists
+by separating them with blank lines:
+
+```
+* List item 1, paragraph 1
+
+  List item 1, paragraph 2
+
+* List item 2, paragraph 1
+
+  List item 2, paragraph 2
+```
+
+will generate:
+
+* List item 1, paragraph 1
+
+  List item 1, paragraph 2
+
+* List item 2, paragraph 1
+
+  List item 2, paragraph 2
+
+[endsect:list_paragraphs]
+
 [#quickbook.ref.list_tags]
 [section:list_tags Explicit list tags]
 
