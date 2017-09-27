@@ -162,6 +162,29 @@ valid for =library= documents. If you use them for other document types,
 quickbook will warn about them, but still use them, generating invalid markup,
 that's just ignored by the style sheets.
 
+[heading:escaped-docbook Escaped Docbook]
+
+From quickbook 1.7 onwards,
+[link quickbook.ref.escape escaped boostbook or docbook]
+can be included in a docinfo block:
+
+```
+[article Some article
+[quickbook 1.7]
+'''<author>
+    <firstname>John</firstname>
+    <surname>Doe</surname>
+    <email>john.doe@example.com</email>
+</author>'''
+]
+```
+
+The escaped docbook is always placed at the end of the docinfo block,
+so it shouldn't be assumed that it will interleave with markup generated from
+quickbook. A mixture
+of quickbook and docbook attributes for the same information will not work
+well.
+
 [endsect:attributes]
 
 [section:nesting Nesting quickbook documents]
