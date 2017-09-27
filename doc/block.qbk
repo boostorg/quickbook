@@ -293,6 +293,27 @@ Generates:
 
     using __boost__::__array__;
 
+In quickbook 1.7 and later, you can include [link quickbook.ref.callouts callouts]
+in code blocks, like so:
+
+[!teletype]
+
+    [!c++]
+        std::string foo_bar() /*< The /Mythical/ FooBar.
+                              See [@http://en.wikipedia.org/wiki/Foobar Foobar for details] >*/
+        {
+            return "foo-bar"; /*< return 'em, foo-bar man! >*/
+        }
+
+Which will generate:
+
+[!c++]
+    std::string foo_bar() /*< The /Mythical/ FooBar.
+                            See [@http://en.wikipedia.org/wiki/Foobar Foobar for details] >*/
+    {
+        return "foo-bar"; /*< return 'em, foo-bar man! >*/
+    }
+
 [endsect:code]
 
 [#quickbook.ref.escape_back]
@@ -1192,6 +1213,7 @@ not be visible in quickbook. The entire code-snippet in between `//[id` and
 `//]` will be inserted as a template in quickbook with name ['/id/]. The comment
 `//]` ends a code-snippet This too will not be visible in quickbook.
 
+[#quickbook.ref.callouts]
 [heading Special Comments]
 
 Special comments of the form:
