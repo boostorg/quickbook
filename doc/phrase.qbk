@@ -8,7 +8,7 @@
 ]
 
 [chapter Phrase Level Elements
-    [quickbook 1.6]
+    [quickbook 1.7]
     [compatibility-mode 1.5]
     [id quickbook.syntax.phrase]
     [source-mode teletype]
@@ -301,6 +301,71 @@ will generate:
 Python's [python] `import` is rather like C++'s [c++] `#include`. A
 C++ comment `// looks like this` whereas a Python comment [python]
 `#looks like this`.
+
+[teletype]
+
+Quickbook 1.7 introduced the `!` element which can be used to set the
+source mode of the following element:
+
+```
+[teletype]
+Example in C++: [!c++] `int main() {}`,
+example with no highlighting: `int main() {}`.
+```
+
+will generate:
+
+[teletype]
+Example in C++: [!c++] `int main() {}`,
+example with no highlighting: `int main() {}`.
+
+In order to change the source mode for a whole paragraph, put
+the `!` element on a separate line before the paragraph:
+
+```
+[!c++]
+`int main() {}` is highlighted as C++, as is `//example`.
+
+[!c++] `int main() {}` is also highlighted as C++,
+but `//example` isn't.
+```
+
+generates:
+
+[!c++]
+`int main() {}` is highlighted as C++, as is `//example`.
+
+[!c++] `int main() {}` is also highlighted as C++,
+but `//example` isn't.
+
+The `!` element can also be used to set the source mode for blocks
+and sections. For example:
+
+```
+[!python]
+[section:python Section in which all code samples use python]
+
+[/...]
+
+[endsect:python]
+
+[!c++]
+[section:cpp Section in which all code samples use C++]
+
+[/...]
+
+[endsect:cpp]
+```
+
+Or to set the source mode for a table:
+
+```
+[!teletype]
+[table
+    [[code][meaning]]
+    [[`+`][addition]]
+]
+```
 
 [teletype]
 

@@ -96,8 +96,8 @@ namespace quickbook
     enum version_state { version_unknown, version_stable, version_dev };
     version_state classify_version(unsigned v) {
         return v < 100u ? version_unknown :
-            v <= 106u ? version_stable :
-            v <= 107u ? version_dev :
+            v <= 107u ? version_stable :
+            //v <= 107u ? version_dev :
             version_unknown;
     }
 
