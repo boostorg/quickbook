@@ -295,9 +295,6 @@ namespace quickbook
 
     bool quickbook_path::operator<(quickbook_path const& other) const
     {
-        // TODO: Is comparing file_path redundant? Surely if quickbook_path
-        // and abstract_file_path are equal, it must also be.
-        // (but not vice-versa)
         return
             abstract_file_path != other.abstract_file_path ?
                 abstract_file_path < other.abstract_file_path :

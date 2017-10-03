@@ -96,7 +96,6 @@ namespace quickbook
                     ++begin;
                     break;
                 case '[':
-                    // TODO: Allow?
                     throw glob_error("nested square brackets");
                 case ']':
                     ++begin;
@@ -291,7 +290,6 @@ namespace quickbook
                     throw glob_error("slash in square brackets");
                 }
 
-                // TODO: What if second < first?
                 matched = matched || (first <= x && x <= second);
             }
         }

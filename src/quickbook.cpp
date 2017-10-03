@@ -533,10 +533,10 @@ main(int argc, char* argv[])
                     quickbook::detail::command_line_to_path(
                         vm["xinclude-base"].as<command_line_string>());
 
-                // TODO: Does this even matter?
-                //       There might be valid reasons to use a path that doesn't
-                //       exist yet, or a path that just generates valid relative
-                //       paths.
+                // I'm not sure if this error check is necessary.
+                // There might be valid reasons to use a path that doesn't
+                // exist yet, or a path that just generates valid relative
+                // paths.
                 if (!fs::is_directory(options.xinclude_base))
                 {
                     quickbook::detail::outerr()

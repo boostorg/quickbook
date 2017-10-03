@@ -133,7 +133,7 @@ namespace quickbook
                 // root_name is a drive.
                 return "file:///"
                     + detail::escape_uri(root_name.substr(0, root_name.size() - 1))
-                    + ":/" // TODO: Or maybe "|/".
+                    + ":/" // Somtimes "|/" is used, to avoid misinterpreting the ':'.
                     + detail::escape_uri(detail::path_to_generic(x.relative_path()));
             }
             else {
