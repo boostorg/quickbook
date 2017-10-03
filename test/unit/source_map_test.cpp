@@ -181,7 +181,6 @@ void indented_map_tests()
             quickbook::file_position(1,14));
         BOOST_TEST_EQ(f1->position_of(f1->source().begin() + 11),
             quickbook::file_position(2,4));
-        // TODO: Shouldn't this be (3,1)? Does it matter?
         BOOST_TEST_EQ(f1->position_of(f1->source().end()),
             quickbook::file_position(3,1));
     }
