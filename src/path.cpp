@@ -51,7 +51,7 @@ namespace quickbook
     }
 
     // The relative path from base to path
-    fs::path path_difference(fs::path const& base, fs::path const& path)
+    fs::path path_difference(fs::path const& base, fs::path const& path, bool is_file)
     {
         fs::path
             absolute_base = fs::absolute(base),
@@ -97,7 +97,10 @@ namespace quickbook
                 }
             }
 
-            if (base_it == base_end && path_it == path_end) {
+            if (is_file && path_it == path_end && path_it != path_parts.begin()) {
+                --path_it;
+                result = "..";
+            } else if (base_it == base_end && path_it == path_end) {
                result = ".";
             }
 

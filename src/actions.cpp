@@ -1830,7 +1830,7 @@ namespace quickbook
 
         if (x.type == path_parameter::path)
         {
-            quickbook_path path = resolve_xinclude_path(x.value, state);
+            quickbook_path path = resolve_xinclude_path(x.value, state, true);
 
             state.out << "\n<xi:include href=\"";
             detail::print_string(file_path_to_url(path.abstract_file_path), state.out.get());

@@ -65,7 +65,7 @@ namespace quickbook
     std::set<quickbook_path> include_search(path_parameter const&,
             quickbook::state& state, string_iterator pos);
 
-    quickbook_path resolve_xinclude_path(std::string const&, quickbook::state&);
+    quickbook_path resolve_xinclude_path(std::string const&, quickbook::state&, bool is_file = false);
 }
 
 #endif
