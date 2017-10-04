@@ -70,7 +70,7 @@ void dir_path_to_url_tests() {
 
     // Really not sure what to do with these examples.
     // Maybe an error?
-    BOOST_TEST_EQ(std::string("file:///c:"), dir_path_to_url(path("c:"))); // TODO
+    BOOST_TEST_EQ(std::string("file:///c:"), dir_path_to_url(path("c:")));
     BOOST_TEST_EQ(std::string("file:///c:foo/bar/"), dir_path_to_url(path("c:foo\\bar")));
 #endif
 
