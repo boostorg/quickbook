@@ -97,6 +97,10 @@ namespace quickbook
                 }
             }
 
+            if (base_it == base_end && path_it == path_end) {
+               result = ".";
+            }
+
             // Build a relative path to that point
             for(; base_it != base_end; ++base_it) result /= "..";
         }

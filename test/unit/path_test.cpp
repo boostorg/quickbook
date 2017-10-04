@@ -32,10 +32,8 @@ void path_difference_tests() {
     using boost::filesystem::path;
     using quickbook::path_difference;
 
-    // TODO: Should this be '.'?
-    std::cout << path_difference(path("a"), path("")) << std::endl;
-    BOOST_TEST(path("") == path_difference(path("a"), path("a")));
-    BOOST_TEST(path("") == path_difference(current_path(), current_path()));
+    BOOST_TEST(path(".") == path_difference(path("a"), path("a")));
+    BOOST_TEST(path(".") == path_difference(current_path(), current_path()));
     BOOST_TEST(path("..") == path_difference(path("a"), path("")));
     BOOST_TEST(path("..") == path_difference(current_path()/"a", current_path()));
     BOOST_TEST(path("a") == path_difference(path(""), path("a")));
