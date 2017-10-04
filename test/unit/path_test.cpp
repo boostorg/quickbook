@@ -15,16 +15,65 @@ void file_path_to_url_tests() {
     using boost::filesystem::path;
     using quickbook::file_path_to_url;
 
-    BOOST_TEST_EQ("a/b", file_path_to_url(path("a/b")));
-    BOOST_TEST_EQ("../a/b", file_path_to_url(path("../a/b")));
-    BOOST_TEST_EQ("A%20B%2bC%2520", file_path_to_url(path("A B+C%20")));
-    BOOST_TEST_EQ("file:///a/b", file_path_to_url(path("/a/b")));
+    BOOST_TEST_EQ(std::string(), file_path_to_url(path()));
+    BOOST_TEST_EQ(std::string("."), file_path_to_url(path(".")));
+    BOOST_TEST_EQ(std::string("./"), file_path_to_url(path("./")));
+    BOOST_TEST_EQ(std::string("a/b"), file_path_to_url(path("a/b")));
+    BOOST_TEST_EQ(std::string("a/b/"), file_path_to_url(path("a/b/")));
+    BOOST_TEST_EQ(std::string("./a/b"), file_path_to_url(path("./a/./././b")));
+    BOOST_TEST_EQ(std::string("../a/b"), file_path_to_url(path("../a/b")));
+    BOOST_TEST_EQ(std::string("A%20B%2bC%2520"), file_path_to_url(path("A B+C%20")));
+    BOOST_TEST_EQ(std::string("file:///"), file_path_to_url(path("/")));
+    BOOST_TEST_EQ(std::string("file:///a/b"), file_path_to_url(path("/a/b")));
+    BOOST_TEST_EQ(std::string("file:///a/b/"), file_path_to_url(path("/a/b/")));
+    BOOST_TEST_EQ(std::string("file://hello/a/b"), file_path_to_url(path("//hello/a/b")));
 
-#if BOOST_OS_WINDOWS
-    BOOST_TEST_EQ("file:///a", file_path_to_url(path("\\a")));
-    BOOST_TEST_EQ("file:///c:/", file_path_to_url(path("c:\\")));
-    BOOST_TEST_EQ("file:///c:/foo/bar", file_path_to_url(path("c:\\foo\\bar")));
+#if BOOST_OS_WINDOWS || BOOST_OS_CYGWIN
+    // Should this be file:///c:/x ?
+    BOOST_TEST_EQ(std::string("file://?/a:/x"), file_path_to_url(path("\\\\?\\a:\\x")));
+    BOOST_TEST_EQ(std::string("file:///a"), file_path_to_url(path("\\a")));
+    BOOST_TEST_EQ(std::string("file:///c:/"), file_path_to_url(path("c:\\")));
+    BOOST_TEST_EQ(std::string("file:///c:/foo/bar"), file_path_to_url(path("c:\\foo\\bar")));
+    BOOST_TEST_EQ(std::string("file://localhost/c:/foo/bar"), file_path_to_url(path("\\\\localhost\\c:\\foo\\bar")));
+
+    // Really not sure what to do with these examples.
+    // Maybe an error?
+    BOOST_TEST_EQ(std::string("file:///c:"), file_path_to_url(path("c:")));
+    BOOST_TEST_EQ(std::string("file:///c:foo/bar"), file_path_to_url(path("c:foo\\bar")));
 #endif
+}
+
+void dir_path_to_url_tests() {
+    using boost::filesystem::path;
+    using quickbook::dir_path_to_url;
+
+    BOOST_TEST_EQ(std::string("./"), dir_path_to_url(path()));
+    BOOST_TEST_EQ(std::string("./"), dir_path_to_url(path(".")));
+    BOOST_TEST_EQ(std::string("./"), dir_path_to_url(path("./")));
+    BOOST_TEST_EQ(std::string("a/b/"), dir_path_to_url(path("a/b")));
+    BOOST_TEST_EQ(std::string("a/b/"), dir_path_to_url(path("a/b/")));
+    BOOST_TEST_EQ(std::string("./a/b/"), dir_path_to_url(path("./a/./././b")));
+    BOOST_TEST_EQ(std::string("../a/b/"), dir_path_to_url(path("../a/b")));
+    BOOST_TEST_EQ(std::string("A%20B%2bC%2520/"), dir_path_to_url(path("A B+C%20")));
+    BOOST_TEST_EQ(std::string("file:///"), dir_path_to_url(path("/")));
+    BOOST_TEST_EQ(std::string("file:///a/b/"), dir_path_to_url(path("/a/b")));
+    BOOST_TEST_EQ(std::string("file:///a/b/"), dir_path_to_url(path("/a/b/")));
+    BOOST_TEST_EQ(std::string("file://hello/a/b/"), dir_path_to_url(path("//hello/a/b")));
+
+#if BOOST_OS_WINDOWS || BOOST_OS_CYGWIN
+    // Should this be file:///c:/x/ ?
+    BOOST_TEST_EQ(std::string("file://?/a:/x/"), dir_path_to_url(path("\\\\?\\a:\\x")));
+    BOOST_TEST_EQ(std::string("file:///a/"), dir_path_to_url(path("\\a")));
+    BOOST_TEST_EQ(std::string("file:///c:/"), dir_path_to_url(path("c:\\")));
+    BOOST_TEST_EQ(std::string("file:///c:/foo/bar/"), dir_path_to_url(path("c:\\foo\\bar")));
+    BOOST_TEST_EQ(std::string("file://localhost/c:/foo/bar/"), dir_path_to_url(path("\\\\localhost\\c:\\foo\\bar")));
+
+    // Really not sure what to do with these examples.
+    // Maybe an error?
+    BOOST_TEST_EQ(std::string("file:///c:"), dir_path_to_url(path("c:"))); // TODO
+    BOOST_TEST_EQ(std::string("file:///c:foo/bar/"), dir_path_to_url(path("c:foo\\bar")));
+#endif
+
 }
 
 void path_difference_tests() {
@@ -83,6 +132,7 @@ void path_difference_tests() {
 
 int main() {
     file_path_to_url_tests();
+    dir_path_to_url_tests();
     path_difference_tests();
     return boost::report_errors();
 }
