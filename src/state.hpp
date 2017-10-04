@@ -76,7 +76,6 @@ namespace quickbook
     // output state - scoped by templates and grammar
         bool                    in_list;        // generating a list
         std::stack<bool>        in_list_save;   // save the in_list state
-                                                // TODO: Something better...
         collector               out;            // main output stream
         collector               phrase;         // phrase output stream
 
