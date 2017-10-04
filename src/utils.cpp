@@ -106,7 +106,6 @@ namespace quickbook { namespace detail
     std::string escape_uri(quickbook::string_view uri_param)
     {
         std::string uri(uri_param.begin(), uri_param.end());
-        // TODO: I don't understand this choice of characters.....
         return escape_uri_impl(uri_param, "-_.!~*'()?\\/");
     }
 
