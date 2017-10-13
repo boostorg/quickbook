@@ -517,7 +517,8 @@ main(int argc, char* argv[])
                 fileout = quickbook::detail::command_line_to_path(
                     vm["output-file"].as<command_line_string>());
 
-                if (!fs::is_directory(fileout.parent_path()))
+                fs::path parent = fileout.parent_path();
+                if (!parent.empty() && !fs::is_directory(parent))
                 {
                     quickbook::detail::outerr()
                         << "parent directory not found for output file"
@@ -544,15 +545,17 @@ main(int argc, char* argv[])
                 if (!fs::is_directory(options.xinclude_base))
                 {
                     quickbook::detail::outerr()
-                        << "xinclude-base is not a directory";
+                        << "xinclude-base is not a directory"
+                        << std::endl;
                     ++error_count;
                 }
             }
             else
             {
                 options.xinclude_base = fileout.parent_path();
-                if (options.xinclude_base.empty())
+                if (options.xinclude_base.empty()) {
                     options.xinclude_base = ".";
+                }
 
                 // If fileout was implicitly created from filein, then it should be in filein's directory.
                 // If fileout was explicitly specified, then it's already been checked.
