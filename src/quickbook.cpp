@@ -448,7 +448,10 @@ main(int argc, char* argv[])
             fs::path fileout;
 
             if (!fs::exists(filein)) {
-                quickbook::detail::outerr() << "file not found: " << filein;
+                quickbook::detail::outerr()
+                    << "file not found: "
+                    << filein
+                    << std::endl;
                 ++error_count;
             }
 
@@ -517,7 +520,8 @@ main(int argc, char* argv[])
                 if (!fs::is_directory(fileout.parent_path()))
                 {
                     quickbook::detail::outerr()
-                        << "parent directory not found for output file";
+                        << "parent directory not found for output file"
+                        << std::endl;
                     ++error_count;
                 }
             }
