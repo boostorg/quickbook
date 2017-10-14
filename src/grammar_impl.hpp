@@ -20,13 +20,8 @@ namespace quickbook
 {
     namespace cl = boost::spirit::classic;
 
-    // Information about a square bracket element (e.g. [* word]).
-    //
-    // TODO: The naming is a bit confused as element is also sometimes used for
-    // syntactic/implicit elements (such as lists and horizontal rules). Maybe
-    // should use entity as a more general name instead of element. Or it might
-    // be better to use 'tag' for square bracket elements, although that is
-    // currently used for the type of entities.
+    // Information about a square bracket element (e.g. [* word]), and
+    // some other syntactic elements (such as lists and horizontal rules)..
     struct element_info
     {
         // Types of elements.
@@ -45,7 +40,7 @@ namespace quickbook
             section_block = 1,
 
             // Block elements that can be used in conditional phrases and lists,
-            // but not nested. (TODO: not a good name).
+            // but not nested.
             conditional_or_block = 2,
 
             // Block elements that can be nested in other elements.            

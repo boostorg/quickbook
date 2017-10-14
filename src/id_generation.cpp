@@ -14,9 +14,6 @@
 #include <boost/foreach.hpp>
 #include <boost/range/algorithm.hpp>
 
-// TODO: This should possibly try to always generate valid XML ids:
-// http://www.w3.org/TR/REC-xml/#NT-NameStartChar
-
 namespace quickbook {
     //
     // The maximum size of a generated part of an id.

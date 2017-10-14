@@ -59,10 +59,9 @@ namespace quickbook { namespace detail
         }
     }
 
-    std::string make_identifier(std::string text)
+    std::string make_identifier(quickbook::string_view text)
     {
-        std::string id;
-        id.swap(text);
+        std::string id(text.begin(), text.end());
         for (std::string::iterator i = id.begin(); i != id.end(); ++i) {
             if (!std::isalnum(static_cast<unsigned char>(*i))) {
                 *i = '_';
@@ -75,44 +74,42 @@ namespace quickbook { namespace detail
         return id;
     }
 
-    static std::string escape_uri_impl(std::string& uri_param, char const* mark)
+    static std::string escape_uri_impl(quickbook::string_view uri_param, char const* mark)
     {
         // Extra capital characters for validating percent escapes.
         static char const hex[] = "0123456789abcdefABCDEF";
 
         std::string uri;
-        uri.swap(uri_param);
+        uri.reserve(uri_param.size());
 
-        for (std::string::size_type n = 0; n < uri.size(); ++n)
+        for (std::string::size_type n = 0; n < uri_param.size(); ++n)
         {
-            if (static_cast<unsigned char>(uri[n]) > 127 ||
-                    (!std::isalnum(static_cast<unsigned char>(uri[n])) &&
-                     !std::strchr(mark, uri[n])) ||
-                    (uri[n] == '%' && !(n + 2 < uri.size() &&
-                                        std::strchr(hex, uri[n+1]) &&
-                                        std::strchr(hex, uri[n+2]))))
+            if (static_cast<unsigned char>(uri_param[n]) > 127 ||
+                    (!std::isalnum(static_cast<unsigned char>(uri_param[n])) &&
+                     !std::strchr(mark, uri_param[n])) ||
+                    (uri_param[n] == '%' && !(n + 2 < uri_param.size() &&
+                                        std::strchr(hex, uri_param[n+1]) &&
+                                        std::strchr(hex, uri_param[n+2]))))
             {
-                char escape[] = { hex[uri[n] / 16], hex[uri[n] % 16] };
-                uri.insert(n + 1, escape, 2);
-                uri[n] = '%';
-                n += 2;
+                char escape[] = { '%', hex[uri_param[n] / 16], hex[uri_param[n] % 16], '\0' };
+                uri += escape;
             }
-            else if (uri[n] == '%')
+            else
             {
-                n += 2;
+                uri += uri_param[n];
             }
         }
 
         return uri;
     }
 
-    std::string escape_uri(std::string uri_param)
+    std::string escape_uri(quickbook::string_view uri_param)
     {
-        // TODO: I don't understand this choice of characters.....
+        std::string uri(uri_param.begin(), uri_param.end());
         return escape_uri_impl(uri_param, "-_.!~*'()?\\/");
     }
 
-    std::string partially_escape_uri(std::string uri_param)
+    std::string partially_escape_uri(quickbook::string_view uri_param)
     {
         return escape_uri_impl(uri_param, "-_.!~*'()?\\/:&=#%+");
     }

@@ -41,8 +41,6 @@ namespace quickbook
     namespace {
         void write_anchors(quickbook::state& state, collector& tgt)
         {
-            // TODO: This works but is a bit of an odd place to put it.
-            // Might need to redefine the purpose of this function.
             if (state.source_mode_next) {
                 detail::outwarn(state.source_mode_next_pos.get_file(),
                     state.source_mode_next_pos.get_position())
@@ -1579,7 +1577,6 @@ namespace quickbook
         else {
             dst = get_attribute_value(state, dst_value);
 
-            // TODO: Might be better to have an error for some invalid urls.
             if (link.get_tag() == phrase_tags::url) {
                 dst = detail::partially_escape_uri(dst);
             }
@@ -1833,7 +1830,7 @@ namespace quickbook
 
         if (x.type == path_parameter::path)
         {
-            quickbook_path path = resolve_xinclude_path(x.value, state);
+            quickbook_path path = resolve_xinclude_path(x.value, state, true);
 
             state.out << "\n<xi:include href=\"";
             detail::print_string(file_path_to_url(path.abstract_file_path), state.out.get());

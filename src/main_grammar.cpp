@@ -517,8 +517,7 @@ namespace quickbook
                 // Note that we don't do this for lists in 1.6, as it causes
                 // the list block to end. The support for nested syntactic
                 // blocks in 1.7 will fix that. Although it does mean the
-                // following line will need to be indented. TODO: Flag that
-                // the indentation check shouldn't be made?
+                // following line will need to be indented.
             >>  !(  cl::eps_p(in_list) >> qbk_ver(106u, 107u)
                 |   cl::eps_p
                     (
@@ -1120,10 +1119,6 @@ namespace quickbook
     {
         // If this nested block is part of a list, then tell the
         // output state.
-        //
-        // TODO: This is a bit dodgy, it would be better if this
-        // was handled when the output state is pushed (currently
-        // in to_value_scoped_action).
         state_.in_list = state_.explicit_list;
         state_.explicit_list = false;
 
