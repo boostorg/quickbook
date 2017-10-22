@@ -103,14 +103,15 @@ void equality_tests()
     builder.insert(nil);
     distinct_values.push_back(builder.release());
 
-    for(int i = 0; i < distinct_values.size(); ++i)
-        for(int j = 0; j < distinct_values.size(); ++j)
-            if ((i == j) != (distinct_values[i] == distinct_values[j]))
-            {
+    for(std::size_t i = 0; i < distinct_values.size(); ++i) {
+        for(std::size_t j = 0; j < distinct_values.size(); ++j) {
+            if ((i == j) != (distinct_values[i] == distinct_values[j])) {
                 BOOST_ERROR("Value mismatch.");
                 BOOST_LIGHTWEIGHT_TEST_OSTREAM
                     << "\tat " << i << ", " << j << std::endl;
             }
+        }
+    }
 }
 
 int main()

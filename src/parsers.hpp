@@ -196,10 +196,13 @@ namespace quickbook {
             typedef phoenix::tuple<Arg1, Arg2> tuple;
             return scoped_parser_gen<Impl, tuple>(impl_, tuple(x1, x2));
         }
-        
+
         Impl impl_;
+
+    private:
+        scoped_parser& operator=(scoped_parser const&);
     };
-    
+
     ///////////////////////////////////////////////////////////////////////////
     //
     // Lookback parser

@@ -240,7 +240,7 @@ namespace quickbook {
 
         unsigned count = 0;
 
-        while (true)
+        for (;;)
         {
             std::string postfix =
                 boost::lexical_cast<std::string>(count++);

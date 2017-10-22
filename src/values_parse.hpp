@@ -32,6 +32,9 @@ namespace quickbook {
         void cleanup() { builder.restore(); }
 
         value_builder& builder;
+
+    private:
+        value_builder_save& operator=(value_builder_save const&);
     };
 
     struct value_builder_list : scoped_action_base
@@ -48,6 +51,9 @@ namespace quickbook {
         void failure() { builder.clear_list(); }
 
         value_builder& builder;
+
+    private:
+        value_builder_list& operator=(value_builder_list const&);
     };
 
     struct value_entry
@@ -74,6 +80,9 @@ namespace quickbook {
 
         value_builder& builder;
         file_ptr* current_file;
+
+    private:
+        value_entry& operator=(value_entry const&);
     };
 
     struct value_sort
@@ -88,6 +97,9 @@ namespace quickbook {
         }
 
         value_builder& builder;
+
+    private:
+        value_sort& operator=(value_sort const&);
     };
 
     struct value_parser

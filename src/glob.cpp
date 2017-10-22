@@ -153,7 +153,7 @@ namespace quickbook
 
             if (*pattern_it == '*') { throw glob_error("'**' not supported"); }
 
-            while (true) {
+            for (;;) {
                 if (filename_it == filename_end) return false;
                 if (match_section(pattern_it, pattern_end, filename_it, filename_end))
                     break;
@@ -234,7 +234,7 @@ namespace quickbook
         }
 
         // Search for a match
-        while (true) {
+        for (;;) {
             unsigned char first = *pattern_begin;
             ++pattern_begin;
             if (first == ']') break;
@@ -304,7 +304,7 @@ namespace quickbook
         // doesn't take a position argument.
         std::size_t removed = 0;
 
-        while (true) {
+        for (;;) {
             pos = pattern.find_first_of("[]?*\\");
             if (pos == quickbook::string_view::npos) return pos;
             if (pattern[pos] != '\\') return pos + removed;
@@ -317,7 +317,7 @@ namespace quickbook
     {
         std::string result;
 
-        while (true) {
+        for (;;) {
             std::size_t pos = pattern.find("\\");
             if (pos == quickbook::string_view::npos) {
                 result.append(pattern.data(), pattern.size());
