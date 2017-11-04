@@ -175,6 +175,9 @@ namespace quickbook
         int column;
         bool in_string;
         int linewidth;
+
+    private:
+        printer& operator=(printer const&);
     };
 
     char const* block_tags_[] =
@@ -257,6 +260,9 @@ namespace quickbook
         int current_indent;
         printer printer_;
         std::string current_tag;
+
+    private:
+        tidy_compiler& operator=(tidy_compiler const&);
     };
 
     struct tidy_grammar : cl::grammar<tidy_grammar>
@@ -428,6 +434,9 @@ namespace quickbook
 
         tidy_compiler& state;
         int indent;
+
+    private:
+        tidy_grammar& operator=(tidy_grammar const&);
     };
 
     std::string post_process(

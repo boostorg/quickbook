@@ -295,9 +295,6 @@ namespace quickbook
 
     bool quickbook_path::operator<(quickbook_path const& other) const
     {
-        // TODO: Is comparing file_path redundant? Surely if quickbook_path
-        // and abstract_file_path are equal, it must also be.
-        // (but not vice-versa)
         return
             abstract_file_path != other.abstract_file_path ?
                 abstract_file_path < other.abstract_file_path :
@@ -325,7 +322,7 @@ namespace quickbook
                 abstract_file_path.parent_path());
     }
 
-    quickbook_path resolve_xinclude_path(std::string const& x, quickbook::state& state) {
+    quickbook_path resolve_xinclude_path(std::string const& x, quickbook::state& state, bool is_file) {
         fs::path path = detail::generic_to_path(x);
         fs::path full_path = path;
 
@@ -336,7 +333,7 @@ namespace quickbook
             full_path = state.current_file->path.parent_path() / path;
 
             // Then calculate relative to the current xinclude_base.
-            path = path_difference(state.xinclude_base, full_path);
+            path = path_difference(state.xinclude_base, full_path, is_file);
         }
 
         return quickbook_path(full_path, 0, path);

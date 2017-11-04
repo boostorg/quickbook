@@ -33,7 +33,7 @@ to specify where =xinclude= files should be found. For example, if you wish
 them to be relative to the current quickbook file:
 
     [article Article with xincludes
-    [quickbook 1.6]
+    [quickbook 1.7]
     [xmlbase .]
     ]
 
@@ -223,6 +223,34 @@ will generate:
 
 [endsect:mixed_lists]
 
+[#quickbook.ref.list_paragraphs]
+[section:list_paragraphs Paragraphs in lists]
+
+In quickbook 1.7 onwards, you can nest paragraphs in lists
+by separating them with blank lines:
+
+```
+* List item 1, paragraph 1
+
+  List item 1, paragraph 2
+
+* List item 2, paragraph 1
+
+  List item 2, paragraph 2
+```
+
+will generate:
+
+* List item 1, paragraph 1
+
+  List item 1, paragraph 2
+
+* List item 2, paragraph 1
+
+  List item 2, paragraph 2
+
+[endsect:list_paragraphs]
+
 [#quickbook.ref.list_tags]
 [section:list_tags Explicit list tags]
 
@@ -292,6 +320,27 @@ Generates:
 [def __boost__ [@http://www.boost.org/libs/libraries.htm boost]]
 
     using __boost__::__array__;
+
+In quickbook 1.7 and later, you can include [link quickbook.ref.callouts callouts]
+in code blocks, like so:
+
+[!teletype]
+
+    [!c++]
+        std::string foo_bar() /*< The /Mythical/ FooBar.
+                              See [@http://en.wikipedia.org/wiki/Foobar Foobar for details] >*/
+        {
+            return "foo-bar"; /*< return 'em, foo-bar man! >*/
+        }
+
+Which will generate:
+
+[!c++]
+    std::string foo_bar() /*< The /Mythical/ FooBar.
+                            See [@http://en.wikipedia.org/wiki/Foobar Foobar for details] >*/
+    {
+        return "foo-bar"; /*< return 'em, foo-bar man! >*/
+    }
 
 [endsect:code]
 
@@ -1192,6 +1241,7 @@ not be visible in quickbook. The entire code-snippet in between `//[id` and
 `//]` will be inserted as a template in quickbook with name ['/id/]. The comment
 `//]` ends a code-snippet This too will not be visible in quickbook.
 
+[#quickbook.ref.callouts]
 [heading Special Comments]
 
 Special comments of the form:

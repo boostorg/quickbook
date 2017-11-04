@@ -18,23 +18,13 @@ namespace quickbook { namespace detail {
     std::string encode_string(quickbook::string_view);
     void print_char(char ch, std::ostream& out);
     void print_string(quickbook::string_view str, std::ostream& out);
-
-    std::string make_identifier(std::string);
-    inline std::string make_identifier(quickbook::string_view x) {
-        return make_identifier(x.to_s());
-    }
+    std::string make_identifier(quickbook::string_view);
 
     // URI escape string
-    std::string escape_uri(std::string uri);
-    inline std::string escape_uri(quickbook::string_view uri) {
-        return escape_uri(std::string(uri.begin(), uri.end()));
-    }
+    std::string escape_uri(quickbook::string_view);
 
     // URI escape string, leaving characters generally used in URIs.
-    std::string partially_escape_uri(std::string uri);
-    inline std::string partially_escape_uri(quickbook::string_view uri) {
-        return escape_uri(std::string(uri.begin(), uri.end()));
-    }
+    std::string partially_escape_uri(quickbook::string_view);
 
     // Defined in id_xml.cpp. Just because.
     std::string linkify(quickbook::string_view source, quickbook::string_view linkend);

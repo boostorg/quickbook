@@ -357,3 +357,10 @@ Boost 1.46.1:
   under development so new errors could be added.
 * `--no-output` command line parameter to process the quickbook documents
   but not actually generate any files.
+
+[heading Version 1.7.0 - Boost 1.66]
+
+* Last version to compile with C++03.
+* Minor improvements to some warning and error messages.
+* Stopped normalizing paths in dependency lists.
+* Fix xmlbase when it's the same directory as the existing xinclude base.

@@ -6,8 +6,9 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
 <link rel="home" href="../index.html" title="Boost Documentation Tools">
 <link rel="up" href="../quickbook/versions.html" title="Chapter&#160;13.&#160;Language Versions">
-<link rel="prev" href="../quickbook/versions.html" title="Chapter&#160;13.&#160;Language Versions">
+<link rel="prev" href="../quickbook/versions/stable.html" title="Stable Versions">
 <link rel="next" href="1_7.html" title="Quickbook 1.7">
+<meta name="viewport" content="width=device-width">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -20,7 +21,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="../quickbook/versions.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickbook/versions.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="1_7.html"><img src="../images/next.png" alt="Next"></a>
+<a accesskey="p" href="../quickbook/versions/stable.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickbook/versions.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="1_7.html"><img src="../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -48,53 +49,6 @@
           parser</a></span></dt>
 <dt><span class="section"><a href="1_6.html#language_versions.1_6.elements">New Elements</a></span></dt>
 </dl></div>
-<p>
-          Upgrading a document from an earlier version of quickbook shouldn't be
-          too hard. The first thing to do is update the version in the docinfo block.
-          For example, if you were updating the Xpressive documentation, the existing
-          docinfo block looks like:
-        </p>
-<pre class="programlisting">[library Boost.Xpressive
-    [quickbook 1.3]
-    ...
-]
-</pre>
-<p>
-          Change this to:
-        </p>
-<pre class="programlisting">[library Boost.Xpressive
-    [quickbook 1.6]
-    [compatibility-mode 1.3]
-    ...
-]
-</pre>
-<p>
-          The <code class="literal">compatibility-mode</code> tag ensures that automatically
-          generated links won't change. It might turn out that it isn't required,
-          but in Xpressive's case if it isn't included it will break a lot of links.
-        </p>
-<p>
-          Then try building it. You might need to fix some stray square brackets.
-          The new version has a stricter parser which will have an error for brackets
-          which don't pair up. They might be there by mistake, in which case they
-          should probably be deleted, or if they're intentional escaped. For example,
-          to write out the half-open range [a,b), use: <code class="computeroutput">\[a,b)</code>.
-        </p>
-<p>
-          Next, you might need to reconsider how templates and macros are defined.
-          If you <code class="computeroutput">include</code> a file to use its templates, you'll now need
-          to <code class="computeroutput">import</code> it instead as templates are now scoped by included
-          files. Also, if you define templates and macros in your main quickbook
-          file, you might want to put them into a separate file and <code class="computeroutput">import</code>
-          that, which allows the main documentation files to concentrate on the structure
-          and contents of the document, making them easier to read.
-        </p>
-<p>
-          Now that headings can have ids, it can be a good idea to add ids to existing
-          headings. This means that the headings will have more predictable ids which
-          don't change when the text of the heading changes. In order to preserve
-          links you can use the existing generated id as the heading.
-        </p>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="language_versions.1_6.docinfo"></a><a class="link" href="1_6.html#language_versions.1_6.docinfo" title="Includes with docinfo">Includes with docinfo</a>
@@ -401,7 +355,7 @@
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
 <td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
-        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+        Eric Niebler<br>Copyright &#169; 2010-2017 Daniel James<p>
           Distributed under the Boost Software License, Version 1.0. (See accompanying
           file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
         </p>
@@ -409,7 +363,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="../quickbook/versions.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickbook/versions.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="1_7.html"><img src="../images/next.png" alt="Next"></a>
+<a accesskey="p" href="../quickbook/versions/stable.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../quickbook/versions.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="1_7.html"><img src="../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

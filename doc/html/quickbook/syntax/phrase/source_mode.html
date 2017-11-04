@@ -8,6 +8,7 @@
 <link rel="up" href="../phrase.html" title="Chapter&#160;11.&#160;Phrase Level Elements">
 <link rel="prev" href="code_blocks.html" title="Code blocks">
 <link rel="next" href="line_break.html" title="line-break">
+<meta name="viewport" content="width=device-width">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -52,6 +53,69 @@ C++ comment `// looks like this` whereas a Python comment [python]
           A C++ comment <code class="computeroutput"><span class="comment">// looks like this</span></code>
           whereas a Python comment <code class="computeroutput"><span class="comment">#looks like this</span></code>.
         </p>
+<p>
+          Quickbook 1.7 introduced the <code class="computeroutput">!</code> element which can be used to
+          set the source mode of the following element:
+        </p>
+<pre class="programlisting">[teletype]
+Example in C++: [!c++] `int main() {}`,
+example with no highlighting: `int main() {}`.
+</pre>
+<p>
+          will generate:
+        </p>
+<p>
+          Example in C++: <code class="computeroutput"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{}</span></code>, example
+          with no highlighting: <code class="computeroutput">int main() {}</code>.
+        </p>
+<p>
+          In order to change the source mode for a whole paragraph, put the <code class="computeroutput">!</code>
+          element on a separate line before the paragraph:
+        </p>
+<pre class="programlisting">[!c++]
+`int main() {}` is highlighted as C++, as is `//example`.
+
+[!c++] `int main() {}` is also highlighted as C++,
+but `//example` isn't.
+</pre>
+<p>
+          generates:
+        </p>
+<p>
+          <code class="computeroutput"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{}</span></code> is
+          highlighted as C++, as is <code class="computeroutput"><span class="comment">//example</span></code>.
+        </p>
+<p>
+          <code class="computeroutput"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span> <span class="special">{}</span></code> is
+          also highlighted as C++, but <code class="computeroutput">//example</code> isn't.
+        </p>
+<p>
+          The <code class="computeroutput">!</code> element can also be used to set the source mode for
+          blocks and sections. For example:
+        </p>
+<pre class="programlisting">[!python]
+[section:python Section in which all code samples use python]
+
+[/...]
+
+[endsect:python]
+
+[!c++]
+[section:cpp Section in which all code samples use C++]
+
+[/...]
+
+[endsect:cpp]
+</pre>
+<p>
+          Or to set the source mode for a table:
+        </p>
+<pre class="programlisting">[!teletype]
+[table
+    [[code][meaning]]
+    [[`+`][addition]]
+]
+</pre>
 <div class="table">
 <a name="quickbook.syntax.phrase.source_mode.supported_source_modes"></a><p class="title"><b>Table&#160;11.2.&#160;Supported Source Modes</b></p>
 <div class="table-contents"><table class="table" summary="Supported Source Modes">
@@ -124,7 +188,7 @@ C++ comment `// looks like this` whereas a Python comment [python]
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
 <td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
-        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+        Eric Niebler<br>Copyright &#169; 2010-2017 Daniel James<p>
           Distributed under the Boost Software License, Version 1.0. (See accompanying
           file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
         </p>

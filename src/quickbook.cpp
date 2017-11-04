@@ -41,7 +41,7 @@
 #pragma warning(disable:4355)
 #endif
 
-#define QUICKBOOK_VERSION "Quickbook Version 1.6.4"
+#define QUICKBOOK_VERSION "Quickbook Version 1.7.0"
 
 namespace quickbook
 {
@@ -448,7 +448,10 @@ main(int argc, char* argv[])
             fs::path fileout;
 
             if (!fs::exists(filein)) {
-                quickbook::detail::outerr() << "file not found: " << filein;
+                quickbook::detail::outerr()
+                    << "file not found: "
+                    << filein
+                    << std::endl;
                 ++error_count;
             }
 
@@ -514,10 +517,12 @@ main(int argc, char* argv[])
                 fileout = quickbook::detail::command_line_to_path(
                     vm["output-file"].as<command_line_string>());
 
-                if (!fs::is_directory(fileout.parent_path()))
+                fs::path parent = fileout.parent_path();
+                if (!parent.empty() && !fs::is_directory(parent))
                 {
                     quickbook::detail::outerr()
-                        << "parent directory not found for output file";
+                        << "parent directory not found for output file"
+                        << std::endl;
                     ++error_count;
                 }
             }
@@ -533,22 +538,24 @@ main(int argc, char* argv[])
                     quickbook::detail::command_line_to_path(
                         vm["xinclude-base"].as<command_line_string>());
 
-                // TODO: Does this even matter?
-                //       There might be valid reasons to use a path that doesn't
-                //       exist yet, or a path that just generates valid relative
-                //       paths.
+                // I'm not sure if this error check is necessary.
+                // There might be valid reasons to use a path that doesn't
+                // exist yet, or a path that just generates valid relative
+                // paths.
                 if (!fs::is_directory(options.xinclude_base))
                 {
                     quickbook::detail::outerr()
-                        << "xinclude-base is not a directory";
+                        << "xinclude-base is not a directory"
+                        << std::endl;
                     ++error_count;
                 }
             }
             else
             {
                 options.xinclude_base = fileout.parent_path();
-                if (options.xinclude_base.empty())
+                if (options.xinclude_base.empty()) {
                     options.xinclude_base = ".";
+                }
 
                 // If fileout was implicitly created from filein, then it should be in filein's directory.
                 // If fileout was explicitly specified, then it's already been checked.

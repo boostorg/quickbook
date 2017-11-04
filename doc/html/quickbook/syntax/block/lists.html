@@ -8,6 +8,7 @@
 <link rel="up" href="../block.html" title="Chapter&#160;12.&#160;Block Level Elements">
 <link rel="prev" href="paragraphs.html" title="Paragraphs">
 <link rel="next" href="code.html" title="Code">
+<meta name="viewport" content="width=device-width">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -37,6 +38,8 @@
           lists</a></span></dt>
 <dt><span class="section"><a href="lists.html#quickbook.syntax.block.lists.mixed_lists">Mixed
           lists</a></span></dt>
+<dt><span class="section"><a href="lists.html#quickbook.syntax.block.lists.list_paragraphs">Paragraphs
+          in lists</a></span></dt>
 <dt><span class="section"><a href="lists.html#quickbook.syntax.block.lists.list_tags">Explicit
           list tags</a></span></dt>
 </dl></div>
@@ -297,6 +300,45 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
+<a name="quickbook.syntax.block.lists.list_paragraphs"></a><a name="quickbook.ref.list_paragraphs"></a><a class="link" href="lists.html#quickbook.syntax.block.lists.list_paragraphs" title="Paragraphs in lists">Paragraphs
+          in lists</a>
+</h3></div></div></div>
+<p>
+            In quickbook 1.7 onwards, you can nest paragraphs in lists by separating
+            them with blank lines:
+          </p>
+<pre class="programlisting">* List item 1, paragraph 1
+
+  List item 1, paragraph 2
+
+* List item 2, paragraph 1
+
+  List item 2, paragraph 2
+</pre>
+<p>
+            will generate:
+          </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+<p class="simpara">
+                List item 1, paragraph 1
+              </p>
+<p class="simpara">
+                List item 1, paragraph 2
+              </p>
+</li>
+<li class="listitem">
+<p class="simpara">
+                List item 2, paragraph 1
+              </p>
+<p class="simpara">
+                List item 2, paragraph 2
+              </p>
+</li>
+</ul></div>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
 <a name="quickbook.syntax.block.lists.list_tags"></a><a name="quickbook.ref.list_tags"></a><a class="link" href="lists.html#quickbook.syntax.block.lists.list_tags" title="Explicit list tags">Explicit
           list tags</a>
 </h3></div></div></div>
@@ -329,7 +371,7 @@
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
 <td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
-        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+        Eric Niebler<br>Copyright &#169; 2010-2017 Daniel James<p>
           Distributed under the Boost Software License, Version 1.0. (See accompanying
           file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
         </p>

@@ -8,6 +8,7 @@
 <link rel="up" href="../block.html" title="Chapter&#160;12.&#160;Block Level Elements">
 <link rel="prev" href="lists.html" title="Lists">
 <link rel="next" href="escape_back.html" title="Escaping Back To QuickBook">
+<meta name="viewport" content="width=device-width">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table cellpadding="2" width="100%"><tr>
@@ -60,11 +61,45 @@
         </p>
 <pre class="programlisting">using <a href="http://www.boost.org/libs/libraries.htm" target="_top">boost</a>::<a href="http://www.boost.org/doc/html/array/reference.html" target="_top">array</a>;
 </pre>
+<p>
+          In quickbook 1.7 and later, you can include <a class="link" href="import.html#quickbook.ref.callouts">callouts</a>
+          in code blocks, like so:
+        </p>
+<pre class="programlisting">[!c++]
+    std::string foo_bar() /*&lt; The /Mythical/ FooBar.
+                          See [@http://en.wikipedia.org/wiki/Foobar Foobar for details] &gt;*/
+    {
+        return "foo-bar"; /*&lt; return 'em, foo-bar man! &gt;*/
+    }
+</pre>
+<p>
+          Which will generate:
+        </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">foo_bar</span><span class="special">()</span> <a class="co" name="quickbook.syntax.block.code.c0" href="code.html#quickbook.syntax.block.code.c1"><img src="../../../images/callouts/1.png" alt="1" border="0"></a>
+<span class="special">{</span>
+    <span class="keyword">return</span> <span class="string">"foo-bar"</span><span class="special">;</span> <a class="co" name="quickbook.syntax.block.code.c2" href="code.html#quickbook.syntax.block.code.c3"><img src="../../../images/callouts/2.png" alt="2" border="0"></a>
+<span class="special">}</span>
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="quickbook.syntax.block.code.c1"></a><a href="#quickbook.syntax.block.code.c0"><img src="../../../images/callouts/1.png" alt="1" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              The <span class="emphasis"><em>Mythical</em></span> FooBar. See <a href="http://en.wikipedia.org/wiki/Foobar" target="_top">Foobar
+              for details</a>
+            </p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><p><a name="quickbook.syntax.block.code.c3"></a><a href="#quickbook.syntax.block.code.c2"><img src="../../../images/callouts/2.png" alt="2" border="0"></a> </p></td>
+<td valign="top" align="left"><p>
+              return 'em, foo-bar man!
+            </p></td>
+</tr>
+</table></div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
 <td align="left"></td>
 <td align="right"><div class="copyright-footer">Copyright &#169; 2002, 2004, 2006 Joel de Guzman,
-        Eric Niebler<br>Copyright &#169; 2010, 2011 Daniel James<p>
+        Eric Niebler<br>Copyright &#169; 2010-2017 Daniel James<p>
           Distributed under the Boost Software License, Version 1.0. (See accompanying
           file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
         </p>
