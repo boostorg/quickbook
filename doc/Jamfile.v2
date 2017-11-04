@@ -48,6 +48,7 @@ boostbook fully-standalone
         <xsl:param>boost.graphics.root=images/
         <xsl:param>boost.mobile=1
         <xsl:param>generate.consistent.ids=1
+        <xsl:param>nav.layout=vertical
     ;
 explicit fully-standalone ;
 
