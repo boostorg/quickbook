@@ -48,7 +48,9 @@ boostbook fully-standalone
         <xsl:param>boost.graphics.root=images/
         <xsl:param>boost.mobile=1
         <xsl:param>generate.consistent.ids=1
-        <xsl:param>nav.layout=vertical
+        # Use an invalid nav.layout value so it displays the header
+        # image, but with no navigation.
+        <xsl:param>nav.layout=hackhackhack
     ;
 explicit fully-standalone ;
 
