@@ -358,7 +358,7 @@ Boost 1.46.1:
 * `--no-output` command line parameter to process the quickbook documents
   but not actually generate any files.
 
-[heading Version 1.7.0]
+[heading Version 1.7.0 - Boost 1.66]
 
 * Last version to compile with C++03.
 * Minor improvements to some warning and error messages.
