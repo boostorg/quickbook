@@ -16,7 +16,7 @@ environment:
       TOOLSET: msvc-14.1
 
 install:
-  - curl -sSL -o c:\projects\boost.7z https://dl.bintray.com/boostorg/master/boost_1_66_0-snapshot.7z
+  - curl -sSL -o c:\projects\boost.7z https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.7z
   - 7z x -oc:\projects c:\projects\boost.7z
   - rd /s /q c:\projects\boost_1_66_0\tools\quickbook
   - mkdir c:\projects\boost_1_66_0\tools\quickbook
