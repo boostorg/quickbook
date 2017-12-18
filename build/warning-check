@@ -12,7 +12,7 @@ failure=0
 for filename in *.cpp
 do
     set -x
-    if ! $CXX -c -O0 -isystem $BOOST_ROOT $filename -o $tmpfile \
+    if ! $CXX -c -O0 --std=c++11 -isystem $BOOST_ROOT $filename -o $tmpfile \
         -pedantic -Wstrict-aliasing -fstrict-aliasing \
         -Werror -Wall -Wextra \
         -Wunused-parameter -Wshadow \

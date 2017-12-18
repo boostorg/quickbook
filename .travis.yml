@@ -12,20 +12,20 @@ matrix:
     include:
       - compiler: gcc
         env: |
-          USER_CONFIG="using gcc : : g++-4.8 --std=c++11 -fsanitize=address ;"
+          USER_CONFIG="using gcc : : g++-4.8 -fsanitize=address ;"
       - compiler: gcc
         env: |
-          USER_CONFIG="using gcc : : g++-4.4 --std=c++0x ;"
+          USER_CONFIG="using gcc : : g++-4.4 ;"
         addons:
           apt:
             packages:
               - g++-4.4
       - compiler: clang
         env: |
-          USER_CONFIG="using clang : : clang++ --std=c++11 -fsanitize=address ;"
+          USER_CONFIG="using clang : : clang++ -fsanitize=address ;"
       - compiler: clang
         env: |
-          USER_CONFIG="using clang : : clang++-3.4 --std=c++11 -fsanitize=address ;"
+          USER_CONFIG="using clang : : clang++-3.4 -fsanitize=address ;"
         addons:
           apt:
             sources:
