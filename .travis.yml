@@ -41,24 +41,31 @@ before_script:
     - cat user-config.jam
     - export BOOST_ROOT=${HOME}/boost
     - |
-        mkdir $HOME/download
-        mkdir $HOME/extract
-        cd $HOME/download
         if [ "$TRAVIS_EVENT_TYPE" == "cron" ]
         then
             if [ "$TRAVIS_BRANCH" == "master" ]
             then
-                snapshot_branch=master
+                snapshot=master
             else
-                snapshot_branch=develop
+                snapshot=develop
             fi
-            download_url=$(curl https://api.bintray.com/packages/boostorg/$snapshot_branch/snapshot/files |
+        else
+            snapshot=stable
+        fi
+
+        if [ $snapshot == "stable" ]
+        then
+            download_url=https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_FILENAME}.tar.bz2/download
+        else
+            download_url=$(curl https://api.bintray.com/packages/boostorg/$snapshot/snapshot/files |
                     python -c "import os.path, sys, json; x = json.load(sys.stdin); print '\n'.join(a['path'] for a in x if os.path.splitext(a['path'])[1] == '.bz2')" |
                     head -n 1 |
-                    sed "s/^/http:\/\/dl.bintray.com\/boostorg\/$snapshot_branch\//")
-        else
-            download_url=https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_FILENAME}.tar.bz2/download
+                    sed "s/^/http:\/\/dl.bintray.com\/boostorg\/$snapshot\//")
         fi
+
+        mkdir $HOME/download
+        mkdir $HOME/extract
+        cd $HOME/download
         echo "Downloading ${download_url}"
         wget -O boost.tar.bz2 $download_url
         cd $HOME/extract
