@@ -341,10 +341,15 @@ namespace quickbook
 
         void do_escape(iter_type f, iter_type l) const
         {
-            while (f != l && std::isspace(*f))
+            while (f != l && std::isspace(*f)) {
                 ++f;
-            for (iter_type i = f; i != l; ++i)
+            }
+            while (f != l && std::isspace(*(l-1))) {
+                --l;
+            }
+            for (iter_type i = f; i != l; ++i) {
                 state.out += *i;
+            }
         }
 
         void do_code(iter_type f, iter_type l) const
