@@ -59,9 +59,9 @@ rule quickbook-test ( target-name : input ? : reference-output ? : requirements 
         [ targets.create-typed-target RUN
             : $(project)
             : $(target-name)
-            : $(boost-root)/tools/quickbook/test/src//line-compare-tool
+            : $(boost-root)/tools/quickbook/test/src/text_diff.cpp
             : $(requirements)
-                <location-prefix>$(target-name).test
+                <location-prefix>$(target-name).test2
                 <testing.input-file>$(reference-output)
                 <testing.input-file>$(target-name).boostbook
                 <preserve-test-targets>on
