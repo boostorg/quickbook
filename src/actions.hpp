@@ -12,51 +12,59 @@
 
 #include <string>
 #include <vector>
+#include <boost/spirit/include/classic_parser.hpp>
 #include "fwd.hpp"
+#include "iterator.hpp"
+#include "scoped.hpp"
 #include "utils.hpp"
 #include "values.hpp"
-#include "scoped.hpp"
-#include "iterator.hpp"
-#include <boost/spirit/include/classic_parser.hpp>
 
 namespace quickbook
 {
     namespace cl = boost::spirit::classic;
 
     // Match if quickbook version is within range
-    struct quickbook_range : cl::parser<quickbook_range> {
+    struct quickbook_range : cl::parser<quickbook_range>
+    {
         explicit quickbook_range(unsigned lower_, unsigned upper_)
-            : lower(lower_), upper(upper_) {}
+            : lower(lower_), upper(upper_)
+        {
+        }
 
         bool in_range() const;
-        
+
         template <typename ScannerT>
-        typename cl::parser_result<quickbook_range, ScannerT>::type
-        parse(ScannerT const& scan) const
+        typename cl::parser_result<quickbook_range, ScannerT>::type parse(
+            ScannerT const& scan) const
         {
             return in_range() ? scan.empty_match() : scan.no_match();
         }
 
         unsigned lower, upper;
     };
-    
-    inline quickbook_range qbk_ver(unsigned lower, unsigned upper = 999u) {
+
+    inline quickbook_range qbk_ver(unsigned lower, unsigned upper = 999u)
+    {
         return quickbook_range(lower, upper);
     }
 
     // Match if in strict mode.
-    struct quickbook_strict : cl::parser<quickbook_strict> {
-        explicit quickbook_strict(quickbook::state& state_, bool positive_ = true)
-            : state(state_), positive(positive_) {}
+    struct quickbook_strict : cl::parser<quickbook_strict>
+    {
+        explicit quickbook_strict(
+            quickbook::state& state_, bool positive_ = true)
+            : state(state_), positive(positive_)
+        {
+        }
 
         bool is_strict_checking() const;
 
         template <typename ScannerT>
-        typename cl::parser_result<quickbook_range, ScannerT>::type
-        parse(ScannerT const& scan) const
+        typename cl::parser_result<quickbook_range, ScannerT>::type parse(
+            ScannerT const& scan) const
         {
-            return is_strict_checking() == positive ?
-                scan.empty_match() : scan.no_match();
+            return is_strict_checking() == positive ? scan.empty_match()
+                                                    : scan.no_match();
         }
 
         quickbook_strict operator~() const
@@ -68,22 +76,28 @@ namespace quickbook
         bool positive;
     };
 
-    inline quickbook_strict qbk_strict(quickbook::state& state, unsigned lower = 999u) {
+    inline quickbook_strict qbk_strict(
+        quickbook::state& state, unsigned lower = 999u)
+    {
         return quickbook_strict(state, lower);
     }
 
     // Throws load_error
-    int load_snippets(fs::path const& file, std::vector<template_symbol>& storage,
-        std::string const& extension, value::tag_type load_type);
+    int load_snippets(
+        fs::path const& file,
+        std::vector<template_symbol>& storage,
+        std::string const& extension,
+        value::tag_type load_type);
 
     struct error_message_action
     {
         // Prints an error message to std::cerr
 
-        explicit error_message_action(quickbook::state& state_, std::string const& message_)
-            : state(state_)
-            , message(message_)
-        {}
+        explicit error_message_action(
+            quickbook::state& state_, std::string const& message_)
+            : state(state_), message(message_)
+        {
+        }
 
         void operator()(parse_iterator, parse_iterator) const;
 
@@ -95,8 +109,7 @@ namespace quickbook
     {
         // Prints an error message to std::cerr
 
-        explicit error_action(quickbook::state& state_)
-            : state(state_) {}
+        explicit error_action(quickbook::state& state_) : state(state_) {}
 
         void operator()(parse_iterator first, parse_iterator last) const;
 
@@ -110,8 +123,7 @@ namespace quickbook
 
     struct element_action
     {
-        explicit element_action(quickbook::state& state_)
-            : state(state_) {}
+        explicit element_action(quickbook::state& state_) : state(state_) {}
 
         void operator()(parse_iterator, parse_iterator) const;
 
@@ -123,8 +135,7 @@ namespace quickbook
         //  implicit paragraphs
         //  doesn't output the paragraph if it's only whitespace.
 
-        explicit paragraph_action(quickbook::state& state_)
-            : state(state_) {}
+        explicit paragraph_action(quickbook::state& state_) : state(state_) {}
 
         void operator()() const;
         void operator()(parse_iterator, parse_iterator) const { (*this)(); }
@@ -137,8 +148,9 @@ namespace quickbook
         //  implicit paragraphs
         //  doesn't output the paragraph if it's only whitespace.
 
-        explicit explicit_list_action(quickbook::state& state_)
-            : state(state_) {}
+        explicit explicit_list_action(quickbook::state& state_) : state(state_)
+        {
+        }
 
         void operator()() const;
         void operator()(parse_iterator, parse_iterator) const { (*this)(); }
@@ -148,8 +160,7 @@ namespace quickbook
 
     struct phrase_end_action
     {
-        explicit phrase_end_action(quickbook::state& state_)
-            : state(state_) {}
+        explicit phrase_end_action(quickbook::state& state_) : state(state_) {}
 
         void operator()() const;
         void operator()(parse_iterator, parse_iterator) const { (*this)(); }
@@ -161,8 +172,9 @@ namespace quickbook
     {
         //  Handles simple text formats
 
-        explicit simple_phrase_action(quickbook::state& state_)
-            : state(state_) {}
+        explicit simple_phrase_action(quickbook::state& state_) : state(state_)
+        {
+        }
 
         void operator()(char) const;
 
@@ -171,8 +183,7 @@ namespace quickbook
 
     struct cond_phrase_push : scoped_action_base
     {
-        cond_phrase_push(quickbook::state& x)
-            : state(x) {}
+        cond_phrase_push(quickbook::state& x) : state(x) {}
 
         bool start();
         void cleanup();
@@ -216,10 +227,12 @@ namespace quickbook
 
         quickbook::state& state;
     };
-    
+
     struct escape_unicode_action
     {
-        explicit escape_unicode_action(quickbook::state& state_) : state(state_) {}
+        explicit escape_unicode_action(quickbook::state& state_) : state(state_)
+        {
+        }
 
         void operator()(parse_iterator first, parse_iterator last) const;
 
@@ -235,24 +248,29 @@ namespace quickbook
         quickbook::state& state;
     };
 
-   struct element_id_warning_action
-   {
+    struct element_id_warning_action
+    {
         explicit element_id_warning_action(quickbook::state& state_)
-            : state(state_) {}
+            : state(state_)
+        {
+        }
 
         void operator()(parse_iterator first, parse_iterator last) const;
 
         quickbook::state& state;
-   };
+    };
 
     // Returns the doc_type, or an empty string if there isn't one.
-    std::string pre(quickbook::state& state, parse_iterator pos, value include_doc_id, bool nested_file);
+    std::string pre(
+        quickbook::state& state,
+        parse_iterator pos,
+        value include_doc_id,
+        bool nested_file);
     void post(quickbook::state& state, std::string const& doc_type);
 
     struct to_value_scoped_action : scoped_action_base
     {
-        to_value_scoped_action(quickbook::state& state_)
-            : state(state_) {}
+        to_value_scoped_action(quickbook::state& state_) : state(state_) {}
 
         bool start(value::tag_type = value::default_tag);
         void success(parse_iterator, parse_iterator);
@@ -267,29 +285,30 @@ namespace quickbook
     //
     // Action for calling a member function taking two parse iterators.
 
-    template <typename T>
-    struct member_action
+    template <typename T> struct member_action
     {
-        typedef void(T::*member_function)(parse_iterator, parse_iterator);
+        typedef void (T::*member_function)(parse_iterator, parse_iterator);
 
         T& l;
         member_function mf;
 
         explicit member_action(T& l_, member_function mf_) : l(l_), mf(mf_) {}
 
-        void operator()(parse_iterator first, parse_iterator last) const {
+        void operator()(parse_iterator first, parse_iterator last) const
+        {
             (l.*mf)(first, last);
         }
     };
 
     // member_action1
     //
-    // Action for calling a member function taking two parse iterators and a value.
+    // Action for calling a member function taking two parse iterators and a
+    // value.
 
-    template <typename T, typename Arg1>
-    struct member_action1
+    template <typename T, typename Arg1> struct member_action1
     {
-        typedef void(T::*member_function)(parse_iterator, parse_iterator, Arg1);
+        typedef void (T::*member_function)(
+            parse_iterator, parse_iterator, Arg1);
 
         T& l;
         member_function mf;
@@ -301,61 +320,59 @@ namespace quickbook
             member_action1 a;
             Arg1 value;
 
-            explicit impl(member_action1& a_, Arg1 value_) :
-                a(a_), value(value_)
-            {}
+            explicit impl(member_action1& a_, Arg1 value_)
+                : a(a_), value(value_)
+            {
+            }
 
-            void operator()(parse_iterator first, parse_iterator last) const {
+            void operator()(parse_iterator first, parse_iterator last) const
+            {
                 (a.l.*a.mf)(first, last, value);
             }
         };
 
-        impl operator()(Arg1 a1) {
-            return impl(*this, a1);
-        }
+        impl operator()(Arg1 a1) { return impl(*this, a1); }
     };
 
     // member_action_value
     //
     // Action for calling a unary member function.
 
-    template <typename T, typename Value>
-    struct member_action_value
+    template <typename T, typename Value> struct member_action_value
     {
-        typedef void(T::*member_function)(Value);
+        typedef void (T::*member_function)(Value);
 
         T& l;
         member_function mf;
 
-        explicit member_action_value(T& l_, member_function mf_) : l(l_), mf(mf_) {}
-
-        void operator()(Value v) const {
-            (l.*mf)(v);
+        explicit member_action_value(T& l_, member_function mf_)
+            : l(l_), mf(mf_)
+        {
         }
+
+        void operator()(Value v) const { (l.*mf)(v); }
     };
 
     // member_action_value
     //
     // Action for calling a unary member function with a fixed value.
 
-    template <typename T, typename Value>
-    struct member_action_fixed_value
+    template <typename T, typename Value> struct member_action_fixed_value
     {
-        typedef void(T::*member_function)(Value);
+        typedef void (T::*member_function)(Value);
 
         T& l;
         member_function mf;
         Value v;
 
-        explicit member_action_fixed_value(T& l_, member_function mf_, Value v_) : l(l_), mf(mf_), v(v_) {}
-
-        void operator()() const {
-            (l.*mf)(v);
+        explicit member_action_fixed_value(T& l_, member_function mf_, Value v_)
+            : l(l_), mf(mf_), v(v_)
+        {
         }
 
-        void operator()(parse_iterator, parse_iterator) const {
-            (l.*mf)(v);
-        }
+        void operator()() const { (l.*mf)(v); }
+
+        void operator()(parse_iterator, parse_iterator) const { (l.*mf)(v); }
     };
 }
 

@@ -8,18 +8,18 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "grammar_impl.hpp"
-#include "state.hpp"
-#include "actions.hpp"
-#include "utils.hpp"
-#include "phrase_tags.hpp"
-#include <boost/spirit/include/classic_core.hpp>
+#include <boost/foreach.hpp>
 #include <boost/spirit/include/classic_assign_actor.hpp>
 #include <boost/spirit/include/classic_clear_actor.hpp>
+#include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_if.hpp>
-#include <boost/spirit/include/phoenix1_primitives.hpp>
 #include <boost/spirit/include/phoenix1_casts.hpp>
-#include <boost/foreach.hpp>
+#include <boost/spirit/include/phoenix1_primitives.hpp>
+#include "actions.hpp"
+#include "grammar_impl.hpp"
+#include "phrase_tags.hpp"
+#include "state.hpp"
+#include "utils.hpp"
 
 namespace quickbook
 {
@@ -27,16 +27,14 @@ namespace quickbook
 
     struct phrase_element_grammar_local
     {
-        cl::rule<scanner>
-                        image, anchor, link, empty, cond_phrase, inner_phrase,
-                        role, source_mode
-                        ;
+        cl::rule<scanner> image, anchor, link, empty, cond_phrase, inner_phrase,
+            role, source_mode;
     };
 
     void quickbook_grammar::impl::init_phrase_elements()
     {
-        phrase_element_grammar_local& local = cleanup_.add(
-            new phrase_element_grammar_local);
+        phrase_element_grammar_local& local =
+            cleanup_.add(new phrase_element_grammar_local);
 
         error_action error(state);
         raw_char_action raw_char(state);

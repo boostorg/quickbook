@@ -7,31 +7,36 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "cleanup.hpp"
-#include <boost/core/lightweight_test.hpp>
 #include <vector>
+#include <boost/core/lightweight_test.hpp>
+#include "cleanup.hpp"
 
-struct counted {
+struct counted
+{
     static int count;
     static std::vector<int> destroyed;
-    static void reset() {
+    static void reset()
+    {
         count = 0;
         destroyed.clear();
     }
 
     int value;
 
-    counted(int v) : value(v) {
+    counted(int v) : value(v)
+    {
         BOOST_TEST(value != -1);
         ++count;
     }
 
-    counted(counted const& x) : value(x.value) {
+    counted(counted const& x) : value(x.value)
+    {
         BOOST_TEST(value != -1);
         ++count;
     }
 
-    ~counted() {
+    ~counted()
+    {
         BOOST_TEST(value != -1);
         destroyed.push_back(value);
         value = -1;
@@ -43,7 +48,8 @@ struct counted {
 int counted::count = 0;
 std::vector<int> counted::destroyed;
 
-int main() {
+int main()
+{
     counted::reset();
     {
         quickbook::cleanup c;

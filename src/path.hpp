@@ -20,24 +20,26 @@ namespace quickbook
     namespace fs = boost::filesystem;
 
     // The relative path from base to path
-    fs::path path_difference(fs::path const& base, fs::path const& path, bool is_file = false);
+    fs::path path_difference(
+        fs::path const& base, fs::path const& path, bool is_file = false);
 
     // Convert a Boost.Filesystem path to a URL.
     std::string file_path_to_url(fs::path const&);
     std::string dir_path_to_url(fs::path const&);
 
-    namespace detail {
-        // 'generic':   Paths in quickbook source and the generated boostbook.
-        //              Always UTF-8.
-        // 'command_line':
-        //              Paths (or other parameters) from the command line and
-        //              possibly other sources in the future. Wide strings on
-        //              normal windows, UTF-8 for cygwin and other platforms
-        //              (hopefully).
-        // 'path':      Stored as a boost::filesystem::path. Since
-        //              Boost.Filesystem doesn't support cygwin, this
-        //              is always wide on windows. UTF-8 on other
-        //              platforms (again, hopefully).
+    namespace detail
+    {
+// 'generic':   Paths in quickbook source and the generated boostbook.
+//              Always UTF-8.
+// 'command_line':
+//              Paths (or other parameters) from the command line and
+//              possibly other sources in the future. Wide strings on
+//              normal windows, UTF-8 for cygwin and other platforms
+//              (hopefully).
+// 'path':      Stored as a boost::filesystem::path. Since
+//              Boost.Filesystem doesn't support cygwin, this
+//              is always wide on windows. UTF-8 on other
+//              platforms (again, hopefully).
 
 #if QUICKBOOK_WIDE_PATHS
         typedef std::wstring command_line_string;

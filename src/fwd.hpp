@@ -25,7 +25,7 @@ namespace quickbook
     typedef boost::intrusive_ptr<file> file_ptr;
     typedef unsigned source_mode_type;
 
-    inline void ignore_variable(void const*) {} 
+    inline void ignore_variable(void const*) {}
 }
 
 #endif

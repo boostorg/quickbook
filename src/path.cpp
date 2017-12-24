@@ -10,18 +10,18 @@
 =============================================================================*/
 
 #include "path.hpp"
+#include <cassert>
+#include <boost/filesystem/operations.hpp>
+#include <boost/foreach.hpp>
+#include <boost/range/algorithm/replace.hpp>
 #include "glob.hpp"
 #include "include_paths.hpp"
 #include "state.hpp"
 #include "utils.hpp"
-#include <boost/foreach.hpp>
-#include <boost/range/algorithm/replace.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <cassert>
 
 #if QUICKBOOK_CYGWIN_PATHS
-#include <boost/scoped_array.hpp>
 #include <sys/cygwin.h>
+#include <boost/scoped_array.hpp>
 #endif
 
 namespace quickbook
@@ -35,8 +35,7 @@ namespace quickbook
 
         std::vector<fs::path> parts;
 
-        BOOST_FOREACH(fs::path const& part, path)
-        {
+        BOOST_FOREACH (fs::path const& part, path) {
             if (part.empty() || part == ".") {
             }
             else if (part == "..") {
@@ -51,42 +50,39 @@ namespace quickbook
     }
 
     // The relative path from base to path
-    fs::path path_difference(fs::path const& base, fs::path const& path, bool is_file)
+    fs::path path_difference(
+        fs::path const& base, fs::path const& path, bool is_file)
     {
-        fs::path
-            absolute_base = fs::absolute(base),
-            absolute_path = fs::absolute(path);
+        fs::path absolute_base = fs::absolute(base),
+                 absolute_path = fs::absolute(path);
 
         // Remove '.', '..' and empty parts from the remaining path
-        std::vector<fs::path>
-            base_parts = remove_dots_from_path(absolute_base.relative_path()),
-            path_parts = remove_dots_from_path(absolute_path.relative_path());
+        std::vector<fs::path> base_parts = remove_dots_from_path(
+                                  absolute_base.relative_path()),
+                              path_parts = remove_dots_from_path(
+                                  absolute_path.relative_path());
 
-        std::vector<fs::path>::iterator
-            base_it = base_parts.begin(),
-            base_end = base_parts.end(),
-            path_it = path_parts.begin(),
-            path_end = path_parts.end();
+        std::vector<fs::path>::iterator base_it = base_parts.begin(),
+                                        base_end = base_parts.end(),
+                                        path_it = path_parts.begin(),
+                                        path_end = path_parts.end();
 
         // Build up the two paths in these variables, checking for the first
         // difference.
-        fs::path
-            base_tmp = absolute_base.root_path(),
-            path_tmp = absolute_path.root_path();
+        fs::path base_tmp = absolute_base.root_path(),
+                 path_tmp = absolute_path.root_path();
 
         fs::path result;
 
         // If they have different roots then there's no relative path so
         // just build an absolute path.
-        if (!fs::equivalent(base_tmp, path_tmp))
-        {
+        if (!fs::equivalent(base_tmp, path_tmp)) {
             result = path_tmp;
         }
-        else
-        {
+        else {
             // Find the point at which the paths differ
-            for(; base_it != base_end && path_it != path_end; ++base_it, ++path_it)
-            {
+            for (; base_it != base_end && path_it != path_end;
+                 ++base_it, ++path_it) {
                 base_tmp /= *base_it;
                 path_tmp /= *path_it;
                 if (*base_it != *path_it) {
@@ -97,19 +93,23 @@ namespace quickbook
                 }
             }
 
-            if (is_file && path_it == path_end && path_it != path_parts.begin()) {
+            if (is_file && path_it == path_end &&
+                path_it != path_parts.begin()) {
                 --path_it;
                 result = "..";
-            } else if (base_it == base_end && path_it == path_end) {
-               result = ".";
+            }
+            else if (base_it == base_end && path_it == path_end) {
+                result = ".";
             }
 
             // Build a relative path to that point
-            for(; base_it != base_end; ++base_it) result /= "..";
+            for (; base_it != base_end; ++base_it)
+                result /= "..";
         }
 
         // Build the rest of our path
-        for(; path_it != path_end; ++path_it) result /= *path_it;
+        for (; path_it != path_end; ++path_it)
+            result /= *path_it;
 
         return result;
     }
@@ -124,7 +124,9 @@ namespace quickbook
     std::string file_path_to_url_impl(fs::path const& x, bool is_dir)
     {
         fs::path::const_iterator it = x.begin(), end = x.end();
-        if (it == end) { return is_dir ? "./" : ""; }
+        if (it == end) {
+            return is_dir ? "./" : "";
+        }
 
         std::string result;
         bool sep = false;
@@ -141,7 +143,8 @@ namespace quickbook
                     sep = false;
                     ++it;
                 }
-            } else {
+            }
+            else {
                 result = "file:///";
             }
 
@@ -149,35 +152,39 @@ namespace quickbook
             if (it != end) {
                 part = detail::path_to_generic(*it);
                 if (part.size() >= 2 && part[part.size() - 1] == ':') {
-                    result += detail::escape_uri(part.substr(0, part.size()- 1));
+                    result +=
+                        detail::escape_uri(part.substr(0, part.size() - 1));
                     result += ':';
                     sep = false;
                     ++it;
                 }
             }
-        } else if (x.has_root_directory()) {
+        }
+        else if (x.has_root_directory()) {
             result = "file://";
             sep = true;
-        } else if (*it == ".") {
+        }
+        else if (*it == ".") {
             result = ".";
             sep = true;
             ++it;
         }
 
-        for (;it != end; ++it)
-        {
+        for (; it != end; ++it) {
             part = detail::path_to_generic(*it);
             if (part == "/") {
                 result += "/";
                 sep = false;
-            } else if (part == ".") {
+            }
+            else if (part == ".") {
                 // If the path has a trailing slash, write it out,
                 // even if is_dir is false.
                 if (sep) {
                     result += "/";
                     sep = false;
                 }
-            } else {
+            }
+            else {
                 if (sep) {
                     result += "/";
                 }
@@ -193,7 +200,8 @@ namespace quickbook
         return result;
     }
 
-    std::string file_path_to_url(fs::path const& x) {
+    std::string file_path_to_url(fs::path const& x)
+    {
         return file_path_to_url_impl(x, false);
     }
 
@@ -202,7 +210,8 @@ namespace quickbook
         return file_path_to_url_impl(x, true);
     }
 
-    namespace detail {
+    namespace detail
+    {
 #if QUICKBOOK_WIDE_PATHS
         std::string command_line_to_utf8(command_line_string const& x)
         {
@@ -245,13 +254,15 @@ namespace quickbook
             ssize_t size = cygwin_conv_path(flags, path.c_str(), NULL, 0);
 
             if (size < 0)
-                throw conversion_error("Error converting cygwin path to windows.");
+                throw conversion_error(
+                    "Error converting cygwin path to windows.");
 
             boost::scoped_array<char> result(new char[size]);
             void* ptr = result.get();
 
-            if(cygwin_conv_path(flags, path.c_str(), ptr, size))
-                throw conversion_error("Error converting cygwin path to windows.");
+            if (cygwin_conv_path(flags, path.c_str(), ptr, size))
+                throw conversion_error(
+                    "Error converting cygwin path to windows.");
 
             return fs::path(static_cast<wchar_t*>(ptr));
         }
@@ -260,15 +271,19 @@ namespace quickbook
         {
             cygwin_conv_path_t flags = CCP_WIN_W_TO_POSIX | CCP_RELATIVE;
 
-            ssize_t size = cygwin_conv_path(flags, path.native().c_str(), NULL, 0);
+            ssize_t size =
+                cygwin_conv_path(flags, path.native().c_str(), NULL, 0);
 
             if (size < 0)
-                throw conversion_error("Error converting windows path to cygwin.");
+                throw conversion_error(
+                    "Error converting windows path to cygwin.");
 
             boost::scoped_array<char> result(new char[size]);
 
-            if(cygwin_conv_path(flags, path.native().c_str(), result.get(), size))
-                throw conversion_error("Error converting windows path to cygwin.");
+            if (cygwin_conv_path(
+                    flags, path.native().c_str(), result.get(), size))
+                throw conversion_error(
+                    "Error converting windows path to cygwin.");
 
             return std::string(result.get());
         }
