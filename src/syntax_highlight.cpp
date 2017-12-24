@@ -147,6 +147,8 @@ namespace quickbook
 
         keywords_holder()
         {
+            // clang-format off
+
             cpp
                     =   "alignas", "alignof", "and_eq", "and", "asm", "auto",
                         "bitand", "bitor", "bool", "break", "case", "catch",
@@ -182,6 +184,8 @@ namespace quickbook
 
                     "as", "None"
                     ;
+
+            // clang-format on
         }
     };
 
@@ -201,6 +205,8 @@ namespace quickbook
             definition(cpp_highlight const& self)
                 : g(self.actions.state.grammar())
             {
+                // clang-format off
+
                 member_action1<syntax_highlight_actions, char const*>
                     span(self.actions, &syntax_highlight_actions::span),
                     span_start(self.actions, &syntax_highlight_actions::span_start);
@@ -339,6 +345,8 @@ namespace quickbook
                 identifier
                     =   (cl::alpha_p | '_') >> *(cl::alnum_p | '_')
                     ;
+
+                // clang-format on
             }
 
             cl::rule<Scanner>
@@ -371,6 +379,8 @@ namespace quickbook
             definition(python_highlight const& self)
                 : g(self.actions.state.grammar())
             {
+                // clang-format off
+
                 member_action1<syntax_highlight_actions, char const*>
                     span(self.actions, &syntax_highlight_actions::span),
                     span_start(self.actions, &syntax_highlight_actions::span_start);
@@ -496,6 +506,8 @@ namespace quickbook
                 identifier
                     =   (cl::alpha_p | '_') >> *(cl::alnum_p | '_')
                     ;
+
+                // clang-format on
             }
 
             cl::rule<Scanner>
@@ -533,6 +545,8 @@ namespace quickbook
                     do_macro(self.actions, &syntax_highlight_actions::do_macro);
                 error_action error(self.actions.state);
 
+                // clang-format off
+
                 program
                     =
                     *(  macro
@@ -567,6 +581,8 @@ namespace quickbook
                         )
                     )                                   [post_escape_back]
                     ;
+
+                // clang-format on
             }
 
             cl::rule<Scanner> program, macro, escape;

@@ -256,13 +256,13 @@ main(int argc, char* argv[])
         using boost::program_options::command_line_parser;
         using boost::program_options::notify;
         using boost::program_options::positional_options_description;
-        
+
         using namespace quickbook;
         using quickbook::detail::command_line_string;
 
         // First thing, the filesystem should record the current working directory.
         fs::initial_path<fs::path>();
-        
+
         // Various initialisation methods
         quickbook::detail::initialise_output();
         quickbook::detail::initialise_markups();
@@ -278,6 +278,8 @@ main(int argc, char* argv[])
 #else
 #define PO_VALUE po::value
 #endif
+
+        // clang-format off
 
         desc.add_options()
             ("help", "produce help message")
@@ -315,6 +317,8 @@ main(int argc, char* argv[])
              "This is deprecated, use 'output-deps-format=checked' to "
              "write the deps file in this format.")
         ;
+
+        // clang-format on
 
         all.add(desc).add(hidden);
 
@@ -373,7 +377,7 @@ main(int argc, char* argv[])
         {
             std::string boost_version = BOOST_LIB_VERSION;
             boost::replace(boost_version, '_', '.');
-        
+
             quickbook::detail::out()
                 << QUICKBOOK_VERSION
                 << " (Boost "
@@ -422,7 +426,7 @@ main(int argc, char* argv[])
             quickbook::current_gm_time = &gmt;
             quickbook::debug_mode = false;
         }
-        
+
         quickbook::include_path.clear();
         if (vm.count("include-path"))
         {
@@ -597,11 +601,11 @@ main(int argc, char* argv[])
         {
             std::ostringstream description_text;
             description_text << desc;
-        
+
             quickbook::detail::outerr() << "No filename given\n\n"
                 << description_text.str() << std::endl;
             return 1;
-        }        
+        }
     }
 
     catch(std::exception& e)

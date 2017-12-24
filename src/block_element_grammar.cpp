@@ -51,6 +51,8 @@ namespace quickbook
         explicit_list_action explicit_list(state);
         scoped_parser<to_value_scoped_action> to_value(state);
 
+        // clang-format off
+
         local.element_id =
             !(  ':'
             >>  (   qbk_ver(107u)
@@ -331,5 +333,7 @@ namespace quickbook
                 paragraph_phrase
             ]
             ;
+
+        // clang-format on
     }
 }

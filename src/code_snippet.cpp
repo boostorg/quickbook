@@ -113,6 +113,7 @@ namespace quickbook
             
             definition(python_code_snippet_grammar const& self)
             {
+                // clang-format off
 
                 start_ = (*code_elements)           [boost::bind(&actions_type::end_file, &self.actions, _1, _2)]
                     ;
@@ -190,6 +191,8 @@ namespace quickbook
                             "\"\"\""
                         )
                     ;
+
+                // clang-format on
             }
 
             cl::rule<Scanner>
@@ -217,6 +220,8 @@ namespace quickbook
         {
             definition(cpp_code_snippet_grammar const& self)
             {
+                // clang-format off
+
                 start_ = (*code_elements)           [boost::bind(&actions_type::end_file, &self.actions, _1, _2)]
                     ;
 
@@ -321,6 +326,8 @@ namespace quickbook
                             "*/"
                         )
                     ;
+
+                // clang-format on
             }
 
             cl::rule<Scanner>

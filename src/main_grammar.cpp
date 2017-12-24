@@ -350,6 +350,8 @@ namespace quickbook
         member_action<main_grammar_local> end_blocks(local,
             &main_grammar_local::end_blocks_impl);
 
+        // clang-format off
+
         // phrase/phrase_start is used for an entirely self-contained
         // phrase. For example, any remaining anchors are written out
         // at the end instead of being saved for any following content.
@@ -1087,6 +1089,8 @@ namespace quickbook
             |   qbk_ver(0, 106u)
             >>  +(cl::anychar_p - (cl::space_p | ']'))
             ;
+
+        // clang-format on
     }
 
     ////////////////////////////////////////////////////////////////////////////

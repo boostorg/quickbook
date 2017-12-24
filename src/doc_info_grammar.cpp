@@ -124,7 +124,9 @@ namespace quickbook
             state, &state::change_source_mode);
         member_action_fixed_value<quickbook::state, source_mode_type> default_source_mode(
             state, &state::change_source_mode, source_mode_tags::cpp);
-        
+
+        // clang-format off
+
         doc_info_details =
                 cl::eps_p                   [ph::var(local.source_mode_unset) = true]
             >>  *(  space
@@ -321,5 +323,7 @@ namespace quickbook
             )
             >>  state.macro                     [do_macro]
             ;
+
+        // clang-format on
     }
 }

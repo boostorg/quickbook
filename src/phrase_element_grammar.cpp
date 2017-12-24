@@ -43,6 +43,8 @@ namespace quickbook
         scoped_parser<cond_phrase_push> scoped_cond_phrase(state);
         scoped_parser<to_value_scoped_action> to_value(state);
 
+        // clang-format off
+
         elements.add
             ("?", element_info(element_info::phrase, &local.cond_phrase))
             ;
@@ -205,5 +207,7 @@ namespace quickbook
                 blank
             >>  to_value() [ paragraph_phrase ]
             ;
+
+        // clang-format on
     }
 }
