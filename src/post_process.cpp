@@ -18,9 +18,9 @@ namespace quickbook
     namespace cl = boost::spirit::classic;
     typedef std::string::const_iterator iter_type;
 
-    struct printer
+    struct pretty_printer
     {
-        printer(std::string& out_, int& current_indent_, int linewidth_)
+        pretty_printer(std::string& out_, int& current_indent_, int linewidth_)
             : prev(0)
             , out(out_)
             , current_indent(current_indent_)
@@ -168,7 +168,7 @@ namespace quickbook
         int linewidth;
 
       private:
-        printer& operator=(printer const&);
+        pretty_printer& operator=(pretty_printer const&);
     };
 
     char const* block_tags_[] = {
@@ -190,7 +190,7 @@ namespace quickbook
         tidy_compiler(std::string& out_, int linewidth_)
             : out(out_)
             , current_indent(0)
-            , printer_(out, current_indent, linewidth_)
+            , printer(out, current_indent, linewidth_)
         {
             static std::size_t const n_block_tags =
                 sizeof(block_tags_) / sizeof(char const*);
@@ -216,7 +216,7 @@ namespace quickbook
         std::stack<std::string> tags;
         std::string& out;
         int current_indent;
-        printer printer_;
+        pretty_printer printer;
         std::string current_tag;
 
       private:
@@ -315,19 +315,19 @@ namespace quickbook
 
         void do_code(iter_type f, iter_type l) const
         {
-            state.printer_.trim_spaces();
+            state.printer.trim_spaces();
             if (state.out[state.out.size() - 1] != '\n') state.out += '\n';
             // print the string taking care of line
             // ending CR/LF platform issues
             for (iter_type i = f; i != l; ++i) {
                 if (*i == '\n') {
-                    state.printer_.trim_spaces();
+                    state.printer.trim_spaces();
                     state.out += '\n';
                     ++i;
                     if (i != l && *i != '\r') state.out += *i;
                 }
                 else if (*i == '\r') {
-                    state.printer_.trim_spaces();
+                    state.printer.trim_spaces();
                     state.out += '\n';
                     ++i;
                     if (i != l && *i != '\n') state.out += *i;
@@ -337,7 +337,7 @@ namespace quickbook
                 }
             }
             state.out += '\n';
-            state.printer_.indent();
+            state.printer.indent();
         }
 
         void do_tag(iter_type f, iter_type l) const
@@ -348,26 +348,26 @@ namespace quickbook
         void do_start_end_tag(iter_type f, iter_type l) const
         {
             bool is_flow_tag = state.is_flow_tag(state.current_tag);
-            if (!is_flow_tag) state.printer_.align_indent();
-            state.printer_.print_tag(f, l, is_flow_tag);
-            if (!is_flow_tag) state.printer_.break_line();
+            if (!is_flow_tag) state.printer.align_indent();
+            state.printer.print_tag(f, l, is_flow_tag);
+            if (!is_flow_tag) state.printer.break_line();
         }
 
         void do_start_tag(iter_type f, iter_type l) const
         {
             state.tags.push(state.current_tag);
             bool is_flow_tag = state.is_flow_tag(state.current_tag);
-            if (!is_flow_tag) state.printer_.align_indent();
-            state.printer_.print_tag(f, l, is_flow_tag);
+            if (!is_flow_tag) state.printer.align_indent();
+            state.printer.print_tag(f, l, is_flow_tag);
             if (!is_flow_tag) {
                 state.current_indent += indent;
-                state.printer_.break_line();
+                state.printer.break_line();
             }
         }
 
         void do_content(iter_type f, iter_type l) const
         {
-            state.printer_.print(f, l);
+            state.printer.print(f, l);
         }
 
         void do_end_tag(iter_type f, iter_type l) const
@@ -378,10 +378,10 @@ namespace quickbook
             bool is_flow_tag = state.is_flow_tag(state.tags.top());
             if (!is_flow_tag) {
                 state.current_indent -= indent;
-                state.printer_.align_indent();
+                state.printer.align_indent();
             }
-            state.printer_.print_tag(f, l, is_flow_tag);
-            if (!is_flow_tag) state.printer_.break_line();
+            state.printer.print_tag(f, l, is_flow_tag);
+            if (!is_flow_tag) state.printer.break_line();
             state.tags.pop();
         }
 
