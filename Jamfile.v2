@@ -18,6 +18,7 @@ project quickbook
         <toolset>msvc:<cflags>/wd4709
         <warnings>all
         <cxxstd>0x
+        <define>BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
     ;
 
 import boostcpp ;
