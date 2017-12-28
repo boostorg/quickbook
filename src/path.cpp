@@ -12,8 +12,8 @@
 #include "path.hpp"
 #include <cassert>
 #include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
 #include <boost/range/algorithm/replace.hpp>
+#include "for.hpp"
 #include "glob.hpp"
 #include "include_paths.hpp"
 #include "state.hpp"
@@ -35,7 +35,7 @@ namespace quickbook
 
         std::vector<fs::path> parts;
 
-        BOOST_FOREACH (fs::path const& part, path) {
+        QUICKBOOK_FOR (fs::path const& part, path) {
             if (part.empty() || part == ".") {
             }
             else if (part == "..") {

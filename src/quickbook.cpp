@@ -13,7 +13,6 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
 #include <boost/range/algorithm.hpp>
 #include <boost/ref.hpp>
@@ -21,6 +20,7 @@
 #include "actions.hpp"
 #include "document_state.hpp"
 #include "files.hpp"
+#include "for.hpp"
 #include "grammar.hpp"
 #include "path.hpp"
 #include "post_process.hpp"
@@ -453,7 +453,7 @@ int main(int argc, char* argv[])
 
                 unsigned flags = 0;
 
-                BOOST_FOREACH (std::string const& flag, flag_names) {
+                QUICKBOOK_FOR (std::string const& flag, flag_names) {
                     if (flag == "checked") {
                         flags |= quickbook::dependency_tracker::checked;
                     }

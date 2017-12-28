@@ -12,10 +12,10 @@
 #include <iterator>
 #include <vector>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/foreach.hpp>
 #include <boost/range/algorithm/transform.hpp>
 #include <boost/range/algorithm/upper_bound.hpp>
 #include <boost/unordered_map.hpp>
+#include "for.hpp"
 
 namespace quickbook
 {

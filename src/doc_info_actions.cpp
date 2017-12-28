@@ -12,10 +12,10 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
 #include "doc_info_tags.hpp"
 #include "document_state.hpp"
 #include "files.hpp"
+#include "for.hpp"
 #include "path.hpp"
 #include "quickbook.hpp"
 #include "state.hpp"
@@ -414,7 +414,7 @@ namespace quickbook
 
         if (!authors.empty()) {
             tmp << "    <authorgroup>\n";
-            BOOST_FOREACH (value_consumer author_values, authors) {
+            QUICKBOOK_FOR (value_consumer author_values, authors) {
                 while (author_values.check()) {
                     value surname =
                         author_values.consume(doc_info_tags::author_surname);
@@ -432,7 +432,7 @@ namespace quickbook
             tmp << "    </authorgroup>\n";
         }
 
-        BOOST_FOREACH (value_consumer copyright, copyrights) {
+        QUICKBOOK_FOR (value_consumer copyright, copyrights) {
             while (copyright.check()) {
                 tmp << "\n"
                     << "    <copyright>\n";
@@ -487,7 +487,7 @@ namespace quickbook
                 << "\n";
         }
 
-        BOOST_FOREACH (value_consumer category_values, categories) {
+        QUICKBOOK_FOR (value_consumer category_values, categories) {
             value category = category_values.optional_consume();
             if (!category.empty()) {
                 tmp << "    <" << doc_type << "category name=\"category:"
@@ -498,7 +498,7 @@ namespace quickbook
             category_values.finish();
         }
 
-        BOOST_FOREACH (value_consumer biblioid, biblioids) {
+        QUICKBOOK_FOR (value_consumer biblioid, biblioids) {
             value class_ = biblioid.consume(doc_info_tags::biblioid_class);
             value value_ = biblioid.consume(doc_info_tags::biblioid_value);
 
@@ -508,7 +508,7 @@ namespace quickbook
             biblioid.finish();
         }
 
-        BOOST_FOREACH (value escaped, escaped_attributes) {
+        QUICKBOOK_FOR (value escaped, escaped_attributes) {
             tmp << "<!--quickbook-escape-prefix-->" << escaped.get_quickbook()
                 << "<!--quickbook-escape-postfix-->";
         }

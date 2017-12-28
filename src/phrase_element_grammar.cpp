@@ -8,7 +8,6 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include <boost/foreach.hpp>
 #include <boost/spirit/include/classic_assign_actor.hpp>
 #include <boost/spirit/include/classic_clear_actor.hpp>
 #include <boost/spirit/include/classic_core.hpp>
@@ -16,6 +15,7 @@
 #include <boost/spirit/include/phoenix1_casts.hpp>
 #include <boost/spirit/include/phoenix1_primitives.hpp>
 #include "actions.hpp"
+#include "for.hpp"
 #include "grammar_impl.hpp"
 #include "phrase_tags.hpp"
 #include "state.hpp"
@@ -178,7 +178,7 @@ namespace quickbook
                 cl::eps_p                           [state.values.entry(ph::arg1, ph::arg2)]
             >>  source_modes                        [state.values.entry(ph::arg1)];
 
-        BOOST_FOREACH(int tag, source_mode_tags::tags()) {
+        QUICKBOOK_FOR(int tag, source_mode_tags::tags()) {
             source_modes.add(source_mode_tags::name(tag), tag);
             elements.add(source_mode_tags::name(tag),
                 element_info(element_info::phrase, &local.empty, tag));

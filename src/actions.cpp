@@ -17,7 +17,6 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/next_prior.hpp>
 #include <boost/range/algorithm/replace.hpp>
@@ -25,6 +24,7 @@
 #include "block_tags.hpp"
 #include "document_state.hpp"
 #include "files.hpp"
+#include "for.hpp"
 #include "grammar.hpp"
 #include "markups.hpp"
 #include "path.hpp"
@@ -103,7 +103,7 @@ namespace quickbook
             if (qbk_version_n >= 107u) {
                 char const* allowed_punctuation = "_.-";
 
-                BOOST_FOREACH (char c, id) {
+                QUICKBOOK_FOR (char c, id) {
                     if (!std::isalnum(c) &&
                         !std::strchr(allowed_punctuation, c))
                         valid = false;
@@ -692,7 +692,7 @@ namespace quickbook
 
         state.out << markup.pre;
 
-        BOOST_FOREACH (value item, list) {
+        QUICKBOOK_FOR (value item, list) {
             state.out << "<listitem>";
             state.out << item.get_encoded();
             state.out << "</listitem>";
@@ -892,7 +892,7 @@ namespace quickbook
         value_consumer values = image;
         attributes["fileref"] = values.consume();
 
-        BOOST_FOREACH (value pair_, values) {
+        QUICKBOOK_FOR (value pair_, values) {
             value_consumer pair = pair_;
             value name = pair.consume();
             value value = pair.consume();
@@ -1035,7 +1035,7 @@ namespace quickbook
 
         state.phrase << "<imageobject><imagedata";
 
-        BOOST_FOREACH (attribute_map::value_type const& attr, attributes) {
+        QUICKBOOK_FOR (attribute_map::value_type const& attr, attributes) {
             state.phrase << " " << attr.first << "=\"";
             write_plain_text(state.phrase.get(), attr.second);
             state.phrase << "\"";
@@ -1087,7 +1087,7 @@ namespace quickbook
         std::string identifier = values.consume().get_quickbook().to_s();
 
         std::vector<std::string> template_values;
-        BOOST_FOREACH (value const& p, values.consume()) {
+        QUICKBOOK_FOR (value const& p, values.consume()) {
             template_values.push_back(p.get_quickbook().to_s());
         }
 
@@ -1413,7 +1413,7 @@ namespace quickbook
 
         std::vector<value> args;
 
-        BOOST_FOREACH (value arg, values) {
+        QUICKBOOK_FOR (value arg, values) {
             args.push_back(arg);
         }
 
@@ -1563,7 +1563,7 @@ namespace quickbook
         detail::print_string(title, state.out.get());
         state.out << "</title>\n";
 
-        BOOST_FOREACH (value_consumer entry, values) {
+        QUICKBOOK_FOR (value_consumer entry, values) {
             state.out << "<varlistentry>";
 
             if (entry.check()) {
@@ -1574,7 +1574,7 @@ namespace quickbook
 
             if (entry.check()) {
                 state.out << "<listitem>";
-                BOOST_FOREACH (value phrase, entry)
+                QUICKBOOK_FOR (value phrase, entry)
                     state.out << phrase.get_encoded();
                 state.out << "</listitem>";
             }
@@ -1624,7 +1624,7 @@ namespace quickbook
         int span_count = 0;
 
         value_consumer lookahead = values;
-        BOOST_FOREACH (value row, lookahead) {
+        QUICKBOOK_FOR (value row, lookahead) {
             ++row_count;
             span_count = boost::distance(row);
         }
@@ -1654,7 +1654,7 @@ namespace quickbook
         if (row_count > 1) {
             state.out << "<thead>"
                       << "<row>";
-            BOOST_FOREACH (value cell, values.consume()) {
+            QUICKBOOK_FOR (value cell, values.consume()) {
                 state.out << "<entry>" << cell.get_encoded() << "</entry>";
             }
             state.out << "</row>\n"
@@ -1663,9 +1663,9 @@ namespace quickbook
 
         state.out << "<tbody>\n";
 
-        BOOST_FOREACH (value row, values) {
+        QUICKBOOK_FOR (value row, values) {
             state.out << "<row>";
-            BOOST_FOREACH (value cell, row) {
+            QUICKBOOK_FOR (value cell, row) {
                 state.out << "<entry>" << cell.get_encoded() << "</entry>";
             }
             state.out << "</row>\n";
@@ -1858,7 +1858,7 @@ namespace quickbook
             state.templates.push();
         }
 
-        BOOST_FOREACH (template_symbol& ts, storage) {
+        QUICKBOOK_FOR (template_symbol& ts, storage) {
             std::string tname = ts.identifier;
             if (tname != "!") {
                 ts.lexical_parent = &state.templates.top_scope();
@@ -1872,7 +1872,7 @@ namespace quickbook
         }
 
         if (load_type == block_tags::include) {
-            BOOST_FOREACH (template_symbol& ts, storage) {
+            QUICKBOOK_FOR (template_symbol& ts, storage) {
                 std::string tname = ts.identifier;
 
                 if (tname == "!") {
@@ -1898,7 +1898,7 @@ namespace quickbook
 
         std::set<quickbook_path> search =
             include_search(parameter, state, first);
-        BOOST_FOREACH (quickbook_path const& path, search) {
+        QUICKBOOK_FOR (quickbook_path const& path, search) {
             try {
                 if (qbk_version_n >= 106) {
                     if (state.imported &&
