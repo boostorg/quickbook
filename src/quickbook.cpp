@@ -58,11 +58,7 @@ namespace quickbook
 
     static void set_macros(quickbook::state& state)
     {
-        for (std::vector<std::string>::const_iterator
-                 it = preset_defines.begin(),
-                 end = preset_defines.end();
-             it != end; ++it) {
-            quickbook::string_view val(*it);
+        QUICKBOOK_FOR (quickbook::string_view val, preset_defines) {
             parse_iterator first(val.begin());
             parse_iterator last(val.end());
 
@@ -71,7 +67,7 @@ namespace quickbook
 
             if (!info.full) {
                 detail::outerr() << "Error parsing command line definition: '"
-                                 << *it << "'" << std::endl;
+                                 << val << "'" << std::endl;
                 ++state.error_count;
             }
         }

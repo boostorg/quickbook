@@ -469,9 +469,8 @@ namespace quickbook
     {
         unsigned count = 0;
 
-        for (string_iterator begin = x.begin(), end = x.end(); begin != end;
-             ++begin) {
-            switch (*begin) {
+        QUICKBOOK_FOR (auto c, x) {
+            switch (c) {
             case ' ':
                 ++count;
                 break;

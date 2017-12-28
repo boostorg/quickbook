@@ -50,12 +50,9 @@ namespace quickbook
                 state.source_mode_next = 0;
             }
 
-            for (quickbook::state::string_list::iterator
-                     it = state.anchors.begin(),
-                     end = state.anchors.end();
-                 it != end; ++it) {
+            QUICKBOOK_FOR (auto const& anchor_id, state.anchors) {
                 tgt << "<anchor id=\"";
-                detail::print_string(*it, tgt.get());
+                detail::print_string(anchor_id, tgt.get());
                 tgt << "\"/>";
             }
 
