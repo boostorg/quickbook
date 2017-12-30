@@ -6,7 +6,8 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include <boost/range/algorithm.hpp>
+#include <boost/range/algorithm/find.hpp>
+#include <boost/range/algorithm/sort.hpp>
 #include "document_state_impl.hpp"
 #include "utils.hpp"
 

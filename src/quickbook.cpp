@@ -14,7 +14,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
-#include <boost/range/algorithm.hpp>
+#include <boost/range/algorithm/replace.hpp>
+#include <boost/range/algorithm/transform.hpp>
 #include <boost/ref.hpp>
 #include <boost/version.hpp>
 #include "actions.hpp"
