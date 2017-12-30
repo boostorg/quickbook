@@ -12,11 +12,98 @@
 #include <cctype>
 #include <cstring>
 #include <map>
+#include <boost/spirit/include/classic_chset.hpp>
+#include <boost/spirit/include/classic_core.hpp>
+#include <boost/spirit/include/classic_numerics.hpp>
+#include <boost/spirit/include/phoenix1_binders.hpp>
+#include <boost/spirit/include/phoenix1_primitives.hpp>
 
 namespace quickbook
 {
     namespace detail
     {
+        namespace cl = boost::spirit::classic;
+        namespace ph = phoenix;
+
+        struct xml_decode_grammar : cl::grammar<xml_decode_grammar>
+        {
+            std::string& result;
+            xml_decode_grammar(std::string& result_) : result(result_) {}
+
+            void append_char(char c) const { result += c; }
+
+            void append_escaped_char(unsigned int c) const
+            {
+                if (c < 0x80) {
+                    result += static_cast<char>(c);
+                }
+                else if (c < 0x800) {
+                    char e[] = {static_cast<char>(0xc0 + (c >> 6)),
+                                static_cast<char>(0x80 + (c & 0x3f)), '\0'};
+                    result += e;
+                }
+                else if (c < 0x10000) {
+                    char e[] = {static_cast<char>(0xe0 + (c >> 12)),
+                                static_cast<char>(0x80 + ((c >> 6) & 0x3f)),
+                                static_cast<char>(0x80 + (c & 0x3f)), '\0'};
+                    result += e;
+                }
+                else if (c < 0x110000) {
+                    char e[] = {static_cast<char>(0xf0 + (c >> 18)),
+                                static_cast<char>(0x80 + ((c >> 12) & 0x3f)),
+                                static_cast<char>(0x80 + ((c >> 6) & 0x3f)),
+                                static_cast<char>(0x80 + (c & 0x3f)), '\0'};
+                    result += e;
+                }
+                else {
+                    result += "\xEF\xBF\xBD";
+                }
+            }
+
+            template <typename Scanner> struct definition
+            {
+                definition(xml_decode_grammar const& self)
+                {
+                    // clang-format off
+
+                    auto append_escaped_char = ph::bind(&xml_decode_grammar::append_escaped_char);
+                    auto append_char = ph::bind(&xml_decode_grammar::append_char);
+                    auto encoded =
+                            cl::ch_p('&')
+                        >>  (   "#x"
+                            >>  cl::hex_p           [append_escaped_char(self, ph::arg1)]
+                            >>  !cl::ch_p(';')
+                            |   '#'
+                            >>  cl::uint_p          [append_escaped_char(self, ph::arg1)]
+                            >>  !cl::ch_p(';')
+                            |   cl::str_p("amp;")   [append_char(self, '&')]
+                            |   cl::str_p("apos;")  [append_char(self, '\'')]
+                            |   cl::str_p("gt;")    [append_char(self, '>')]
+                            |   cl::str_p("lt;")    [append_char(self, '<')]
+                            |   cl::str_p("quot;")  [append_char(self, '"')]
+                            );
+                    auto character = cl::anychar_p [append_char(self, ph::arg1)];
+                    xml_encoded = *(encoded | character);
+
+                    // clang-format on
+                }
+
+                cl::rule<Scanner> const& start() { return xml_encoded; }
+                cl::rule<Scanner> xml_encoded;
+            };
+
+          private:
+            xml_decode_grammar& operator=(xml_decode_grammar const&);
+        };
+
+        std::string decode_string(quickbook::string_view str)
+        {
+            std::string result;
+            xml_decode_grammar xml_decode(result);
+            boost::spirit::classic::parse(str.begin(), str.end(), xml_decode);
+            return result;
+        }
+
         std::string encode_string(quickbook::string_view str)
         {
             std::string result;
