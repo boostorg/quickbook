@@ -15,7 +15,10 @@
 namespace quickbook
 {
     std::string post_process(
-        std::string const& in, int indent = -1, int linewidth = -1);
+        std::string const& in,
+        int indent = -1,
+        int linewidth = -1,
+        bool is_html = false);
 
     struct post_process_failure : public std::runtime_error
     {
