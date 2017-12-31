@@ -65,7 +65,7 @@ namespace quickbook
         void write_file(
             html_state&, std::string const& path, std::string const& content);
         std::string get_link_from_path(
-            quickbook::string_view, quickbook::string_view);
+            html_gen&, quickbook::string_view, quickbook::string_view);
         std::string relative_path_from_fs_paths(
             fs::path const&, fs::path const&);
         std::string relative_path_from_url_paths(
@@ -347,7 +347,7 @@ namespace quickbook
                     tag_start(gen.printer, "a");
                     tag_attribute(
                         gen.printer, "href",
-                        get_link_from_path(prev->path_, x->path_));
+                        get_link_from_path(gen, prev->path_, x->path_));
                     tag_attribute(gen.printer, "accesskey", "p");
                     tag_end(gen.printer);
                     graphics_tag(gen, "/prev.png", "prev");
@@ -358,7 +358,7 @@ namespace quickbook
                     tag_start(gen.printer, "a");
                     tag_attribute(
                         gen.printer, "href",
-                        get_link_from_path(x->parent()->path_, x->path_));
+                        get_link_from_path(gen, x->parent()->path_, x->path_));
                     tag_attribute(gen.printer, "accesskey", "u");
                     tag_end(gen.printer);
                     graphics_tag(gen, "/up.png", "up");
@@ -368,7 +368,7 @@ namespace quickbook
                     tag_start(gen.printer, "a");
                     tag_attribute(
                         gen.printer, "href",
-                        get_link_from_path("index.html", x->path_));
+                        get_link_from_path(gen, "index.html", x->path_));
                     tag_attribute(gen.printer, "accesskey", "h");
                     tag_end(gen.printer);
                     graphics_tag(gen, "/home.png", "home");
@@ -381,7 +381,7 @@ namespace quickbook
                     tag_start(gen.printer, "a");
                     tag_attribute(
                         gen.printer, "href",
-                        get_link_from_path(next->path_, x->path_));
+                        get_link_from_path(gen, next->path_, x->path_));
                     tag_attribute(gen.printer, "accesskey", "n");
                     tag_end(gen.printer);
                     graphics_tag(gen, "/next.png", "next");
@@ -455,8 +455,8 @@ namespace quickbook
                 gen.printer.html += "<li>";
                 if (link != gen.state.ids.end()) {
                     gen.printer.html += "<a href=\"";
-                    gen.printer.html += encode_string(
-                        get_link_from_path(link->second.path(), page->path_));
+                    gen.printer.html += encode_string(get_link_from_path(
+                        gen, link->second.path(), page->path_));
                     gen.printer.html += "\">";
                     generate_toc_item_html(gen, it->title_.root());
                     gen.printer.html += "</a>";
@@ -641,7 +641,9 @@ namespace quickbook
         }
 
         std::string get_link_from_path(
-            quickbook::string_view link, quickbook::string_view path)
+            html_gen& gen,
+            quickbook::string_view link,
+            quickbook::string_view path)
         {
             if (boost::starts_with(link, "boost:")) {
                 // TODO: Parameterize the boost location, so that it can use
@@ -650,9 +652,20 @@ namespace quickbook
                 if (*it == '/') {
                     ++it;
                 }
-                std::string result = "http://www.boost.org/doc/libs/release/";
-                result.append(it, link.end());
-                return result;
+                if (gen.state.options.boost_root_path.empty()) {
+                    std::string result =
+                        "http://www.boost.org/doc/libs/release/";
+                    result.append(it, link.end());
+                    return result;
+                }
+                else {
+                    auto full_path = gen.state.options.boost_root_path;
+                    full_path.append(it, link.end());
+                    return relative_path_from_fs_paths(
+                        full_path,
+                        gen.state.options.home_path.parent_path() /
+                            path.to_s());
+                }
             }
 
             return relative_path_from_url_paths(link, path);
@@ -900,7 +913,7 @@ namespace quickbook
             if (x->has_attribute("url")) {
                 tag_attribute(
                     gen.printer, "href",
-                    get_link_from_path(x->get_attribute("url"), gen.path));
+                    get_link_from_path(gen, x->get_attribute("url"), gen.path));
             }
             tag_end(gen.printer);
             generate_children_html(gen, x);
@@ -1033,7 +1046,8 @@ namespace quickbook
                 tag_end(gen.printer);
                 tag_start_with_id(gen, "img", x);
                 tag_attribute(
-                    gen.printer, "src", get_link_from_path(image, gen.path));
+                    gen.printer, "src",
+                    get_link_from_path(gen, image, gen.path));
                 tag_attribute(gen.printer, "alt", alt);
                 tag_end_self_close(gen.printer);
                 close_tag(gen.printer, "span");

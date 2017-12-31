@@ -322,6 +322,7 @@ int main(int argc, char* argv[])
         ;
 
         html_desc.add_options()
+            ("boost-root-path", PO_VALUE<command_line_string>(), "boost root")
             ("css-path", PO_VALUE<command_line_string>(), "css path")
             ("graphics-path", PO_VALUE<command_line_string>(), "graphics path");
         desc.add(html_desc);
@@ -543,16 +544,30 @@ int main(int argc, char* argv[])
                     vm["output-checked-locations"].as<command_line_string>());
             }
 
+            if (vm.count("boost-root-path")) {
+                options.html_ops.boost_root_path =
+                    quickbook::detail::command_line_to_path(
+                        vm["boost-root-path"].as<command_line_string>());
+            }
+
             if (vm.count("css-path")) {
                 options.html_ops.css_path =
                     quickbook::detail::command_line_to_path(
                         vm["css-path"].as<command_line_string>());
+            }
+            else if (vm.count("boost-root-path")) {
+                options.html_ops.css_path =
+                    options.html_ops.boost_root_path / "doc/src/boostbook.css";
             }
 
             if (vm.count("graphics-path")) {
                 options.html_ops.graphics_path =
                     quickbook::detail::command_line_to_path(
                         vm["graphics-path"].as<command_line_string>());
+            }
+            else if (vm.count("boost-root-path")) {
+                options.html_ops.graphics_path =
+                    options.html_ops.boost_root_path / "doc/src/images";
             }
 
             if (vm.count("output-file")) {
