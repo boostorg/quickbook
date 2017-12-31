@@ -322,9 +322,9 @@ int main(int argc, char* argv[])
         ;
 
         html_desc.add_options()
-            ("boost-root-path", PO_VALUE<command_line_string>(), "boost root")
-            ("css-path", PO_VALUE<command_line_string>(), "css path")
-            ("graphics-path", PO_VALUE<command_line_string>(), "graphics path");
+            ("boost-root-path", PO_VALUE<command_line_string>(), "boost root (file path or absolute URL)")
+            ("css-path", PO_VALUE<command_line_string>(), "css file (file path or absolute URL)")
+            ("graphics-path", PO_VALUE<command_line_string>(), "graphics directory (file path or absolute URL)");
         desc.add(html_desc);
 
         hidden.add_options()
@@ -545,27 +545,34 @@ int main(int argc, char* argv[])
             }
 
             if (vm.count("boost-root-path")) {
+                // TODO: Check that it's a directory?
                 options.html_ops.boost_root_path =
-                    quickbook::detail::command_line_to_path(
-                        vm["boost-root-path"].as<command_line_string>());
+                    vm["boost-root-path"].as<command_line_string>();
             }
+            // Could possibly default it:
+            // 'boost:' links will use this anyway, but setting a default
+            // would also result in default css and graphics paths.
+            //
+            // else {
+            //    options.html_ops.boost_root_path =
+            //      quickbook::detail::path_or_url::url(
+            //        "http://www.boost.org/doc/libs/release/");
+            //}
 
             if (vm.count("css-path")) {
                 options.html_ops.css_path =
-                    quickbook::detail::command_line_to_path(
-                        vm["css-path"].as<command_line_string>());
+                    vm["css-path"].as<command_line_string>();
             }
-            else if (vm.count("boost-root-path")) {
+            else if (options.html_ops.boost_root_path) {
                 options.html_ops.css_path =
                     options.html_ops.boost_root_path / "doc/src/boostbook.css";
             }
 
             if (vm.count("graphics-path")) {
                 options.html_ops.graphics_path =
-                    quickbook::detail::command_line_to_path(
-                        vm["graphics-path"].as<command_line_string>());
+                    vm["graphics-path"].as<command_line_string>();
             }
-            else if (vm.count("boost-root-path")) {
+            else if (options.html_ops.boost_root_path) {
                 options.html_ops.graphics_path =
                     options.html_ops.boost_root_path / "doc/src/images";
             }

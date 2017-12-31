@@ -66,6 +66,7 @@ namespace quickbook
             html_state&, std::string const& path, std::string const& content);
         std::string get_link_from_path(
             html_gen&, quickbook::string_view, quickbook::string_view);
+        std::string relative_path_or_url(html_gen&, path_or_url const&);
         std::string relative_path_from_fs_paths(
             fs::path const&, fs::path const&);
         std::string relative_path_from_url_paths(
@@ -285,15 +286,13 @@ namespace quickbook
             gen.printer.html += "<!DOCTYPE html>\n";
             open_tag(gen.printer, "html");
             open_tag(gen.printer, "head");
-            if (!state.options.css_path.empty()) {
+            if (state.options.css_path) {
                 tag_start(gen.printer, "link");
                 tag_attribute(gen.printer, "rel", "stylesheet");
                 tag_attribute(gen.printer, "type", "text/css");
                 tag_attribute(
                     gen.printer, "href",
-                    relative_path_from_fs_paths(
-                        state.options.css_path,
-                        state.options.home_path.parent_path() / x->path_));
+                    relative_path_or_url(gen, state.options.css_path));
                 tag_end_self_close(gen.printer);
             }
             close_tag(gen.printer, "head");
@@ -652,23 +651,35 @@ namespace quickbook
                 if (*it == '/') {
                     ++it;
                 }
-                if (gen.state.options.boost_root_path.empty()) {
+                if (!gen.state.options.boost_root_path) {
                     std::string result =
                         "http://www.boost.org/doc/libs/release/";
                     result.append(it, link.end());
                     return result;
                 }
                 else {
-                    auto full_path = gen.state.options.boost_root_path;
-                    full_path.append(it, link.end());
-                    return relative_path_from_fs_paths(
-                        full_path,
-                        gen.state.options.home_path.parent_path() /
-                            path.to_s());
+                    return relative_path_or_url(
+                        gen,
+                        gen.state.options.boost_root_path /
+                            string_view(it, link.end() - it));
                 }
             }
 
             return relative_path_from_url_paths(link, path);
+        }
+
+        std::string relative_path_or_url(html_gen& gen, path_or_url const& x)
+        {
+            assert(x);
+            if (x.is_url()) {
+                return x.get_url();
+            }
+            else {
+                return relative_path_from_fs_paths(
+                    x.get_path(),
+                    gen.state.options.home_path.parent_path() /
+                        gen.path.to_s());
+            }
         }
 
         // Note: assume that base is a file, not a directory.
@@ -786,13 +797,12 @@ namespace quickbook
             quickbook::string_view path,
             quickbook::string_view fallback)
         {
-            if (!gen.state.options.graphics_path.empty()) {
-                std::string url = relative_path_from_fs_paths(
-                    gen.state.options.graphics_path / path.to_s(),
-                    gen.state.options.home_path.parent_path() /
-                        gen.path.to_s());
+            if (gen.state.options.graphics_path) {
                 tag_start(gen.printer, "img");
-                tag_attribute(gen.printer, "src", url);
+                tag_attribute(
+                    gen.printer, "src",
+                    relative_path_or_url(
+                        gen, gen.state.options.graphics_path / path));
                 tag_attribute(gen.printer, "alt", fallback);
                 tag_end(gen.printer);
             }

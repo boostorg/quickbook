@@ -54,6 +54,62 @@ namespace quickbook
         fs::path generic_to_path(quickbook::string_view);
 
         stream_string path_to_stream(fs::path const& path);
+
+        // Command line parameters that might be a path, a url, or empty.
+        // Not very efficient, but won't be used much.
+        class path_or_url
+        {
+            int type_;
+            boost::filesystem::path path_;
+            std::string url_;
+
+          public:
+            // Creates an empty path_or_url.
+            path_or_url();
+
+            path_or_url(path_or_url const&);
+
+            // Stores a parameter as either a path or a URL depending
+            // on whether it looks like an absolute URL (i.e. starts with
+            // 'scheme:')
+            explicit path_or_url(command_line_string const&);
+
+            path_or_url& operator=(path_or_url const&);
+
+            path_or_url& operator=(command_line_string const&);
+
+            void swap(path_or_url&);
+
+            // Explicity create a URL
+            static path_or_url url(string_view);
+
+            // Explicitly create a path
+            static path_or_url path(boost::filesystem::path const&);
+
+            // Returns true if this isn't empty.
+            operator bool() const;
+
+            // Returns true if contains a path.
+            bool is_path() const;
+
+            // Returns true is contains a URL.
+            bool is_url() const;
+
+            // Returns the stored path.
+            // pre: is_path()
+            boost::filesystem::path const& get_path() const;
+
+            // Returns the stored URL.
+            // pre: is_url()
+            std::string const& get_url() const;
+
+            // Appends the value, either by path concatenation or URL
+            // concatenation.
+            // Note: a URL will strip text after the last '/', a path won't.
+            //       Maybe should only work when the path is known to be a
+            //       directory?
+            path_or_url operator/(string_view) const;
+        };
     }
 }
 

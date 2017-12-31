@@ -10,7 +10,7 @@
 #define BOOST_QUICKBOOK_BOOSTBOOK_TO_HTML_HPP
 
 #include <string>
-#include <boost/filesystem/path.hpp>
+#include "path.hpp"
 #include "string_view.hpp"
 
 namespace quickbook
@@ -20,10 +20,10 @@ namespace quickbook
         struct html_options
         {
             bool chunked_output;
-            boost::filesystem::path boost_root_path;
             boost::filesystem::path home_path;
-            boost::filesystem::path css_path;
-            boost::filesystem::path graphics_path;
+            path_or_url boost_root_path;
+            path_or_url css_path;
+            path_or_url graphics_path;
             bool pretty_print;
 
             html_options() : chunked_output(false) {}
