@@ -936,6 +936,13 @@ namespace quickbook
             auto it = gen.state.ids.end();
             if (x->has_attribute("linkend")) {
                 it = gen.state.ids.find(x->get_attribute("linkend"));
+
+                if (it == gen.state.ids.end()) {
+                    fs::path docbook("(generated docbook)");
+                    detail::outwarn(docbook)
+                        << "link not found: " << x->get_attribute("linkend")
+                        << std::endl;
+                }
             }
 
             tag_start_with_id(gen, "a", x);
