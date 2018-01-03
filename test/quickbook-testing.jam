@@ -45,7 +45,7 @@ rule quickbook-test ( target-name : input ? : reference-output ? : requirements 
 
     local boost-root = [ modules.peek : BOOST_ROOT ] ;
 
-    local t =
+    local t1 =
         [ targets.create-typed-target QUICKBOOK_OUTPUT
             : $(project)
             : $(target-name).boostbook
@@ -53,8 +53,9 @@ rule quickbook-test ( target-name : input ? : reference-output ? : requirements 
             : $(requirements)
                 <location-prefix>$(target-name).test
                 <quickbook-testing.quickbook-command>$(boost-root)/tools/quickbook/src//quickbook
-        ]
+        ] ;
 
+    local t2 =
         [ targets.create-typed-target RUN
             : $(project)
             : $(target-name)
@@ -67,9 +68,11 @@ rule quickbook-test ( target-name : input ? : reference-output ? : requirements 
         ]
         ;
 
-    modules.poke testing : .all-tests : \$\(all-tests\) $(t) ;
+    local all-tests = [ modules.peek testing : .all-tests ] ;
+    all-tests += $(t2) ;
+    modules.poke testing : .all-tests : $(all-tests) ;
 
-    return $(t) ;
+    return $(t1) $(t2) ;
 }
 
 rule quickbook-fail-test ( target-name : input ? : requirements * )
@@ -92,7 +95,9 @@ rule quickbook-fail-test ( target-name : input ? : requirements * )
         ]
         ;
 
-    modules.poke testing : .all-tests : \$\(all-tests\) $(t) ;
+    local all-tests = [ modules.peek testing : .all-tests ] ;
+    all-tests += $(t) ;
+    modules.poke testing : .all-tests : $(all-tests) ;
 
     return $(t) ;
 }
@@ -118,7 +123,9 @@ rule quickbook-error-test ( target-name : input ? : requirements * )
         ]
         ;
 
-    modules.poke testing : .all-tests : \$\(all-tests\) $(t) ;
+    local all-tests = [ modules.peek testing : .all-tests ] ;
+    all-tests += $(t) ;
+    modules.poke testing : .all-tests : $(all-tests) ;
 
     return $(t) ;
 }

@@ -46,6 +46,10 @@ boostbook fully-standalone
         <xsl:param>html.stylesheet=boostbook.css
         <xsl:param>img.src.path=images/
         <xsl:param>boost.graphics.root=images/
+        <xsl:param>boost.mobile=1
+        # Use an invalid nav.layout value so it displays the header
+        # image, but with no navigation.
+        <xsl:param>nav.layout=hackhackhack
     ;
 explicit fully-standalone ;
 

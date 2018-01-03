@@ -12,7 +12,7 @@
 #include "utils.hpp"
 
 #if QUICKBOOK_WIDE_PATHS || QUICKBOOK_WIDE_STREAMS
-#include <boost/scoped_ptr.hpp>
+#include <boost/scoped_array.hpp>
 #include <windows.h>
 #endif
 
@@ -28,7 +28,7 @@ namespace detail {
         if (!buffer_count)
             throw conversion_error("Error converting wide string to utf-8.");
 
-        boost::scoped_ptr<char> buffer(new char[buffer_count]);
+        boost::scoped_array<char> buffer(new char[buffer_count]);
 
         if (!WideCharToMultiByte(CP_UTF8, 0, x.c_str(), -1, buffer.get(), buffer_count, 0, 0))
             throw conversion_error("Error converting wide string to utf-8.");
@@ -40,11 +40,11 @@ namespace detail {
     {
         std::string x(text.begin(), text.end());
         int buffer_count = MultiByteToWideChar(CP_UTF8, 0, x.c_str(), -1, 0, 0);
-    
+
         if (!buffer_count)
             throw conversion_error("Error converting utf-8 to wide string.");
 
-        boost::scoped_ptr<wchar_t> buffer(new wchar_t[buffer_count]);
+        boost::scoped_array<wchar_t> buffer(new wchar_t[buffer_count]);
 
         if (!MultiByteToWideChar(CP_UTF8, 0, x.c_str(), -1, buffer.get(), buffer_count))
             throw conversion_error("Error converting utf-8 to wide string.");
