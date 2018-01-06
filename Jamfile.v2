@@ -17,8 +17,9 @@ project quickbook
         <toolset>darwin:<cflags>-g0
         <toolset>msvc:<cflags>/wd4709
         <warnings>all
-        <cxxstd>0x
         <define>BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
+    : default-build
+        <cxxstd>0x
     ;
 
 import boostcpp ;
