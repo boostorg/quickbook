@@ -81,9 +81,9 @@ before_script:
 
 script:
     - cd ${BOOST_ROOT}/tools/quickbook
-    - ${HOME}/opt/bin/b2 dist-bin debug
+    - ${HOME}/opt/bin/b2 -j 3 dist-bin debug
     - cd ${BOOST_ROOT}/tools/quickbook/test
-    - ${HOME}/opt/bin/b2
+    - ${HOME}/opt/bin/b2 -j 3
     - cd ${BOOST_ROOT}/tools/quickbook/test/python
     - python run_tests.py ${BOOST_ROOT}/dist/bin/quickbook
     - ${BOOST_ROOT}/tools/quickbook/build/warning-check
