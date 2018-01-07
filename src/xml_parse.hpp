@@ -102,6 +102,17 @@ namespace quickbook
                     std::make_pair(name.to_s(), value.to_s()));
                 return attributes_.back().second;
             }
+
+            xml_element* get_child(quickbook::string_view name)
+            {
+                for (auto it = children(); it; it = it->next()) {
+                    if (it->type_ == element_node && it->name_ == name) {
+                        return it;
+                    }
+                }
+
+                return 0;
+            }
         };
 
         struct xml_parse_error

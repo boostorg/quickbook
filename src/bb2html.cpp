@@ -19,6 +19,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include <boost/unordered_set.hpp>
 #include "boostbook_chunker.hpp"
 #include "files.hpp"
+#include "for.hpp"
 #include "html_printer.hpp"
 #include "path.hpp"
 #include "post_process.hpp"
@@ -37,6 +38,7 @@ namespace quickbook
     {
         struct html_state;
         struct html_gen;
+        struct docinfo_gen;
         struct id_info;
 
         typedef boost::unordered_map<string_view, id_info> ids_type;
@@ -45,6 +47,23 @@ namespace quickbook
         typedef boost::unordered_map<quickbook::string_view, node_parser>
             node_parsers_type;
         static node_parsers_type node_parsers;
+
+        struct docinfo_node_parser
+        {
+            typedef void (*parser_type)(docinfo_gen&, xml_element*);
+            enum docinfo_node_category
+            {
+                docinfo_general = 0,
+                docinfo_author
+            };
+
+            docinfo_node_category category;
+            parser_type parser;
+        };
+        typedef boost::
+            unordered_map<quickbook::string_view, docinfo_node_parser>
+                docinfo_node_pasers_type;
+        static docinfo_node_pasers_type docinfo_node_parsers;
 
         void generate_chunked_documentation(
             chunk*, ids_type const&, html_options const&);
@@ -60,6 +79,7 @@ namespace quickbook
         void number_callouts(html_gen& gen, xml_element* x);
         void number_calloutlist_children(
             html_gen& gen, unsigned& count, xml_element* x);
+        void generate_docinfo_html(html_gen&, xml_element*);
         void generate_tree_html(html_gen&, xml_element*);
         void generate_children_html(html_gen&, xml_element*);
         void write_file(
@@ -169,6 +189,19 @@ namespace quickbook
                 , in_toc(false)
             {
             }
+        };
+
+        struct docinfo_gen
+        {
+            html_gen& gen;
+            std::vector<std::string> copyrights;
+            std::vector<std::string> pubdates;
+            std::vector<std::string> legalnotices;
+            std::vector<std::string> authors;
+            std::vector<std::string> editors;
+            std::vector<std::string> collabs;
+
+            docinfo_gen(html_gen& gen_) : gen(gen_) {}
         };
 
         int boostbook_to_html(
@@ -412,7 +445,7 @@ namespace quickbook
             number_callouts(gen, x->contents_.root());
 
             generate_tree_html(gen, x->title_.root());
-            generate_tree_html(gen, x->info_.root());
+            generate_docinfo_html(gen, x->info_.root());
             generate_toc_html(gen, x);
             generate_tree_html(gen, x->contents_.root());
         }
@@ -592,6 +625,67 @@ namespace quickbook
         {
             for (xml_element* it = x->children(); it; it = it->next()) {
                 generate_tree_html(gen, it);
+            }
+        }
+
+        void generate_docinfo_html_impl(docinfo_gen& d, xml_element* x)
+        {
+            for (xml_element* it = x->children(); it; it = it->next()) {
+                if (it->type_ == xml_element::element_node) {
+                    auto parser = docinfo_node_parsers.find(it->name_);
+                    if (parser != docinfo_node_parsers.end()) {
+                        parser->second.parser(d, it);
+                    }
+                    else {
+                        quickbook::detail::out()
+                            << "Unsupported docinfo tag: " << x->name_
+                            << std::endl;
+                        generate_docinfo_html_impl(d, it);
+                    }
+                }
+            }
+        }
+
+        void generate_docinfo_html(html_gen& gen, xml_element* x)
+        {
+            if (!x) {
+                return;
+            }
+
+            docinfo_gen d(gen);
+            generate_docinfo_html_impl(d, x);
+
+            if (!d.authors.empty() || !d.editors.empty() ||
+                !d.collabs.empty()) {
+                gen.printer.html += "<div class=\"authorgroup\">\n";
+                QUICKBOOK_FOR (auto const& author, d.authors) {
+                    gen.printer.html += "<h3 class=\"author\">";
+                    gen.printer.html += author;
+                    gen.printer.html += "</h3>\n";
+                }
+                QUICKBOOK_FOR (auto const& editor, d.editors) {
+                    gen.printer.html += "<h3 class=\"editor\">";
+                    gen.printer.html += editor;
+                    gen.printer.html += "</h3>\n";
+                }
+                QUICKBOOK_FOR (auto const& collab, d.collabs) {
+                    gen.printer.html += "<h3 class=\"collab\">";
+                    gen.printer.html += collab;
+                    gen.printer.html += "</h3>\n";
+                }
+                gen.printer.html += "</div>\n";
+            }
+
+            QUICKBOOK_FOR (auto const& copyright, d.copyrights) {
+                gen.printer.html += "<p class=\"copyright\">";
+                gen.printer.html += copyright;
+                gen.printer.html += "</p>";
+            }
+
+            QUICKBOOK_FOR (auto const& legalnotice, d.legalnotices) {
+                gen.printer.html += "<div class=\"legalnotice\">";
+                gen.printer.html += legalnotice;
+                gen.printer.html += "</div>";
             }
         }
 
@@ -836,6 +930,21 @@ namespace quickbook
         }                                                                      \
     } BOOST_PP_CAT(register_parser_, tag_name);                                \
     void BOOST_PP_CAT(parser_, tag_name)(html_gen & gen, xml_element * x)
+
+#define DOCINFO_NODE_RULE(tag_name, category, gen, x)                          \
+    void BOOST_PP_CAT(docinfo_parser_, tag_name)(docinfo_gen&, xml_element*);  \
+    static struct BOOST_PP_CAT(register_docinfo_parser_type_, tag_name)        \
+    {                                                                          \
+        BOOST_PP_CAT(register_docinfo_parser_type_, tag_name)()                \
+        {                                                                      \
+            docinfo_node_parser p = {                                          \
+                docinfo_node_parser::category,                                 \
+                &BOOST_PP_CAT(docinfo_parser_, tag_name)};                     \
+            docinfo_node_parsers.emplace(BOOST_PP_STRINGIZE(tag_name), p);     \
+        }                                                                      \
+    } BOOST_PP_CAT(register_docinfo_parser_, tag_name);                        \
+    void BOOST_PP_CAT(docinfo_parser_, tag_name)(                              \
+        docinfo_gen & gen, xml_element * x)
 
 #define NODE_MAP(tag_name, html_name)                                          \
     NODE_RULE(tag_name, gen, x) { tag(gen, BOOST_PP_STRINGIZE(html_name), x); }
@@ -1334,6 +1443,184 @@ namespace quickbook
                 }
 
             gen.chunk.footnotes.push_back(x);
+        }
+
+        std::string docinfo_get_contents(docinfo_gen& d, xml_element* x)
+        {
+            html_gen gen2(d.gen);
+            generate_children_html(gen2, x);
+            return gen2.printer.html;
+        }
+
+        std::string docinfo_get_author(docinfo_gen& d, xml_element* x)
+        {
+            auto personname = x->get_child("personname");
+            if (personname) {
+                return docinfo_get_author(d, personname);
+            }
+
+            std::string name;
+
+            char const* name_parts[] = {"honorific", "firstname", "surname"};
+            std::size_t const length =
+                sizeof(name_parts) / sizeof(name_parts[0]);
+            for (std::size_t i = 0; i < length; ++i) {
+                auto child = x->get_child(name_parts[i]);
+                if (child) {
+                    if (name.size()) {
+                        name += " ";
+                    }
+                    name += docinfo_get_contents(d, child);
+                }
+            }
+
+            return name;
+        }
+
+        // docinfo parsers
+
+        // No support for:
+        //
+        // graphic, mediaobject
+        // modespec
+        // subjectset, keywordset
+        // itermset, indexterm
+        // abbrev
+        // abstract
+        // address
+        // artpagenums
+        // authorinitials
+        // bibliomisc, biblioset
+        // confgroup
+        // contractnum, contractsponsor
+        // corpname
+        // date
+        // edition
+        // invpartnumber, isbn, issn, issuenum, biblioid
+        // orgname
+        // citebiblioid, citetitle
+        // bibliosource, bibliorelation, bibliocoverage - Dublin core
+        // pagenums
+        // printhistory
+        // productname, productnumber
+        // pubdate ***
+        // publisher, publishername, pubsnumber
+        // releaseinfo
+        // revhistory
+        // seriesvolnums
+        // title, subtitle, titleabbrev - *** extract into parent?
+        // volumenum
+        // personname, honorific, firstname, surname, lineage, othername,
+        // affiliation, authorblurb, contrib - add to authors?
+
+        DOCINFO_NODE_RULE(copyright, docinfo_general, d, x)
+        {
+            std::vector<xml_element*> years;
+            std::vector<xml_element*> holders;
+
+            for (auto child = x->children(); child; child = child->next()) {
+                if (child->type_ == xml_element::element_node) {
+                    if (child->name_ == "year") {
+                        years.push_back(child);
+                    }
+                    else if (child->name_ == "holder") {
+                        holders.push_back(child);
+                    }
+                    else {
+                        quickbook::detail::out()
+                            << "Unsupported copyright tag: " << x->name_
+                            << std::endl;
+                    }
+                }
+            }
+
+            // TODO: Format years, e.g. 2005 2006 2007 2010 => 2005-2007, 2010
+
+            std::string copyright;
+            QUICKBOOK_FOR (auto year, years) {
+                if (!copyright.empty()) {
+                    copyright += ", ";
+                }
+                copyright += docinfo_get_contents(d, year);
+            }
+            bool first = true;
+            QUICKBOOK_FOR (auto holder, holders) {
+                if (first) {
+                    if (!copyright.empty()) {
+                        copyright += " ";
+                    }
+                    first = false;
+                }
+                else {
+                    copyright += ", ";
+                }
+                copyright += docinfo_get_contents(d, holder);
+            }
+            d.copyrights.push_back(copyright);
+        }
+
+        DOCINFO_NODE_RULE(legalnotice, docinfo_general, d, x)
+        {
+            d.legalnotices.push_back(docinfo_get_contents(d, x));
+        }
+
+        DOCINFO_NODE_RULE(pubdate, docinfo_general, d, x)
+        {
+            d.pubdates.push_back(docinfo_get_contents(d, x));
+        }
+
+        DOCINFO_NODE_RULE(authorgroup, docinfo_general, d, x)
+        {
+            // TODO: Check children are docinfo_author
+            generate_docinfo_html_impl(d, x);
+        }
+
+        DOCINFO_NODE_RULE(author, docinfo_author, d, x)
+        {
+            d.authors.push_back(docinfo_get_author(d, x));
+        }
+
+        DOCINFO_NODE_RULE(editor, docinfo_author, d, x)
+        {
+            d.editors.push_back(docinfo_get_author(d, x));
+        }
+
+        DOCINFO_NODE_RULE(collab, docinfo_author, d, x)
+        {
+            // Ignoring affiliation.
+            auto collabname = x->get_child("collabname");
+            if (collabname) {
+                d.collabs.push_back(docinfo_get_contents(d, collabname));
+            }
+        }
+
+        DOCINFO_NODE_RULE(corpauthor, docinfo_author, d, x)
+        {
+            d.authors.push_back(docinfo_get_contents(d, x));
+        }
+
+        DOCINFO_NODE_RULE(corpcredit, docinfo_author, d, x)
+        {
+            std::string text = docinfo_get_contents(d, x);
+
+            string_view class_ = x->get_attribute("class");
+            if (!class_.empty()) {
+                text = class_.to_s() + ": " + text;
+            }
+
+            d.authors.push_back(text);
+        }
+
+        DOCINFO_NODE_RULE(othercredit, docinfo_author, d, x)
+        {
+            std::string text = docinfo_get_author(d, x);
+
+            string_view class_ = x->get_attribute("class");
+            if (!class_.empty()) {
+                text = class_.to_s() + ": " + text;
+            }
+
+            d.authors.push_back(text);
         }
     }
 }
