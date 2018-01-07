@@ -23,7 +23,9 @@
   <section id="footnotes.second">
     <title><link linkend="footnotes.second">Second Section</link></title>
     <para>
-      Boostbook<footnote id="f1"><para>Boostbook footnote</para></footnote> footnotes <footnote><para>Footnote without id</para></footnote>.
+      Some<footnote id="f1"><para>Boostbook footnote</para></footnote>
+boostbook<footnote><para>Footnote without id</para></footnote>
+footnotes<footnote><para>Another footnote without an id</para></footnote>.
     </para>
   </section>
 </article>

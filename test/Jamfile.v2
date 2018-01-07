@@ -54,6 +54,7 @@ test-suite quickbook.test :
     [ quickbook-test escape-1_1 ]
     [ quickbook-test escape-1_6 ]
     [ quickbook-error-test escape-mismatched-1_5-fail ]
+    [ quickbook-test footnotes-1_7 ]
     [ quickbook-test heading-1_1 ]
     [ quickbook-test heading-1_3 ]
     [ quickbook-test heading-1_5 ]
