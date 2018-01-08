@@ -3,7 +3,7 @@
 cd $(dirname $0)
 
 cd ..
-b2 -q
+b2 -q || exit 1
 cd -
 
 find . -name "*.gold" | while read gold_file
