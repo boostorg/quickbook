@@ -11,7 +11,7 @@ do
     flags="--debug"
 
     quickbook_file=$(echo $gold_file | sed 's/[.]gold/.quickbook/')
-    html_file=$(echo $gold_file | sed 's/[.]gold/.gold.html/')
+    html_file=$(echo $gold_file | sed 's/[.]gold/.gold-html/')
 
     if [[ $gold_file =~ .*xinclude/.*-alt\.gold ]]
     then

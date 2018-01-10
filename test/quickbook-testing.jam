@@ -42,7 +42,7 @@ rule quickbook-test ( target-name : input ? : reference-output ? : requirements 
 {
     input ?= $(target-name).quickbook ;
     reference-output ?= $(input:S=.gold) ;
-    reference-output-html = $(input:S=.gold.html) ;
+    reference-output-html = $(input:S=.gold-html) ;
 
     local project = [ project.current ] ;
 
