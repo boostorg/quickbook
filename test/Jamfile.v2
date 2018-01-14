@@ -167,5 +167,5 @@ test-suite quickbook.test :
     ;
 
 # for `b2 quick` in status
-alias quick : ../src//quickbook ;
+alias quick : ../src//quickbook : <cxxstd>03:<build>no ;
 explicit quick ;
