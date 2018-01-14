@@ -6,10 +6,11 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "glob.hpp"
 #include <boost/detail/lightweight_test.hpp>
+#include "glob.hpp"
 
-void glob_tests() {
+void glob_tests()
+{
     BOOST_TEST(quickbook::glob("", ""));
 
     BOOST_TEST(!quickbook::glob("*", ""));

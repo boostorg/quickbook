@@ -30,14 +30,17 @@ namespace quickbook
     // should be okay for an object to depend on something that was previously
     // added.
 
-    namespace detail { struct cleanup_node; }
+    namespace detail
+    {
+        struct cleanup_node;
+    }
     struct cleanup
     {
         cleanup() : first_(0) {}
         ~cleanup();
         template <typename T> T& add(T*);
 
-    private:
+      private:
         detail::cleanup_node* first_;
 
         cleanup& operator=(cleanup const&);
@@ -46,38 +49,42 @@ namespace quickbook
 
     namespace detail
     {
-        template <typename T>
-        void delete_impl(void* ptr) {
+        template <typename T> void delete_impl(void* ptr)
+        {
             delete static_cast<T*>(ptr);
         }
-        
+
         struct cleanup_node
         {
             void* ptr_;
             void (*del_)(void*);
             cleanup_node* next_;
-            
+
             cleanup_node() : ptr_(0), del_(0), next_(0) {}
             cleanup_node(void* ptr, void (*del)(void* x))
-                : ptr_(ptr), del_(del), next_(0) {}
-            ~cleanup_node() {
-                if(ptr_) del_(ptr_);
+                : ptr_(ptr), del_(del), next_(0)
+            {
             }
-            
-            void move_assign(cleanup_node& n) {
+            ~cleanup_node()
+            {
+                if (ptr_) del_(ptr_);
+            }
+
+            void move_assign(cleanup_node& n)
+            {
                 ptr_ = n.ptr_;
                 del_ = n.del_;
                 n.ptr_ = 0;
                 n.del_ = 0;
             }
-        private:
+
+          private:
             cleanup_node(cleanup_node const&);
             cleanup_node& operator=(cleanup_node const&);
         };
     }
-    
-    template <typename T>
-    T& cleanup::add(T* ptr)
+
+    template <typename T> T& cleanup::add(T* ptr)
     {
         detail::cleanup_node n(ptr, &detail::delete_impl<T>);
         detail::cleanup_node* n2 = new detail::cleanup_node();
@@ -87,8 +94,9 @@ namespace quickbook
         return *ptr;
     }
 
-    inline cleanup::~cleanup() {
-        while(first_) {
+    inline cleanup::~cleanup()
+    {
+        while (first_) {
             detail::cleanup_node* to_delete = first_;
             first_ = first_->next_;
             delete to_delete;

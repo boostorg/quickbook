@@ -16,10 +16,13 @@ namespace quickbook
     void check_glob_range(glob_iterator&, glob_iterator);
     void check_glob_escape(glob_iterator&, glob_iterator);
 
-    bool match_section(glob_iterator& pattern_begin, glob_iterator pattern_end,
-            glob_iterator& filename_begin, glob_iterator& filename_end);
-    bool match_range(glob_iterator& pattern_begin, glob_iterator pattern_end,
-            char x);
+    bool match_section(
+        glob_iterator& pattern_begin,
+        glob_iterator pattern_end,
+        glob_iterator& filename_begin,
+        glob_iterator& filename_end);
+    bool match_range(
+        glob_iterator& pattern_begin, glob_iterator pattern_end, char x);
 
     // Is pattern a glob or a plain file name?
     // Throws glob_error if pattern is an invalid glob.
@@ -32,38 +35,37 @@ namespace quickbook
         glob_iterator end = pattern.end();
 
         while (begin != end) {
-            if (*begin < 32 || (*begin & 0x80))
-                is_ascii = false;
+            if (*begin < 32 || (*begin & 0x80)) is_ascii = false;
 
-            switch(*begin) {
-                case '\\':
-                    check_glob_escape(begin, end);
-                    break;
+            switch (*begin) {
+            case '\\':
+                check_glob_escape(begin, end);
+                break;
 
-                case '[':
-                    check_glob_range(begin, end);
-                    is_glob = true;
-                    break;
+            case '[':
+                check_glob_range(begin, end);
+                is_glob = true;
+                break;
 
-                case ']':
-                    throw glob_error("uneven square brackets");
+            case ']':
+                throw glob_error("uneven square brackets");
 
-                case '?':
-                    is_glob = true;
-                    ++begin;
-                    break;
+            case '?':
+                is_glob = true;
+                ++begin;
+                break;
 
-                case '*':
-                    is_glob = true;
-                    ++begin;
+            case '*':
+                is_glob = true;
+                ++begin;
 
-                    if (begin != end && *begin == '*') {
-                        throw glob_error("'**' not supported");
-                    }
-                    break;
+                if (begin != end && *begin == '*') {
+                    throw glob_error("'**' not supported");
+                }
+                break;
 
-                default:
-                    ++begin;
+            default:
+                ++begin;
             }
         }
 
@@ -78,32 +80,31 @@ namespace quickbook
         assert(begin != end && *begin == '[');
         ++begin;
 
-        if (*begin == ']')
-            throw glob_error("empty range");
+        if (*begin == ']') throw glob_error("empty range");
 
         while (begin != end) {
             switch (*begin) {
-                case '\\':
-                    ++begin;
+            case '\\':
+                ++begin;
 
-                    if (begin == end) {
-                        throw glob_error("trailing escape");
-                    }
-                    else if (*begin == '\\' || *begin == '/') {
-                        throw glob_error("contains escaped slash");
-                    }
+                if (begin == end) {
+                    throw glob_error("trailing escape");
+                }
+                else if (*begin == '\\' || *begin == '/') {
+                    throw glob_error("contains escaped slash");
+                }
 
-                    ++begin;
-                    break;
-                case '[':
-                    throw glob_error("nested square brackets");
-                case ']':
-                    ++begin;
-                    return;
-                case '/':
-                    throw glob_error("slash in square brackets");
-                default:
-                    ++begin;
+                ++begin;
+                break;
+            case '[':
+                throw glob_error("nested square brackets");
+            case ']':
+                ++begin;
+                return;
+            case '/':
+                throw glob_error("slash in square brackets");
+            default:
+                ++begin;
             }
         }
 
@@ -129,8 +130,9 @@ namespace quickbook
     // Does filename match pattern?
     // Might throw glob_error if pattern is an invalid glob,
     // but should call check_glob first to validate the glob.
-    bool glob(quickbook::string_view const& pattern,
-            quickbook::string_view const& filename)
+    bool glob(
+        quickbook::string_view const& pattern,
+        quickbook::string_view const& filename)
     {
         // If there wasn't this special case then '*' would match an
         // empty string.
@@ -151,11 +153,14 @@ namespace quickbook
 
             if (pattern_it == pattern_end) return true;
 
-            if (*pattern_it == '*') { throw glob_error("'**' not supported"); }
+            if (*pattern_it == '*') {
+                throw glob_error("'**' not supported");
+            }
 
             for (;;) {
                 if (filename_it == filename_end) return false;
-                if (match_section(pattern_it, pattern_end, filename_it, filename_end))
+                if (match_section(
+                        pattern_it, pattern_end, filename_it, filename_end))
                     break;
                 ++filename_it;
             }
@@ -164,8 +169,11 @@ namespace quickbook
         return filename_it == filename_end;
     }
 
-    bool match_section(glob_iterator& pattern_begin, glob_iterator pattern_end,
-            glob_iterator& filename_begin, glob_iterator& filename_end)
+    bool match_section(
+        glob_iterator& pattern_begin,
+        glob_iterator pattern_end,
+        glob_iterator& filename_begin,
+        glob_iterator& filename_end)
     {
         glob_iterator pattern_it = pattern_begin;
         glob_iterator filename_it = filename_begin;
@@ -173,33 +181,34 @@ namespace quickbook
         while (pattern_it != pattern_end && *pattern_it != '*') {
             if (filename_it == filename_end) return false;
 
-            switch(*pattern_it) {
-                case '*':
-                    assert(false);
-                    throw new glob_error("Internal error");
-                case '[':
-                    if (!match_range(pattern_it, pattern_end, *filename_it))
-                        return false;
-                    ++filename_it;
-                    break;
-                case ']':
-                    throw glob_error("uneven square brackets");
-                case '?':
-                    ++pattern_it;
-                    ++filename_it;
-                    break;
-                case '\\':
-                    ++pattern_it;
-                    if (pattern_it == pattern_end) {
-                        throw glob_error("trailing escape");
-                    } else if (*pattern_it == '\\' || *pattern_it == '/') {
-                        throw glob_error("contains escaped slash");
-                    }
-                    BOOST_FALLTHROUGH;
-                default:
-                    if (*pattern_it != *filename_it) return false;
-                    ++pattern_it;
-                    ++filename_it;
+            switch (*pattern_it) {
+            case '*':
+                assert(false);
+                throw new glob_error("Internal error");
+            case '[':
+                if (!match_range(pattern_it, pattern_end, *filename_it))
+                    return false;
+                ++filename_it;
+                break;
+            case ']':
+                throw glob_error("uneven square brackets");
+            case '?':
+                ++pattern_it;
+                ++filename_it;
+                break;
+            case '\\':
+                ++pattern_it;
+                if (pattern_it == pattern_end) {
+                    throw glob_error("trailing escape");
+                }
+                else if (*pattern_it == '\\' || *pattern_it == '/') {
+                    throw glob_error("contains escaped slash");
+                }
+                BOOST_FALLTHROUGH;
+            default:
+                if (*pattern_it != *filename_it) return false;
+                ++pattern_it;
+                ++filename_it;
             }
         }
 
@@ -211,8 +220,8 @@ namespace quickbook
         return true;
     }
 
-    bool match_range(glob_iterator& pattern_begin, glob_iterator pattern_end,
-            char x)
+    bool match_range(
+        glob_iterator& pattern_begin, glob_iterator pattern_end, char x)
     {
         assert(pattern_begin != pattern_end && *pattern_begin == '[');
         ++pattern_begin;
@@ -229,7 +238,8 @@ namespace quickbook
             if (pattern_begin == pattern_end) {
                 throw glob_error("uneven square brackets");
             }
-        } else if (*pattern_begin == ']') {
+        }
+        else if (*pattern_begin == ']') {
             throw glob_error("empty range");
         }
 
@@ -254,7 +264,8 @@ namespace quickbook
                 if (pattern_begin == pattern_end) {
                     throw glob_error("uneven square brackets");
                 }
-            } else if (first == '/') {
+            }
+            else if (first == '/') {
                 throw glob_error("slash in square brackets");
             }
 
@@ -286,7 +297,8 @@ namespace quickbook
                     if (pattern_begin == pattern_end) {
                         throw glob_error("uneven square brackets");
                     }
-                } else if (second == '/') {
+                }
+                else if (second == '/') {
                     throw glob_error("slash in square brackets");
                 }
 
@@ -297,8 +309,7 @@ namespace quickbook
         return invert_match != matched;
     }
 
-    std::size_t find_glob_char(quickbook::string_view pattern,
-            std::size_t pos)
+    std::size_t find_glob_char(quickbook::string_view pattern, std::size_t pos)
     {
         // Weird style is because quickbook::string_view's find_first_of
         // doesn't take a position argument.

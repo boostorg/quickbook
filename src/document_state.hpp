@@ -9,11 +9,11 @@
 #if !defined(BOOST_QUICKBOOK_DOCUMENT_STATE_HPP)
 #define BOOST_QUICKBOOK_DOCUMENT_STATE_HPP
 
+#include <string>
 #include <boost/scoped_ptr.hpp>
 #include "string_view.hpp"
-#include <string>
-#include "values.hpp"
 #include "syntax_highlight.hpp"
+#include "values.hpp"
 
 namespace quickbook
 {
@@ -26,12 +26,12 @@ namespace quickbook
         enum categories
         {
             default_category = 0,
-            numbered,           // Just used to avoid random docbook ids
-            generated,          // Generated ids for other elements.
-            generated_heading,  // Generated ids for headings.
-            generated_section,  // Generated ids for sections.
-            generated_doc,      // Generated ids for document.
-            explicit_id,        // Explicitly given by user
+            numbered,          // Just used to avoid random docbook ids
+            generated,         // Generated ids for other elements.
+            generated_heading, // Generated ids for headings.
+            generated_section, // Generated ids for sections.
+            generated_doc,     // Generated ids for document.
+            explicit_id,       // Explicitly given by user
             explicit_section_id,
             explicit_anchor_id
         };
@@ -53,21 +53,24 @@ namespace quickbook
         ~document_state();
 
         std::string start_file_with_docinfo(
-                unsigned compatibility_version,
-                quickbook::string_view include_doc_id,
-                quickbook::string_view id,
-                value const& title);
+            unsigned compatibility_version,
+            quickbook::string_view include_doc_id,
+            quickbook::string_view id,
+            value const& title);
 
         void start_file(
-                unsigned compatibility_version,
-                quickbook::string_view include_doc_id,
-                quickbook::string_view id,
-                value const& title);
+            unsigned compatibility_version,
+            quickbook::string_view include_doc_id,
+            quickbook::string_view id,
+            value const& title);
 
         void end_file();
 
-        std::string begin_section(value const&,
-            quickbook::string_view, id_category, source_mode_info const&);
+        std::string begin_section(
+            value const&,
+            quickbook::string_view,
+            id_category,
+            source_mode_info const&);
         void end_section();
         int section_level() const;
         value const& explicit_id() const;
@@ -78,11 +81,12 @@ namespace quickbook
         std::string add_anchor(quickbook::string_view, id_category);
 
         std::string replace_placeholders_with_unresolved_ids(
-                quickbook::string_view) const;
+            quickbook::string_view) const;
         std::string replace_placeholders(quickbook::string_view) const;
 
         unsigned compatibility_version() const;
-    private:
+
+      private:
         boost::scoped_ptr<document_state_impl> state;
     };
 }

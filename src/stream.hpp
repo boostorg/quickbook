@@ -11,9 +11,9 @@
 #if !defined(BOOST_QUICKBOOK_DETAIL_STREAM_HPP)
 #define BOOST_QUICKBOOK_DETAIL_STREAM_HPP
 
-#include "native_text.hpp"
-#include <boost/filesystem/path.hpp>
 #include <iostream>
+#include <boost/filesystem/path.hpp>
+#include "native_text.hpp"
 
 namespace quickbook
 {
