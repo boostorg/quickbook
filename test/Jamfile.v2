@@ -165,3 +165,7 @@ test-suite quickbook.test :
 
     [ quickbook-test quickbook_manual-1_4 ]
     ;
+
+# for `b2 quick` in status
+alias quick : ../src//quickbook ;
+explicit quick ;
