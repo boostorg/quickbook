@@ -80,10 +80,11 @@ before_script:
     - ./b2 install --prefix=$HOME/opt
 
 script:
+    - cd ${BOOST_ROOT}/tools/quickbook/test
+    - ${HOME}/opt/bin/b2 -j 3 quick
+    - ${HOME}/opt/bin/b2 -j 3
     - cd ${BOOST_ROOT}/tools/quickbook
     - ${HOME}/opt/bin/b2 -j 3 dist-bin debug
-    - cd ${BOOST_ROOT}/tools/quickbook/test
-    - ${HOME}/opt/bin/b2 -j 3
     - cd ${BOOST_ROOT}/tools/quickbook/test/python
     - python run_tests.py ${BOOST_ROOT}/dist/bin/quickbook
     - ${BOOST_ROOT}/tools/quickbook/build/warning-check
