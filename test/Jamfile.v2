@@ -9,6 +9,8 @@
 project quickbook/test
     : requirements
         <toolset>msvc:<debug-symbols>off
+        <cxxstd>98:<build>no
+        <cxxstd>03:<build>no
     ;
 
 build-project doc-info ;
@@ -167,5 +169,5 @@ test-suite quickbook.test :
     ;
 
 # for `b2 quick` in status
-alias quick : quickbook_manual-1_4 : <cxxstd>03:<build>no ;
+alias quick : quickbook_manual-1_4 ;
 explicit quick ;
