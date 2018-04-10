@@ -337,6 +337,7 @@ namespace quickbook
         std::string const& extension,
         value::tag_type load_type)
     {
+        ignore_variable(&load_type); // Avoid unreferenced parameter warning.
         assert(
             load_type == block_tags::include ||
             load_type == block_tags::import);
