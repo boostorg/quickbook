@@ -34,8 +34,8 @@ matrix:
               - clang-3.4
 
 before_script:
-    - export BOOST_VERSION=1.66.0
-    - export BOOST_FILENAME=boost_1_66_0
+    - export BOOST_VERSION=1.67.0
+    - export BOOST_FILENAME=boost_1_67_0
     - cd ${HOME}
     - echo $USER_CONFIG > user-config.jam
     - cat user-config.jam

@@ -16,12 +16,12 @@ environment:
       TOOLSET: msvc-14.1
 
 install:
-  - curl -sSL -o c:\projects\boost.7z https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.7z
+  - curl -sSL -o c:\projects\boost.7z https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.7z
   - 7z x -oc:\projects c:\projects\boost.7z
-  - rd /s /q c:\projects\boost_1_66_0\tools\quickbook
-  - mkdir c:\projects\boost_1_66_0\tools\quickbook
-  - xcopy /s /e /q %APPVEYOR_BUILD_FOLDER% c:\projects\boost_1_66_0\tools\quickbook
-  - cd c:\projects\boost_1_66_0
+  - rd /s /q c:\projects\boost_1_67_0\tools\quickbook
+  - mkdir c:\projects\boost_1_67_0\tools\quickbook
+  - xcopy /s /e /q %APPVEYOR_BUILD_FOLDER% c:\projects\boost_1_67_0\tools\quickbook
+  - cd c:\projects\boost_1_67_0
   - cmd /c bootstrap
   - b2 headers
 
