@@ -12,10 +12,10 @@
 #include <iterator>
 #include <vector>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/foreach.hpp>
 #include <boost/range/algorithm/transform.hpp>
 #include <boost/range/algorithm/upper_bound.hpp>
 #include <boost/unordered_map.hpp>
+#include "for.hpp"
 
 namespace quickbook
 {
@@ -469,9 +469,8 @@ namespace quickbook
     {
         unsigned count = 0;
 
-        for (string_iterator begin = x.begin(), end = x.end(); begin != end;
-             ++begin) {
-            switch (*begin) {
+        QUICKBOOK_FOR (auto c, x) {
+            switch (c) {
             case ' ':
                 ++count;
                 break;

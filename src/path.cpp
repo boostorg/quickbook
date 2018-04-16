@@ -12,8 +12,8 @@
 #include "path.hpp"
 #include <cassert>
 #include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
 #include <boost/range/algorithm/replace.hpp>
+#include "for.hpp"
 #include "glob.hpp"
 #include "include_paths.hpp"
 #include "state.hpp"
@@ -35,7 +35,7 @@ namespace quickbook
 
         std::vector<fs::path> parts;
 
-        BOOST_FOREACH (fs::path const& part, path) {
+        QUICKBOOK_FOR (fs::path const& part, path) {
             if (part.empty() || part == ".") {
             }
             else if (part == "..") {
@@ -306,5 +306,145 @@ namespace quickbook
 #endif
 
 #endif // QUICKBOOK_CYGWIN_PATHS
+
+        enum path_or_url_type
+        {
+            path_or_url_empty = 0,
+            path_or_url_path,
+            path_or_url_url
+        };
+
+        path_or_url::path_or_url() : type_(path_or_url_empty) {}
+
+        path_or_url::path_or_url(path_or_url const& x)
+            : type_(x.type_), path_(x.path_), url_(x.url_)
+        {
+        }
+
+        path_or_url::path_or_url(command_line_string const& x)
+        {
+            auto rep = command_line_to_utf8(x);
+            auto it = rep.begin(), end = rep.end();
+            std::size_t count = 0;
+            while (it != end &&
+                   ((*it >= 'a' && *it <= 'z') || (*it >= 'A' && *it <= 'Z') ||
+                    *it == '+' || *it == '-' || *it == '.')) {
+                ++it;
+                ++count;
+            }
+
+            if (it != end && *it == ':' && count > 1) {
+                type_ = path_or_url_url;
+            }
+            else {
+                type_ = path_or_url_path;
+            }
+
+            switch (type_) {
+            case path_or_url_empty:
+                break;
+            case path_or_url_path:
+                path_ = command_line_to_path(x);
+                break;
+            case path_or_url_url:
+                url_ = rep;
+                break;
+            default:
+                assert(false);
+            }
+        }
+
+        path_or_url& path_or_url::operator=(path_or_url const& x)
+        {
+            type_ = x.type_;
+            path_ = x.path_;
+            url_ = x.url_;
+            return *this;
+        }
+
+        path_or_url& path_or_url::operator=(command_line_string const& x)
+        {
+            path_or_url tmp(x);
+            swap(tmp);
+            return *this;
+        }
+
+        void path_or_url::swap(path_or_url& x)
+        {
+            std::swap(type_, x.type_);
+            std::swap(path_, x.path_);
+            std::swap(url_, x.url_);
+        }
+
+        path_or_url path_or_url::url(string_view x)
+        {
+            path_or_url r;
+            r.type_ = path_or_url_url;
+            r.url_.assign(x.begin(), x.end());
+            return r;
+        }
+
+        path_or_url path_or_url::path(boost::filesystem::path const& x)
+        {
+            path_or_url r;
+            r.type_ = path_or_url_path;
+            r.path_ = x;
+            return r;
+        }
+
+        path_or_url::operator bool() const
+        {
+            return type_ != path_or_url_empty;
+        }
+
+        bool path_or_url::is_path() const { return type_ == path_or_url_path; }
+
+        bool path_or_url::is_url() const { return type_ == path_or_url_url; }
+
+        boost::filesystem::path const& path_or_url::get_path() const
+        {
+            assert(is_path());
+            return path_;
+        }
+
+        std::string const& path_or_url::get_url() const
+        {
+            assert(is_url());
+            return url_;
+        }
+
+        path_or_url path_or_url::operator/(string_view x) const
+        {
+            path_or_url r;
+            r.type_ = type_;
+
+            switch (type_) {
+            case path_or_url_empty:
+                assert(false);
+                break;
+            case path_or_url_path:
+                r.path_ = path_ / x.to_s();
+                break;
+            case path_or_url_url: {
+                r.url_ = url_;
+                auto pos = r.url_.rfind('/');
+                if (pos == std::string::npos) {
+                    pos = r.url_.rfind(':');
+                }
+                if (pos != std::string::npos) {
+                    r.url_.resize(pos + 1);
+                }
+                else {
+                    // Error? Empty string?
+                    r.url_ = "/";
+                }
+                r.url_ += x;
+                break;
+            }
+            default:
+                assert(false);
+            }
+            return r;
+        }
     }
 }

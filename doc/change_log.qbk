@@ -370,3 +370,18 @@ Boost 1.46.1:
 * Now uses C++11, no longer tested with C++03 compilers.
 * Fix parsing escaped docbook with the new version of Spirit.
 * Reformatted code with clang-format.
+
+[heading Version 1.7.2 - Boost 1.68]
+
+* More use of C++11 features.
+* Some basic direct generation of HTML (i.e. without using BoostBook).
+  At the command line use `--output-format html` to generate chunked HTML,
+  `--output-format onehtml` to generate a single HTML page.
+
+  It's also useful to pass the path to the root of the boost distribution
+  using the `--boost-root path` option. Or to use outside of boost,
+  the `--css-path` and `--graphics-path` options.
+
+  While this isn't ready for production, it might be useful to quickly preview
+  changes to quickbook documentation, especially if you don't have boostbook
+  set up.

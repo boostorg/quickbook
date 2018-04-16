@@ -9,8 +9,8 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 #include "state.hpp"
-#include <boost/foreach.hpp>
 #include "document_state.hpp"
+#include "for.hpp"
 #include "grammar.hpp"
 #include "path.hpp"
 #include "phrase_tags.hpp"
@@ -109,7 +109,7 @@ namespace quickbook
     {
         source_mode_info result;
 
-        BOOST_FOREACH (source_mode_info const& s, tagged_source_mode_stack) {
+        QUICKBOOK_FOR (source_mode_info const& s, tagged_source_mode_stack) {
             result.update(s);
         }
 
@@ -122,7 +122,7 @@ namespace quickbook
 
         result.update(document.section_source_mode());
 
-        BOOST_FOREACH (source_mode_info const& s, tagged_source_mode_stack) {
+        QUICKBOOK_FOR (source_mode_info const& s, tagged_source_mode_stack) {
             result.update(s);
         }
 

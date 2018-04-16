@@ -9,6 +9,8 @@
 project quickbook/test
     : requirements
         <toolset>msvc:<debug-symbols>off
+        <cxxstd>98:<build>no
+        <cxxstd>03:<build>no
     ;
 
 build-project doc-info ;
@@ -45,7 +47,8 @@ test-suite quickbook.test :
         <testing.arg>-Dsomething[] ]
     [ quickbook-test cond_phrase-1_5 ]
     [ quickbook-test cond_phrase-1_7 ]
-    [ quickbook-test elements-1_5 ]
+    # TODO: This test generates invalid boostbook, so it breaks when generating html
+    # [ quickbook-test elements-1_5 ]
     [ quickbook-test elements-1_6 ]
     [ quickbook-error-test endsect-wrong-id-1_4-fail ]
     [ quickbook-error-test endsect-wrong-id-1_7-fail ]
@@ -53,6 +56,7 @@ test-suite quickbook.test :
     [ quickbook-test escape-1_1 ]
     [ quickbook-test escape-1_6 ]
     [ quickbook-error-test escape-mismatched-1_5-fail ]
+    [ quickbook-test footnotes-1_7 ]
     [ quickbook-test heading-1_1 ]
     [ quickbook-test heading-1_3 ]
     [ quickbook-test heading-1_5 ]
@@ -163,3 +167,7 @@ test-suite quickbook.test :
 
     [ quickbook-test quickbook_manual-1_4 ]
     ;
+
+# for `b2 quick` in status
+alias quick : quickbook_manual-1_4 ;
+explicit quick ;

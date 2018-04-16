@@ -54,4 +54,4 @@ IncludeCategories:
     Priority: 40
 
 # Boost specific stuff
-ForEachMacros: [ BOOST_FOREACH ]
+ForEachMacros: [ BOOST_FOREACH, QUICKBOOK_FOR ]

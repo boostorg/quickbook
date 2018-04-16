@@ -12,8 +12,8 @@
 #include "include_paths.hpp"
 #include <cassert>
 #include <boost/filesystem/operations.hpp>
-#include <boost/foreach.hpp>
 #include <boost/range/algorithm/replace.hpp>
+#include "for.hpp"
 #include "glob.hpp"
 #include "path.hpp"
 #include "quickbook.hpp" // For the include_path global (yuck)
@@ -206,7 +206,7 @@ namespace quickbook
 
                 // Search the include path dirs accumulating to the result.
                 unsigned count = 0;
-                BOOST_FOREACH (fs::path dir, include_path) {
+                QUICKBOOK_FOR (fs::path dir, include_path) {
                     ++count;
                     state.dependencies.add_glob(dir / parameter.value);
                     include_search_glob(
@@ -234,7 +234,7 @@ namespace quickbook
 
                 // Search in each of the include path locations.
                 unsigned count = 0;
-                BOOST_FOREACH (fs::path full, include_path) {
+                QUICKBOOK_FOR (fs::path full, include_path) {
                     ++count;
                     full /= path;
 

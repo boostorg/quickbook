@@ -6,8 +6,10 @@
     http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include <boost/range/algorithm.hpp>
+#include <boost/range/algorithm/find.hpp>
+#include <boost/range/algorithm/sort.hpp>
 #include "document_state_impl.hpp"
+#include "simple_parse.hpp"
 #include "utils.hpp"
 
 namespace quickbook
@@ -27,47 +29,6 @@ namespace quickbook
         }
 
         boost::sort(id_attributes);
-    }
-
-    template <typename Iterator>
-    bool read(Iterator& it, Iterator end, char const* text)
-    {
-        for (Iterator it2 = it;; ++it2, ++text) {
-            if (!*text) {
-                it = it2;
-                return true;
-            }
-
-            if (it2 == end || *it2 != *text) return false;
-        }
-    }
-
-    template <typename Iterator>
-    void read_past(Iterator& it, Iterator end, char const* text)
-    {
-        while (it != end && !read(it, end, text))
-            ++it;
-    }
-
-    bool find_char(char const* text, char c)
-    {
-        for (; *text; ++text)
-            if (c == *text) return true;
-        return false;
-    }
-
-    template <typename Iterator>
-    void read_some_of(Iterator& it, Iterator end, char const* text)
-    {
-        while (it != end && find_char(text, *it))
-            ++it;
-    }
-
-    template <typename Iterator>
-    void read_to_one_of(Iterator& it, Iterator end, char const* text)
-    {
-        while (it != end && !find_char(text, *it))
-            ++it;
     }
 
     void xml_processor::parse(quickbook::string_view source, callback& c)

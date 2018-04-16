@@ -34,8 +34,8 @@ matrix:
               - clang-3.4
 
 before_script:
-    - export BOOST_VERSION=1.66.0
-    - export BOOST_FILENAME=boost_1_66_0
+    - export BOOST_VERSION=1.67.0
+    - export BOOST_FILENAME=boost_1_67_0
     - cd ${HOME}
     - echo $USER_CONFIG > user-config.jam
     - cat user-config.jam
@@ -80,10 +80,11 @@ before_script:
     - ./b2 install --prefix=$HOME/opt
 
 script:
-    - cd ${BOOST_ROOT}/tools/quickbook
-    - ${HOME}/opt/bin/b2 dist-bin debug
     - cd ${BOOST_ROOT}/tools/quickbook/test
-    - ${HOME}/opt/bin/b2
+    - ${HOME}/opt/bin/b2 -j 3 quick
+    - ${HOME}/opt/bin/b2 -j 3
+    - cd ${BOOST_ROOT}/tools/quickbook
+    - ${HOME}/opt/bin/b2 -j 3 dist-bin debug
     - cd ${BOOST_ROOT}/tools/quickbook/test/python
     - python run_tests.py ${BOOST_ROOT}/dist/bin/quickbook
     - ${BOOST_ROOT}/tools/quickbook/build/warning-check

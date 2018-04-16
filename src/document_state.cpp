@@ -9,7 +9,7 @@
 #include <cctype>
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/range/algorithm.hpp>
+#include <boost/range/algorithm/count.hpp>
 #include "document_state_impl.hpp"
 #include "utils.hpp"
 

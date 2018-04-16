@@ -3,6 +3,17 @@
 <article id="simple_test_article" last-revision="DEBUG MODE Date: 2000/12/20 12:00:00 $"
  xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Simple Test Article</title>
+  <articleinfo>
+    <copyright>
+      <year>2016</year> <holder>Daniel James</holder>
+    </copyright>
+    <legalnotice id="simple_test_article.legal">
+      <para>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <ulink url="http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</ulink>)
+      </para>
+    </legalnotice>
+  </articleinfo>
   <section id="simple_test_article.one">
     <title><link linkend="simple_test_article.one">One</link></title>
     <bridgehead renderas="sect1" id="simple_test_article.one.h0">

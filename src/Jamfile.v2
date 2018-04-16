@@ -29,6 +29,11 @@ exe quickbook
     id_generation.cpp
     id_xml.cpp
     post_process.cpp
+    bb2html.cpp
+    boostbook_chunker.cpp
+    xml_parse.cpp
+    html_printer.cpp
+    tree.cpp
     collector.cpp
     template_stack.cpp
     code_snippet.cpp

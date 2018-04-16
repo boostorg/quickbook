@@ -7,12 +7,12 @@
 =============================================================================*/
 
 #include <cctype>
-#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/range/algorithm.hpp>
+#include <boost/range/algorithm/sort.hpp>
 #include <boost/unordered_map.hpp>
 #include "document_state_impl.hpp"
+#include "for.hpp"
 
 namespace quickbook
 {
@@ -132,7 +132,7 @@ namespace quickbook
 
         placeholder_index sorted_placeholders;
         sorted_placeholders.reserve(state.placeholders.size());
-        BOOST_FOREACH (id_placeholder const& p, state.placeholders)
+        QUICKBOOK_FOR (id_placeholder const& p, state.placeholders)
             if (order[p.index]) sorted_placeholders.push_back(&p);
         boost::sort(sorted_placeholders, placeholder_compare(order));
 

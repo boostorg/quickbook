@@ -13,14 +13,16 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/foreach.hpp>
 #include <boost/program_options.hpp>
-#include <boost/range/algorithm.hpp>
+#include <boost/range/algorithm/replace.hpp>
+#include <boost/range/algorithm/transform.hpp>
 #include <boost/ref.hpp>
 #include <boost/version.hpp>
 #include "actions.hpp"
+#include "bb2html.hpp"
 #include "document_state.hpp"
 #include "files.hpp"
+#include "for.hpp"
 #include "grammar.hpp"
 #include "path.hpp"
 #include "post_process.hpp"
@@ -41,7 +43,7 @@
 #pragma warning(disable : 4355)
 #endif
 
-#define QUICKBOOK_VERSION "Quickbook Version 1.7.1"
+#define QUICKBOOK_VERSION "Quickbook Version 1.7.2"
 
 namespace quickbook
 {
@@ -58,11 +60,7 @@ namespace quickbook
 
     static void set_macros(quickbook::state& state)
     {
-        for (std::vector<std::string>::const_iterator
-                 it = preset_defines.begin(),
-                 end = preset_defines.end();
-             it != end; ++it) {
-            quickbook::string_view val(*it);
+        QUICKBOOK_FOR (quickbook::string_view val, preset_defines) {
             parse_iterator first(val.begin());
             parse_iterator last(val.end());
 
@@ -71,7 +69,7 @@ namespace quickbook
 
             if (!info.full) {
                 detail::outerr() << "Error parsing command line definition: '"
-                                 << *it << "'" << std::endl;
+                                 << val << "'" << std::endl;
                 ++state.error_count;
             }
         }
@@ -114,8 +112,23 @@ namespace quickbook
 
     struct parse_document_options
     {
+        enum output_format
+        {
+            boostbook,
+            html
+        };
+        enum output_style
+        {
+            output_none = 0,
+            output_file,
+            output_chunked
+        };
+
         parse_document_options()
-            : indent(-1)
+            : format(boostbook)
+            , style(output_file)
+            , output_path()
+            , indent(-1)
             , linewidth(-1)
             , pretty_print(true)
             , strict_mode(false)
@@ -123,6 +136,9 @@ namespace quickbook
         {
         }
 
+        output_format format;
+        output_style style;
+        fs::path output_path;
         int indent;
         int linewidth;
         bool pretty_print;
@@ -131,12 +147,11 @@ namespace quickbook
         quickbook::dependency_tracker::flags deps_out_flags;
         fs::path locations_out;
         fs::path xinclude_base;
+        quickbook::detail::html_options html_ops;
     };
 
     static int parse_document(
-        fs::path const& filein_,
-        fs::path const& fileout_,
-        parse_document_options const& options_)
+        fs::path const& filein_, parse_document_options const& options_)
     {
         string_stream buffer;
         document_state output;
@@ -181,39 +196,58 @@ namespace quickbook
             result = 1;
         }
 
-        if (!fileout_.empty() && result == 0) {
+        if (result) {
+            return result;
+        }
+
+        if (options_.style) {
             std::string stage2 = output.replace_placeholders(buffer.str());
-
-            fs::ofstream fileout(fileout_);
-
-            if (fileout.fail()) {
-                ::quickbook::detail::outerr()
-                    << "Error opening output file " << fileout_ << std::endl;
-
-                return 1;
-            }
 
             if (options_.pretty_print) {
                 try {
-                    fileout << post_process(
+                    stage2 = post_process(
                         stage2, options_.indent, options_.linewidth);
                 } catch (quickbook::post_process_failure&) {
-                    // fallback!
                     ::quickbook::detail::outerr()
                         << "Post Processing Failed." << std::endl;
-                    fileout << stage2;
-                    return 1;
+                    if (options_.format == parse_document_options::boostbook) {
+                        // Can still write out a boostbook file, but return an
+                        // error code.
+                        result = 1;
+                    }
+                    else {
+                        return 1;
+                    }
                 }
             }
-            else {
-                fileout << stage2;
+
+            if (options_.format == parse_document_options::html) {
+                if (result) {
+                    return result;
+                }
+                return quickbook::detail::boostbook_to_html(
+                    stage2, options_.html_ops);
             }
+            else {
+                fs::ofstream fileout(options_.output_path);
 
-            if (fileout.fail()) {
-                ::quickbook::detail::outerr()
-                    << "Error writing to output file " << fileout_ << std::endl;
+                if (fileout.fail()) {
+                    ::quickbook::detail::outerr()
+                        << "Error opening output file " << options_.output_path
+                        << std::endl;
 
-                return 1;
+                    return 1;
+                }
+
+                fileout << stage2;
+
+                if (fileout.fail()) {
+                    ::quickbook::detail::outerr()
+                        << "Error writing to output file "
+                        << options_.output_path << std::endl;
+
+                    return 1;
+                }
             }
         }
 
@@ -255,6 +289,7 @@ int main(int argc, char* argv[])
         // Declare the program options
 
         options_description desc("Allowed options");
+        options_description html_desc("HTML options");
         options_description hidden("Hidden options");
         options_description all("All options");
 
@@ -275,14 +310,22 @@ int main(int argc, char* argv[])
             ("indent", PO_VALUE<int>(), "indent spaces")
             ("linewidth", PO_VALUE<int>(), "line width")
             ("input-file", PO_VALUE<command_line_string>(), "input file")
-            ("output-file", PO_VALUE<command_line_string>(), "output file")
-            ("no-output", "don't write out the result (overriden by --output-file)")
+            ("output-format", PO_VALUE<command_line_string>(), "boostbook, html, onehtml")
+            ("output-file", PO_VALUE<command_line_string>(), "output file (for boostbook or onehtml)")
+            ("output-dir", PO_VALUE<command_line_string>(), "output directory (for html)")
+            ("no-output", "don't write out the result")
             ("output-deps", PO_VALUE<command_line_string>(), "output dependency file")
             ("ms-errors", "use Microsoft Visual Studio style error & warn message format")
             ("include-path,I", PO_VALUE< std::vector<command_line_string> >(), "include path")
             ("define,D", PO_VALUE< std::vector<command_line_string> >(), "define macro")
             ("image-location", PO_VALUE<command_line_string>(), "image location")
         ;
+
+        html_desc.add_options()
+            ("boost-root-path", PO_VALUE<command_line_string>(), "boost root (file path or absolute URL)")
+            ("css-path", PO_VALUE<command_line_string>(), "css file (file path or absolute URL)")
+            ("graphics-path", PO_VALUE<command_line_string>(), "graphics directory (file path or absolute URL)");
+        desc.add(html_desc);
 
         hidden.add_options()
             ("debug", "debug mode")
@@ -347,6 +390,8 @@ int main(int argc, char* argv[])
         parse_document_options options;
         bool expect_errors = vm.count("expect-errors");
         int error_count = 0;
+        bool output_specified = false;
+        bool alt_output_specified = false;
 
         if (vm.count("help")) {
             std::ostringstream description_text;
@@ -372,12 +417,39 @@ int main(int argc, char* argv[])
 
         options.strict_mode = !!vm.count("strict");
 
-        quickbook::self_linked_headers = !vm.count("no-self-linked-headers");
-
         if (vm.count("indent")) options.indent = vm["indent"].as<int>();
 
         if (vm.count("linewidth"))
             options.linewidth = vm["linewidth"].as<int>();
+
+        if (vm.count("output-format")) {
+            output_specified = true;
+            std::string format = quickbook::detail::command_line_to_utf8(
+                vm["output-format"].as<command_line_string>());
+            if (format == "html") {
+                options.format = quickbook::parse_document_options::html;
+                options.style =
+                    quickbook::parse_document_options::output_chunked;
+            }
+            else if (format == "onehtml") {
+                options.format = quickbook::parse_document_options::html;
+                options.style = quickbook::parse_document_options::output_file;
+            }
+            else if (format == "boostbook") {
+                options.format = quickbook::parse_document_options::boostbook;
+                options.style = quickbook::parse_document_options::output_file;
+            }
+            else {
+                quickbook::detail::outerr()
+                    << "Unknown output format: " << format << std::endl;
+
+                ++error_count;
+            }
+        }
+
+        quickbook::self_linked_headers =
+            options.format != parse_document_options::html &&
+            !vm.count("no-self-linked-headers");
 
         if (vm.count("debug")) {
             static tm timeinfo;
@@ -421,7 +493,6 @@ int main(int argc, char* argv[])
         if (vm.count("input-file")) {
             fs::path filein = quickbook::detail::command_line_to_path(
                 vm["input-file"].as<command_line_string>());
-            fs::path fileout;
 
             if (!fs::exists(filein)) {
                 quickbook::detail::outerr()
@@ -429,16 +500,10 @@ int main(int argc, char* argv[])
                 ++error_count;
             }
 
-            bool default_output = true;
-
-            if (vm.count("no-output")) {
-                default_output = false;
-            }
-
             if (vm.count("output-deps")) {
+                alt_output_specified = true;
                 options.deps_out = quickbook::detail::command_line_to_path(
                     vm["output-deps"].as<command_line_string>());
-                default_output = false;
             }
 
             if (vm.count("output-deps-format")) {
@@ -453,7 +518,7 @@ int main(int argc, char* argv[])
 
                 unsigned flags = 0;
 
-                BOOST_FOREACH (std::string const& flag, flag_names) {
+                QUICKBOOK_FOR (std::string const& flag, flag_names) {
                     if (flag == "checked") {
                         flags |= quickbook::dependency_tracker::checked;
                     }
@@ -474,26 +539,140 @@ int main(int argc, char* argv[])
             }
 
             if (vm.count("output-checked-locations")) {
+                alt_output_specified = true;
                 options.locations_out = quickbook::detail::command_line_to_path(
                     vm["output-checked-locations"].as<command_line_string>());
-                default_output = false;
+            }
+
+            if (vm.count("boost-root-path")) {
+                // TODO: Check that it's a directory?
+                options.html_ops.boost_root_path =
+                    vm["boost-root-path"].as<command_line_string>();
+            }
+            // Could possibly default it:
+            // 'boost:' links will use this anyway, but setting a default
+            // would also result in default css and graphics paths.
+            //
+            // else {
+            //    options.html_ops.boost_root_path =
+            //      quickbook::detail::path_or_url::url(
+            //        "http://www.boost.org/doc/libs/release/");
+            //}
+
+            if (vm.count("css-path")) {
+                options.html_ops.css_path =
+                    vm["css-path"].as<command_line_string>();
+            }
+            else if (options.html_ops.boost_root_path) {
+                options.html_ops.css_path =
+                    options.html_ops.boost_root_path / "doc/src/boostbook.css";
+            }
+
+            if (vm.count("graphics-path")) {
+                options.html_ops.graphics_path =
+                    vm["graphics-path"].as<command_line_string>();
+            }
+            else if (options.html_ops.boost_root_path) {
+                options.html_ops.graphics_path =
+                    options.html_ops.boost_root_path / "doc/src/images";
             }
 
             if (vm.count("output-file")) {
-                fileout = quickbook::detail::command_line_to_path(
-                    vm["output-file"].as<command_line_string>());
+                output_specified = true;
+                switch (options.style) {
+                case quickbook::parse_document_options::output_file: {
+                    options.output_path =
+                        quickbook::detail::command_line_to_path(
+                            vm["output-file"].as<command_line_string>());
 
-                fs::path parent = fileout.parent_path();
-                if (!parent.empty() && !fs::is_directory(parent)) {
+                    fs::path parent = options.output_path.parent_path();
+                    if (!parent.empty() && !fs::is_directory(parent)) {
+                        quickbook::detail::outerr()
+                            << "parent directory not found for output file"
+                            << std::endl;
+                        ++error_count;
+                    }
+                    break;
+                }
+                case quickbook::parse_document_options::output_chunked:
                     quickbook::detail::outerr()
-                        << "parent directory not found for output file"
-                        << std::endl;
+                        << "output-file give for chunked output" << std::endl;
                     ++error_count;
+                    break;
+                case quickbook::parse_document_options::output_none:
+                    quickbook::detail::outerr()
+                        << "output-file given for no output" << std::endl;
+                    ++error_count;
+                    break;
+                default:
+                    assert(false);
                 }
             }
-            else if (default_output) {
-                fileout = filein;
-                fileout.replace_extension(".xml");
+
+            if (vm.count("output-dir")) {
+                output_specified = true;
+                switch (options.style) {
+                case quickbook::parse_document_options::output_chunked: {
+                    options.output_path =
+                        quickbook::detail::command_line_to_path(
+                            vm["output-dir"].as<command_line_string>());
+
+                    if (!fs::is_directory(options.output_path.parent_path())) {
+                        quickbook::detail::outerr()
+                            << "parent directory not found for output directory"
+                            << std::endl;
+                        ++error_count;
+                    }
+                }
+                case quickbook::parse_document_options::output_file:
+                    quickbook::detail::outerr()
+                        << "output-dir give for file output" << std::endl;
+                    ++error_count;
+                    break;
+                case quickbook::parse_document_options::output_none:
+                    quickbook::detail::outerr()
+                        << "output-dir given for no output" << std::endl;
+                    ++error_count;
+                    break;
+                default:
+                    assert(false);
+                }
+            }
+
+            if (!vm.count("output-file") && !vm.count("output-dir")) {
+                if (!output_specified && alt_output_specified) {
+                    options.style =
+                        quickbook::parse_document_options::output_none;
+                }
+                else {
+                    fs::path path = filein;
+                    switch (options.style) {
+                    case quickbook::parse_document_options::output_chunked:
+                        path = path.parent_path() / "html";
+                        options.style =
+                            quickbook::parse_document_options::output_chunked;
+                        options.output_path = path;
+                        break;
+                    case quickbook::parse_document_options::output_file:
+                        switch (options.format) {
+                        case quickbook::parse_document_options::html:
+                            path.replace_extension(".html");
+                            break;
+                        case quickbook::parse_document_options::boostbook:
+                            path.replace_extension(".xml");
+                            break;
+                        default:
+                            assert(false);
+                            path.replace_extension(".xml");
+                        }
+                        options.output_path = path;
+                        break;
+                    default:
+                        assert(false);
+                        options.style =
+                            quickbook::parse_document_options::output_none;
+                    }
+                }
             }
 
             if (vm.count("xinclude-base")) {
@@ -511,15 +690,18 @@ int main(int argc, char* argv[])
                 }
             }
             else {
-                options.xinclude_base = fileout.parent_path();
+                options.xinclude_base =
+                    options.style == parse_document_options::output_chunked
+                        ? options.output_path
+                        : options.output_path.parent_path();
                 if (options.xinclude_base.empty()) {
                     options.xinclude_base = ".";
                 }
 
-                // If fileout was implicitly created from filein, then it should
-                // be in filein's directory.
-                // If fileout was explicitly specified, then it's already been
-                // checked.
+                // If output_path was implicitly created from filein, then it
+                // should be in filein's directory.
+                // If output_path was explicitly specified, then it's already
+                // been checked.
                 assert(error_count || fs::is_directory(options.xinclude_base));
             }
 
@@ -532,14 +714,37 @@ int main(int argc, char* argv[])
                 quickbook::image_location = filein.parent_path() / "html";
             }
 
+            // Set duplicated html_options.
+            // TODO: Clean this up?
+            if (options.style == parse_document_options::output_chunked) {
+                options.html_ops.home_path = options.output_path / "index.html";
+                options.html_ops.chunked_output = true;
+            }
+            else {
+                options.html_ops.home_path = options.output_path;
+                options.html_ops.chunked_output = false;
+            }
+            options.html_ops.pretty_print = options.pretty_print;
+
             if (!error_count) {
-                if (!fileout.empty()) {
+                switch (options.style) {
+                case parse_document_options::output_file:
                     quickbook::detail::out()
-                        << "Generating Output File: " << fileout << std::endl;
+                        << "Generating output file: " << options.output_path
+                        << std::endl;
+                    break;
+                case parse_document_options::output_chunked:
+                    quickbook::detail::out()
+                        << "Generating output path: " << options.output_path
+                        << std::endl;
+                    break;
+                case parse_document_options::output_none:
+                    break;
+                default:
+                    assert(false);
                 }
 
-                error_count +=
-                    quickbook::parse_document(filein, fileout, options);
+                error_count += quickbook::parse_document(filein, options);
             }
 
             if (expect_errors) {
