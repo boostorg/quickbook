@@ -12,6 +12,7 @@
 #include "include_paths.hpp"
 #include <cassert>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/directory.hpp>
 #include <boost/range/algorithm/replace.hpp>
 #include "for.hpp"
 #include "glob.hpp"
