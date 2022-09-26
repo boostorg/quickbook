@@ -30,7 +30,7 @@ namespace quickbook
         cl::rule<scanner> heading, inner_block, inner_phrase, def_macro, table,
             table_title, table_row, variablelist, varlistentry, varlistterm,
             list, cell, preformatted, begin_section, end_section, xinclude,
-            include, include_filename, template_, template_id,
+            include, include_id, include_filename, template_, template_id,
             template_formal_arg, template_body, identifier, import, element_id,
             same_line;
     };
@@ -60,7 +60,7 @@ namespace quickbook
                 )
             )
             ;
-        
+
         elements.add
             ("section", element_info(element_info::section_block, &local.begin_section, block_tags::begin_section))
             ("endsect", element_info(element_info::section_block, &local.end_section, block_tags::end_section))
@@ -295,12 +295,15 @@ namespace quickbook
             >>
            !(
                 ':'
-                >> (*((cl::alnum_p | '_') - cl::space_p))
-                                                [state.values.entry(ph::arg1, ph::arg2, general_tags::include_id)]
+                >> local.include_id
                 >> space
             )
             >> local.include_filename
             ;
+
+        local.include_id =
+            (*((cl::alnum_p | '_') - cl::space_p))
+                                                [state.values.entry(ph::arg1, ph::arg2, general_tags::include_id)];
 
         local.include_filename =
                 qbk_ver(0, 106u)
