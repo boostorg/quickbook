@@ -28,9 +28,12 @@ jobs:
             install: g++-6
           - toolset: gcc-7
             os: ubuntu-18.04
-          - toolset: gcc-8
-            os: ubuntu-18.04
-            install: g++-8
+
+# gcc-8 variant=release crashes
+#         - toolset: gcc-8
+#           os: ubuntu-18.04
+#           install: g++-8
+
           - toolset: gcc-9
             os: ubuntu-20.04
           - toolset: gcc-10
@@ -142,10 +145,14 @@ jobs:
             os: windows-2019
           - toolset: msvc-14.3
             os: windows-2022
-          - toolset: clang-win
-            os: windows-2022
-          - toolset: gcc
-            os: windows-2019
+
+# The test Jamfile doesn't work with the clang-win toolset for some reason
+#         - toolset: clang-win
+#           os: windows-2022
+
+# gcc-8 variant=release crashes
+#         - toolset: gcc
+#           os: windows-2019
 
     runs-on: ${{matrix.os}}
 
