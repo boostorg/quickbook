@@ -66,9 +66,6 @@ namespace quickbook
             {
             }
 
-            typedef phoenix::tuple_index<0> t0;
-            typedef phoenix::tuple_index<1> t1;
-
             bool start(phoenix::tuple<> const&)
             {
                 in_progress_ = impl_.start();
@@ -77,16 +74,19 @@ namespace quickbook
 
             template <typename Arg1> bool start(phoenix::tuple<Arg1> const& x)
             {
+                phoenix::tuple_index<0> t0;
                 in_progress_ =
-                    phoenix::bind(&Impl::start)(phoenix::var(impl_), x[t0()])();
+                    phoenix::bind(&Impl::start)(phoenix::var(impl_), x[t0])();
                 return in_progress_;
             }
 
             template <typename Arg1, typename Arg2>
             bool start(phoenix::tuple<Arg1, Arg2> const& x)
             {
+                phoenix::tuple_index<0> t0;
+                phoenix::tuple_index<1> t1;
                 in_progress_ = phoenix::bind(&Impl::start)(
-                    phoenix::var(impl_), x[t0()], x[t1()])();
+                    phoenix::var(impl_), x[t0], x[t1])();
                 return in_progress_;
             }
 
