@@ -32,9 +32,10 @@ jobs:
           - toolset: gcc-7
             os: ubuntu-20.04
             install: g++-7
-          - toolset: gcc-8
-            os: ubuntu-20.04
-            install: g++-8
+# gcc-8 variant=release crashes
+#          - toolset: gcc-8
+#            os: ubuntu-20.04
+#            install: g++-8
           - toolset: gcc-9
             os: ubuntu-20.04
           - toolset: gcc-10
