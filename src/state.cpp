@@ -170,18 +170,18 @@ namespace quickbook
     state_save::~state_save()
     {
         state.values.builder.restore();
-        boost::swap(qbk_version_n, qbk_version);
-        boost::swap(state.imported, imported);
-        boost::swap(state.current_file, current_file);
-        boost::swap(state.current_path, current_path);
-        boost::swap(state.xinclude_base, xinclude_base);
-        boost::swap(state.source_mode, source_mode);
+        boost::core::invoke_swap(qbk_version_n, qbk_version);
+        boost::core::invoke_swap(state.imported, imported);
+        boost::core::invoke_swap(state.current_file, current_file);
+        boost::core::invoke_swap(state.current_path, current_path);
+        boost::core::invoke_swap(state.xinclude_base, xinclude_base);
+        boost::core::invoke_swap(state.source_mode, source_mode);
         if (scope & scope_output) {
             state.pop_output();
         }
         if (scope & scope_templates) state.templates.pop();
         if (scope & scope_macros) state.macro = macro;
-        boost::swap(state.template_depth, template_depth);
-        boost::swap(state.min_section_level, min_section_level);
+        boost::core::invoke_swap(state.template_depth, template_depth);
+        boost::core::invoke_swap(state.min_section_level, min_section_level);
     }
 }

@@ -273,9 +273,9 @@ namespace quickbook
 
     void swap(quickbook_path& x, quickbook_path& y)
     {
-        boost::swap(x.file_path, y.file_path);
-        boost::swap(x.include_path_offset, y.include_path_offset);
-        boost::swap(x.abstract_file_path, y.abstract_file_path);
+        boost::core::invoke_swap(x.file_path, y.file_path);
+        boost::core::invoke_swap(x.include_path_offset, y.include_path_offset);
+        boost::core::invoke_swap(x.abstract_file_path, y.abstract_file_path);
     }
 
     bool quickbook_path::operator<(quickbook_path const& other) const

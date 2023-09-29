@@ -144,7 +144,7 @@ namespace quickbook
             }
 
             boost::scoped_ptr<T> new_data(new T(data));
-            boost::swap((*np)->data, new_data);
+            boost::core::invoke_swap((*np)->data, new_data);
             return (*np)->data.get();
         }
 

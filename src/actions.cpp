@@ -793,7 +793,7 @@ namespace quickbook
             parse_iterator last_(f->source().end());
 
             file_ptr saved_file = f;
-            boost::swap(state.current_file, saved_file);
+            boost::core::invoke_swap(state.current_file, saved_file);
 
             // print the code with syntax coloring
             //
@@ -803,7 +803,7 @@ namespace quickbook
             syntax_highlight(first_, last_, state, source_mode, block);
             state.phrase << "</programlisting>\n";
 
-            boost::swap(state.current_file, saved_file);
+            boost::core::invoke_swap(state.current_file, saved_file);
 
             if (qbk_version_n >= 107u) state.phrase << state.end_callouts();
 
@@ -1257,7 +1257,7 @@ namespace quickbook
                                    : state.grammar().block_start)
                          .full;
 
-            boost::swap(state.current_file, saved_current_file);
+            boost::core::invoke_swap(state.current_file, saved_current_file);
 
             return r;
         }

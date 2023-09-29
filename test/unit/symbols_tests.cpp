@@ -12,7 +12,7 @@
 #include <boost/detail/lightweight_test.hpp>
 #include <boost/spirit/include/classic_core.hpp>
 #include <boost/spirit/include/classic_symbols.hpp>
-#include <boost/swap.hpp>
+#include <boost/core/invoke_swap.hpp>
 #include "symbols.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -154,7 +154,7 @@ static void narrow_swap_tests()
     sym = "pineapple", "orange", "banana", "applepie", "apple";
     sym2 = "potato", "cucumber", "cauliflower", "carrot";
 
-    boost::swap(sym, sym2);
+    boost::core::invoke_swap(sym, sym2);
 
     docheck(sym2, "pineapple", true, "", 9);
     docheck(sym2, "pizza", false, "pizza", -1);
@@ -257,7 +257,7 @@ static void wide_swap_tests()
     sym = L"pineapple", L"orange", L"banana", L"applepie", L"apple";
     sym2 = L"potato", L"cucumber", L"cauliflower", L"carrot";
 
-    boost::swap(sym, sym2);
+    boost::core::invoke_swap(sym, sym2);
 
     docheck(sym2, L"pineapple", true, L"", 9);
     docheck(sym2, L"pizza", false, L"pizza", -1);

@@ -9,10 +9,10 @@
 #if !defined(BOOST_QUICKBOOK_SYNTAX_HIGHLIGHT_HPP)
 #define BOOST_QUICKBOOK_SYNTAX_HIGHLIGHT_HPP
 
-#include <boost/swap.hpp>
 #include "fwd.hpp"
 #include "iterator.hpp"
 #include "phrase_tags.hpp"
+#include <boost/core/invoke_swap.hpp>
 
 namespace quickbook
 {
@@ -44,8 +44,8 @@ namespace quickbook
 
         void swap(source_mode_info& x)
         {
-            boost::swap(source_mode, x.source_mode);
-            boost::swap(order, x.order);
+            boost::core::invoke_swap(source_mode, x.source_mode);
+            boost::core::invoke_swap(order, x.order);
         }
     };
 
