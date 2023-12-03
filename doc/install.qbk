@@ -48,7 +48,7 @@ Next, we need to configure Boost Build to compile BoostBook files. Add the
 following to your `user-config.jam` file, which should be in your home
 directory. If you don't have one, create a file containing this text. For more
 information on setting up `user-config.jam`, see the
-[@http://boost.org/boost-build2/doc/html/bbv2/advanced/configuration.html Boost
+[@https://www.boost.org/build/doc/html/bbv2/overview/configuration.html Boost
 Build documentation].
 
     using xsltproc
