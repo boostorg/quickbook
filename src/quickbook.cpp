@@ -466,7 +466,11 @@ int main(int argc, char* argv[])
             quickbook::debug_mode = true;
         }
         else {
-            time_t t = std::time(0);
+            time_t t;
+            if (getenv("SOURCE_DATE_EPOCH"))
+                t = strtol(getenv("SOURCE_DATE_EPOCH"), nullptr, 10);
+            else
+                t = std::time(0);
             static tm lt = *localtime(&t);
             static tm gmt = *gmtime(&t);
             quickbook::current_time = &lt;
