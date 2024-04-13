@@ -44,8 +44,8 @@ exe quickbook
     block_element_grammar.cpp
     phrase_element_grammar.cpp
     doc_info_grammar.cpp
-    /boost/program_options//boost_program_options
-    /boost/filesystem//boost_filesystem
+    /boost/program_options//boost_program_options/<link>static
+    /boost/filesystem//boost_filesystem/<link>static
     :   #<define>QUICKBOOK_NO_DATES
         <define>BOOST_FILESYSTEM_NO_DEPRECATED
         <toolset>msvc:<cxxflags>/wd4355
