@@ -31,14 +31,14 @@ project /boost/quickbook
         <cxxstd>11
     ;
 
-# The release scripts expect this as the default build target.
-install dist-bin
-    : src//quickbook/<link>static
-    : <install-type>EXE <location>$(DIST_DIR)/bin
-    : release ;
-
 explicit
-    [ alias dist : dist-bin ]
+    [ install dist-bin
+        : src//quickbook/<link>static
+        : <install-type>EXE <location>$(DIST_DIR)/bin
+        : release ]
     [ alias quickbook : src//quickbook/<link>static ]
     [ alias all : quickbook dist test ]
     ;
+
+# Install distribution files/execs by default.
+alias dist : dist-bin ;
