@@ -43,7 +43,7 @@ jobs:
             os: ubuntu-20.04
             install: g++-10
           - toolset: gcc-11
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             install: g++-11
           - toolset: gcc-12
             os: ubuntu-22.04
