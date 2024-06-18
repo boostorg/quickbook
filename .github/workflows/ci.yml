@@ -52,6 +52,10 @@ jobs:
             container: ubuntu:23.04
             os: ubuntu-latest
             install: g++-13
+          - toolset: gcc-14
+            container: ubuntu:24.04
+            os: ubuntu-latest
+            install: g++-14
           - toolset: clang
             compiler: clang++-3.9
             container: ubuntu:18.04
@@ -118,11 +122,16 @@ jobs:
             os: ubuntu-latest
             install: clang-17
           - toolset: clang
-            os: macos-11
+            compiler: clang++-18
+            container: ubuntu:24.04
+            os: ubuntu-latest
+            install: clang-18
           - toolset: clang
             os: macos-12
           - toolset: clang
             os: macos-13
+          - toolset: clang
+            os: macos-14
 
     runs-on: ${{matrix.os}}
     container: ${{matrix.container}}
