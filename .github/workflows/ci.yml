@@ -7,7 +7,6 @@ on:
       - master
       - develop
       - feature/**
-      - modular
 
 env:
   UBSAN_OPTIONS: print_stacktrace=1
@@ -127,11 +126,11 @@ jobs:
             os: ubuntu-latest
             install: clang-18
           - toolset: clang
-            os: macos-12
-          - toolset: clang
             os: macos-13
           - toolset: clang
             os: macos-14
+          - toolset: clang
+            os: macos-15
 
     runs-on: ${{matrix.os}}
     container: ${{matrix.container}}
@@ -159,16 +158,19 @@ jobs:
       - name: Setup Boost
         run: |
           echo GITHUB_REPOSITORY: $GITHUB_REPOSITORY
-          BOOST_BRANCH=develop && ( test "${GITHUB_REF_NAME}" == "master" || test "${GITHUB_REF_NAME}" == "modular" ) && BOOST_BRANCH=${GITHUB_REF_NAME} || true
-          BOOST_GIT=https://github.com/${GITHUB_REPOSITORY/quickbook/boost}.git
-          echo BOOST_GIT: ${BOOST_GIT}
+          echo GITHUB_BASE_REF: $GITHUB_BASE_REF
+          echo GITHUB_REF: $GITHUB_REF
+          REF=${GITHUB_BASE_REF:-$GITHUB_REF}
+          REF=${REF#refs/heads/}
+          echo REF: $REF
+          BOOST_BRANCH=develop && [ "$REF" == "master" ] && BOOST_BRANCH=master || true
           echo BOOST_BRANCH: $BOOST_BRANCH
           cd ..
-          git clone -b $BOOST_BRANCH --depth 1 "${BOOST_GIT}" boost-root
+          git clone -b $BOOST_BRANCH --depth 1 https://github.com/boostorg/boost.git boost-root
           cd boost-root
-          git submodule update --init
-          rm -rf tools/quickbook/*
           cp -r $GITHUB_WORKSPACE/* tools/quickbook
+          git submodule update --init tools/boostdep
+          python3 tools/boostdep/depinst/depinst.py --git_args "--jobs 3" ../tools/quickbook
           ./bootstrap.sh
           ./b2 -d0 headers
 
@@ -210,19 +212,18 @@ jobs:
       - name: Setup Boost
         shell: cmd
         run: |
-          echo GITHUB_REPOSITORY: %GITHUB_REPOSITORY%
+          echo GITHUB_BASE_REF: %GITHUB_BASE_REF%
+          echo GITHUB_REF: %GITHUB_REF%
+          if "%GITHUB_BASE_REF%" == "" set GITHUB_BASE_REF=%GITHUB_REF%
           set BOOST_BRANCH=develop
-          if "%GITHUB_REF_NAME%" == "master" set BOOST_BRANCH=master
-          if "%GITHUB_REF_NAME%" == "modular" set BOOST_BRANCH=modular
-          set BOOST_GIT=https://github.com/%GITHUB_REPOSITORY:quickbook=boost%.git
-          echo BOOST_GIT: %BOOST_GIT%
+          for /f %%i in ("%GITHUB_BASE_REF%") do if "%%~nxi" == "master" set BOOST_BRANCH=master
           echo BOOST_BRANCH: %BOOST_BRANCH%
           cd ..
-          git clone -b %BOOST_BRANCH% --depth 1 %BOOST_GIT% boost-root
+          git clone -b %BOOST_BRANCH% --depth 1 https://github.com/boostorg/boost.git boost-root
           cd boost-root
-          git submodule update --init
-          rd /s/q tools\quickbook
           xcopy /s /e /q %GITHUB_WORKSPACE% tools\quickbook\
+          git submodule update --init tools/boostdep
+          python tools/boostdep/depinst/depinst.py --git_args "--jobs 3" ../tools/quickbook
           cmd /c bootstrap
           b2 -d0 headers
 
