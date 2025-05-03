@@ -38,7 +38,7 @@ explicit
         : src//quickbook/<link>static
         : <install-type>EXE <location>$(DIST_DIR)/bin
         : release ]
-    [ alias quickbook : src//quickbook/<link>static ]
+    [ alias quickbook : src//quickbook/<link>static : release ]
     [ alias all : quickbook dist test ]
     ;
 
