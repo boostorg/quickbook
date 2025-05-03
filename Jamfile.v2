@@ -43,4 +43,4 @@ explicit
     ;
 
 # Install distribution files/execs by default.
-alias dist : dist-bin ;
+alias dist : dist-bin : release ;
